@@ -45,6 +45,7 @@ module.exports = ({ postHandler }) => {
   })
 
   router.post('/', (req, res) => {
+    console.log(req.body)
     if (req.query.q) {
       return badRequest(res, 'Queries only supported with GET method', 405)
     } else if (req.body.mp && req.body.mp.action) {
