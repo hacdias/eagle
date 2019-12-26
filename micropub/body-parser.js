@@ -1,128 +1,143 @@
-const reservedProperties = Object.freeze([
-  'access_token',
-  'q',
-  'url',
-  'update',
-  'add',
-  'delete'
-])
-
-const formEncodedKey = /\[([^\]]*)\]$/
-
-const cleanEmptyKeys = (result) => {
-  for (const key in result) {
-    if (typeof result[key] === 'object' && Object.getOwnPropertyNames(result[key])[0] === undefined) {
-      delete result[key]
-    }
-  }
-}
 
 const parseFormEncoded = (body) => {
-  const result = {
-    type: body.h ? ['h-' + body.h] : undefined,
+  const request = {
+    action: null,
+    type: null,
     properties: {},
-    mp: {}
-  }
-
-  if (body.h) {
-    result.type = ['h-' + body.h]
-    delete body.h
-  }
-
-  for (let key in body) {
-    const rawValue = body[key]
-
-    if (reservedProperties.indexOf(key) !== -1) {
-      result[key] = rawValue
-    } else {
-      let targetProperty
-      let value = rawValue
-      let subKey
-
-      while ((subKey = formEncodedKey.exec(key))) {
-        if (subKey[1]) {
-          const tmp = {}
-          tmp[subKey[1]] = value
-          value = tmp
-        } else {
-          value = [].concat(value)
-        }
-        key = key.slice(0, subKey.index)
-      }
-
-      if (key.indexOf('mp-') === 0) {
-        key = key.substr(3)
-        targetProperty = result.mp
-      } else {
-        targetProperty = result.properties
-      }
-
-      targetProperty[key] = [].concat(value)
+    commands: {},
+    update: {
+      replace: [],
+      add: [],
+      delete: []
     }
   }
 
-  cleanEmptyKeys(result)
-  return result
+  if (typeof body.h !== 'undefined') {
+    request.action = 'create'
+    request.type = `t-${body.h}`
+
+    delete body.h
+    delete body.access_token
+
+    if (typeof body.action !== 'undefined') {
+      throw new Error('cannot specify an action when creating a post')
+    }
+
+    for (const [key, value] in Object.entries(body)) {
+      if (Array.isArray(value) && value.length === 0) {
+        throw new Error('values in form-encoded input can only be numeric indexed arrays')
+      }
+
+      console.log(key)
+
+      // TODO
+
+      /*
+       foreach($POST as $k=>$v) {
+
+        if(is_array($v) && !isset($v[0]))
+          return new Error('invalid_input', $k, 'Values in form-encoded input can only be numeric indexed arrays');
+        if(is_array($v) && isset($v[0]) && is_array($v[0])) {
+          return new Error('invalid_input', $k, 'Nested objects are not allowed in form-encoded requests');
+        }
+        // All values in mf2 json are arrays
+        if(!is_array($v))
+          $v = [$v];
+        if(substr($k, 0, 3) == 'mp-') {
+          $request->_commands[$k] = $v;
+        } else {
+          $request->_properties[$k] = $v;
+        }
+      }
+      */
+    }
+
+    return request
+  }
+
+  if (typeof body.action !== 'undefined') {
+    if (body.action === 'update') {
+      throw new Error('micropub update actions require using the JSON syntax')
+    }
+
+    if (typeof body.url !== 'string') {
+      throw new Error('micropub actions require a URL property')
+    }
+
+    request.action = body.action
+    request.url = body.url
+
+    return request
+  }
+
+  throw new Error('no micropub data was found in the request')
 }
 
 const parseJson = function (body) {
-  const result = {
+  const request = {
+    action: null,
+    type: null,
     properties: {},
-    mp: {}
-  }
-
-  for (let key in body) {
-    const value = body[key]
-
-    if (reservedProperties.indexOf(key) !== -1 || ['properties', 'type'].indexOf(key) !== -1) {
-      result[key] = value
-    } else if (key.indexOf('mp-') === 0) {
-      key = key.substr(3)
-      result.mp[key] = [].concat(value)
+    commands: {},
+    update: {
+      replace: [],
+      add: [],
+      delete: []
     }
   }
 
-  for (const key in body.properties) {
-    if (['url'].indexOf(key) !== -1) {
-      result[key] = result[key] || [].concat(body.properties[key])[0]
-      delete body.properties[key]
+  if (typeof body.type !== 'undefined') {
+    const request = {}
+    if (!Array.isArray(body.type)) {
+      throw new Error('property "type" must be an array of microformat vocabularies')
     }
-  }
 
-  cleanEmptyKeys(result)
-  return result
-}
+    request.action = 'create'
+    request.type = body.type
 
-const parseFiles = function (body, files) {
-  const allResults = {};
+    if (typeof body.properties !== 'object') {
+      throw new Error('in JSON format, all properties must be specified in a properties object')
+    }
 
-  ['video', 'photo', 'audio'].forEach(type => {
-    const result = [];
-
-    ([].concat(files[type] || [], files[type + '[]'] || [])).forEach(file => {
-      if (file.truncated) {
-        // logger.warn('File was truncated');
-        return
+    for (const [key, value] in Object.entries(body.properties)) {
+      if (!Array.isArray(value) || value.length === 0) {
+        throw new Error('property values in JSOn format must be arrays')
       }
 
-      result.push({
-        filename: file.originalname,
-        buffer: file.buffer
-      })
-    })
-
-    if (result.length) {
-      allResults[type] = result
+      if (key.startsWith('mp-')) {
+        request.commands[key] = value
+      } else {
+        request.properties[key] = value
+      }
     }
-  })
 
-  return Object.getOwnPropertyNames(allResults)[0] !== undefined
-    ? { ...body, files: allResults }
-    : { ...body }
+    return request
+  }
+
+  if (typeof body.action !== 'undefined') {
+    if (typeof body.url !== 'string') {
+      throw new Error('Micropub actions require a URL property')
+    }
+
+    request.action = body.action
+    request.url = body.url
+
+    if (body.action === 'update') {
+      for (const key in Object.keys(request.update)) {
+        if (typeof body[key] !== 'undefined') {
+          // TODO: more validation
+          request[key] = body[key]
+        }
+      }
+    }
+
+    return request
+  }
+
+  throw new Error('no micropub data was found in the request')
 }
 
 module.exports = {
   parseFormEncoded,
-  parseJson,
-  parseFiles
+  parseJson
 }

@@ -1,6 +1,6 @@
 const express = require('express')
 const { badRequest } = require('./utils')
-const { parseJson, parseFormEncoded, processFiles } = require('./body-parser')
+const { parseJson, parseFormEncoded } = require('./body-parser')
 
 module.exports = ({ postHandler }) => {
   const router = express.Router({
@@ -10,22 +10,6 @@ module.exports = ({ postHandler }) => {
 
   router.use(express.json())
   router.use(express.urlencoded({ extended: true }))
-
-  router.use((req, res, next) => {
-    if (req.body) {
-      if (req.is('json')) {
-        req.body = parseJson(req.body)
-      } else {
-        req.body = parseFormEncoded(req.body)
-      }
-    }
-
-    if (req.files && Object.getOwnPropertyNames(req.files)[0]) {
-      req.body = processFiles(req.body, req.files)
-    }
-
-    next()
-  })
 
   router.use((req, res, next) => {
     if (/* TODO: invalid token */ false) {
@@ -45,14 +29,16 @@ module.exports = ({ postHandler }) => {
   })
 
   router.post('/', (req, res) => {
-    console.log(req.body)
-    if (req.query.q) {
-      return badRequest(res, 'Queries only supported with GET method', 405)
-    } else if (req.body.mp && req.body.mp.action) {
-      // TODO
-      return badRequest(res, 'This endpoint does not yet support updates.', 501)
-    } else if (!req.body.type) {
-      return badRequest(res, 'Missing "h" value.')
+    let request
+
+    try {
+      if (req.is('json')) {
+        request = parseJson(req.body)
+      } else {
+        request = parseFormEncoded(req.body)
+      }
+    } catch (e) {
+      return badRequest(res, e.toString())
     }
 
     try {
