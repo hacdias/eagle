@@ -42,7 +42,7 @@ module.exports = ({ postHandler }) => {
     }
 
     try {
-      const location = postHandler(req.body)
+      const location = postHandler(request)
       res.redirect(201, location)
     } catch (e) {
       console.log(e)
