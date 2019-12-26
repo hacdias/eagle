@@ -14,7 +14,7 @@ const parseFormEncoded = (body) => {
 
   if (typeof body.h !== 'undefined') {
     request.action = 'create'
-    request.type = `t-${body.h}`
+    request.type = `h-${body.h}`
 
     delete body.h
     delete body.access_token
@@ -86,7 +86,6 @@ const parseJson = function (body) {
     }
 
     for (const [key, value] of Object.entries(body.properties)) {
-      console.log(key, value)
       if (!Array.isArray(value) || value.length === 0) {
         throw new Error('property values in JSOn format must be arrays')
       }
@@ -110,10 +109,10 @@ const parseJson = function (body) {
     request.url = body.url
 
     if (body.action === 'update') {
-      for (const key in Object.keys(request.update)) {
+      for (const key of Object.keys(request.update)) {
         if (typeof body[key] !== 'undefined') {
           // TODO: more validation
-          request[key] = body[key]
+          request.update[key] = body[key]
         }
       }
     }
