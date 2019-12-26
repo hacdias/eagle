@@ -109,13 +109,19 @@ const parseJson = function (body) {
     request.url = body.url
 
     if (body.action === 'update') {
-      for (const key of Object.keys(request.update)) {
-        if (typeof body[key] !== 'undefined') {
-          if (!Array.isArray(typeof body[key])) {
-            throw new Error(`${key} must be an array`)
+      for (const type of Object.keys(request.update)) {
+        if (typeof body[type] !== 'undefined') {
+          if (Array.isArray(typeof body[type])) {
+            throw new Error(`${type} must not be an array`)
           }
 
-          request.update[key] = body[key]
+          for (const [key, value] of Object.entries(body[type])) {
+            if (!Array.isArray(value) && type !== 'delete') {
+              throw new Error(`${key}.${type} must be an array`)
+            }
+          }
+
+          request.update[type] = body[type]
         }
       }
     }
