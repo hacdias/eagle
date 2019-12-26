@@ -22,6 +22,7 @@ const authenticate = async (token, endpoint, me) => {
 
   // TODO: check for multiple users
   // TODO: check for scopes
+  // TODO: token must be less than X hours?
 }
 
 module.exports = ({ postHandler, tokenReference }) => {
