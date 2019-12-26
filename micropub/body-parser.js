@@ -23,7 +23,7 @@ const parseFormEncoded = (body) => {
       throw new Error('cannot specify an action when creating a post')
     }
 
-    for (const [key, value] in Object.entries(body)) {
+    for (const [key, value] of Object.entries(body)) {
       if (Array.isArray(value) && value.length === 0) {
         throw new Error('values in form-encoded input can only be numeric indexed arrays')
       }
@@ -87,7 +87,6 @@ const parseJson = function (body) {
   }
 
   if (typeof body.type !== 'undefined') {
-    const request = {}
     if (!Array.isArray(body.type)) {
       throw new Error('property "type" must be an array of microformat vocabularies')
     }
@@ -100,7 +99,7 @@ const parseJson = function (body) {
     }
 
     for (const [key, value] of Object.entries(body.properties)) {
-	console.log(key, value)
+      console.log(key, value)
       if (!Array.isArray(value) || value.length === 0) {
         throw new Error('property values in JSOn format must be arrays')
       }
