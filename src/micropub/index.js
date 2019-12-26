@@ -12,11 +12,11 @@ const authenticate = async (token, endpoint, me) => {
     responseType: 'json'
   })
 
-  if (!body.data.me || !body.data.scope || Array.isArray(body.data.me) || Array.isArray(body.data.scope)) {
+  if (!body.me || !body.scope || Array.isArray(body.me) || Array.isArray(body.scope)) {
     throw new Error('invalid token')
   }
 
-  if (body.data.me !== me) {
+  if (body.me !== me) {
     throw new Error('forbidden')
   }
 
