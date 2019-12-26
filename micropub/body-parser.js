@@ -28,7 +28,7 @@ const parseFormEncoded = (body) => {
         throw new Error('values in form-encoded input can only be numeric indexed arrays')
       }
 
-      console.log(key)
+      console.log(key, value)
 
       // TODO
 
