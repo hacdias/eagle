@@ -99,7 +99,8 @@ const parseJson = function (body) {
       throw new Error('in JSON format, all properties must be specified in a properties object')
     }
 
-    for (const [key, value] in Object.entries(body.properties)) {
+    for (const [key, value] of Object.entries(body.properties)) {
+	console.log(key, value)
       if (!Array.isArray(value) || value.length === 0) {
         throw new Error('property values in JSOn format must be arrays')
       }
