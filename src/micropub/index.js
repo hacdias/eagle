@@ -43,7 +43,10 @@ module.exports = ({ postHandler, tokenReference }) => {
     }
 
     if (!token) {
-      return badRequest(res, 'missing "Authorization" header or body parameter.', 401)
+      return res.status(401).json({
+        error: 'unauthorized',
+        error_description: 'missing "Authorization" header or body parameter'
+      })
     }
 
     authenticate(token, tokenReference.endpoint, tokenReference.me)
