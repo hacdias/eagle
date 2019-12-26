@@ -23,33 +23,20 @@ const parseFormEncoded = (body) => {
       throw new Error('cannot specify an action when creating a post')
     }
 
-    for (const [key, value] of Object.entries(body)) {
+    for (let [key, value] of Object.entries(body)) {
       if (Array.isArray(value) && value.length === 0) {
         throw new Error('values in form-encoded input can only be numeric indexed arrays')
       }
 
-      console.log(key, value)
-
-      // TODO
-
-      /*
-       foreach($POST as $k=>$v) {
-
-        if(is_array($v) && !isset($v[0]))
-          return new Error('invalid_input', $k, 'Values in form-encoded input can only be numeric indexed arrays');
-        if(is_array($v) && isset($v[0]) && is_array($v[0])) {
-          return new Error('invalid_input', $k, 'Nested objects are not allowed in form-encoded requests');
-        }
-        // All values in mf2 json are arrays
-        if(!is_array($v))
-          $v = [$v];
-        if(substr($k, 0, 3) == 'mp-') {
-          $request->_commands[$k] = $v;
-        } else {
-          $request->_properties[$k] = $v;
-        }
+      if (!Array.isArray(value)) {
+        value = [value]
       }
-      */
+
+      if (key.startsWith('mp-')) {
+        request.commands[key] = value
+      } else {
+        request.properties[key] = value
+      }
     }
 
     return request
