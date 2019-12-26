@@ -7,6 +7,10 @@ require('dotenv').config()
 const micropub = require('./micropub')
 
 app.use('/micropub', micropub({
+  tokenReference: {
+    me: 'https://hacdias.com/',
+    endpoint: 'https://tokens.indieauth.com/token',
+  },
   postHandler: (data) => {
     console.log(JSON.stringify(data, null, 2))
     return '/location/'

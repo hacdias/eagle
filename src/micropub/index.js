@@ -1,8 +1,30 @@
 const express = require('express')
+const got = require('got')
 const { badRequest } = require('./utils')
 const { parseJson, parseFormEncoded } = require('./body-parser')
 
-module.exports = ({ postHandler }) => {
+const authenticate = async (token, endpoint, me) => {
+  const { body } = await got(endpoint, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    responseType: 'json'
+  })
+
+  if (!body.data.me || !body.data.scope || Array.isArray(body.data.me) || Array.isArray(body.data.scope)) {
+    throw new Error('invalid token')
+  }
+
+  if (body.data.me !== me) {
+    throw new Error('forbidden')
+  }
+
+  // TODO: check for multiple users
+  // TODO: check for scopes
+}
+
+module.exports = ({ postHandler, tokenReference }) => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -12,15 +34,25 @@ module.exports = ({ postHandler }) => {
   router.use(express.urlencoded({ extended: true }))
 
   router.use((req, res, next) => {
-    if (/* TODO: invalid token */ false) {
-      res.status(403).json({
-        error: 'forbidden'
-      })
+    let token
 
-      return
+    if (req.headers.authorization) {
+      token = req.headers.authorization.trim().split(/\s+/)[1]
+    } else if (!token && req.body && req.body.access_token) {
+      token = req.body.access_token
     }
 
-    next()
+    if (!token) {
+      return badRequest(res, 'missing "Authorization" header or body parameter.', 401)
+    }
+
+    authenticate(token, tokenReference.endpoint, tokenReference.me)
+      .then(next)
+      .catch(e => {
+        res.status(403).json({
+          error: 'forbidden'
+        })
+      })
   })
 
   router.get('/', (req, res) => {
