@@ -56,7 +56,7 @@ module.exports = ({ postHandler }) => {
 
     try {
       const location = postHandler(req.body)
-      res.redirect(location, 201)
+      res.redirect(201, location)
     } catch (e) {
       console.log(e)
       res.status(500).json({

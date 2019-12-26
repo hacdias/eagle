@@ -6,6 +6,7 @@ const micropub = require('./micropub')
 
 app.use('/micropub', micropub({
   postHandler: (data) => {
+    console.log(data)
     return '/location/'
   }
 }))
