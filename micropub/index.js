@@ -1,8 +1,8 @@
 const express = require('express')
 const { badRequest } = require('./utils')
-const { parseJson, parseFormEncoded } = require('./body-parser')
+const { parseJson, parseFormEncoded, processFiles } = require('./body-parser')
 
-module.exports = (options) => {
+module.exports = ({ postHandler }) => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -18,6 +18,10 @@ module.exports = (options) => {
       } else {
         req.body = parseFormEncoded(req.body)
       }
+    }
+
+    if (req.files && Object.getOwnPropertyNames(req.files)[0]) {
+      req.body = processFiles(req.body, req.files)
     }
 
     next()
@@ -50,8 +54,15 @@ module.exports = (options) => {
       return badRequest(res, 'Missing "h" value.')
     }
 
-    console.log(res.body)
-    res.sendStatus(200)
+    try {
+      const location = postHandler(req.body)
+      res.redirect(location, 201)
+    } catch (e) {
+      console.log(e)
+      res.status(500).json({
+        error: 'internal server error'
+      })
+    }
   })
 
   return router

@@ -93,7 +93,36 @@ const parseJson = function (body) {
   return result
 }
 
+const parseFiles = function (body, files) {
+  const allResults = {};
+
+  ['video', 'photo', 'audio'].forEach(type => {
+    const result = [];
+
+    ([].concat(files[type] || [], files[type + '[]'] || [])).forEach(file => {
+      if (file.truncated) {
+        // logger.warn('File was truncated');
+        return
+      }
+
+      result.push({
+        filename: file.originalname,
+        buffer: file.buffer
+      })
+    })
+
+    if (result.length) {
+      allResults[type] = result
+    }
+  })
+
+  return Object.getOwnPropertyNames(allResults)[0] !== undefined
+    ? { ...body, files: allResults }
+    : { ...body }
+}
+
 module.exports = {
   parseFormEncoded,
-  parseJson
+  parseJson,
+  parseFiles
 }
