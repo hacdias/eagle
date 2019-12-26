@@ -111,7 +111,10 @@ const parseJson = function (body) {
     if (body.action === 'update') {
       for (const key of Object.keys(request.update)) {
         if (typeof body[key] !== 'undefined') {
-          // TODO: more validation
+          if (!Array.isArray(typeof body[key])) {
+            throw new Error(`${key} must be an array`)
+          }
+
           request.update[key] = body[key]
         }
       }
