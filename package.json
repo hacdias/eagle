@@ -11,5 +11,8 @@
   "dependencies": {
     "express": "^4.17.1",
     "micropub-helper": "^1.6.1"
+  },
+  "devDependencies": {
+    "standard": "^14.3.1"
   }
 }
