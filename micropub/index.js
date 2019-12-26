@@ -24,8 +24,16 @@ module.exports = ({ postHandler }) => {
   })
 
   router.get('/', (req, res) => {
-    console.log(res.body)
-    res.sendStatus(200)
+    switch (req.query.q) {
+      case 'config':
+        return res.json({})
+      case 'source':
+        return res.json({})
+      case 'syndicate-to':
+        return res.json({})
+      default:
+        badRequest(res, 'invalid query')
+    }
   })
 
   router.post('/', (req, res) => {
@@ -45,7 +53,6 @@ module.exports = ({ postHandler }) => {
       const location = postHandler(request)
       res.redirect(201, location)
     } catch (e) {
-      console.log(e)
       res.status(500).json({
         error: 'internal server error'
       })
