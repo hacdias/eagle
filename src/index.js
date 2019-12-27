@@ -11,7 +11,15 @@ app.use('/micropub', micropub({
     me: 'https://hacdias.com/',
     endpoint: 'https://tokens.indieauth.com/token',
   },
-  postHandler: (data) => {
+  queryHandler: async (query) => {
+    console.log(query)
+    return {}
+  },
+  mediaHandler: async (files) => {
+    console.log(files)
+    return 'https://media.hacdias.com/file.jpg'
+  },
+  postHandler: async (data) => {
     console.log(JSON.stringify(data, null, 2))
     return '/location/'
   }
