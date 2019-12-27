@@ -1,35 +1,71 @@
 const fs = require('fs')
+const path = require('path')
 const yaml = require('js-yaml')
 
 module.exports = class HugoManager {
+  constructor ({ contentDir }) {
+    this.contentDir = contentDir
+  }
+
+  _getNextPostNumber (year, month, day) {
+    const pathToCheck = path.join(this.contentDir, year, month, day)
+
+    const lastNum = fs.readdirSync(pathToCheck)
+      .filter(f => fs.statSync(f).isDirectory())
+      .sort().pop()
+
+    return (parseInt(lastNum) + 1).toString().padStart(2, '0')
+  }
+
   newPost ({ properties, commands }) {
     const date = new Date()
     const year = date.getFullYear().toString()
     const month = (date.getMonth() + 1).toString().padStart(2, '0')
     const day = date.getDate().toString().padStart(2, '0')
 
+    const content = properties.content
+      ? properties.content.join('\n').trim()
+      : ''
+
+    delete properties.content
+
     const meta = {
-      title: null,
+      title: properties.name
+        ? properties.name.join(' ').trim()
+        : '',
       description: null,
       date,
       categories: [],
       tags: [],
-      aliases: [
-        `/${year}/${month}/${day}/TODO/`
-      ]
+      aliases: [],
+      properties: {}
     }
 
-    console.log(yaml.safeDump(meta))
+    delete properties.name
 
-    const content = properties.content
-      ? properties.content.join('\n')
+    if (meta.title === '' && content === '') {
+      throw new Error('must have title or content')
+    }
+
+    if (properties.category) meta.tags = properties.category
+
+    const slug = commands['mp-slug']
+      ? commands['mp-slug'][0]
       : ''
 
-    const file = `---\n${yaml.safeDump(meta, { sortKeys: true })}\n---\n${content}`
-    console.log(file)
+    meta.properties = properties
 
-    const path = `/${year}/${month}/${day}/TODO/`
+    const num = this._getNextPostNumber(year, month, day)
+    const alias = `/${year}/${month}/${day}/${num}/`
+    const url = `${alias}${slug}`
 
-    return `https://hacdias.com${path}`
+    const dirPath = path.join(this.contentDir, url)
+    const indexPath = path.join(dirPath, 'index.md')
+    const index = `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content}`
+
+    fs.mkdirSync(dirPath, { recursive: true })
+    fs.writeFileSync(indexPath, index)
+
+    return `https://hacdias.com${url}`
   }
 }

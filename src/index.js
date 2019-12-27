@@ -7,7 +7,9 @@ require('dotenv').config()
 
 const micropub = require('./micropub')
 
-const hugo = new HugoManager()
+const hugo = new HugoManager({
+  contentDir: '../hacdias.com/content'
+})
 
 app.use('/micropub', micropub({
   tokenReference: {
