@@ -106,7 +106,7 @@ module.exports = class HugoManager {
       console.log(webmention)
       const dataPath = path.join(
         this.contentDir,
-        webmention['wm-target'].replace('http://hacdias.com/', '', 1),
+        webmention.target.replace('http://hacdias.com/', '', 1),
         'data'
       )
 
@@ -116,7 +116,7 @@ module.exports = class HugoManager {
         '---\nheadless: true\n---'
       )
 
-      const dataFile = path.join(dataPath, webmention['wm-property'])
+      const dataFile = path.join(dataPath, webmention.post['wm-property'])
 
       if (!fs.existsSync(dataFile)) {
         fs.outputJSONSync(dataFile, [webmention])
@@ -126,7 +126,7 @@ module.exports = class HugoManager {
         fs.outputJSONSync(dataFile, arr)
       }
 
-      this.gitCommit(`webmention from ${webmention.url}`)
+      this.gitCommit(`webmention from ${webmention.post.url}`)
     })
   }
 
