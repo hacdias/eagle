@@ -12,7 +12,7 @@ module.exports = class HugoManager {
     fs.ensureDirSync(pathToCheck)
 
     const lastNum = fs.readdirSync(pathToCheck)
-      .filter(f => fs.statSync(f).isDirectory())
+      .filter(f => fs.statSync(path.join(pathToCheck, f)).isDirectory())
       .sort().pop() || '00'
 
     return (parseInt(lastNum) + 1).toString().padStart(2, '0')
