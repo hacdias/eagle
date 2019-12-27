@@ -8,7 +8,7 @@ require('dotenv').config()
 const micropub = require('./micropub')
 
 const hugo = new HugoManager({
-  contentDir: '../hacdias.com/content'
+  contentDir: require('path').join(__dirname, '../../hacdias.com/content')
 })
 
 app.use('/micropub', micropub({
