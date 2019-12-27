@@ -142,7 +142,12 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
     let request
 
     if (req.files) {
-      if (req.files.length === 1) {
+      let i = 0
+      for (const key of req.files) {
+        i += req.files[key].length
+      }
+
+      if (i === 1) {
         parseFiles(req.files)
           .then(([file]) => mediaHandler(file))
           .then(loc => res.redirect(201, loc))
