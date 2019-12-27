@@ -1,6 +1,6 @@
 const express = require('express')
 
-module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) => {
+module.exports = () => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
