@@ -148,8 +148,9 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
       }
 
       if (i === 1) {
-        parseFiles(req.files)
-          .then(([file]) => mediaHandler(file))
+        const [file] = parseFiles(req.files)
+
+        mediaHandler(file)
           .then(loc => res.redirect(201, loc))
           .catch(e => {
             debug('internal error on media handler: %s', e.toString())
