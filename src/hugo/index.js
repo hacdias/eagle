@@ -60,6 +60,14 @@ module.exports = class HugoManager {
     const alias = `/${year}/${month}/${day}/${num}/`
     const url = `${alias}${slug}`
 
+    meta.aliases = [alias]
+
+    if (properties['bookmark-of']) {
+      meta.categories = ['bookmark']
+    } else {
+      meta.categories = ['notes']
+    }
+
     const dirPath = path.join(this.contentDir, url)
     const indexPath = path.join(dirPath, 'index.md')
     const index = `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content}`
