@@ -8,7 +8,6 @@ module.exports = ({ hugo }) => {
   })
 
   router.use(express.json())
-  router.use(express.urlencoded({ extended: true }))
 
   router.post('/', (req, res) => {
     debug('incoming webmention')
@@ -19,11 +18,11 @@ module.exports = ({ hugo }) => {
     hugo.handleWebMention(req.body)
       .then(() => {
         debug('webmention handled')
-        req.status(200)
+        res.status(200)
       })
       .catch(e => {
         debug('error while handling webmention %s', e.toString())
-        req.status(500)
+        res.status(500)
       })
   })
 

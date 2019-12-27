@@ -103,6 +103,7 @@ module.exports = class HugoManager {
 
   handleWebMention (webmention) {
     return this.limit(() => {
+      console.log(webmention)
       const dataPath = path.join(
         this.contentDir,
         webmention['wm-target'].replace('http://hacdias.com/', '', 1),
