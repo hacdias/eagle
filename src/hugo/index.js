@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const yaml = require('js-yaml')
 
@@ -9,10 +9,11 @@ module.exports = class HugoManager {
 
   _getNextPostNumber (year, month, day) {
     const pathToCheck = path.join(this.contentDir, year, month, day)
+    fs.ensureDirSync(pathToCheck)
 
     const lastNum = fs.readdirSync(pathToCheck)
       .filter(f => fs.statSync(f).isDirectory())
-      .sort().pop()
+      .sort().pop() || '00'
 
     return (parseInt(lastNum) + 1).toString().padStart(2, '0')
   }
@@ -63,7 +64,7 @@ module.exports = class HugoManager {
     const indexPath = path.join(dirPath, 'index.md')
     const index = `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content}`
 
-    fs.mkdirSync(dirPath, { recursive: true })
+    fs.ensureDirSync(dirPath, { recursive: true })
     fs.writeFileSync(indexPath, index)
 
     return `https://hacdias.com${url}`
