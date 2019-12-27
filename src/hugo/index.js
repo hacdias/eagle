@@ -101,6 +101,34 @@ module.exports = class HugoManager {
     })
   }
 
+  handleWebMention (webmention) {
+    return this.limit(() => {
+      const dataPath = path.join(
+        this.contentDir,
+        webmention['wm-target'].replace('http://hacdias.com/', '', 1),
+        'data'
+      )
+
+      fs.ensureDirSync(dataPath)
+      fs.writeFileSync(
+        path.join(dataPath, 'index.md'),
+        '---\nheadless: true\n---'
+      )
+
+      const dataFile = path.join(dataPath, webmention['wm-property'])
+
+      if (!fs.existsSync(dataFile)) {
+        fs.outputJSONSync(dataFile, [webmention])
+      } else {
+        const arr = fs.readJSONSync(dataFile)
+        arr.push(webmention)
+        fs.outputJSONSync(dataFile, arr)
+      }
+
+      this.gitCommit(`webmention from ${webmention.url}`)
+    })
+  }
+
   gitCommit (message) {
     let res = spawnSync('git', ['add', '-A'], { cwd: this.dir })
     if (res.error) throw res.error
