@@ -49,6 +49,15 @@ module.exports = class HugoManager {
       throw new Error('must have title or content')
     }
 
+    if (meta.title === '') {
+      meta.title = content.length > 15
+        ? content.substring(0, 15) + '...'
+        : content
+    }
+
+    // TODO: correctly parse location
+    // and get more info
+
     if (properties.category) meta.tags = properties.category
 
     let slug = commands['mp-slug']
@@ -70,7 +79,9 @@ module.exports = class HugoManager {
     const alias = `/${year}/${month}/${day}/${num}/`
     const url = `${alias}${slug}`
 
-    meta.aliases = [alias]
+    if (slug !== '') {
+      meta.aliases = [alias]
+    }
 
     const dirPath = path.join(this.contentDir, url)
     const indexPath = path.join(dirPath, 'index.md')
