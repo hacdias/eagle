@@ -116,17 +116,21 @@ module.exports = class HugoManager {
         '---\nheadless: true\n---'
       )
 
-      const dataFile = path.join(dataPath, webmention.post['wm-property'])
+      const dataFile = path.join(dataPath, 'webmentions.json')
 
       if (!fs.existsSync(dataFile)) {
-        fs.outputJSONSync(dataFile, [webmention])
+        fs.outputJSONSync(dataFile, [webmention], {
+          spaces: 2
+        })
       } else {
         const arr = fs.readJSONSync(dataFile)
         const inArray = arr.filter(a => a['wm-id'] === webmention.post['wm-id']).length !== 0
 
         if (!inArray) {
           arr.push(webmention.post)
-          fs.outputJSONSync(dataFile, arr)
+          fs.outputJSONSync(dataFile, arr, {
+            spaces: 2
+          })
         }
       }
 
