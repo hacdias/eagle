@@ -143,7 +143,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
 
     if (req.files) {
       let i = 0
-      for (const key of req.files) {
+      for (const key in req.files) {
         i += req.files[key].length
       }
 
