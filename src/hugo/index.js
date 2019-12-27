@@ -1,6 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 const yaml = require('js-yaml')
+const slugify = require('@sindresorhus/slugify')
 
 module.exports = class HugoManager {
   constructor ({ contentDir }) {
@@ -52,7 +53,9 @@ module.exports = class HugoManager {
 
     const slug = commands['mp-slug']
       ? commands['mp-slug'][0]
-      : ''
+      : meta.title
+        ? slugify(meta.title)
+        : ''
 
     meta.properties = properties
 
