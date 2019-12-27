@@ -1,10 +1,13 @@
 const express = require('express')
 const app = express()
 const port = 3000
+const HugoManager = require('./hugo')
 
 require('dotenv').config()
 
 const micropub = require('./micropub')
+
+const hugo = new HugoManager()
 
 app.use('/micropub', micropub({
   tokenReference: {
@@ -26,6 +29,11 @@ app.use('/micropub', micropub({
   },
   postHandler: async (data) => {
     console.log(JSON.stringify(data, null, 2))
+
+    if (data.action === 'create') {
+      return hugo.newPost(data)
+    }
+
     return '/location/'
   }
 }))
