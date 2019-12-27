@@ -122,8 +122,12 @@ module.exports = class HugoManager {
         fs.outputJSONSync(dataFile, [webmention])
       } else {
         const arr = fs.readJSONSync(dataFile)
-        arr.push(webmention)
-        fs.outputJSONSync(dataFile, arr)
+        const inArray = arr.filter(a => a['wm-id'] === webmention.post['wm-id']).length !== 0
+
+        if (!inArray) {
+          arr.push(webmention.post)
+          fs.outputJSONSync(dataFile, arr)
+        }
       }
 
       this.gitCommit(`webmention from ${webmention.post.url}`)
