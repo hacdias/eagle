@@ -15,7 +15,7 @@ const hugo = new HugoManager({
 })
 
 app.use('/micropub', micropub({ hugo }))
-app.use('/webmention', webmention({ hugo }))
+app.use('/webmention', webmention({ hugo, secret: process.env.WEBMENTION_TOKEN }))
 app.get('/robots.txt', robots)
 app.use(r404)
 

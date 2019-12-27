@@ -1,7 +1,7 @@
 const express = require('express')
 const debug = require('debug')('webmention')
 
-module.exports = ({ hugo }) => {
+module.exports = ({ hugo, secret }) => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -11,7 +11,11 @@ module.exports = ({ hugo }) => {
 
   router.post('/', (req, res) => {
     debug('incoming webmention')
-    // TODO: check for secret
+
+    if (req.body.secret !== secret) {
+      debug('invalid secret')
+      return res.status(403)
+    }
 
     delete req.body.secret
 
