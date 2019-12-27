@@ -118,7 +118,7 @@ module.exports = class HugoManager {
       const dataFile = path.join(dataPath, 'webmentions.json')
 
       if (!fs.existsSync(dataFile)) {
-        fs.outputJSONSync(dataFile, [webmention], {
+        fs.outputJSONSync(dataFile, [webmention.post], {
           spaces: 2
         })
       } else {
