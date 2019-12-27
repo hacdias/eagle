@@ -51,11 +51,18 @@ module.exports = class HugoManager {
 
     if (properties.category) meta.tags = properties.category
 
-    const slug = commands['mp-slug']
+    let slug = commands['mp-slug']
       ? commands['mp-slug'][0]
       : meta.title
         ? slugify(meta.title)
         : ''
+
+    if (properties['bookmark-of']) {
+      meta.categories = ['bookmark']
+      slug = ''
+    } else {
+      meta.categories = ['notes']
+    }
 
     meta.properties = properties
 
@@ -64,12 +71,6 @@ module.exports = class HugoManager {
     const url = `${alias}${slug}`
 
     meta.aliases = [alias]
-
-    if (properties['bookmark-of']) {
-      meta.categories = ['bookmark']
-    } else {
-      meta.categories = ['notes']
-    }
 
     const dirPath = path.join(this.contentDir, url)
     const indexPath = path.join(dirPath, 'index.md')
