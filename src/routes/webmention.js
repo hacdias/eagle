@@ -1,6 +1,6 @@
 const express = require('express')
 
-module.exports = () => {
+module.exports = ({ hugo }) => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true

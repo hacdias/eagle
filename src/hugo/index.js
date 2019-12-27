@@ -94,12 +94,22 @@ module.exports = class HugoManager {
       fs.ensureDirSync(dirPath, { recursive: true })
       fs.writeFileSync(indexPath, index)
 
-      let res = spawnSync('git', ['add', '-A'], { cwd: this.dir })
-      if (res.error) throw res.error
-      res = spawnSync('git', ['commit', '-m', `add ${url}`], { cwd: this.dir })
-      if (res.error) throw res.error
+      this.gitCommit(`add ${url}`)
+      this.gitPush()
 
       return `https://hacdias.com${url}`
     })
+  }
+
+  gitCommit (message) {
+    let res = spawnSync('git', ['add', '-A'], { cwd: this.dir })
+    if (res.error) throw res.error
+    res = spawnSync('git', ['commit', '-m', message], { cwd: this.dir })
+    if (res.error) throw res.error
+  }
+
+  gitPush () {
+    const { error } = spawnSync('git', ['push'], { cwd: this.dir })
+    if (error) throw error
   }
 }
