@@ -17,7 +17,8 @@
     "got": "^10.2.0",
     "js-yaml": "^3.13.1",
     "micropub-helper": "^1.6.1",
-    "multer": "^1.4.2"
+    "multer": "^1.4.2",
+    "p-limit": "^2.2.1"
   },
   "devDependencies": {
     "standard": "^14.3.1"
