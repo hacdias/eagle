@@ -103,7 +103,6 @@ module.exports = class HugoManager {
 
   handleWebMention (webmention) {
     return this.limit(() => {
-      console.log(webmention)
       const dataPath = path.join(
         this.contentDir,
         webmention.target.replace('https://hacdias.com/', '', 1),
@@ -135,6 +134,7 @@ module.exports = class HugoManager {
       }
 
       this.gitCommit(`webmention from ${webmention.post.url}`)
+      this.gitPush()
     })
   }
 
