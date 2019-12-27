@@ -9,7 +9,7 @@ const micropub = require('./micropub')
 const webmention = require('./webmention')
 
 const hugo = new HugoManager({
-  contentDir: require('path').join(__dirname, '../../hacdias.com/content')
+  dir: require('path').join(__dirname, '../../hacdias.com')
 })
 
 app.use('/micropub', micropub({

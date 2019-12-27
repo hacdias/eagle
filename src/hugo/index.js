@@ -2,10 +2,12 @@ const fs = require('fs-extra')
 const path = require('path')
 const yaml = require('js-yaml')
 const slugify = require('@sindresorhus/slugify')
+const { spawnSync } = require('child_process')
 
 module.exports = class HugoManager {
-  constructor ({ contentDir }) {
-    this.contentDir = contentDir
+  constructor ({ dir }) {
+    this.dir = dir
+    this.contentDir = path.join(dir, 'content')
   }
 
   _getNextPostNumber (year, month, day) {
@@ -89,6 +91,11 @@ module.exports = class HugoManager {
 
     fs.ensureDirSync(dirPath, { recursive: true })
     fs.writeFileSync(indexPath, index)
+
+    let res = spawnSync('git', 'add', '-A', { cwd: this.dir })
+    if (res.error) throw res.error
+    res = spawnSync('git', 'commit', '-m', `add ${dirPath}`, { cwd: this.dir })
+    if (res.error) throw res.error
 
     return `https://hacdias.com${url}`
   }
