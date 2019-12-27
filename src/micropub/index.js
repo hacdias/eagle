@@ -8,8 +8,9 @@ const { parseJson, parseFormEncoded } = require('./body-parser')
 
 const requiredScopes = Object.freeze([
   'create',
-  'update',
-  'delete'
+  'update'
+  // 'delete',
+  // 'media',
 ])
 
 const badRequest = (res, reason, code = 400) => {
