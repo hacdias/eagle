@@ -46,12 +46,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
   const storage = multer.memoryStorage()
   const upload = multer({ storage: storage })
 
-  router.use(upload.fields([
-    'video', 'video[]',
-    'photo', 'photo[]',
-    'audio', 'audio[]',
-    'file'
-  ].map(type => ({ name: type }))))
+  router.use(upload.single('file'))
 
   router.use((req, res, next) => {
     let token
@@ -141,26 +136,17 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
     debug('received POST request')
     let request
 
-    if (req.files) {
-      let i = 0
-      for (const key in req.files) {
-        i += req.files[key].length
-      }
-
-      if (i === 1) {
-        const [file] = parseFiles(req.files)
-
-        mediaHandler(file)
-          .then(loc => res.redirect(201, loc))
-          .catch(e => {
-            debug('internal error on media handler: %s', e.toString())
-            res.status(500).json({
-              error: 'internal server error'
-            })
+    if (req.file) {
+      mediaHandler(req.file)
+        .then(loc => res.redirect(201, loc))
+        .catch(e => {
+          debug('internal error on media handler: %s', e.toString())
+          res.status(500).json({
+            error: 'internal server error'
           })
-      } else {
-        return badRequest(res, 'only one file is permitted')
-      }
+        })
+
+      return
     }
 
     try {

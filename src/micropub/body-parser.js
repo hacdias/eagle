@@ -133,34 +133,7 @@ const parseJson = function (body) {
   throw new Error('no micropub data was found in the request')
 }
 
-const parseFiles = (files) => {
-  const allResults = {}
-
-  ;['video', 'photo', 'audio', 'file'].forEach(type => {
-    const result = []
-
-    ;([].concat(files[type] || [], files[type + '[]'] || [])).forEach(file => {
-      if (file.truncated) {
-        debug('file was truncated')
-        return
-      }
-
-      result.push({
-        filename: file.originalname,
-        buffer: file.buffer
-      })
-    })
-
-    if (result.length) {
-      allResults[type] = result
-    }
-  })
-
-  return allResults
-}
-
 module.exports = {
   parseFormEncoded,
-  parseJson,
-  parseFiles
+  parseJson
 }
