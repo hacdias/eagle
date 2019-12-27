@@ -12,6 +12,11 @@ app.use('/micropub', micropub({
     endpoint: 'https://tokens.indieauth.com/token',
   },
   queryHandler: async (query) => {
+    if (query.q === 'config') {
+      return {
+        'media-endpoint': 'https://api.hacdias.com/micropub'
+      }
+    }
     console.log(query)
     return {}
   },
