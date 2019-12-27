@@ -6,6 +6,7 @@ const HugoManager = require('./hugo')
 require('dotenv').config()
 
 const micropub = require('./micropub')
+const webmention = require('./webmention')
 
 const hugo = new HugoManager({
   contentDir: require('path').join(__dirname, '../../hacdias.com/content')
@@ -14,7 +15,7 @@ const hugo = new HugoManager({
 app.use('/micropub', micropub({
   tokenReference: {
     me: 'https://hacdias.com/',
-    endpoint: 'https://tokens.indieauth.com/token',
+    endpoint: 'https://tokens.indieauth.com/token'
   },
   queryHandler: async (query) => {
     if (query.q === 'config') {
@@ -39,5 +40,7 @@ app.use('/micropub', micropub({
     return '/location/'
   }
 }))
+
+app.use('/webmention', webmention())
 
 app.listen(port, () => console.log(`Listening on port ${port}!`))
