@@ -11,7 +11,7 @@ const robots = require('./routes/robots')
 const r404 = require('./routes/404')
 
 const hugo = new HugoManager({
-  dir: require('path').join(__dirname, '../../hacdias.com')
+  dir: process.env.HUGO_DIR
 })
 
 app.use('/micropub', micropub({ hugo }))
