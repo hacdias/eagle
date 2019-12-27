@@ -106,7 +106,7 @@ module.exports = class HugoManager {
       console.log(webmention)
       const dataPath = path.join(
         this.contentDir,
-        webmention.target.replace('http://hacdias.com/', '', 1),
+        webmention.target.replace('https://hacdias.com/', '', 1),
         'data'
       )
 
