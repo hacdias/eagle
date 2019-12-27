@@ -69,7 +69,7 @@ module.exports = class HugoManager {
         : ''
 
     if (properties['bookmark-of']) {
-      meta.categories = ['bookmark']
+      meta.categories = ['bookmarks']
       slug = ''
     } else {
       meta.categories = ['notes']
