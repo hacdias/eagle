@@ -96,7 +96,7 @@ module.exports = class HugoManager {
 
       let res = spawnSync('git', ['add', '-A'], { cwd: this.dir })
       if (res.error) throw res.error
-      res = spawnSync('git', ['commit', '-m', `add ${dirPath}`], { cwd: this.dir })
+      res = spawnSync('git', ['commit', '-m', `add ${url}`], { cwd: this.dir })
       if (res.error) throw res.error
 
       return `https://hacdias.com${url}`
