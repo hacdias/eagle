@@ -91,8 +91,8 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
         const scopes = data.scope.split(' ')
 
         for (const scope of requiredScopes) {
-          debug('user does not have required scopes')
           if (!scopes.includes(scope)) {
+            debug('user does not have required scopes')
             return res.status(401).json({
               error: 'insufficient_scope',
               error_description: `requires scopes: ${requiredScopes.join(', ')}`
