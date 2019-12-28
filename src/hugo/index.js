@@ -49,6 +49,18 @@ module.exports = class HugoManager {
 
       delete properties.name
 
+      if (properties['like-of']) {
+        if (properties['like-of'].length !== 1) {
+          throw new Error('invalid like of, length !== 1')
+        }
+
+        const url = properties['like-of'][0]
+
+        meta.categories = [ 'likes' ]
+        meta.title = `Liked ${url}`
+        // TODO: fetch 'like-of' source content
+      }
+
       if (meta.title === '' && content === '') {
         throw new Error('must have title or content')
       }
