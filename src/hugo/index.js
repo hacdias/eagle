@@ -67,7 +67,7 @@ module.exports = class HugoManager {
 
     if (meta.title === '') {
       meta.title = content.length > 15
-        ? content.substring(0, 15) + '...'
+        ? content.substring(0, 15).trim() + '...'
         : content
     }
 
