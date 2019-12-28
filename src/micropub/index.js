@@ -7,8 +7,8 @@ const { parseJson, parseFormEncoded } = require('./body-parser')
 // https://www.w3.org/TR/micropub
 
 const requiredScopes = Object.freeze([
-  'create',
-  'update'
+  // 'create',
+  // 'update'
   // 'delete',
   // 'media',
 ])
