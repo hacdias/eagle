@@ -1,4 +1,4 @@
-const createLikeOf = (properties) => {
+const like = (properties) => {
   if (properties['like-of'].length !== 1) {
     throw new Error('invalid like of, length !== 1')
   }
@@ -17,7 +17,26 @@ const createLikeOf = (properties) => {
   }
 }
 
-const createBookmark = (properties) => {
+const repost = (properties) => {
+  if (properties['repost-of'].length !== 1) {
+    throw new Error('invalid like of, length !== 1')
+  }
+
+  const url = properties['repost-of'][0]
+  const meta = {
+    title: `Reposted ${url}`,
+    categories: ['reposts']
+  }
+
+  // TODO: fetch 'like-of' source content
+
+  return {
+    meta,
+    slug: false
+  }
+}
+
+const bookmark = (properties) => {
   const meta = {
     categories: ['bookmarks']
   }
@@ -29,6 +48,7 @@ const createBookmark = (properties) => {
 }
 
 module.exports = {
-  createBookmark,
-  createLikeOf
+  bookmark,
+  like,
+  repost
 }

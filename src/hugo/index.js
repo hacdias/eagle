@@ -4,8 +4,8 @@ const slugify = require('@sindresorhus/slugify')
 const pLimit = require('p-limit')
 
 const git = require('./git')
+const create = require('./creators')
 const { makePost } = require('./fs')
-const { createBookmark, createLikeOf } = require('./creators')
 
 module.exports = class HugoManager {
   constructor ({ dir }) {
@@ -33,12 +33,13 @@ module.exports = class HugoManager {
     let res
     let hasSlug = true
 
+    // TODO: check if matches more than once, then abort.
     if (properties['bookmark-of']) {
-      res = createBookmark(properties)
-    }
-
-    if (properties['like-of']) {
-      res = createLikeOf(properties)
+      res = create.bookmark(properties)
+    } else if (properties['like-of']) {
+      res = create.like(properties)
+    } else if (properties['repost-of']) {
+      res = create.repost(properties)
     }
 
     if (res) {
