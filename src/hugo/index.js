@@ -68,9 +68,11 @@ module.exports = class HugoManager {
     }
 
     if (properties.location) {
-      properties.location = await Promise.all(properties
-        .location
-        .forEach(loc => parseLocation(loc)))
+      properties.location = await Promise.all(
+        properties
+          .location
+          .map(loc => parseLocation(loc))
+      )
     } else {
       // TODO: also check my GPS logs
     }
