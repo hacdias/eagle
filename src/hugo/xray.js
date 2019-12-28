@@ -1,9 +1,7 @@
 const got = require('got')
 
-const XRAY_ENTRYPOINT = 'https://xray.p3k.app'
-
 module.exports = async url => {
-  const { body } = await got.post(`${XRAY_ENTRYPOINT}/parse`, {
+  const { body } = await got.post(`${process.env.XRAY_ENTRYPOINT}/parse`, {
     form: {
       url,
       twitter_api_key: process.env.TWITTER_API_KEY,

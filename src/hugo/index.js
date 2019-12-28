@@ -3,6 +3,7 @@ const path = require('path')
 const slugify = require('@sindresorhus/slugify')
 const pLimit = require('p-limit')
 const crypto = require('crypto')
+const debug = require('debug')('hugo')
 
 const git = require('./git')
 const create = require('./creators')
@@ -18,6 +19,8 @@ module.exports = class HugoManager {
   }
 
   async _xrayAndSave (url) {
+    debug('gonna xray %s', url)
+
     try {
       const sha256 = crypto.createHash('sha256').update(url).digest('hex')
       const rxayDir = path.join(this.dir, 'data', 'xray')
@@ -33,9 +36,13 @@ module.exports = class HugoManager {
         await fs.outputJSON(xrayFile, data.data, {
           spaces: 2
         })
+
+        debug('%s successfully xrayed', url)
+      } else {
+        debug('%s already xrayed', url)
       }
     } catch (e) {
-      console.log(e)
+      debug('could not xray %s: %s', url, e.toString())
     }
   }
 
