@@ -18,8 +18,19 @@ const parseLocation = async (location) => {
       responseType: 'json'
     })
 
-    debug('got location info %o', body)
-    return body
+    const res = {
+      type: 'h-adr',
+      properties: {
+        locality: body.locality,
+        region: body.region,
+        country: body.coutry,
+        latitude: body.latitude,
+        longitude: body.longitude
+      }
+    }
+
+    debug('got location info %o', res)
+    return res
   } catch (e) {
     debug('could not get info for %o: %s', location, e.toString())
     return location
