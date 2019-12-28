@@ -2,7 +2,12 @@ const micropub = require('../micropub')
 
 const config = Object.freeze({
   'media-endpoint': 'https://api.hacdias.com/micropub',
-  'syndicate-to': []
+  'syndicate-to': [
+    {
+      uid: 'https://twitter.com/',
+      name: 'twitter.com'
+    }
+  ]
 })
 
 module.exports = ({ hugo }) => micropub({
