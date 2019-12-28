@@ -15,7 +15,7 @@ module.exports = class HugoManager {
     this.contentDir = path.join(dir, 'content')
   }
 
-  _newPost ({ properties, commands }) {
+  async _newPost ({ properties, commands }) {
     const date = new Date()
 
     const content = properties.content
@@ -68,9 +68,9 @@ module.exports = class HugoManager {
     }
 
     if (properties.location) {
-      properties.location = properties
+      properties.location = await Promise.all(properties
         .location
-        .forEach(loc => parseLocation(loc))
+        .forEach(loc => parseLocation(loc)))
     } else {
       // TODO: also check my GPS logs
     }
