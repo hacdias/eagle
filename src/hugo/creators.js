@@ -58,7 +58,7 @@ const reply = (properties) => {
 
   return {
     meta,
-    slug: true
+    slug: false
   }
 }
 
