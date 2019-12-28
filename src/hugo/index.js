@@ -2,17 +2,34 @@ const fs = require('fs-extra')
 const path = require('path')
 const slugify = require('@sindresorhus/slugify')
 const pLimit = require('p-limit')
+const crypto = require('crypto')
 
 const git = require('./git')
 const create = require('./creators')
 const { makePost } = require('./fs')
 const parseLocation = require('./location')
+const xray = require('./xray')
 
 module.exports = class HugoManager {
   constructor ({ dir }) {
     this.limit = pLimit(1)
     this.dir = dir
     this.contentDir = path.join(dir, 'content')
+  }
+
+  async _xrayAndSave (url) {
+    try {
+      const sha256 = crypto.createHash('sha256').update(url).digest('hex')
+      const rxayDir = path.join(this.dir, 'data', 'xray')
+      const xrayFile = path.join(rxayDir, `${sha256}.json`)
+
+      if (!await fs.existsSync(xrayFile)) {
+        const data = await xray(url)
+        await fs.outputJSON(xrayFile, data)
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   async _newPost ({ properties, commands }) {
@@ -55,6 +72,10 @@ module.exports = class HugoManager {
     meta = {
       ...meta,
       ...res.meta
+    }
+
+    if (res.url) {
+      await this._xrayAndSave(res.url)
     }
 
     hasSlug = res.slug

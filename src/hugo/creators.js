@@ -9,10 +9,9 @@ const like = (properties) => {
     categories: ['likes']
   }
 
-  // TODO: fetch 'like-of' source content
-
   return {
     meta,
+    url,
     slug: false
   }
 }
@@ -28,10 +27,9 @@ const repost = (properties) => {
     categories: ['reposts']
   }
 
-  // TODO: fetch 'like-of' source content
-
   return {
     meta,
+    url,
     slug: false
   }
 }
@@ -58,6 +56,7 @@ const reply = (properties) => {
 
   return {
     meta,
+    url: properties['in-reply-to'][0],
     slug: false
   }
 }
