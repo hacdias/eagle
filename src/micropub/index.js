@@ -109,6 +109,11 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
   router.get('/', (req, res) => {
     debug('received GET request with query %o', req.query)
 
+    if (!queryHandler) {
+      debug('query handler not implemented')
+      return res.status(501)
+    }
+
     switch (req.query.q) {
       case 'source':
         if (typeof req.query.url !== 'string') {
@@ -138,6 +143,11 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
     let request
 
     if (req.file) {
+      if (!mediaHandler) {
+        debug('media handler not implemented')
+        return res.status(501)
+      }
+
       mediaHandler(req.file)
         .then(loc => res.redirect(201, loc))
         .catch(e => {
@@ -148,6 +158,11 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
         })
 
       return
+    }
+
+    if (!postHandler) {
+      debug('post handler not implemented')
+      return res.status(501)
     }
 
     try {
