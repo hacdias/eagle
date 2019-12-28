@@ -6,6 +6,7 @@ const pLimit = require('p-limit')
 const git = require('./git')
 const create = require('./creators')
 const { makePost } = require('./fs')
+const parseLocation = require('./location')
 
 module.exports = class HugoManager {
   constructor ({ dir }) {
@@ -66,8 +67,13 @@ module.exports = class HugoManager {
       meta.tags = properties.category
     }
 
-    // TODO: correctly parse location
-    // and get more info
+    if (properties.location) {
+      properties.location = properties
+        .location
+        .forEach(loc => parseLocation(loc))
+    } else {
+      // TODO: also check my GPS logs
+    }
 
     const slug = hasSlug
       ? commands['mp-slug']
