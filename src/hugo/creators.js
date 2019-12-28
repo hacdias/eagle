@@ -47,8 +47,24 @@ const bookmark = (properties) => {
   }
 }
 
+const reply = (properties) => {
+  if (properties['in-reply-to'].length !== 1) {
+    throw new Error('invalid like of, length !== 1')
+  }
+
+  const meta = {
+    categories: ['replies']
+  }
+
+  return {
+    meta,
+    slug: true
+  }
+}
+
 module.exports = {
   bookmark,
   like,
-  repost
+  repost,
+  reply
 }

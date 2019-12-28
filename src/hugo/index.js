@@ -41,15 +41,23 @@ module.exports = class HugoManager {
       res = create.like(properties)
     } else if (properties['repost-of']) {
       res = create.repost(properties)
+    } else if (properties['in-reply-to']) {
+      res = create.reply(properties)
+    } else {
+      res = {
+        meta: {
+          categories: ['notes']
+        },
+        slug: true
+      }
     }
 
-    if (res) {
-      meta = {
-        ...meta,
-        ...res.meta
-      }
-      hasSlug = res.slug
+    meta = {
+      ...meta,
+      ...res.meta
     }
+
+    hasSlug = res.slug
 
     delete properties.name
 
@@ -84,10 +92,6 @@ module.exports = class HugoManager {
           ? slugify(meta.title)
           : ''
       : ''
-
-    if (!meta.categories) {
-      meta.categories = ['notes']
-    }
 
     meta.properties = properties
 
