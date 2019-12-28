@@ -25,7 +25,14 @@ module.exports = class HugoManager {
 
       if (!await fs.existsSync(xrayFile)) {
         const data = await xray(url)
-        await fs.outputJSON(xrayFile, data)
+
+        if (data.code !== 200) {
+          return
+        }
+
+        await fs.outputJSON(xrayFile, data.data, {
+          spaces: 2
+        })
       }
     } catch (e) {
       console.log(e)
