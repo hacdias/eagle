@@ -23,7 +23,7 @@ const parseLocation = async (location) => {
       properties: {
         locality: body.locality,
         region: body.region,
-        country: body.coutry,
+        country: body.country,
         latitude: body.latitude,
         longitude: body.longitude
       }
