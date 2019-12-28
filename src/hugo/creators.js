@@ -5,11 +5,9 @@ const createLikeOf = (properties) => {
 
   const url = properties['like-of'][0]
   const meta = {
-    categories: ['bookmarks']
+    title: `Liked ${url}`,
+    categories: ['likes']
   }
-
-  meta.categories = ['likes']
-  meta.title = `Liked ${url}`
 
   // TODO: fetch 'like-of' source content
 

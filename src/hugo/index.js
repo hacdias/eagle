@@ -42,7 +42,10 @@ module.exports = class HugoManager {
     }
 
     if (res) {
-      meta = { meta, ...res.meta }
+      meta = {
+        ...meta,
+        ...res.meta
+      }
       hasSlug = res.slug
     }
 
