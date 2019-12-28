@@ -18,6 +18,7 @@ const parseLocation = async (location) => {
       responseType: 'json'
     })
 
+    debug('%o', body)
     return body
   } catch (e) {
     debug('could not get info for %o: %s', location, e.toString())
