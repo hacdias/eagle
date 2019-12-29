@@ -175,7 +175,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
       return badRequest(res, e.toString())
     }
 
-    postHandler(request)
+    postHandler(request, req.hostname)
       .then(loc => res.redirect(201, loc))
       .catch(e => {
         debug('internal error on post handler: %s', e.toString())

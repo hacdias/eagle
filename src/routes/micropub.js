@@ -31,9 +31,9 @@ module.exports = ({ eagle }) => micropub({
     console.log(files)
     return 'https://media.hacdias.com/file.jpg'
   },
-  postHandler: async (data) => {
+  postHandler: async (data, origin) => {
     if (data.action === 'create') {
-      return eagle.receiveMicropub(data)
+      return eagle.receiveMicropub(data, origin)
     }
 
     console.log(JSON.stringify(data, null, 2))

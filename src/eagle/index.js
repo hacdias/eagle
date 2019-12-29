@@ -126,6 +126,10 @@ class Eagle {
       titleWasEmpty
     } = await parseMicropub(data)
 
+    if (origin) {
+      meta.origin = origin
+    }
+
     return this.limit(async () => {
       if (relatedTo) {
         const data = await this._xrayAndSave(relatedTo.url)
