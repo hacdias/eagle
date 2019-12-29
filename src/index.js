@@ -3,6 +3,9 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000
+
+const Eagle = require('./eagle')
+
 const HugoManager = require('./hugo')
 
 const micropub = require('./routes/micropub')
@@ -10,12 +13,14 @@ const webmention = require('./routes/webmention')
 const robots = require('./routes/robots')
 const r404 = require('./routes/404')
 
+const eagle = Eagle.fromEnvironment()
+
 const hugo = new HugoManager({
   dir: process.env.HUGO_DIR,
   publicDir: process.env.HUGO_PUBLIC_DIR
 })
 
-app.use('/micropub', micropub({ hugo }))
+app.use('/micropub', micropub({ hugo, eagle }))
 app.use('/webmention', webmention({ hugo, secret: process.env.WEBMENTION_IO_TOKEN }))
 app.get('/robots.txt', robots)
 app.use(r404)
