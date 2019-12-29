@@ -7,6 +7,7 @@ const HugoManager = require('./hugo')
 
 const micropub = require('./routes/micropub')
 const webmention = require('./routes/webmention')
+const netlify = require('./routes/netlify')
 const robots = require('./routes/robots')
 const r404 = require('./routes/404')
 
@@ -16,6 +17,7 @@ const hugo = new HugoManager({
 
 app.use('/micropub', micropub({ hugo }))
 app.use('/webmention', webmention({ hugo, secret: process.env.WEBMENTION_TOKEN }))
+app.use('/netlify', netlify)
 app.get('/robots.txt', robots)
 app.use(r404)
 
