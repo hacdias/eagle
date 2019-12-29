@@ -33,8 +33,10 @@ module.exports = class HugoManager {
       '--minify',
       '--gc',
       '--cleanDestinationDir',
+      '--destination',
       this.publicDir
     ], { cwd: this.dir })
+    console.log(res)
     if (res.error) throw res.error
   }
 
