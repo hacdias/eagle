@@ -88,8 +88,15 @@ module.exports = class HugoManager {
       ...res.meta
     }
 
+    if (meta.title === '') {
+      meta.title = content.length > 15
+        ? content.substring(0, 15).trim() + '...'
+        : content
+    }
+
     if (res.url) {
       await this._xrayAndSave(res.url)
+      // TODO: check for new title
     }
 
     hasSlug = res.slug
@@ -98,12 +105,6 @@ module.exports = class HugoManager {
 
     if (meta.title === '' && content === '') {
       throw new Error('must have title or content')
-    }
-
-    if (meta.title === '') {
-      meta.title = content.length > 15
-        ? content.substring(0, 15).trim() + '...'
-        : content
     }
 
     if (properties.category) {
