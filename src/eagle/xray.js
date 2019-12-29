@@ -1,6 +1,6 @@
 const got = require('got')
 
-module.exports = async ({ url, body }, { entrypoint, twitter }) => {
+const xray = async ({ url, body }, { entrypoint, twitter }) => {
   const options = {
     form: {
       twitter_api_key: twitter.apiKey,
@@ -21,4 +21,9 @@ module.exports = async ({ url, body }, { entrypoint, twitter }) => {
 
   const res = await got.post(`${entrypoint}/parse`, options)
   return res.body
+}
+
+module.exports = {
+  xray,
+  configuredXray: (opts) => (args) => xray(args, opts)
 }

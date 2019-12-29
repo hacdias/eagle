@@ -10,7 +10,7 @@ const config = Object.freeze({
   ]
 })
 
-module.exports = ({ hugo, eagle }) => micropub({
+module.exports = ({ eagle }) => micropub({
   tokenReference: {
     me: 'https://hacdias.com/',
     endpoint: 'https://tokens.indieauth.com/token'
@@ -33,7 +33,7 @@ module.exports = ({ hugo, eagle }) => micropub({
   },
   postHandler: async (data) => {
     if (data.action === 'create') {
-      const url = hugo.newPost(data)
+      const url = await eagle.receiveMicropub(data)
       eagle.sendWebMentions(url)
       return url
     }

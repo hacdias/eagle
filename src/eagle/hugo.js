@@ -1,6 +1,7 @@
 const { join } = require('path')
 const fs = require('fs-extra')
 const yaml = require('js-yaml')
+const { spawnSync } = require('child_process')
 
 const getNextPostNumber = (contentDir, year, month, day) => {
   const pathToCheck = join(contentDir, year, month, day)
@@ -13,10 +14,10 @@ const getNextPostNumber = (contentDir, year, month, day) => {
   return (parseInt(lastNum) + 1).toString().padStart(2, '0')
 }
 
-const makePost = ({ date, slug, meta, content, contentDir }) => {
-  const year = date.getFullYear().toString()
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
+const makePost = ({ slug, meta, content }, { contentDir }) => {
+  const year = meta.date.getFullYear().toString()
+  const month = (meta.date.getMonth() + 1).toString().padStart(2, '0')
+  const day = meta.date.getDate().toString().padStart(2, '0')
 
   const num = getNextPostNumber(contentDir, year, month, day)
   const alias = `/${year}/${month}/${day}/${num}/`
@@ -36,6 +37,27 @@ const makePost = ({ date, slug, meta, content, contentDir }) => {
   return path
 }
 
+const build = ({ dir, publicDir }) => {
+  const res = spawnSync('hugo', [
+    '--minify',
+    '--gc',
+    '--cleanDestinationDir',
+    '--destination',
+    publicDir
+  ], { cwd: dir })
+  // TODO check why res.error is empty on... error
+  if (res.error) throw res.error
+}
+
 module.exports = {
-  makePost
+  makePost,
+  build,
+  configuredHugo: (opts) => {
+    opts.contentDir = join(opts.dir, 'content')
+
+    return {
+      makePost: (args) => makePost(args, opts),
+      build: () => build(opts)
+    }
+  }
 }

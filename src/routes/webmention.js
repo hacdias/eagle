@@ -1,7 +1,7 @@
 const express = require('express')
 const debug = require('debug')('webmention')
 
-module.exports = ({ hugo, secret }) => {
+module.exports = ({ eagle, secret }) => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -19,7 +19,7 @@ module.exports = ({ hugo, secret }) => {
 
     delete req.body.secret
 
-    hugo.handleWebMention(req.body)
+    eagle.receiveWebMention(req.body)
       .then(() => {
         debug('webmention handled')
         res.status(200)

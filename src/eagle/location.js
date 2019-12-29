@@ -1,7 +1,7 @@
 const got = require('got')
-const debug = require('debug')('hugo:location')
+const debug = require('debug')('eagle:location')
 
-const parseLocation = async (location) => {
+module.exports = async (location) => {
   debug('got %o', location)
 
   if (!location.startsWith('geo:')) {
@@ -36,5 +36,3 @@ const parseLocation = async (location) => {
     return location
   }
 }
-
-module.exports = parseLocation

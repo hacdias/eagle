@@ -14,5 +14,9 @@ const push = (opts) => {
 
 module.exports = {
   commit,
-  push
+  push,
+  configuredGit: (opts) => ({
+    commit: msg => commit(msg, opts),
+    push: () => push(opts)
+  })
 }

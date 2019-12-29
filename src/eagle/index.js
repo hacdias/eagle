@@ -1,16 +1,39 @@
 const { join } = require('path')
 const { parse } = require('node-html-parser')
 const fs = require('fs-extra')
-const xray = require('./xray')
+const pLimit = require('p-limit')
+const crypto = require('crypto')
+const debug = require('debug')('eagle')
+
 const webmentions = require('./webmentions')
+const { configuredXray } = require('./xray')
+const { configuredHugo } = require('./hugo')
+const { configuredGit } = require('./git')
+const parseMicropub = require('./micropub')
 
 class Eagle {
-  constructor ({ domain, hugo, twitter, telegraphToken, xrayEntrypoint }) {
+  constructor ({
+    domain,
+    hugo,
+    twitter,
+    telegraphToken,
+    xrayEntrypoint
+  }) {
+    this.limit = pLimit(1)
+    this.hugoOpts = hugo
     this.domain = domain
-    this.hugo = hugo
-    this.twitter = twitter
-    this.xrayEntrypoint = xrayEntrypoint
     this.telegraphToken = telegraphToken
+
+    this.hugo = configuredHugo(hugo)
+
+    this.xray = configuredXray({
+      twitter,
+      entrypoint: xrayEntrypoint
+    })
+
+    this.git = configuredGit({
+      cwd: hugo.dir
+    })
   }
 
   static fromEnvironment () {
@@ -34,7 +57,7 @@ class Eagle {
   async sendWebMentions (url) {
     const path = this._urlToLocal(url)
     const file = (await fs.readFile(path)).toString()
-    const ray = await this._xray({ url, body: file })
+    const ray = await this.xray({ url, body: file })
     const parsed = parse(ray.data.content.html)
     const targets = parsed.querySelectorAll('a')
       .map(p => p.attributes.href)
@@ -43,6 +66,74 @@ class Eagle {
       source: url,
       targets,
       token: this.telegraphToken
+    })
+  }
+
+  async receiveWebMention () {
+    /*
+     return this.limit(() => {
+      const dataPath = path.join(
+        this.contentDir,
+        webmention.target.replace('https://hacdias.com/', '', 1),
+        'data'
+      )
+
+      fs.ensureDirSync(dataPath)
+      fs.writeFileSync(
+        path.join(dataPath, 'index.md'),
+        '---\nheadless: true\n---'
+      )
+
+      const dataFile = path.join(dataPath, 'webmentions.json')
+
+      if (!fs.existsSync(dataFile)) {
+        fs.outputJSONSync(dataFile, [webmention.post], {
+          spaces: 2
+        })
+      } else {
+        const arr = fs.readJSONSync(dataFile)
+        const inArray = arr.filter(a => a['wm-id'] === webmention.post['wm-id']).length !== 0
+
+        if (!inArray) {
+          arr.push(webmention.post)
+          fs.outputJSONSync(dataFile, arr, {
+            spaces: 2
+          })
+        }
+      }
+
+      // this._gitCommit(`webmention from ${webmention.post.url}`)
+      // this._hugoBuild()
+      // git.push({ cwd: this.dir })
+      */
+  }
+
+  async receiveMicropub (data) {
+    const {
+      meta,
+      content,
+      slug,
+      urlsToXray
+    } = await parseMicropub(data)
+
+    for (const url of urlsToXray) {
+      await this._xrayAndSave(url)
+      // await this._xrayAndSave(res.url)
+      // TODO: check for new title
+    }
+
+    return this.limit(() => {
+      const url = this.hugo.makePost({
+        meta,
+        content,
+        slug
+      })
+
+      this.git.commit(`add ${url}`)
+      // this._hugoBuild()
+      // push
+
+      return `${this.domain}${url}`
     })
   }
 
@@ -56,15 +147,37 @@ class Eagle {
       uri += 'index.html'
     }
 
-    return join(this.hugo.publicDir, uri)
+    return join(this.hugoOpts.publicDir, uri)
   }
 
-  async _xray (arg) {
-    return xray(arg, {
-      twitter: this.twitter,
-      entrypoint: this.xrayEntrypoint
-    })
+  async _xrayAndSave (url) {
+    debug('gonna xray %s', url)
+
+    try {
+      const sha256 = crypto.createHash('sha256').update(url).digest('hex')
+      const rxayDir = join(this.hugoOpts.dir, 'data', 'xray')
+      const xrayFile = join(rxayDir, `${sha256}.json`)
+
+      if (!await fs.existsSync(xrayFile)) {
+        const data = await this.xray(url)
+
+        if (data.code !== 200) {
+          return
+        }
+
+        await fs.outputJSON(xrayFile, data.data, {
+          spaces: 2
+        })
+
+        debug('%s successfully xrayed', url)
+      } else {
+        debug('%s already xrayed', url)
+      }
+    } catch (e) {
+      debug('could not xray %s: %s', url, e.toString())
+    }
   }
+
 }
 
 module.exports = Eagle
