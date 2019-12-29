@@ -61,7 +61,7 @@ class Eagle {
     const ray = await this.xray({ url, body: file })
 
     if (!ray.data.content || !ray.data.content.html) {
-      debug('%s does not have content')
+      debug('%s does not have content or html content', url)
       return
     }
 
