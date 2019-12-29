@@ -60,7 +60,7 @@ class Eagle {
     const file = (await fs.readFile(path)).toString()
     const ray = await this.xray({ url, body: file })
 
-    if (!ray.data.content || !ray.content.html) {
+    if (!ray.data.content || !ray.data.content.html) {
       debug('%s does not have content')
       return
     }
