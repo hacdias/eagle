@@ -1,5 +1,5 @@
 const express = require('express')
-const debug = require('debug')('webmention')
+const debug = require('debug')('routes:webmention')
 
 module.exports = ({ eagle, secret }) => {
   const router = express.Router({
