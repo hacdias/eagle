@@ -54,7 +54,7 @@ class Eagle {
     })
   }
 
-  async sendWebMentions (url) {
+  async sendContentWebmentions (url) {
     debug('will scrap %s for webmentions', url)
     const path = this._urlToLocal(url)
     const file = (await fs.readFile(path)).toString()
@@ -135,6 +135,16 @@ class Eagle {
       this.git.commit(`add ${url}`)
       this.hugo.build()
       // push
+
+      // Async actions
+      if (urlsToXray.length > 0) {
+        webmentions.send({
+          source: url,
+          targets: urlsToXray,
+          token: this.telegraphToken
+        })
+      }
+      this.sendContentWebmentions(url)
 
       return `${this.domain}${url}`
     })

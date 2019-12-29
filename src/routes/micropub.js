@@ -33,9 +33,7 @@ module.exports = ({ eagle }) => micropub({
   },
   postHandler: async (data) => {
     if (data.action === 'create') {
-      const url = await eagle.receiveMicropub(data)
-      eagle.sendWebMentions(url)
-      return url
+      return eagle.receiveMicropub(data)
     }
 
     console.log(JSON.stringify(data, null, 2))
