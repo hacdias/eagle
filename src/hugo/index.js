@@ -4,6 +4,7 @@ const slugify = require('@sindresorhus/slugify')
 const pLimit = require('p-limit')
 const crypto = require('crypto')
 const debug = require('debug')('hugo')
+const { spawnSync } = require('child_process')
 
 const git = require('./git')
 const create = require('./creators')
@@ -16,6 +17,24 @@ module.exports = class HugoManager {
     this.limit = pLimit(1)
     this.dir = dir
     this.contentDir = path.join(dir, 'content')
+  }
+
+  _gitCommit (message) {
+    git.commit(message, { cwd: this.dir })
+  }
+
+  _gitPush () {
+    git.push({ cwd: this.dir })
+  }
+
+  _hugoBuild () {
+    const res = spawnSync('hugo', [
+      '--minify',
+      '--gc',
+      '--cleanDestinationDir',
+      this.publicDir
+    ], { cwd: this.dir })
+    if (res.error) throw res.error
   }
 
   async _xrayAndSave (url) {
@@ -139,8 +158,9 @@ module.exports = class HugoManager {
       contentDir: this.contentDir
     })
 
-    git.commit(`add ${url}`, { cwd: this.dir })
-    git.push({ cwd: this.dir })
+    this._gitCommit(`add ${url}`)
+    this._hugoBuild()
+    // git.push({ cwd: this.dir })
 
     return `https://hacdias.com${url}`
   }
@@ -181,8 +201,9 @@ module.exports = class HugoManager {
         }
       }
 
-      git.commit(`webmention from ${webmention.post.url}`, { cwd: this.dir })
-      git.push({ cwd: this.dir })
+      // this._gitCommit(`webmention from ${webmention.post.url}`)
+      // this._hugoBuild()
+      // git.push({ cwd: this.dir })
     })
   }
 }
