@@ -130,7 +130,7 @@ class Eagle {
       })
 
       this.git.commit(`add ${url}`)
-      // this._hugoBuild()
+      this.hugo.build()
       // push
 
       return `${this.domain}${url}`
@@ -177,7 +177,6 @@ class Eagle {
       debug('could not xray %s: %s', url, e.toString())
     }
   }
-
 }
 
 module.exports = Eagle

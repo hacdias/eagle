@@ -21,7 +21,7 @@ const makePost = ({ slug, meta, content }, { contentDir }) => {
 
   const num = getNextPostNumber(contentDir, year, month, day)
   const alias = `/${year}/${month}/${day}/${num}/`
-  const path = `${alias}${slug}`
+  const path = `${alias}${slug}/`
 
   if (slug !== '') {
     meta.aliases = [alias]
