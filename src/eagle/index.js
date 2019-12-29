@@ -116,13 +116,13 @@ class Eagle {
       meta,
       content,
       slug,
-      relatedToUrl,
+      relatedTo,
       titleWasEmpty
     } = await parseMicropub(data)
 
     return this.limit(async () => {
-      if (relatedToUrl) {
-        const data = await this._xrayAndSave(relatedToUrl)
+      if (relatedTo) {
+        const data = await this._xrayAndSave(relatedTo.url)
 
         if (titleWasEmpty && data.name) {
           meta.title = data.name
@@ -147,13 +147,13 @@ class Eagle {
           this.git.push()
         })
 
-        if (!relatedToUrl) {
+        if (!relatedTo) {
           return
         }
 
         webmentions.send({
           source: url,
-          targets: [relatedToUrl],
+          targets: [relatedTo.url],
           token: this.telegraphToken
         })
       })()

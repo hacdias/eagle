@@ -36,7 +36,13 @@ const parseType = (properties) => {
       categories: [category]
     }
 
-    return { meta, url }
+    return {
+      meta,
+      relatedTo: {
+        url,
+        prop
+      }
+    }
   }
 }
 
@@ -57,7 +63,7 @@ module.exports = async ({ properties, commands }) => {
   }
 
   const titleWasEmpty = meta.title === ''
-  let relatedToUrl = null
+  let relatedTo = null
   let buildSlug = true
 
   if (properties['bookmark-of']) {
@@ -70,7 +76,7 @@ module.exports = async ({ properties, commands }) => {
         ...meta,
         ...res.meta
       }
-      relatedToUrl = [res.url]
+      relatedTo = res.relatedTo
       buildSlug = false
     } else {
       meta.categories = ['notes']
@@ -117,7 +123,7 @@ module.exports = async ({ properties, commands }) => {
     meta,
     content,
     slug,
-    relatedToUrl,
+    relatedTo,
     titleWasEmpty
   }
 }
