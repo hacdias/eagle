@@ -126,13 +126,15 @@ class Eagle {
     }
 
     return this.limit(() => {
-      const url = this.hugo.makePost({
+      const path = this.hugo.makePost({
         meta,
         content,
         slug
       })
 
-      this.git.commit(`add ${url}`)
+      const url = `${this.domain}${path}`
+
+      this.git.commit(`add ${path}`)
       this.hugo.build()
       // push
 
@@ -146,7 +148,7 @@ class Eagle {
       }
       this.sendContentWebmentions(url)
 
-      return `${this.domain}${url}`
+      return url
     })
   }
 
