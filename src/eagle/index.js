@@ -159,7 +159,7 @@ class Eagle {
       const xrayFile = join(rxayDir, `${sha256}.json`)
 
       if (!await fs.existsSync(xrayFile)) {
-        const data = await this.xray(url)
+        const data = await this.xray({ url })
 
         if (data.code !== 200) {
           return
