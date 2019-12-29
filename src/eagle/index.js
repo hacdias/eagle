@@ -59,6 +59,12 @@ class Eagle {
     const path = this._urlToLocal(url)
     const file = (await fs.readFile(path)).toString()
     const ray = await this.xray({ url, body: file })
+
+    if (!ray.data.content || !ray.content.html) {
+      debug('%s does not have content')
+      return
+    }
+
     const parsed = parse(ray.data.content.html)
     const targets = parsed.querySelectorAll('a')
       .map(p => p.attributes.href)
