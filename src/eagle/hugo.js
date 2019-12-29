@@ -20,11 +20,11 @@ const makePost = ({ slug, meta, content }, { contentDir }) => {
   const day = meta.date.getDate().toString().padStart(2, '0')
 
   const num = getNextPostNumber(contentDir, year, month, day)
-  const alias = `/${year}/${month}/${day}/${num}/`
-  const path = `${alias}${slug}/`
+  let path = `/${year}/${month}/${day}/${num}/`
 
   if (slug !== '') {
-    meta.aliases = [alias]
+    meta.aliases = [path]
+    path += `${slug}/`
   }
 
   const dirPath = join(contentDir, path)
