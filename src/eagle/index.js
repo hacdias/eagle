@@ -55,12 +55,15 @@ class Eagle {
   }
 
   async sendWebMentions (url) {
+    debug('will scrap %s for webmentions', url)
     const path = this._urlToLocal(url)
     const file = (await fs.readFile(path)).toString()
     const ray = await this.xray({ url, body: file })
     const parsed = parse(ray.data.content.html)
     const targets = parsed.querySelectorAll('a')
       .map(p => p.attributes.href)
+
+    debug('found webmentions: %o', targets)
 
     await webmentions.send({
       source: url,
