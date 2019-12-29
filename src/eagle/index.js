@@ -56,7 +56,7 @@ class Eagle {
 
   async sendContentWebmentions (url) {
     debug('will scrap %s for webmentions', url)
-    const path = this._urlToLocal(url)
+    const path = this._urlToLocal(url, true)
     const file = (await fs.readFile(path)).toString()
     const ray = await this.xray({ url, body: file })
 
@@ -78,46 +78,56 @@ class Eagle {
     })
   }
 
-  async receiveWebMention () {
-    /*
-     return this.limit(() => {
-      const dataPath = path.join(
-        this.contentDir,
-        webmention.target.replace('https://hacdias.com/', '', 1),
-        'data'
-      )
+  async receiveWebMention (webmention, { skipGit, skipBuild } = {}) {
+    this.limit(async () => {
+      const postPath = this._urlToLocal(webmention.target)
 
-      fs.ensureDirSync(dataPath)
-      fs.writeFileSync(
-        path.join(dataPath, 'index.md'),
+      if (!await fs.exists(postPath)) {
+        // TODO: STH WRONG?
+        throw new Error(`webmention for unexisting target ${webmention.target}`)
+      }
+
+      const dataPath = join(postPath, 'data')
+
+      await fs.ensureDir(dataPath)
+      await fs.writeFile(
+        join(dataPath, 'index.md'),
         '---\nheadless: true\n---'
       )
 
-      const dataFile = path.join(dataPath, 'webmentions.json')
+      const dataFile = join(dataPath, 'webmentions.json')
 
-      if (!fs.existsSync(dataFile)) {
-        fs.outputJSONSync(dataFile, [webmention.post], {
+      if (!await fs.exists(dataFile)) {
+        await fs.outputJson(dataFile, [webmention.post], {
           spaces: 2
         })
       } else {
-        const arr = fs.readJSONSync(dataFile)
+        const arr = await fs.readJson(dataFile)
         const inArray = arr.filter(a => a['wm-id'] === webmention.post['wm-id']).length !== 0
 
         if (!inArray) {
           arr.push(webmention.post)
-          fs.outputJSONSync(dataFile, arr, {
+          await fs.outputJson(dataFile, arr, {
             spaces: 2
           })
         }
       }
 
-      // this._gitCommit(`webmention from ${webmention.post.url}`)
-      // this._hugoBuild()
-      // git.push({ cwd: this.dir })
-      */
+      if (!skipGit) {
+        this.git.commit(`webmention from ${webmention.post.url}`)
+      }
+
+      if (!skipBuild) {
+        this.hugo.build()
+      }
+
+      if (!skipGit) {
+        this.git.push()
+      }
+    })
   }
 
-  async receiveMicropub (data) {
+  async receiveMicropub (data, origin) {
     const {
       meta,
       content,
@@ -172,17 +182,21 @@ class Eagle {
     })
   }
 
-  _urlToLocal (url) {
+  _urlToLocal (url, wantPublic) {
     if (!url.startsWith(this.domain)) {
       throw new Error('url must start with domain')
     }
 
     let uri = url.replace(this.domain, '', 1)
-    if (uri.endsWith('/')) {
+    if (uri.endsWith('/') && wantPublic) {
       uri += 'index.html'
     }
 
-    return join(this.hugoOpts.publicDir, uri)
+    if (wantPublic) {
+      return join(this.hugoOpts.publicDir, uri)
+    }
+
+    return join(this.hugoOpts.dir, 'content', uri)
   }
 
   async _xrayAndSave (url) {
