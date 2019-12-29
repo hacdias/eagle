@@ -46,6 +46,9 @@ const build = ({ dir, publicDir }) => {
     publicDir
   ], { cwd: dir })
   // TODO check why res.error is empty on... error
+  console.log(res.stderr.toString())
+  console.log(res.stdout.toString())
+  if (res.stderr.toString().trim().length) throw new Error(res.stderr.toString())
   if (res.error) throw res.error
 }
 
