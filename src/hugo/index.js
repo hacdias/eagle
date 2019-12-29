@@ -13,10 +13,11 @@ const parseLocation = require('./location')
 const xray = require('./xray')
 
 module.exports = class HugoManager {
-  constructor ({ dir }) {
+  constructor ({ dir, publicDir }) {
     this.limit = pLimit(1)
     this.dir = dir
     this.contentDir = path.join(dir, 'content')
+    this.publicDir = publicDir
   }
 
   _gitCommit (message) {
