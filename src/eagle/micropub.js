@@ -56,7 +56,8 @@ module.exports = async ({ properties, commands }) => {
     date
   }
 
-  let urlsToXray = []
+  const titleWasEmpty = meta.title === ''
+  let relatedToUrl = null
   let buildSlug = true
 
   if (properties['bookmark-of']) {
@@ -69,7 +70,7 @@ module.exports = async ({ properties, commands }) => {
         ...meta,
         ...res.meta
       }
-      urlsToXray = [res.url]
+      relatedToUrl = [res.url]
       buildSlug = false
     } else {
       meta.categories = ['notes']
@@ -116,6 +117,7 @@ module.exports = async ({ properties, commands }) => {
     meta,
     content,
     slug,
-    urlsToXray
+    relatedToUrl,
+    titleWasEmpty
   }
 }

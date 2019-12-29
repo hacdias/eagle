@@ -116,16 +116,19 @@ class Eagle {
       meta,
       content,
       slug,
-      urlsToXray
+      relatedToUrl,
+      titleWasEmpty
     } = await parseMicropub(data)
 
-    for (const url of urlsToXray) {
-      await this._xrayAndSave(url)
-      // await this._xrayAndSave(res.url)
-      // TODO: check for new title
-    }
+    return this.limit(async () => {
+      if (relatedToUrl) {
+        const data = await this._xrayAndSave(relatedToUrl)
 
-    return this.limit(() => {
+        if (titleWasEmpty && data.name) {
+          meta.title = data.name
+        }
+      }
+
       const path = this.hugo.makePost({
         meta,
         content,
@@ -136,17 +139,24 @@ class Eagle {
 
       this.git.commit(`add ${path}`)
       this.hugo.build()
-      // push
 
       // Async actions
-      if (urlsToXray.length > 0) {
+      ;(async () => {
+        this.sendContentWebmentions(url)
+        this.limit(() => {
+          this.git.push()
+        })
+
+        if (!relatedToUrl) {
+          return
+        }
+
         webmentions.send({
           source: url,
-          targets: urlsToXray,
+          targets: [relatedToUrl],
           token: this.telegraphToken
         })
-      }
-      this.sendContentWebmentions(url)
+      })()
 
       return url
     })
@@ -173,7 +183,7 @@ class Eagle {
       const rxayDir = join(this.hugoOpts.dir, 'data', 'xray')
       const xrayFile = join(rxayDir, `${sha256}.json`)
 
-      if (!await fs.existsSync(xrayFile)) {
+      if (!await fs.exists(xrayFile)) {
         const data = await this.xray({ url })
 
         if (data.code !== 200) {
@@ -185,8 +195,10 @@ class Eagle {
         })
 
         debug('%s successfully xrayed', url)
+        return data.data
       } else {
         debug('%s already xrayed', url)
+        return fs.readJson(xrayFile)
       }
     } catch (e) {
       debug('could not xray %s: %s', url, e.toString())
