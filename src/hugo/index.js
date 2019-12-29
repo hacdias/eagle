@@ -36,7 +36,7 @@ module.exports = class HugoManager {
       '--destination',
       this.publicDir
     ], { cwd: this.dir })
-    console.log(res)
+    // TODO check why res.error is empty on... error
     if (res.error) throw res.error
   }
 
