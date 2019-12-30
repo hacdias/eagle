@@ -10,6 +10,7 @@ const { configuredXray } = require('./xray')
 const { configuredHugo } = require('./hugo')
 const { configuredGit } = require('./git')
 const parseMicropub = require('./micropub')
+const Twitter = require('./twitter')
 
 class Eagle {
   constructor ({
@@ -34,6 +35,8 @@ class Eagle {
     this.git = configuredGit({
       cwd: hugo.dir
     })
+
+    this.twitter = new Twitter(twitter)
   }
 
   static fromEnvironment () {
