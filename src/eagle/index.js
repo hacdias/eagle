@@ -63,14 +63,22 @@ class Eagle {
     const file = (await fs.readFile(path)).toString()
     const ray = await this.xray({ url, body: file })
 
-    if (!ray.data.content || !ray.data.content.html) {
-      debug('%s does not have content or html content', url)
-      return
+    const targets = []
+    const toCheck = ['like-of', 'in-reply-to', 'repost-of']
+
+    for (const param of toCheck) {
+      if (Array.isArray(ray.data[param])) {
+        targets.push(...ray.data[param])
+      }
     }
 
-    const parsed = parse(ray.data.content.html)
-    const targets = parsed.querySelectorAll('a')
-      .map(p => p.attributes.href)
+    if (ray.data.content && ray.data.content.html) {
+      const parsed = parse(ray.data.content.html)
+      targets.push(
+        ...parsed.querySelectorAll('a')
+          .map(p => p.attributes.href)
+      )
+    }
 
     debug('found webmentions: %o', targets)
 
