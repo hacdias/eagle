@@ -165,23 +165,56 @@ class Eagle {
 
       // Async actions
       ;(async () => {
-        this.sendContentWebmentions(url)
-        this.limit(() => {
-          this.git.push()
+        this._afterReceiveMicropub({
+          url,
+          path,
+          meta,
+          content,
+          slug,
+          relatedTo,
+          titleWasEmpty
         })
 
-        if (!relatedTo) {
-          return
-        }
-
-        webmentions.send({
-          source: url,
-          targets: [relatedTo.url],
-          token: this.telegraphToken
-        })
+        // TODO: check data.commands
       })()
 
       return url
+    })
+  }
+
+  _afterReceiveMicropub ({ url, path, meta, content, slug, relatedTo, titleWasEmpty }) {
+    this.sendContentWebmentions(url)
+
+    this.limit(() => {
+      this.git.push()
+    })
+
+    if (!relatedTo) {
+      return
+    }
+
+    if (relatedTo.url.startsWith('https://twitter.com')) {
+      const id = relatedTo.url.split('/').pop()
+
+      switch (relatedTo.prop) {
+        case 'like-of':
+          this.twitter.like(id)
+          break
+        case 'repost-of':
+          this.twitter.retweet(id)
+          break
+        case 'in-reply-to':
+          // TODO
+          break
+        default:
+          break
+      }
+    }
+
+    webmentions.send({
+      source: url,
+      targets: [relatedTo.url],
+      token: this.telegraphToken
     })
   }
 

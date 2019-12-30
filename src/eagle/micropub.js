@@ -19,6 +19,7 @@ const types = Object.freeze([
   }
 ])
 
+// TODO. check this https://indieweb.org/post-type-discovery
 const parseType = (properties) => {
   // TODO: check if matches more than once, then abort.
   for (const { prop, title, category } of types) {
