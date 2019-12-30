@@ -14,7 +14,7 @@ module.exports = ({ eagle, secret }) => {
 
     if (req.body.secret !== secret) {
       debug('invalid secret')
-      return res.status(403)
+      return res.sendStatus(403)
     }
 
     delete req.body.secret
@@ -22,11 +22,11 @@ module.exports = ({ eagle, secret }) => {
     eagle.receiveWebMention(req.body)
       .then(() => {
         debug('webmention handled')
-        res.status(200)
+        res.sendStatus(200)
       })
       .catch(e => {
         debug('error while handling webmention %s', e.toString())
-        res.status(500)
+        res.sendStatus(500)
       })
   })
 

@@ -111,7 +111,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
 
     if (!queryHandler) {
       debug('query handler not implemented')
-      return res.status(501)
+      return res.sendStatus(501)
     }
 
     switch (req.query.q) {
@@ -145,7 +145,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
     if (req.file) {
       if (!mediaHandler) {
         debug('media handler not implemented')
-        return res.status(501)
+        return res.sendStatus(501)
       }
 
       mediaHandler(req.file)
@@ -162,7 +162,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
 
     if (!postHandler) {
       debug('post handler not implemented')
-      return res.status(501)
+      return res.sendStatus(501)
     }
 
     try {
