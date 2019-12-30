@@ -217,11 +217,6 @@ class Eagle {
           return
         }
 
-        if (data.data.type !== 'entry') {
-          debug('unrecognized data type for %s: %s', url, data.data.type)
-          return
-        }
-
         await fs.outputJSON(xrayFile, data.data, {
           spaces: 2
         })
