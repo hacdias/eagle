@@ -19,19 +19,37 @@ module.exports = class Twitter {
     }
   }
 
-  got () {
-    got(arguments, {
-      headers: oauth.toHeader(oauth.authorize({ url, method: 'GET' }, token)),
+  _makeHeaders (url, method) {
+    return this.oauth.toHeader(this.oauth.authorize({ url, method }, this.token))
+  }
+
+  async _get (url) {
+    const { body } = await got(url, {
+      headers: this._makeHeaders(url, 'GET'),
       responseType: 'json'
     })
+
+    return body
+  }
+
+  async _post (url) {
+    const { body } = got.post(url, {
+      headers: this._makeHeaders(url, 'POST'),
+      responseType: 'json'
+    })
+
+    return body
   }
 
   timeline () {
-    const url = 'https://api.twitter.com/1.1/statuses/home_timeline.json'
+    return this._get('https://api.twitter.com/1.1/statuses/home_timeline.json')
+  }
 
-    got(url, {
-      headers: this.oauth.toHeader(this.oauth.authorize({ url, method: 'GET' }, this.token)),
-      responseType: 'json'
-    })
+  like (id) {
+    return this._post(`https://api.twitter.com/1.1/favorites/create.json?id=${id}`)
+  }
+
+  retweet (id) {
+    return this._post(`https://api.twitter.com/1.1/statuses/retweet/${id}.json`)
   }
 }
