@@ -266,6 +266,10 @@ class Eagle {
       const rxayDir = join(this.hugoOpts.dir, 'data', 'xray')
       const xrayFile = join(rxayDir, `${sha256}.json`)
 
+      if (url.startsWith('/')) {
+        url = `${this.domain}${url}`
+      }
+
       if (!await fs.exists(xrayFile)) {
         const data = await this.xray({ url })
 
