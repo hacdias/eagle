@@ -2,7 +2,7 @@ const express = require('express')
 const got = require('got')
 const debug = require('debug')('micropub')
 const multer = require('multer')
-const { parseJson, parseFormEncoded } = require('./body-parser')
+const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
 
 // https://www.w3.org/TR/micropub
 
