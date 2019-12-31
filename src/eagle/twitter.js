@@ -1,6 +1,7 @@
 const OAuth = require('oauth-1.0a')
 const got = require('got')
 const crypto = require('crypto')
+const debug = require('debug')('twitter')
 
 module.exports = class Twitter {
   constructor (opts) {
@@ -54,6 +55,8 @@ module.exports = class Twitter {
   }
 
   tweet ({ status, inReplyTo }) {
+    debug('tweeting "%s", replying to %s', status, inReplyTo)
+
     let url = `https://api.twitter.com/1.1/statuses/update.json?status=${encodeURIComponent(status)}`
 
     if (inReplyTo) {
