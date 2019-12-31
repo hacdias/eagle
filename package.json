@@ -9,7 +9,7 @@
   "author": "Henrique Dias <hacdias.com> (https://hacdias.com)",
   "license": "MIT",
   "dependencies": {
-    "@hacdias/micropub-parser": "^1.0.0",
+    "@hacdias/micropub-parser": "^1.0.1",
     "@sindresorhus/slugify": "^0.9.1",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",

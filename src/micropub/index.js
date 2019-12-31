@@ -1,17 +1,10 @@
 const express = require('express')
-const got = require('got')
 const debug = require('debug')('micropub')
 const multer = require('multer')
 const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
+const indieauth = require('../indieauth')
 
 // https://www.w3.org/TR/micropub
-
-const requiredScopes = Object.freeze([
-  // 'create',
-  // 'update'
-  // 'delete',
-  // 'media',
-])
 
 const badRequest = (res, reason, code = 400) => {
   debug('invalid request, code: %d; reason: %s', code, reason)
@@ -19,20 +12,6 @@ const badRequest = (res, reason, code = 400) => {
     error: 'invalid_request',
     error_description: reason
   })
-}
-
-const getAuth = async (token, endpoint) => {
-  debug('getting token info from %s', endpoint)
-
-  const { body } = await got(endpoint, {
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`
-    },
-    responseType: 'json'
-  })
-
-  return body
 }
 
 module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) => {
@@ -43,68 +22,12 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
 
   router.use(express.json())
   router.use(express.urlencoded({ extended: true }))
+  router.use(indieauth(tokenReference))
 
   const storage = multer.memoryStorage()
   const upload = multer({ storage: storage })
 
   router.use(upload.single('file'))
-
-  router.use((req, res, next) => {
-    let token
-
-    if (req.headers.authorization) {
-      token = req.headers.authorization.trim().split(/\s+/)[1]
-    } else if (!token && req.body && req.body.access_token) {
-      token = req.body.access_token
-    }
-
-    if (!token) {
-      debug('missing authentication token')
-      return res.status(401).json({
-        error: 'unauthorized',
-        error_description: 'missing authentication token'
-      })
-    }
-
-    getAuth(token, tokenReference.endpoint)
-      .then(data => {
-        if (!data.me || !data.scope || Array.isArray(data.me) || Array.isArray(data.scope)) {
-          debug('invalid response from endpoint')
-          return res.status(403).json({
-            error: 'forbidden',
-            error_description: 'invalid response from endpoint'
-          })
-        }
-
-        if (data.me !== tokenReference.me) {
-          debug('user is not allowed')
-          return res.status(403).json({
-            error: 'forbidden',
-            error_description: 'user not allowed'
-          })
-        }
-
-        const scopes = data.scope.split(' ')
-
-        for (const scope of requiredScopes) {
-          if (!scopes.includes(scope)) {
-            debug('user does not have required scopes: %o, has %o', requiredScopes, scopes)
-            return res.status(401).json({
-              error: 'insufficient_scope',
-              error_description: `requires scopes: ${requiredScopes.join(', ')}`
-            })
-          }
-        }
-
-        next()
-      })
-      .catch(e => {
-        debug('internal error on auth: %s', e.toString())
-        res.status(500).json({
-          error: 'internal server error'
-        })
-      })
-  })
 
   router.get('/', (req, res) => {
     debug('received GET request with query %o', req.query)
@@ -146,6 +69,10 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
       if (!mediaHandler) {
         debug('media handler not implemented')
         return res.sendStatus(501)
+      }
+
+      if (!req.hasScope(['media'])) {
+        return
       }
 
       mediaHandler(req.file)
