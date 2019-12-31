@@ -40,8 +40,6 @@ const makePost = ({ slug, meta, content }, { contentDir }) => {
 const build = ({ dir, publicDir }) => {
   const res = spawnSync('hugo', [
     '--minify',
-    '--gc',
-    '--cleanDestinationDir',
     '--destination',
     publicDir
   ], { cwd: dir })
