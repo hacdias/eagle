@@ -98,31 +98,46 @@ class Eagle {
         throw new Error(`webmention for unexisting target ${webmention.target}`)
       }
 
-      const dataPath = join(postPath, 'data')
+      const permalink = postPath.replace(join(this.hugoOpts.dir, 'content'), '', 1)
+      const dataPath = join(this.hugoOpts.dir, 'data', 'webmentions')
+      const indexPath = join(dataPath, 'index.json')
 
-      await fs.ensureDir(dataPath)
-      await fs.writeFile(
-        join(dataPath, 'index.md'),
-        '---\nheadless: true\n---'
-      )
+      const sha256 = crypto.createHash('sha256').update(webmention.post.url).digest('hex')
 
-      const dataFile = join(dataPath, 'webmentions.json')
+      if (!await fs.exists(indexPath)) {
+        await fs.outputJSON(indexPath, {})
+      }
 
-      if (!await fs.exists(dataFile)) {
-        await fs.outputJson(dataFile, [webmention.post], {
-          spaces: 2
-        })
-      } else {
-        const arr = await fs.readJson(dataFile)
-        const inArray = arr.filter(a => a['wm-id'] === webmention.post['wm-id']).length !== 0
+      const index = await fs.readJSON(indexPath)
 
-        if (!inArray) {
-          arr.push(webmention.post)
-          await fs.outputJson(dataFile, arr, {
-            spaces: 2
-          })
+      if (!index[permalink]) {
+        index[permalink] = {
+          likes: [],
+          others: []
         }
       }
+
+      const dataFile = join(dataPath, `${sha256}.json`)
+
+      if (!await fs.exists(dataFile)) {
+        await fs.outputJson(dataFile, webmention.post, {
+          spaces: 2
+        })
+      }
+
+      if (webmention.post['wm-property'] === 'like-of') {
+        if (index[permalink].likes.indexOf(sha256) === -1) {
+          index[permalink].likes.push(sha256)
+        }
+      } else {
+        if (index[permalink].others.indexOf(sha256) === -1) {
+          index[permalink].others.push(sha256)
+        }
+      }
+
+      await fs.outputJSON(indexPath, index, {
+        spaces: 2
+      })
 
       if (!skipGit) {
         this.git.commit(`webmention from ${webmention.post.url}`)
