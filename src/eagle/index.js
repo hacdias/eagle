@@ -265,7 +265,7 @@ class Eagle {
         await this.twitter.retweet(id)
         break
       case 'in-reply-to':
-        res = await this.tweet.tweet({
+        res = await this.twitter.tweet({
           status: status,
           inReplyTo: id
         })
