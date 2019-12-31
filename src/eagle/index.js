@@ -206,35 +206,44 @@ class Eagle {
     })
   }
 
-  _afterReceiveMicropub ({ url, commands, relatedTo }) {
+  async _afterReceiveMicropub ({ url, content, commands, relatedTo }) {
     this.sendContentWebmentions(url)
 
-    this.limit(() => {
-      this.git.push()
-    })
+    const syndications = []
+    const smallContent = content.length <= 280
+      ? content
+      : `${content.substr(0, 230).trim()}... ${url}`
 
-    console.log(commands)
+    if (commands['mp-syndicate-to'] && commands['mp-syndicate-to'].includes('twitter') && !relatedTo) {
+      try {
+        const res = await this.twitter.tweet({ status: smallContent })
+        const url = `https://twitter.com/hacdias/status/${res.id_str}`
+        syndications.push(url)
+      } catch (e) {
+        debug('could not syndicate to twitter: %s', e.toString())
+      }
+    }
+
+    if (relatedTo && relatedTo.url.startsWith('https://twitter.com')) {
+      try {
+        const syndicate = await this._relatesToTwitter({
+          ...relatedTo,
+          status: smallContent
+        })
+
+        syndications.push(syndicate)
+      } catch (e) {
+        debug('could not syndicate to twitter: %s', e.toString())
+      }
+    }
+
+    if (syndications.length >= 1) {
+      // TODO:
+      console.log('TODO: add to syndications')
+    }
 
     if (!relatedTo) {
       return
-    }
-
-    if (relatedTo.url.startsWith('https://twitter.com')) {
-      const id = relatedTo.url.split('/').pop()
-
-      switch (relatedTo.prop) {
-        case 'like-of':
-          this.twitter.like(id)
-          break
-        case 'repost-of':
-          this.twitter.retweet(id)
-          break
-        case 'in-reply-to':
-          // TODO
-          break
-        default:
-          break
-      }
     }
 
     webmentions.send({
@@ -242,6 +251,31 @@ class Eagle {
       targets: [relatedTo.url],
       token: this.telegraphToken
     })
+  }
+
+  async _relatesToTwitter ({ url, prop, status }) {
+    const id = url.split('/').pop()
+    let res, syndication
+
+    switch (prop) {
+      case 'like-of':
+        await this.twitter.like(id)
+        break
+      case 'repost-of':
+        await this.twitter.retweet(id)
+        break
+      case 'in-reply-to':
+        res = await this.tweet.tweet({
+          status: status,
+          inReplyTo: id
+        })
+        syndication = `https://twitter.com/hacdias/status/${res.id_str}`
+        break
+      default:
+        break
+    }
+
+    return syndication
   }
 
   _urlToLocal (url, wantPublic) {
