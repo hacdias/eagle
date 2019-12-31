@@ -1,8 +1,9 @@
 const express = require('express')
 const debug = require('debug')('micropub')
 const multer = require('multer')
+
 const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
-const indieauth = require('../indieauth')
+const indieauth = require('@hacdias/indieauth-middleware')
 
 // https://www.w3.org/TR/micropub
 
