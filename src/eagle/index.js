@@ -195,7 +195,8 @@ class Eagle {
           content,
           slug,
           relatedTo,
-          titleWasEmpty
+          titleWasEmpty,
+          commands: data.commands
         })
 
         // TODO: check data.commands
@@ -205,12 +206,14 @@ class Eagle {
     })
   }
 
-  _afterReceiveMicropub ({ url, path, meta, content, slug, relatedTo, titleWasEmpty }) {
+  _afterReceiveMicropub ({ url, commands, relatedTo }) {
     this.sendContentWebmentions(url)
 
     this.limit(() => {
       this.git.push()
     })
+
+    console.log(commands)
 
     if (!relatedTo) {
       return

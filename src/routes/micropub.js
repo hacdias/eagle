@@ -4,8 +4,8 @@ const config = Object.freeze({
   'media-endpoint': 'https://api.hacdias.com/micropub',
   'syndicate-to': [
     {
-      uid: 'https://twitter.com/',
-      name: 'twitter.com'
+      uid: 'twitter',
+      name: 'Twitter'
     }
   ]
 })

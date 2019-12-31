@@ -33,7 +33,7 @@ module.exports = class Twitter {
   }
 
   async _post (url) {
-    const { body } = got.post(url, {
+    const { body } = await got.post(url, {
       headers: this._makeHeaders(url, 'POST'),
       responseType: 'json'
     })
@@ -51,5 +51,15 @@ module.exports = class Twitter {
 
   retweet (id) {
     return this._post(`https://api.twitter.com/1.1/statuses/retweet/${id}.json`)
+  }
+
+  tweet ({ status, inReplyTo }) {
+    let url = `https://api.twitter.com/1.1/statuses/update.json?status=${encodeURIComponent(status)}`
+
+    if (inReplyTo) {
+      url += `${url}&in_reply_to_status_id=${encodeURIComponent(inReplyTo)}&auto_populate_reply_metadata=true`
+    }
+
+    return this._post(url)
   }
 }
