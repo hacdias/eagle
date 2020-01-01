@@ -32,7 +32,9 @@ module.exports = class PosseService {
           status: smallContent
         })
 
-        syndications.push(syndicate)
+        if (syndicate) {
+          syndications.push(syndicate)
+        }
       } catch (e) {
         debug('could not syndicate to twitter: %s', e.stack)
         errors.push(e)
