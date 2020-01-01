@@ -104,15 +104,15 @@ class Eagle {
         }
       }
 
-      const path = this.hugo.newEntry({ meta, content, slug })
-      const url = `${this.domain}${path}`
+      const { post } = this.hugo.newEntry({ meta, content, slug })
+      const url = `${this.domain}${post}`
 
-      this.git.commit(`add ${path}`)
+      this.git.commit(`add ${post}`)
       this.hugo.build()
 
       // Async actions
       ;(async () => {
-        const html = await this.hugo.getEntryHTML(path)
+        const html = await this.hugo.getEntryHTML(post)
 
         await this.webmentions.sendFromContent({ url, body: html })
 
