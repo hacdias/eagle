@@ -42,6 +42,7 @@ class Eagle {
     this.webmentions = new WebmentionsService({
       token: telegraphToken,
       domain: domain,
+      xray: this.xray,
       dir: join(this.hugo.dataDir, 'webmentions')
     })
 

@@ -6,10 +6,11 @@ const { sha256 } = require('./utils')
 const fs = require('fs-extra')
 
 module.exports = class WebmentionsService {
-  constructor ({ token, domain, dir }) {
+  constructor ({ token, domain, dir, xray }) {
     this.token = token
     this.domain = domain
     this.dir = dir
+    this.xray = xray
     this.index = join(dir, 'index.json')
 
     if (!fs.existsSync(this.index)) {
