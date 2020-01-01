@@ -32,8 +32,8 @@ const parseGeoAddress = async (location) => {
     debug('got location info %o', res)
     return res
   } catch (e) {
-    debug('could not get info for %o: %s', location, e.toString())
-    return location
+    debug('could not get info for %o: %s', location, e.stack)
+    throw e
   }
 }
 
@@ -42,11 +42,13 @@ module.exports = class LocationService {
 
   async updateEntry (meta) {
     if (meta.properties.location) {
-      meta.properties.location = await Promise.all(
+      const loc = await Promise.all(
         meta.properties
           .location
           .map(loc => parseGeoAddress(loc))
       )
+
+      meta.properties.location = loc
     } else {
       // TODO: also check my GPS logs
     }

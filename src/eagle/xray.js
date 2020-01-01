@@ -66,7 +66,8 @@ module.exports = class XRayService {
         return fs.readJson(file)
       }
     } catch (e) {
-      debug('could not xray %s: %s', url, e.toString())
+      debug('could not xray %s: %s', url, e.stack)
+      throw e
     }
   }
 }

@@ -25,7 +25,7 @@ module.exports = ({ eagle, secret }) => {
         res.sendStatus(200)
       })
       .catch(e => {
-        debug('error while handling webmention %s', e.toString())
+        debug('error while handling webmention %s', e.stack)
         res.sendStatus(500)
       })
   })

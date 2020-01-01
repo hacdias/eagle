@@ -7,6 +7,7 @@ module.exports = class PosseService {
 
   async analysePost ({ content, url, type, commands, relatedURL }) {
     const syndications = []
+    const errors = []
 
     const smallContent = content.length <= 280
       ? content
@@ -18,7 +19,8 @@ module.exports = class PosseService {
         const url = `https://twitter.com/hacdias/status/${res.id_str}`
         syndications.push(url)
       } catch (e) {
-        debug('could not syndicate to twitter: %s', e.toString())
+        debug('could not syndicate to twitter: %s', e.stack)
+        errors.push(e)
       }
     }
 
@@ -32,8 +34,13 @@ module.exports = class PosseService {
 
         syndications.push(syndicate)
       } catch (e) {
-        debug('could not syndicate to twitter: %s', e.toString())
+        debug('could not syndicate to twitter: %s', e.stack)
+        errors.push(e)
       }
+    }
+
+    if (errors.length >= 1) {
+      throw new Error(errors.reduce((prev, curr) => prev + `${curr.stack}`, ''))
     }
 
     return syndications

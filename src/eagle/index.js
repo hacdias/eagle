@@ -10,6 +10,7 @@ const HugoService = require('./hugo')
 const TwitterService = require('./twitter')
 const LocationService = require('./location')
 const GitService = require('./git')
+const TelegramService = require('./telegram')
 
 class Eagle {
   constructor ({
@@ -17,10 +18,13 @@ class Eagle {
     hugo,
     twitter,
     telegraphToken,
-    xrayEntrypoint
+    xrayEntrypoint,
+    telegram
   }) {
     this.limit = pLimit(1)
     this.domain = domain
+
+    this.telegram = new TelegramService(telegram)
 
     this.hugo = new HugoService({
       ...hugo,
@@ -65,12 +69,29 @@ class Eagle {
         apiSecret: process.env.TWITTER_API_SECRET,
         accessToken: process.env.TWITTER_ACCESS_TOKEN,
         accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+      },
+      telegram: {
+        token: process.env.TELEGRAM_TOKEN,
+        chatID: process.env.TELEGRAM_CHAT_ID
       }
     })
   }
 
+  _wrap (fn) {
+    try {
+      return fn()
+    } catch (e) {
+      this.telegram.sendError(e)
+      throw e
+    }
+  }
+
+  _wrapAndLimit (fn) {
+    return this._wrap(this.limit(fn))
+  }
+
   async receiveWebMention (webmention, { skipGit, skipBuild } = {}) {
-    this.limit(async () => {
+    return this._wrapAndLimit(async () => {
       await this.webmentions.receive(webmention)
 
       if (!skipGit) {
@@ -80,28 +101,31 @@ class Eagle {
       if (!skipBuild) {
         this.hugo.build()
       }
-
-      if (!skipGit) {
-        this.git.push()
-      }
     })
   }
 
   async receiveMicropub (data) {
-    return this.limit(async () => {
+    return this._wrapAndLimit(async () => {
       const noTitle = data.properties.name
         ? data.properties.name.length === 0
         : false
 
       const { meta, content, slug, type, relatedURL } = Micropub.createPost(data)
 
-      this.location.updateEntry(meta)
+      try {
+        this.location.updateEntry(meta)
+      } catch (e) {
+        this.telegram.sendError(e)
+      }
 
       if (relatedURL) {
-        const data = await this.xray.requestAndSave(relatedURL)
-
-        if (noTitle && data.name) {
-          meta.title = data.name
+        try {
+          const data = await this.xray.requestAndSave(relatedURL)
+          if (noTitle && data.name) {
+            meta.title = data.name
+          }
+        } catch (e) {
+          this.telegram.sendError(e)
         }
       }
 
@@ -113,37 +137,48 @@ class Eagle {
 
       // Async actions
       ;(async () => {
-        const html = await this.hugo.getEntryHTML(post)
+        try {
+          const html = await this.hugo.getEntryHTML(post)
+          await this.webmentions.sendFromContent({ url, body: html })
+        } catch (e) {
+          this.telegram.sendError(e)
+        }
 
-        await this.webmentions.sendFromContent({ url, body: html })
-
-        const syndication = await this.posse.analysePost({
-          content,
-          url,
-          type,
-          commands: data.commands,
-          relatedURL
-        })
-
-        if (syndication.length >= 1) {
-          await this.updateMicropub({
+        try {
+          const syndication = await this.posse.analysePost({
+            content,
             url,
-            update: {
-              add: {
-                syndication
-              }
-            }
+            type,
+            commands: data.commands,
+            relatedURL
           })
+
+          if (syndication.length >= 1) {
+            await this.updateMicropub({
+              url,
+              update: {
+                add: {
+                  syndication
+                }
+              }
+            })
+          }
+        } catch (e) {
+          this.telegram.sendError(e)
         }
 
         if (!relatedURL) {
           return
         }
 
-        this.webmentions.send({
-          source: url,
-          targets: [relatedURL]
-        })
+        try {
+          this.webmentions.send({
+            source: url,
+            targets: [relatedURL]
+          })
+        } catch (e) {
+          this.telegram.sendError(e)
+        }
       })()
 
       return url
@@ -151,7 +186,7 @@ class Eagle {
   }
 
   async updateMicropub (data) {
-    return this.limit(async () => {
+    return this._wrapAndLimit(async () => {
       const post = data.url.replace(this.domain, '', 1)
       let entry = await this.hugo.getEntry(post)
       entry = Micropub.updatePost(entry, data)
@@ -163,21 +198,23 @@ class Eagle {
   }
 
   async sourceMicropub (url) {
-    if (!url.startsWith(this.domain)) {
-      throw new Error('invalid request')
-    }
-
-    const post = url.replace(this.domain, '', 1)
-    const { meta, content } = await this.hugo.getEntry(post)
-
-    return {
-      type: ['h-entry'],
-      properties: {
-        ...meta.properties,
-        name: [meta.title],
-        content: [content]
+    return this._wrap(async () => {
+      if (!url.startsWith(this.domain)) {
+        throw new Error('invalid request')
       }
-    }
+
+      const post = url.replace(this.domain, '', 1)
+      const { meta, content } = await this.hugo.getEntry(post)
+
+      return {
+        type: ['h-entry'],
+        properties: {
+          ...meta.properties,
+          name: [meta.title],
+          content: [content]
+        }
+      }
+    })
   }
 }
 

@@ -55,7 +55,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
     queryHandler(req.query)
       .then(j => res.json(j))
       .catch(e => {
-        debug('internal error on query handler: %s', e.toString())
+        debug('internal error on query handler: %s', e.stack)
         res.status(500).json({
           error: 'internal server error'
         })
@@ -79,7 +79,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
       mediaHandler(req.file)
         .then(loc => res.redirect(201, loc))
         .catch(e => {
-          debug('internal error on media handler: %s', e.toString())
+          debug('internal error on media handler: %s', e.stack)
           res.status(500).json({
             error: 'internal server error'
           })
@@ -100,13 +100,13 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
         request = parseFormEncoded(req.body)
       }
     } catch (e) {
-      return badRequest(res, e.toString())
+      return badRequest(res, e.stack)
     }
 
     postHandler(request, req.hostname)
       .then(loc => res.redirect(201, loc))
       .catch(e => {
-        debug('internal error on post handler: %s', e.toString())
+        debug('internal error on post handler: %s', e.stack)
         res.status(500).json({
           error: 'internal server error'
         })

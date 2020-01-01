@@ -24,7 +24,8 @@
     "node-html-parser": "^1.1.16",
     "oauth-1.0a": "^2.2.6",
     "p-limit": "^2.2.1",
-    "pluralize": "^8.0.0"
+    "pluralize": "^8.0.0",
+    "telegraf": "^3.35.0"
   },
   "devDependencies": {
     "standard": "^14.3.1"

@@ -40,7 +40,8 @@ module.exports = class WebmentionsService {
           debug('outgoing webmention succeeded', webmention)
         }
       } catch (e) {
-        debug('outgoing webmention failed: %s', e.toString())
+        debug('outgoing webmention failed: %s', e.stack)
+        throw e
       }
     }
   }
