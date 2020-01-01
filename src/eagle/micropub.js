@@ -132,6 +132,9 @@ class Micropub {
   static updatePost ({ meta, content }, { update }) {
     meta.properties = meta.properties || {}
     meta.tags = meta.tags || []
+    update.replace = update.replace || {}
+    update.add = update.add || {}
+    update.delete = update.delete || {}
 
     for (const key in update.replace) {
       if (key === 'name') {
