@@ -128,8 +128,10 @@ class Eagle {
         if (syndication.length >= 1) {
           await this.updateMicropub({
             url,
-            add: {
-              syndication
+            update: {
+              add: {
+                syndication
+              }
             }
           })
         }
