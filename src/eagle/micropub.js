@@ -142,7 +142,7 @@ class Micropub {
       } else if (key === 'category') {
         meta.tags = update.replace.category
       } else if (key === 'content') {
-        content = update.content.join(' ').trim()
+        content = update.replace.content.join(' ').trim()
       } else {
         meta.properties[key] = update.replace[key]
       }
@@ -157,7 +157,7 @@ class Micropub {
         content += update.add.join(' ').trim()
       } else {
         meta.properties[key] = meta.properties[key] || []
-        meta.properties[key].push(...update.replace[key])
+        meta.properties[key].push(...update.add[key])
       }
     }
 
