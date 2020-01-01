@@ -82,4 +82,4 @@ class HugoService {
   }
 }
 
-module.exports = Hugo
+module.exports = HugoService
