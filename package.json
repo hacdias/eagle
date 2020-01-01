@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "@hacdias/indieauth-middleware": "^1.0.0",
-    "@hacdias/micropub-parser": "^1.0.1",
+    "@hacdias/micropub-parser": "^1.0.2",
     "@sindresorhus/slugify": "^0.9.1",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
