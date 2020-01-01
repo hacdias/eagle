@@ -24,8 +24,7 @@ module.exports = ({ eagle }) => micropub({
       return { 'syndicate-to': config['syndicate-to'] }
     }
 
-    // TODO: this must be source, call hugo.getSource()
-    return {}
+    return eagle.sourceMicropub(query.url)
   },
   mediaHandler: async (files) => {
     console.log(files)

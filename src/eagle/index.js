@@ -161,6 +161,24 @@ class Eagle {
       return data.url
     })
   }
+
+  async sourceMicropub (url) {
+    if (!url.startsWith(this.domain)) {
+      throw new Error('invalid request')
+    }
+
+    const post = url.replace(this.domain, '', 1)
+    const { meta, content } = await this.hugo.getEntry(post)
+
+    return {
+      type: ['h-entry'],
+      properties: {
+        ...meta.properties,
+        name: [meta.title],
+        content: [content]
+      }
+    }
+  }
 }
 
 module.exports = Eagle
