@@ -104,7 +104,7 @@ class Eagle {
         }
       }
 
-      const { post } = this.hugo.newEntry({ meta, content, slug })
+      const { post } = await this.hugo.newEntry({ meta, content, slug })
       const url = `${this.domain}${post}`
 
       this.git.commit(`add ${post}`)
