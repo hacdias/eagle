@@ -151,6 +151,8 @@ class Eagle {
   }
 
   async updateMicropub (data) {
+    console.log(data)
+    /*
     return this.limit(async () => {
       const post = data.url.replace(this.domain, '', 1)
       let entry = await this.hugo.getEntry(post)
@@ -161,7 +163,7 @@ class Eagle {
       this.hugo.build()
 
       return data.url
-    })
+    }) */
   }
 }
 
