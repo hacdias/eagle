@@ -2,7 +2,7 @@ const got = require('got')
 const fs = require('fs-extra')
 const { join } = require('path')
 const debug = require('debug')('eagle:xray')
-const sha256 = require('./utils')
+const { sha256 } = require('./utils')
 
 module.exports = class XRayService {
   constructor ({ entrypoint, twitter, dir }) {
