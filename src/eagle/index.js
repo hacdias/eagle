@@ -154,14 +154,10 @@ class Eagle {
     return this.limit(async () => {
       const post = data.url.replace(this.domain, '', 1)
       let entry = await this.hugo.getEntry(post)
-      console.log(entry)
       entry = Micropub.updatePost(entry, data)
-      console.log(entry)
       await this.hugo.saveEntry(post, entry)
-
-      // this.git.commit(`update ${post}`)
-      // this.hugo.build()
-
+      this.git.commit(`update ${post}`)
+      this.hugo.build()
       return data.url
     })
   }
