@@ -87,7 +87,7 @@ class Eagle {
   }
 
   _wrapAndLimit (fn) {
-    return this._wrap(this.limit(fn))
+    return this._wrap(() => this.limit(fn))
   }
 
   async receiveWebMention (webmention, { skipGit, skipBuild } = {}) {
