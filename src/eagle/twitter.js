@@ -47,10 +47,12 @@ module.exports = class TwitterService {
   }
 
   like (id) {
+    debug('will like %s', id)
     return this._post(`https://api.twitter.com/1.1/favorites/create.json?id=${id}`)
   }
 
   retweet (id) {
+    debug('will retweet %s', id)
     return this._post(`https://api.twitter.com/1.1/statuses/retweet/${id}.json`)
   }
 
