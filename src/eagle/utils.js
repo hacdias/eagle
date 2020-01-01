@@ -1,10 +1,12 @@
 const crypto = require('crypto')
 const { spawnSync } = require('child_process')
 
-const sha256 = (data) => crypto.createHash('sha256').update(data).digest('hex')
+function sha256 (data) {
+  return crypto.createHash('sha256').update(data).digest('hex')
+}
 
-const run = (args) => {
-  const res = spawnSync(...args)
+function run () {
+  const res = spawnSync(...arguments)
   const stderr = res.stderr.toString()
   if (stderr.length) throw new Error(stderr)
   if (res.error) throw res.error
