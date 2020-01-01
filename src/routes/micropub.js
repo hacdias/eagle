@@ -32,11 +32,15 @@ module.exports = ({ eagle }) => micropub({
     return 'https://media.hacdias.com/file.jpg'
   },
   postHandler: async (data, origin) => {
-    if (data.action === 'create') {
-      return eagle.receiveMicropub(data, origin)
+    switch (data.action) {
+      case 'create':
+        return eagle.receiveMicropub(data, origin)
+      case 'update':
+        return eagle.updateMicropub(data)
+      case 'delete':
+        throw new Error('not implemennted')
+      default:
+        throw new Error('invalid request')
     }
-
-    console.log(JSON.stringify(data, null, 2))
-    return '/location/'
   }
 })

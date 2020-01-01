@@ -1,21 +1,15 @@
 const { join } = require('path')
 const fs = require('fs-extra')
 const yaml = require('js-yaml')
-const { spawnSync } = require('child_process')
+const { run } = require('./utils')
 
-const run = (args) => {
-  const res = spawnSync(...args)
-  const stderr = res.stderr.toString()
-  if (stderr.length) throw new Error(stderr)
-  if (res.error) throw res.error
-}
-
-class Hugo {
-  constructor ({ dir, publicDir }) {
+class HugoService {
+  constructor ({ dir, publicDir, domain }) {
     this.dir = dir
     this.contentDir = join(dir, 'content')
     this.dataDir = join(dir, 'data')
     this.publicDir = publicDir
+    this.domain = domain
   }
 
   build () {
@@ -69,6 +63,11 @@ class Hugo {
       meta: yaml.safeLoad(frontmatter),
       content: content.trim()
     }
+  }
+
+  async getEntryHTML (post) {
+    const index = join(this.publicDir, post, 'index.html')
+    return (await fs.readFile(index)).toString()
   }
 
   _getNextPostNumber (year, month, day) {

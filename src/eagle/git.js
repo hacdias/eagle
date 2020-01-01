@@ -1,26 +1,16 @@
-const { spawnSync } = require('child_process')
+const { run } = require('./utils')
 
-const commit = (message, opts) => {
-  let res = spawnSync('git', ['add', '-A'], opts)
-  let stderr = res.stderr.toString()
-  console.log(stderr)
-  if (res.error) throw res.error
-  res = spawnSync('git', ['commit', '-m', message], opts)
-  stderr = res.stderr.toString()
-  console.log(stderr)
-  if (res.error) throw res.error
-}
+module.exports = class GitService {
+  constructor (opts) {
+    this.opts = opts
+  }
 
-const push = (opts) => {
-  const { error } = spawnSync('git', ['push'], opts)
-  if (error) throw error
-}
+  commit (message) {
+    run('git', ['add', '-A'], this.opts)
+    run('git', ['commit', '-m', message], this.opts)
+  }
 
-module.exports = {
-  commit,
-  push,
-  configuredGit: (opts) => ({
-    commit: msg => commit(msg, opts),
-    push: () => push(opts)
-  })
+  push () {
+    run('git', ['push'], this.opts)
+  }
 }

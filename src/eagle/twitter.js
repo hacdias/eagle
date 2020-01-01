@@ -3,7 +3,7 @@ const got = require('got')
 const crypto = require('crypto')
 const debug = require('debug')('twitter')
 
-module.exports = class Twitter {
+module.exports = class TwitterService {
   constructor (opts) {
     this.oauth = OAuth({
       consumer: {

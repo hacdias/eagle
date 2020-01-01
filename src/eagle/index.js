@@ -1,16 +1,15 @@
 const { join } = require('path')
-const { parse } = require('node-html-parser')
-const fs = require('fs-extra')
 const pLimit = require('p-limit')
-const crypto = require('crypto')
-const debug = require('debug')('eagle')
 
-const webmentions = require('./webmentions')
-const { configuredXray } = require('./xray')
-const { configuredHugo } = require('./hugo')
-const { configuredGit } = require('./git')
-const parseMicropub = require('./micropub')
-const Twitter = require('./twitter')
+const Micropub = require('./micropub')
+
+const WebmentionsService = require('./webmentions')
+const PosseService = require('./posse')
+const XRayService = require('./xray')
+const HugoService = require('./hugo')
+const TwitterService = require('./twitter')
+const LocationService = require('./location')
+const GitService = require('./git')
 
 class Eagle {
   constructor ({
@@ -21,22 +20,34 @@ class Eagle {
     xrayEntrypoint
   }) {
     this.limit = pLimit(1)
-    this.hugoOpts = hugo
     this.domain = domain
-    this.telegraphToken = telegraphToken
 
-    this.hugo = configuredHugo(hugo)
-
-    this.xray = configuredXray({
-      twitter,
-      entrypoint: xrayEntrypoint
+    this.hugo = new HugoService({
+      ...hugo,
+      domain
     })
 
-    this.git = configuredGit({
+    this.xray = new XRayService({
+      twitter,
+      entrypoint: xrayEntrypoint,
+      dir: join(this.hugo.dataDir, 'xray')
+    })
+
+    this.git = new GitService({
       cwd: hugo.dir
     })
 
-    this.twitter = new Twitter(twitter)
+    this.location = new LocationService()
+
+    this.webmentions = new WebmentionsService({
+      token: telegraphToken,
+      domain: domain,
+      dir: join(this.hugo.dataDir, 'webmentions')
+    })
+
+    this.posse = new PosseService({
+      twitter: new TwitterService(twitter)
+    })
   }
 
   static fromEnvironment () {
@@ -57,87 +68,9 @@ class Eagle {
     })
   }
 
-  async sendContentWebmentions (url) {
-    debug('will scrap %s for webmentions', url)
-    const path = this._urlToLocal(url, true)
-    const file = (await fs.readFile(path)).toString()
-    const ray = await this.xray({ url, body: file })
-
-    const targets = []
-    const toCheck = ['like-of', 'in-reply-to', 'repost-of']
-
-    for (const param of toCheck) {
-      if (Array.isArray(ray.data[param])) {
-        targets.push(...ray.data[param])
-      }
-    }
-
-    if (ray.data.content && ray.data.content.html) {
-      const parsed = parse(ray.data.content.html)
-      targets.push(
-        ...parsed.querySelectorAll('a')
-          .map(p => p.attributes.href)
-      )
-    }
-
-    debug('found webmentions: %o', targets)
-
-    await webmentions.send({
-      source: url,
-      targets,
-      token: this.telegraphToken
-    })
-  }
-
   async receiveWebMention (webmention, { skipGit, skipBuild } = {}) {
     this.limit(async () => {
-      const postPath = this._urlToLocal(webmention.target)
-
-      if (!await fs.exists(postPath)) {
-        // TODO: STH WRONG?
-        throw new Error(`webmention for unexisting target ${webmention.target}`)
-      }
-
-      const permalink = postPath.replace(join(this.hugoOpts.dir, 'content'), '', 1)
-      const dataPath = join(this.hugoOpts.dir, 'data', 'webmentions')
-      const indexPath = join(dataPath, 'index.json')
-
-      const sha256 = crypto.createHash('sha256').update(webmention.post.url).digest('hex')
-
-      if (!await fs.exists(indexPath)) {
-        await fs.outputJSON(indexPath, {})
-      }
-
-      const index = await fs.readJSON(indexPath)
-
-      if (!index[permalink]) {
-        index[permalink] = {
-          likes: [],
-          others: []
-        }
-      }
-
-      const dataFile = join(dataPath, `${sha256}.json`)
-
-      if (!await fs.exists(dataFile)) {
-        await fs.outputJson(dataFile, webmention.post, {
-          spaces: 2
-        })
-      }
-
-      if (webmention.post['wm-property'] === 'like-of') {
-        if (index[permalink].likes.indexOf(sha256) === -1) {
-          index[permalink].likes.push(sha256)
-        }
-      } else {
-        if (index[permalink].others.indexOf(sha256) === -1) {
-          index[permalink].others.push(sha256)
-        }
-      }
-
-      await fs.outputJSON(indexPath, index, {
-        spaces: 2
-      })
+      await this.webmentions.receive(webmention)
 
       if (!skipGit) {
         this.git.commit(`webmention from ${webmention.post.url}`)
@@ -153,34 +86,25 @@ class Eagle {
     })
   }
 
-  async receiveMicropub (data, origin) {
-    const {
-      meta,
-      content,
-      slug,
-      relatedTo,
-      titleWasEmpty
-    } = await parseMicropub(data)
-
-    if (origin) {
-      meta.origin = origin
-    }
-
+  async receiveMicropub (data) {
     return this.limit(async () => {
-      if (relatedTo) {
-        const data = await this._xrayAndSave(relatedTo.url)
+      const noTitle = data.properties.name
+        ? data.properties.name.length === 0
+        : false
 
-        if (titleWasEmpty && data.name) {
+      const { meta, content, slug, type, relatedURL } = Micropub.createPost(data)
+
+      this.location.updateEntry(meta)
+
+      if (relatedURL) {
+        const data = await this.xray.requestAndSave(relatedURL)
+
+        if (noTitle && data.name) {
           meta.title = data.name
         }
       }
 
-      const path = this.hugo.makePost({
-        meta,
-        content,
-        slug
-      })
-
+      const path = this.hugo.newEntry({ meta, content, slug })
       const url = `${this.domain}${path}`
 
       this.git.commit(`add ${path}`)
@@ -188,145 +112,53 @@ class Eagle {
 
       // Async actions
       ;(async () => {
-        this._afterReceiveMicropub({
-          url,
-          path,
-          meta,
+        const html = await this.hugo.getEntryHTML(path)
+
+        await this.webmentions.sendFromContent({ url, body: html })
+
+        const syndication = await this.posse.analysePost({
           content,
-          slug,
-          relatedTo,
-          titleWasEmpty,
-          commands: data.commands
+          url,
+          type,
+          commands: data.commands,
+          relatedURL
         })
 
-        // TODO: check data.commands
+        if (syndication.length >= 1) {
+          await this.updateMicropub({
+            url,
+            add: {
+              syndication
+            }
+          })
+        }
+
+        if (!relatedURL) {
+          return
+        }
+
+        this.webmentions.send({
+          source: url,
+          targets: [relatedURL]
+        })
       })()
 
       return url
     })
   }
 
-  async _afterReceiveMicropub ({ url, content, commands, relatedTo }) {
-    this.sendContentWebmentions(url)
+  async updateMicropub (data) {
+    return this.limit(async () => {
+      const post = data.url.replace(this.domain, '', 1)
+      let entry = await this.hugo.getEntry(post)
+      entry = Micropub.updatePost(entry, data)
+      await this.hugo.saveEntry(post, entry)
 
-    const syndications = []
-    const smallContent = content.length <= 280
-      ? content
-      : `${content.substr(0, 230).trim()}... ${url}`
+      this.git.commit(`update ${post}`)
+      this.hugo.build()
 
-    if (commands['mp-syndicate-to'] && commands['mp-syndicate-to'].includes('twitter') && !relatedTo) {
-      try {
-        const res = await this.twitter.tweet({ status: smallContent })
-        const url = `https://twitter.com/hacdias/status/${res.id_str}`
-        syndications.push(url)
-      } catch (e) {
-        debug('could not syndicate to twitter: %s', e.toString())
-      }
-    }
-
-    if (relatedTo && relatedTo.url.startsWith('https://twitter.com')) {
-      try {
-        const syndicate = await this._relatesToTwitter({
-          ...relatedTo,
-          status: smallContent
-        })
-
-        syndications.push(syndicate)
-      } catch (e) {
-        debug('could not syndicate to twitter: %s', e.toString())
-      }
-    }
-
-    if (syndications.length >= 1) {
-      // TODO:
-      console.log('TODO: add to syndications')
-    }
-
-    if (!relatedTo) {
-      return
-    }
-
-    webmentions.send({
-      source: url,
-      targets: [relatedTo.url],
-      token: this.telegraphToken
+      return data.url
     })
-  }
-
-  async _relatesToTwitter ({ url, prop, status }) {
-    const id = url.split('/').pop()
-    let res, syndication
-
-    switch (prop) {
-      case 'like-of':
-        await this.twitter.like(id)
-        break
-      case 'repost-of':
-        await this.twitter.retweet(id)
-        break
-      case 'in-reply-to':
-        res = await this.twitter.tweet({
-          status: status,
-          inReplyTo: id
-        })
-        syndication = `https://twitter.com/hacdias/status/${res.id_str}`
-        break
-      default:
-        break
-    }
-
-    return syndication
-  }
-
-  _urlToLocal (url, wantPublic) {
-    if (!url.startsWith(this.domain)) {
-      throw new Error('url must start with domain')
-    }
-
-    let uri = url.replace(this.domain, '', 1)
-    if (uri.endsWith('/') && wantPublic) {
-      uri += 'index.html'
-    }
-
-    if (wantPublic) {
-      return join(this.hugoOpts.publicDir, uri)
-    }
-
-    return join(this.hugoOpts.dir, 'content', uri)
-  }
-
-  async _xrayAndSave (url) {
-    debug('gonna xray %s', url)
-
-    try {
-      const sha256 = crypto.createHash('sha256').update(url).digest('hex')
-      const rxayDir = join(this.hugoOpts.dir, 'data', 'xray')
-      const xrayFile = join(rxayDir, `${sha256}.json`)
-
-      if (url.startsWith('/')) {
-        url = `${this.domain}${url}`
-      }
-
-      if (!await fs.exists(xrayFile)) {
-        const data = await this.xray({ url })
-
-        if (data.code !== 200) {
-          return
-        }
-
-        await fs.outputJSON(xrayFile, data.data, {
-          spaces: 2
-        })
-
-        debug('%s successfully xrayed', url)
-        return data.data
-      } else {
-        debug('%s already xrayed', url)
-        return fs.readJson(xrayFile)
-      }
-    } catch (e) {
-      debug('could not xray %s: %s', url, e.toString())
-    }
   }
 }
 

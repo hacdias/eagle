@@ -4,7 +4,7 @@ const { join } = require('path')
 const debug = require('debug')('eagle:xray')
 const sha256 = require('./utils')
 
-module.exports = class XRay {
+module.exports = class XRayService {
   constructor ({ entrypoint, twitter, dir }) {
     this.twitter = twitter
     this.dir = dir

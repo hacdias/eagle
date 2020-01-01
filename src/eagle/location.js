@@ -1,7 +1,7 @@
 const got = require('got')
 const debug = require('debug')('eagle:location')
 
-module.exports = async (location) => {
+const parseGeoAddress = async (location) => {
   debug('got %o', location)
 
   if (!location.startsWith('geo:')) {
@@ -34,5 +34,21 @@ module.exports = async (location) => {
   } catch (e) {
     debug('could not get info for %o: %s', location, e.toString())
     return location
+  }
+}
+
+module.exports = class LocationService {
+  // TODO: save compass data location
+
+  async updateEntry (meta) {
+    if (meta.properties.location) {
+      meta.properties.location = await Promise.all(
+        meta.properties
+          .location
+          .map(loc => parseGeoAddress(loc))
+      )
+    } else {
+      // TODO: also check my GPS logs
+    }
   }
 }
