@@ -47,7 +47,7 @@ module.exports = class PosseService {
   }
 
   async _relatesToTwitter ({ url, type, status }) {
-    const id = url.split('/').pop()
+    const id = new URL(url).pathname.split('/').pop()
     let res, syndication
 
     switch (type) {
