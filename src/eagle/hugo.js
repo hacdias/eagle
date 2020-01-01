@@ -32,7 +32,7 @@ module.exports = class HugoService {
     const month = (meta.date.getMonth() + 1).toString().padStart(2, '0')
     const day = meta.date.getDate().toString().padStart(2, '0')
 
-    const num = this._getNextPostNumber(this.contentDir, year, month, day)
+    const num = this._getNextPostNumber(year, month, day)
     let path = `/${year}/${month}/${day}/${num}/`
 
     if (slug !== '') {
