@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const yaml = require('js-yaml')
 const { run } = require('./utils')
 
-class HugoService {
+module.exports = class HugoService {
   constructor ({ dir, publicDir, domain }) {
     this.dir = dir
     this.contentDir = join(dir, 'content')
@@ -81,5 +81,3 @@ class HugoService {
     return (parseInt(lastNum) + 1).toString().padStart(2, '0')
   }
 }
-
-module.exports = HugoService
