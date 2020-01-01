@@ -37,7 +37,7 @@ const postType = (post) => {
     return post.type
   }
 
-  for (const prop of propertyToType) {
+  for (const prop in propertyToType) {
     if (typeof post[prop] !== 'undefined') {
       return propertyToType[prop]
     }
@@ -133,7 +133,7 @@ class Micropub {
     meta.properties = meta.properties || {}
     meta.tags = meta.tags || []
 
-    for (const key of update.replace) {
+    for (const key in update.replace) {
       if (key === 'name') {
         meta.title = update.replace.name.join(' ').trim()
       } else if (key === 'category') {
@@ -145,7 +145,7 @@ class Micropub {
       }
     }
 
-    for (const key of update.add) {
+    for (const key in update.add) {
       if (key === 'name') {
         throw new Error('cannot add a new name')
       } else if (key === 'category') {
