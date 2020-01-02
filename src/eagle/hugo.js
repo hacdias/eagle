@@ -76,8 +76,8 @@ module.exports = class HugoService {
 
     const lastNum = fs.readdirSync(pathToCheck)
       .filter(f => fs.statSync(join(pathToCheck, f)).isDirectory())
-      .sort().pop() || '00'
+      .sort().pop() || '0'
 
-    return (parseInt(lastNum) + 1).toString().padStart(2, '0')
+    return (parseInt(lastNum) + 1).toString()
   }
 }
