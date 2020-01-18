@@ -1,5 +1,4 @@
 const pluralize = require('pluralize')
-const slugify = require('@sindresorhus/slugify')
 const invert = require('lodash.invert')
 
 const propertyToType = Object.freeze({
@@ -23,11 +22,6 @@ const supportedTypes = Object.freeze([
 
 const hasURL = Object.freeze([
   'repost', 'like', 'reply', 'bookmark'
-])
-
-const buildSlugFor = Object.freeze([
-  'note',
-  'article'
 ])
 
 // https://www.w3.org/TR/post-type-discovery/
@@ -111,11 +105,7 @@ class Micropub {
 
     const slug = Array.isArray(commands['mp-slug']) && commands['mp-slug'].length === 1
       ? commands['mp-slug'][0]
-      : buildSlugFor.includes(type)
-        ? meta.title
-          ? slugify(meta.title)
-          : ''
-        : ''
+      : ''
 
     return {
       meta,
