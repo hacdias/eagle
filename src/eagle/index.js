@@ -1,8 +1,7 @@
 const { join } = require('path')
 const pLimit = require('p-limit')
 
-const Micropub = require('./micropub')
-
+const micropub = require('./micropub')
 const createWebmention = require('./webmentions')
 const createPOSSE = require('./posse')
 const createXRay = require('./xray')
@@ -111,7 +110,7 @@ class Eagle {
         ? data.properties.name.length === 0
         : false
 
-      const { meta, content, slug, type, relatedURL } = Micropub.createPost(data)
+      const { meta, content, slug, type, relatedURL } = micropub.createPost(data)
 
       try {
         this.location.updateEntry(meta)
@@ -190,7 +189,7 @@ class Eagle {
     return this._wrapAndLimit(async () => {
       const post = data.url.replace(this.domain, '', 1)
       let entry = await this.hugo.getEntry(post)
-      entry = Micropub.updatePost(entry, data)
+      entry = micropub.updatePost(entry, data)
       await this.hugo.saveEntry(post, entry)
       this.git.commit(`update ${post}`)
       this.hugo.build()

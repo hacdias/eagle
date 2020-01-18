@@ -61,123 +61,124 @@ const postType = (post) => {
   return 'note'
 }
 
-class Micropub {
-  // creates a new post.
-  static createPost ({ properties, commands }) {
-    const date = new Date()
-    const type = postType(properties)
+// creates a new post.
+const createPost = ({ properties, commands }) => {
+  const date = new Date()
+  const type = postType(properties)
 
-    if (!supportedTypes.includes(type)) {
-      throw new Error(`type '${type} is not supported yet`)
-    }
-
-    const content = properties.content
-      ? properties.content.join('\n').trim()
-      : ''
-
-    delete properties.content
-
-    const meta = {
-      title: properties.name
-        ? properties.name.join(' ').trim()
-        : '',
-      categories: [pluralize(type)],
-      date
-    }
-
-    delete properties.name
-
-    const relatedURL = hasURL.includes(type)
-      ? properties[typeToProperty[type]][0]
-      : null
-
-    if (meta.title === '') {
-      meta.title = content.length > 15
-        ? content.substring(0, 15).trim() + '...'
-        : content
-    }
-
-    if (properties.category) {
-      meta.tags = properties.category
-    }
-
-    meta.properties = properties
-
-    const slug = Array.isArray(commands['mp-slug']) && commands['mp-slug'].length === 1
-      ? commands['mp-slug'][0]
-      : ''
-
-    return {
-      meta,
-      content,
-      type,
-      slug,
-      relatedURL
-    }
+  if (!supportedTypes.includes(type)) {
+    throw new Error(`type '${type} is not supported yet`)
   }
 
-  // Update updates a { meta, content } post with the
-  // update properties and returns a { meta, content }
-  // post.
-  static updatePost ({ meta, content }, { update }) {
-    meta.properties = meta.properties || {}
-    meta.tags = meta.tags || []
-    update.replace = update.replace || {}
-    update.add = update.add || {}
-    update.delete = update.delete || {}
+  const content = properties.content
+    ? properties.content.join('\n').trim()
+    : ''
 
-    for (const key in update.replace) {
-      if (key === 'name') {
-        meta.title = update.replace.name.join(' ').trim()
-      } else if (key === 'category') {
-        meta.tags = update.replace.category
-      } else if (key === 'content') {
-        content = update.replace.content.join(' ').trim()
-      } else {
-        meta.properties[key] = update.replace[key]
-      }
-    }
+  delete properties.content
 
-    for (const key in update.add) {
-      if (key === 'name') {
-        throw new Error('cannot add a new name')
-      } else if (key === 'category') {
-        meta.tags.push(...update.add.category)
-      } else if (key === 'content') {
-        content += update.add.join(' ').trim()
-      } else {
-        meta.properties[key] = meta.properties[key] || []
-        meta.properties[key].push(...update.add[key])
-      }
-    }
+  const meta = {
+    title: properties.name
+      ? properties.name.join(' ').trim()
+      : '',
+    categories: [pluralize(type)],
+    date
+  }
 
-    if (Array.isArray(update.delete)) {
-      for (const key of update.delete) {
-        if (key === 'name' || key === 'content') {
-          throw new Error(`cannot remove the ${key}`)
-        } else if (key === 'category') {
-          meta.tags = []
-        } else if (key === 'content') {
-        } else {
-          delete meta.properties[key]
-        }
-      }
-    } else {
-      for (const [key, value] of Object.entries(update.delete)) {
-        if (key === 'name' || key === 'content') {
-          throw new Error(`cannot remove the ${key}`)
-        } else if (key === 'category') {
-          meta.tags = meta.tags.filter(tag => !value.includes(tag))
-        } else {
-          meta.properties[key] = meta.properties[key]
-            .filter(tag => !value.includes(tag))
-        }
-      }
-    }
+  delete properties.name
 
-    meta.properties.category = meta.tags
-    return { meta, content }
+  const relatedURL = hasURL.includes(type)
+    ? properties[typeToProperty[type]][0]
+    : null
+
+  if (meta.title === '') {
+    meta.title = content.length > 15
+      ? content.substring(0, 15).trim() + '...'
+      : content
+  }
+
+  if (properties.category) {
+    meta.tags = properties.category
+  }
+
+  meta.properties = properties
+
+  const slug = Array.isArray(commands['mp-slug']) && commands['mp-slug'].length === 1
+    ? commands['mp-slug'][0]
+    : ''
+
+  return {
+    meta,
+    content,
+    type,
+    slug,
+    relatedURL
   }
 }
 
-module.exports = Micropub
+// Update updates a { meta, content } post with the
+// update properties and returns a { meta, content }
+// post.
+const updatePost = ({ meta, content }, { update }) => {
+  meta.properties = meta.properties || {}
+  meta.tags = meta.tags || []
+  update.replace = update.replace || {}
+  update.add = update.add || {}
+  update.delete = update.delete || {}
+
+  for (const key in update.replace) {
+    if (key === 'name') {
+      meta.title = update.replace.name.join(' ').trim()
+    } else if (key === 'category') {
+      meta.tags = update.replace.category
+    } else if (key === 'content') {
+      content = update.replace.content.join(' ').trim()
+    } else {
+      meta.properties[key] = update.replace[key]
+    }
+  }
+
+  for (const key in update.add) {
+    if (key === 'name') {
+      throw new Error('cannot add a new name')
+    } else if (key === 'category') {
+      meta.tags.push(...update.add.category)
+    } else if (key === 'content') {
+      content += update.add.join(' ').trim()
+    } else {
+      meta.properties[key] = meta.properties[key] || []
+      meta.properties[key].push(...update.add[key])
+    }
+  }
+
+  if (Array.isArray(update.delete)) {
+    for (const key of update.delete) {
+      if (key === 'name' || key === 'content') {
+        throw new Error(`cannot remove the ${key}`)
+      } else if (key === 'category') {
+        meta.tags = []
+      } else if (key === 'content') {
+      } else {
+        delete meta.properties[key]
+      }
+    }
+  } else {
+    for (const [key, value] of Object.entries(update.delete)) {
+      if (key === 'name' || key === 'content') {
+        throw new Error(`cannot remove the ${key}`)
+      } else if (key === 'category') {
+        meta.tags = meta.tags.filter(tag => !value.includes(tag))
+      } else {
+        meta.properties[key] = meta.properties[key]
+          .filter(tag => !value.includes(tag))
+      }
+    }
+  }
+
+  meta.properties.category = meta.tags
+  return { meta, content }
+}
+
+module.exports = {
+  createPost,
+  updatePost
+}
