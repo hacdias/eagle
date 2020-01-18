@@ -22,7 +22,7 @@ const getAllFiles = function (dirPath, arrayOfFiles) {
 }
 
 ;(async () => {
-  const path = join(eagle.hugoOpts.dir, 'content')
+  const path = join(eagle.hugo.dir, 'content')
 
   const files = getAllFiles(path)
     .filter(p => p.endsWith('index.md'))
@@ -42,6 +42,6 @@ const getAllFiles = function (dirPath, arrayOfFiles) {
 
     if (!url) continue
 
-    eagle._xrayAndSave(url)
+    eagle.xray.requestAndSave(url)
   }
 })()

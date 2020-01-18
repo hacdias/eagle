@@ -4,27 +4,21 @@ const { join } = require('path')
 const debug = require('debug')('eagle:xray')
 const { sha256 } = require('./utils')
 
-module.exports = class XRayService {
-  constructor ({ entrypoint, twitter, dir }) {
-    this.twitter = twitter
-    this.dir = dir
-    this.entrypoint = entrypoint
-  }
-
-  _makeOptions () {
+module.exports = function createXRay ({ domain, entrypoint, twitter, dir }) {
+  const makeOptions = () => {
     return {
       form: {
-        twitter_api_key: this.twitter.apiKey,
-        twitter_api_secret: this.twitter.apiSecret,
-        twitter_access_token: this.twitter.accessToken,
-        twitter_access_token_secret: this.twitter.accessTokenSecret
+        twitter_api_key: twitter.apiKey,
+        twitter_api_secret: twitter.apiSecret,
+        twitter_access_token: twitter.accessToken,
+        twitter_access_token_secret: twitter.accessTokenSecret
       },
       responseType: 'json'
     }
   }
 
-  async request ({ url, body }) {
-    const options = this._makeOptions()
+  const request = async ({ url, body }) => {
+    const options = makeOptions()
 
     if (url) {
       options.form.url = url
@@ -34,22 +28,22 @@ module.exports = class XRayService {
       options.form.body = body
     }
 
-    const res = await got.post(`${this.entrypoint}/parse`, options)
+    const res = await got.post(`${entrypoint}/parse`, options)
     return res.body
   }
 
-  async requestAndSave (url) {
+  const requestAndSave = async (url) => {
     debug('gonna xray %s', url)
 
     try {
-      const file = join(this.dir, `${sha256(url)}.json`)
+      const file = join(dir, `${sha256(url)}.json`)
 
       if (url.startsWith('/')) {
-        url = `${this.domain}${url}`
+        url = `${domain}${url}`
       }
 
       if (!await fs.exists(file)) {
-        const data = await this.request({ url })
+        const data = await request({ url })
 
         if (data.code !== 200) {
           return
@@ -62,7 +56,7 @@ module.exports = class XRayService {
         debug('%s successfully xrayed', url)
         return data.data
       } else {
-        debug('%s already xrayed', url)
+        debug('%s already xrayed: %s', url, file)
         return fs.readJson(file)
       }
     } catch (e) {
@@ -70,4 +64,9 @@ module.exports = class XRayService {
       throw e
     }
   }
+
+  return Object.freeze({
+    request,
+    requestAndSave
+  })
 }

@@ -1,11 +1,7 @@
 const debug = require('debug')('eagle:posse')
 
-module.exports = class PosseService {
-  constructor ({ twitter }) {
-    this.twitter = twitter
-  }
-
-  async analysePost ({ content, url, type, commands, relatedURL }) {
+module.exports = function createPOSSE ({ twitter }) {
+  const analysePost = async ({ content, url, type, commands, relatedURL }) => {
     const syndications = []
     const errors = []
 
@@ -15,7 +11,7 @@ module.exports = class PosseService {
 
     if (commands['mp-syndicate-to'] && commands['mp-syndicate-to'].includes('twitter') && !relatedURL) {
       try {
-        const res = await this.twitter.tweet({ status: smallContent })
+        const res = await twitter.tweet({ status: smallContent })
         const url = `https://twitter.com/hacdias/status/${res.id_str}`
         syndications.push(url)
       } catch (e) {
@@ -26,7 +22,7 @@ module.exports = class PosseService {
 
     if (relatedURL && relatedURL.startsWith('https://twitter.com')) {
       try {
-        const syndicate = await this._relatesToTwitter({
+        const syndicate = await relatesToTwitter({
           url: relatedURL,
           type,
           status: smallContent
@@ -48,19 +44,19 @@ module.exports = class PosseService {
     return syndications
   }
 
-  async _relatesToTwitter ({ url, type, status }) {
+  const relatesToTwitter = async ({ url, type, status }) => {
     const id = new URL(url).pathname.split('/').pop()
     let res, syndication
 
     switch (type) {
       case 'like':
-        await this.twitter.like(id)
+        await twitter.like(id)
         break
       case 'repost':
-        await this.twitter.retweet(id)
+        await twitter.retweet(id)
         break
       case 'reply':
-        res = await this.twitter.tweet({
+        res = await twitter.tweet({
           status: status,
           inReplyTo: id
         })
@@ -72,4 +68,8 @@ module.exports = class PosseService {
 
     return syndication
   }
+
+  return Object.freeze({
+    analysePost
+  })
 }

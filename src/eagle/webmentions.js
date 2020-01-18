@@ -5,20 +5,14 @@ const { parse } = require('node-html-parser')
 const { sha256 } = require('./utils')
 const fs = require('fs-extra')
 
-module.exports = class WebmentionsService {
-  constructor ({ token, domain, dir, xray }) {
-    this.token = token
-    this.domain = domain
-    this.dir = dir
-    this.xray = xray
-    this.index = join(dir, 'index.json')
+module.exports = function createWebmention ({ token, domain, dir, xray }) {
+  const indexPath = join(dir, 'index.json')
 
-    if (!fs.existsSync(this.index)) {
-      fs.outputJSONSync(this.index, {})
-    }
+  if (!fs.existsSync(indexPath)) {
+    fs.outputJSONSync(indexPath, {})
   }
 
-  async send ({ source, targets }) {
+  const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
 
@@ -28,7 +22,7 @@ module.exports = class WebmentionsService {
         const { statusCode, body } = await got.post('https://telegraph.p3k.io/webmention', {
           form: {
             ...webmention,
-            token: this.token
+            token
           },
           responseType: 'json',
           throwHttpErrors: false
@@ -46,9 +40,9 @@ module.exports = class WebmentionsService {
     }
   }
 
-  async sendFromContent ({ url, body }) {
+  const sendFromContent = async ({ url, body }) => {
     debug('will scrap %s for webmentions', url)
-    const ray = await this.xray.request({ url, body })
+    const ray = await xray.request({ url, body })
 
     const targets = []
     const toCheck = ['like-of', 'in-reply-to', 'repost-of']
@@ -69,17 +63,16 @@ module.exports = class WebmentionsService {
 
     debug('found webmentions: %o', targets)
 
-    await this.send({
+    await send({
       source: url,
-      targets,
-      token: this.telegraphToken
+      targets
     })
   }
 
-  async receive (webmention) {
-    const permalink = webmention.target.replace(this.domain, '', 1)
+  const receive = async (webmention) => {
+    const permalink = webmention.target.replace(domain, '', 1)
     const hash = sha256(webmention.post.url)
-    const index = await fs.readJSON(this.index)
+    const index = await fs.readJSON(indexPath)
 
     if (!index[permalink]) {
       index[permalink] = {
@@ -88,7 +81,7 @@ module.exports = class WebmentionsService {
       }
     }
 
-    const dataFile = join(this.dir, `${hash}.json`)
+    const dataFile = join(dir, `${hash}.json`)
 
     if (!await fs.exists(dataFile)) {
       await fs.outputJson(dataFile, webmention.post, {
@@ -106,8 +99,14 @@ module.exports = class WebmentionsService {
       }
     }
 
-    await fs.outputJSON(this.index, index, {
+    await fs.outputJSON(index, index, {
       spaces: 2
     })
   }
+
+  return Object.freeze({
+    send,
+    sendFromContent,
+    receive
+  })
 }

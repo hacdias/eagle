@@ -37,10 +37,10 @@ const parseGeoAddress = async (location) => {
   }
 }
 
-module.exports = class LocationService {
+module.exports = function createLocation () {
   // TODO: save compass data location
 
-  async updateEntry (meta) {
+  const updateEntry = async (meta) => {
     if (meta.properties.location) {
       const loc = await Promise.all(
         meta.properties
@@ -53,4 +53,8 @@ module.exports = class LocationService {
       // TODO: also check my GPS logs
     }
   }
+
+  return Object.freeze({
+    updateEntry
+  })
 }

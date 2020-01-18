@@ -3,14 +3,14 @@ const pLimit = require('p-limit')
 
 const Micropub = require('./micropub')
 
-const WebmentionsService = require('./webmentions')
-const PosseService = require('./posse')
-const XRayService = require('./xray')
+const createWebmention = require('./webmentions')
+const createPOSSE = require('./posse')
+const createXRay = require('./xray')
 const HugoService = require('./hugo')
 const createTwitter = require('./twitter')
-const LocationService = require('./location')
+const createLocation = require('./location')
 const createGit = require('./git')
-const TelegramService = require('./telegram')
+const createTelegram = require('./telegram')
 
 class Eagle {
   constructor ({
@@ -24,14 +24,15 @@ class Eagle {
     this.limit = pLimit(1)
     this.domain = domain
 
-    this.telegram = new TelegramService(telegram)
+    this.telegram = createTelegram(telegram)
 
     this.hugo = new HugoService({
       ...hugo,
       domain
     })
 
-    this.xray = new XRayService({
+    this.xray = createXRay({
+      domain,
       twitter,
       entrypoint: xrayEntrypoint,
       dir: join(this.hugo.dataDir, 'xray')
@@ -41,16 +42,16 @@ class Eagle {
       cwd: hugo.dir
     })
 
-    this.location = new LocationService()
+    this.location = createLocation()
 
-    this.webmentions = new WebmentionsService({
+    this.webmentions = createWebmention({
       token: telegraphToken,
       domain: domain,
       xray: this.xray,
       dir: join(this.hugo.dataDir, 'webmentions')
     })
 
-    this.posse = new PosseService({
+    this.posse = createPOSSE({
       twitter: createTwitter(twitter)
     })
   }
