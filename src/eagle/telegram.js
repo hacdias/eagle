@@ -8,7 +8,12 @@ module.exports = function createTelegram ({ token, chatID }) {
     bot.sendMessage(chatID, formatted)
   }
 
+  const send = (msg) => {
+    bot.sendMessage(chatID, msg)
+  }
+
   return Object.freeze({
-    sendError
+    sendError,
+    send
   })
 }
