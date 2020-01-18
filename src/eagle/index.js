@@ -7,9 +7,9 @@ const WebmentionsService = require('./webmentions')
 const PosseService = require('./posse')
 const XRayService = require('./xray')
 const HugoService = require('./hugo')
-const TwitterService = require('./twitter')
+const createTwitter = require('./twitter')
 const LocationService = require('./location')
-const GitService = require('./git')
+const createGit = require('./git')
 const TelegramService = require('./telegram')
 
 class Eagle {
@@ -37,7 +37,7 @@ class Eagle {
       dir: join(this.hugo.dataDir, 'xray')
     })
 
-    this.git = new GitService({
+    this.git = createGit({
       cwd: hugo.dir
     })
 
@@ -51,7 +51,7 @@ class Eagle {
     })
 
     this.posse = new PosseService({
-      twitter: new TwitterService(twitter)
+      twitter: createTwitter(twitter)
     })
   }
 

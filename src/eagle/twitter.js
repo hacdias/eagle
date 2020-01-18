@@ -1,70 +1,75 @@
 const OAuth = require('oauth-1.0a')
 const got = require('got')
 const crypto = require('crypto')
-const debug = require('debug')('twitter')
+const debug = require('debug')('eagle:twitter')
 
-module.exports = class TwitterService {
-  constructor (opts) {
-    this.oauth = OAuth({
-      consumer: {
-        key: opts.apiKey,
-        secret: opts.apiSecret
-      },
-      signature_method: 'HMAC-SHA1',
-      hash_function: (baseString, key) => crypto.createHmac('sha1', key).update(baseString).digest('base64')
-    })
+module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, accessTokenSecret }) {
+  const oauth = OAuth({
+    consumer: {
+      key: apiKey,
+      secret: apiSecret
+    },
+    signature_method: 'HMAC-SHA1',
+    hash_function: (baseString, key) => crypto.createHmac('sha1', key).update(baseString).digest('base64')
+  })
 
-    this.token = {
-      key: opts.accessToken,
-      secret: opts.accessTokenSecret
-    }
+  const token = {
+    key: accessToken,
+    secret: accessTokenSecret
   }
 
-  _makeHeaders (url, method) {
-    return this.oauth.toHeader(this.oauth.authorize({ url, method }, this.token))
+  const makeHeaders = (url, method) => {
+    return oauth.toHeader(oauth.authorize({ url, method }, token))
   }
 
-  async _get (url) {
+  const get = async (url) => {
     const { body } = await got(url, {
-      headers: this._makeHeaders(url, 'GET'),
+      headers: makeHeaders(url, 'GET'),
       responseType: 'json'
     })
 
     return body
   }
 
-  async _post (url) {
+  const post = async (url) => {
     const { body } = await got.post(url, {
-      headers: this._makeHeaders(url, 'POST'),
+      headers: makeHeaders(url, 'POST'),
       responseType: 'json'
     })
 
     return body
   }
 
-  timeline () {
-    return this._get('https://api.twitter.com/1.1/statuses/home_timeline.json')
+  const timeline = () => {
+    return get('https://api.twitter.com/1.1/statuses/home_timeline.json')
   }
 
-  like (id) {
+  const like = (id) => {
     debug('will like %s', id)
-    return this._post(`https://api.twitter.com/1.1/favorites/create.json?id=${id}`)
+    return post(`https://api.twitter.com/1.1/favorites/create.json?id=${id}`)
   }
 
-  retweet (id) {
+  const retweet = (id) => {
     debug('will retweet %s', id)
-    return this._post(`https://api.twitter.com/1.1/statuses/retweet/${id}.json`)
+    return post(`https://api.twitter.com/1.1/statuses/retweet/${id}.json`)
   }
 
-  tweet ({ status, inReplyTo }) {
+  const tweet = ({ status, inReplyTo }) => {
     debug('tweeting "%s", replying to %s', status, inReplyTo)
 
     let url = `https://api.twitter.com/1.1/statuses/update.json?status=${encodeURIComponent(status)}`
 
     if (inReplyTo) {
-      url += `${url}&in_reply_to_status_id=${encodeURIComponent(inReplyTo)}&auto_populate_reply_metadata=true`
+      url += `&in_reply_to_status_id=${inReplyTo}&auto_populate_reply_metadata=true`
     }
 
-    return this._post(url)
+    return post(url)
   }
+
+  return Object.freeze({
+    timeline,
+    like,
+    retweet,
+    tweet
+  })
 }

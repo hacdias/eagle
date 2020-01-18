@@ -1,16 +1,17 @@
 const { run } = require('./utils')
 
-module.exports = class GitService {
-  constructor (opts) {
-    this.opts = opts
+module.exports = function createGit (opts) {
+  const commit = (message) => {
+    run('git', ['add', '-A'], opts)
+    run('git', ['commit', '-m', message], opts)
   }
 
-  commit (message) {
-    run('git', ['add', '-A'], this.opts)
-    run('git', ['commit', '-m', message], this.opts)
+  const push = () => {
+    run('git', ['push'], opts)
   }
 
-  push () {
-    run('git', ['push'], this.opts)
-  }
+  return Object.freeze({
+    commit,
+    push
+  })
 }
