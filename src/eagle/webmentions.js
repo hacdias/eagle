@@ -99,7 +99,7 @@ module.exports = function createWebmention ({ token, domain, dir, xray }) {
       }
     }
 
-    await fs.outputJSON(index, index, {
+    await fs.outputJSON(indexPath, index, {
       spaces: 2
     })
   }
