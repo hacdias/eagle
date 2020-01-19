@@ -29,6 +29,11 @@ module.exports = function createXRay ({ domain, entrypoint, twitter, dir }) {
     }
 
     const res = await got.post(`${entrypoint}/parse`, options)
+
+    if (res.body.data && res.body.data.published) {
+      res.body.data.published = new Date(res.body.data.published).toISOString()
+    }
+
     return res.body
   }
 
