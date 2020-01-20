@@ -37,7 +37,7 @@ function createEagle ({ domain, ...config }) {
     token: config.telegraphToken,
     domain: domain,
     xray,
-    dir: join(hugo.dataDir, 'webmentions')
+    dir: join(hugo.dataDir, 'mentions')
   })
 
   const twitter = createTwitter(config.twitter)

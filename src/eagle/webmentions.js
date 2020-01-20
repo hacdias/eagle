@@ -6,12 +6,6 @@ const { sha256 } = require('./utils')
 const fs = require('fs-extra')
 
 module.exports = function createWebmention ({ token, domain, dir, xray }) {
-  const indexPath = join(dir, 'index.json')
-
-  if (!fs.existsSync(indexPath)) {
-    fs.outputJSONSync(indexPath, {})
-  }
-
   const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
@@ -71,35 +65,41 @@ module.exports = function createWebmention ({ token, domain, dir, xray }) {
 
   const receive = async (webmention) => {
     const permalink = webmention.target.replace(domain, '', 1)
-    const hash = sha256(webmention.post.url)
-    const index = await fs.readJSON(indexPath)
+    const hash = sha256(permalink)
+    const file = join(dir, `${hash}.json`)
 
-    if (!index[permalink]) {
-      index[permalink] = {
-        likes: [],
-        others: []
-      }
+    if (!await fs.exists(file)) {
+      await fs.outputJSON(file, [])
     }
 
-    const dataFile = join(dir, `${hash}.json`)
+    const mentions = await fs.readJSON(file)
 
-    if (!await fs.exists(dataFile)) {
-      await fs.outputJson(dataFile, webmention.post, {
-        spaces: 2
-      })
+    if (mentions.find(m => m['wm-id'] === webmention.post['wm-id'])) {
+      return
     }
 
-    if (webmention.post['wm-property'] === 'like-of') {
-      if (index[permalink].likes.indexOf(hash) === -1) {
-        index[permalink].likes.push(hash)
-      }
-    } else {
-      if (index[permalink].others.indexOf(hash) === -1) {
-        index[permalink].others.push(hash)
-      }
+    const types = {
+      'like-of': 'like',
+      'repost-of': 'repost',
+      'mention-of': 'mention',
+      'in-reply-to': 'reply'
     }
 
-    await fs.outputJSON(indexPath, index, {
+    const entry = {
+      type: types[webmention.post['wm-property']] || 'mention',
+      url: webmention.post.url || webmention.post['wm-source'],
+      date: new Date(webmention.post.published || webmention.post['wm-received']),
+      private: webmention.post['wm-private'] || false,
+      'wm-id': webmention.post['wm-id'],
+      content: webmention.post.content,
+      author: webmention.post.author
+    }
+
+    delete entry.author.type
+
+    mentions.push(entry)
+
+    await fs.outputJSON(file, mentions, {
       spaces: 2
     })
   }
