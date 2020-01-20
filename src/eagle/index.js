@@ -72,7 +72,7 @@ function createEagle ({ domain, ...config }) {
     git.commit(`add ${post}`)
     hugo.build()
 
-    telegram.send(`📄 Post updated: ${url}`)
+    telegram.send(`📄 Post published: ${url}`)
 
     try {
       const html = await hugo.getEntryHTML(post)
