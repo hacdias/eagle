@@ -1,5 +1,6 @@
 const express = require('express')
 const debug = require('debug')('routes:webmention')
+const { ar } = require('./utils')
 
 module.exports = ({ eagle, secret }) => {
   const router = express.Router({
@@ -9,7 +10,7 @@ module.exports = ({ eagle, secret }) => {
 
   router.use(express.json())
 
-  router.post('/', (req, res) => {
+  router.post('/', ar(async (req, res) => {
     debug('incoming webmention')
 
     if (req.body.secret !== secret) {
@@ -19,16 +20,15 @@ module.exports = ({ eagle, secret }) => {
 
     delete req.body.secret
 
-    eagle.receiveWebMention(req.body)
-      .then(() => {
-        debug('webmention handled')
-        res.sendStatus(200)
-      })
-      .catch(e => {
-        debug('error while handling webmention %s', e.stack)
-        res.sendStatus(500)
-      })
-  })
+    try {
+      await eagle.receiveWebmention(req.body)
+      res.sendStatus(200)
+      debug('webmention handled')
+    } catch (e) {
+      debug('error while handling webmention %s', e.stack)
+      res.sendStatus(500)
+    }
+  }))
 
   return router
 }

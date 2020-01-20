@@ -11,211 +11,221 @@ const createLocation = require('./location')
 const createGit = require('./git')
 const createTelegram = require('./telegram')
 
-class Eagle {
-  constructor ({
+function createEagle ({ domain, ...config }) {
+  const limit = pLimit(1)
+  const telegram = createTelegram(config.telegram)
+
+  const hugo = new HugoService({
+    ...config.hugo,
+    domain
+  })
+
+  const xray = createXRay({
     domain,
-    hugo,
-    twitter,
-    telegraphToken,
-    xrayEntrypoint,
-    telegram
-  }) {
-    this.limit = pLimit(1)
-    this.domain = domain
+    twitter: config.twitter,
+    entrypoint: config.xrayEntrypoint,
+    dir: join(hugo.dataDir, 'xray')
+  })
 
-    this.telegram = createTelegram(telegram)
+  const git = createGit({
+    cwd: hugo.dir
+  })
 
-    this.hugo = new HugoService({
-      ...hugo,
-      domain
-    })
+  const location = createLocation()
 
-    this.xray = createXRay({
-      domain,
-      twitter,
-      entrypoint: xrayEntrypoint,
-      dir: join(this.hugo.dataDir, 'xray')
-    })
+  const webmentions = createWebmention({
+    token: config.telegraphToken,
+    domain: domain,
+    xray,
+    dir: join(hugo.dataDir, 'webmentions')
+  })
 
-    this.git = createGit({
-      cwd: hugo.dir
-    })
+  const twitter = createTwitter(config.twitter)
 
-    this.location = createLocation()
+  const posse = createPOSSE({
+    twitter
+  })
 
-    this.webmentions = createWebmention({
-      token: telegraphToken,
-      domain: domain,
-      xray: this.xray,
-      dir: join(this.hugo.dataDir, 'webmentions')
-    })
-
-    this.posse = createPOSSE({
-      twitter: createTwitter(twitter)
-    })
-  }
-
-  static fromEnvironment () {
-    return new Eagle({
-      xrayEntrypoint: process.env.XRAY_ENTRYPOINT,
-      telegraphToken: process.env.TELEGRAPH_TOKEN,
-      domain: process.env.DOMAIN,
-      hugo: {
-        dir: process.env.HUGO_DIR,
-        publicDir: process.env.HUGO_PUBLIC_DIR
-      },
-      twitter: {
-        apiKey: process.env.TWITTER_API_KEY,
-        apiSecret: process.env.TWITTER_API_SECRET,
-        accessToken: process.env.TWITTER_ACCESS_TOKEN,
-        accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
-      },
-      telegram: {
-        token: process.env.TELEGRAM_TOKEN,
-        chatID: process.env.TELEGRAM_CHAT_ID
-      }
-    })
-  }
-
-  _wrap (fn) {
+  const wrap = async (fn) => {
     try {
-      return fn()
+      const res = await fn()
+      return res
     } catch (e) {
-      this.telegram.sendError(e)
+      telegram.sendError(e)
       throw e
     }
   }
 
-  _wrapAndLimit (fn) {
-    return this._wrap(() => this.limit(fn))
-  }
+  const wrapAndLimit = (fn) => wrap(() => limit(fn))
 
-  async receiveWebMention (webmention, { skipGit, skipBuild } = {}) {
-    return this._wrapAndLimit(async () => {
-      await this.webmentions.receive(webmention)
+  const receiveWebmention = (webmention) => wrapAndLimit(async () => {
+    await webmentions.receive(webmention)
 
-      if (!skipGit) {
-        this.git.commit(`webmention from ${webmention.post.url}`)
+    wrapAndLimit(async () => {
+      git.commit(`webmention from ${webmention.post.url}`)
+      hugo.build()
+      telegram.send(`💬 Received webmention: ${webmention.target}`)
+    })()
+  })
+
+  const processMicropub = ({ post, url, content, type, data, relatedURL }) => wrapAndLimit(async () => {
+    git.commit(`add ${post}`)
+    hugo.build()
+
+    telegram.send(`📄 Post updated: ${url}`)
+
+    try {
+      const html = await hugo.getEntryHTML(post)
+      await webmentions.sendFromContent({ url, body: html })
+    } catch (e) {
+      telegram.sendError(e)
+    }
+
+    try {
+      const syndication = await posse.analysePost({
+        content,
+        url,
+        type,
+        commands: data.commands,
+        relatedURL
+      })
+
+      if (syndication.length >= 1) {
+        await updateMicropub({
+          url,
+          update: {
+            add: {
+              syndication
+            }
+          }
+        })
       }
+    } catch (e) {
+      telegram.sendError(e)
+    }
 
-      if (!skipBuild) {
-        this.hugo.build()
-      }
-    })
-  }
+    if (!relatedURL) {
+      return
+    }
 
-  async receiveMicropub (data) {
-    return this._wrapAndLimit(async () => {
-      const noTitle = data.properties.name
-        ? data.properties.name.length === 0
-        : false
+    try {
+      await webmentions.send({
+        source: url,
+        targets: [relatedURL]
+      })
+    } catch (e) {
+      telegram.sendError(e)
+    }
+  })
 
-      const { meta, content, slug, type, relatedURL } = micropub.createPost(data)
+  const receiveMicropub = (data) => wrapAndLimit(async () => {
+    const noTitle = data.properties.name
+      ? data.properties.name.length === 0
+      : false
 
+    const { meta, content, slug, type, relatedURL } = micropub.createPost(data)
+
+    try {
+      location.updateEntry(meta)
+    } catch (e) {
+      telegram.sendError(e)
+    }
+
+    if (relatedURL) {
       try {
-        this.location.updateEntry(meta)
+        const data = await xray.requestAndSave(relatedURL)
+        if (noTitle && data.name) {
+          meta.title = data.name
+        }
       } catch (e) {
-        this.telegram.sendError(e)
+        telegram.sendError(e)
       }
+    }
 
-      if (relatedURL) {
-        try {
-          const data = await this.xray.requestAndSave(relatedURL)
-          if (noTitle && data.name) {
-            meta.title = data.name
-          }
-        } catch (e) {
-          this.telegram.sendError(e)
-        }
-      }
+    const { post } = await hugo.newEntry({ meta, content, slug })
+    const url = `${domain}${post}`
 
-      const { post } = await this.hugo.newEntry({ meta, content, slug })
-      const url = `${this.domain}${post}`
-
-      this.git.commit(`add ${post}`)
-      this.hugo.build()
-
-      // Async actions
-      ;(async () => {
-        try {
-          const html = await this.hugo.getEntryHTML(post)
-          await this.webmentions.sendFromContent({ url, body: html })
-        } catch (e) {
-          this.telegram.sendError(e)
-        }
-
-        try {
-          const syndication = await this.posse.analysePost({
-            content,
-            url,
-            type,
-            commands: data.commands,
-            relatedURL
-          })
-
-          if (syndication.length >= 1) {
-            await this.updateMicropub({
-              url,
-              update: {
-                add: {
-                  syndication
-                }
-              }
-            })
-          }
-        } catch (e) {
-          this.telegram.sendError(e)
-        }
-
-        if (!relatedURL) {
-          return
-        }
-
-        try {
-          this.webmentions.send({
-            source: url,
-            targets: [relatedURL]
-          })
-        } catch (e) {
-          this.telegram.sendError(e)
-        }
-      })()
-
-      return url
+    processMicropub({
+      post,
+      url,
+      content,
+      type,
+      data,
+      relatedURL
     })
-  }
 
-  async updateMicropub (data) {
-    return this._wrapAndLimit(async () => {
-      const post = data.url.replace(this.domain, '', 1)
-      let entry = await this.hugo.getEntry(post)
-      entry = micropub.updatePost(entry, data)
-      await this.hugo.saveEntry(post, entry)
-      this.git.commit(`update ${post}`)
-      this.hugo.build()
-      return data.url
-    })
-  }
+    return url
+  })
 
-  async sourceMicropub (url) {
-    return this._wrap(async () => {
-      if (!url.startsWith(this.domain)) {
-        throw new Error('invalid request')
+  const updateMicropub = (data) => wrapAndLimit(async () => {
+    const post = data.url.replace(domain, '', 1)
+    let entry = await hugo.getEntry(post)
+    entry = micropub.updatePost(entry, data)
+    await hugo.saveEntry(post, entry)
+
+    wrapAndLimit(async () => {
+      git.commit(`update ${post}`)
+      hugo.build()
+      telegram.send(`📄 Post updated: ${data.url}`)
+    })()
+
+    return data.url
+  })
+
+  const sourceMicropub = async (url) => wrap(async () => {
+    if (!url.startsWith(domain)) {
+      throw new Error('invalid request')
+    }
+
+    const post = url.replace(domain, '', 1)
+    const { meta, content } = await hugo.getEntry(post)
+
+    return {
+      type: ['h-entry'],
+      properties: {
+        ...meta.properties,
+        name: [meta.title],
+        content: [content]
       }
+    }
+  })
 
-      const post = url.replace(this.domain, '', 1)
-      const { meta, content } = await this.hugo.getEntry(post)
+  return Object.freeze({
+    // services
+    telegram,
+    hugo,
+    xray,
+    git,
+    location,
+    webmentions,
+    twitter,
+    posse,
 
-      return {
-        type: ['h-entry'],
-        properties: {
-          ...meta.properties,
-          name: [meta.title],
-          content: [content]
-        }
-      }
-    })
-  }
+    receiveWebmention,
+    updateMicropub,
+    sourceMicropub,
+    receiveMicropub
+  })
 }
 
-module.exports = Eagle
+createEagle.fromEnvironment = () => createEagle({
+  xrayEntrypoint: process.env.XRAY_ENTRYPOINT,
+  telegraphToken: process.env.TELEGRAPH_TOKEN,
+  domain: process.env.DOMAIN,
+  hugo: {
+    dir: process.env.HUGO_DIR,
+    publicDir: process.env.HUGO_PUBLIC_DIR
+  },
+  twitter: {
+    apiKey: process.env.TWITTER_API_KEY,
+    apiSecret: process.env.TWITTER_API_SECRET,
+    accessToken: process.env.TWITTER_ACCESS_TOKEN,
+    accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+  },
+  telegram: {
+    token: process.env.TELEGRAM_TOKEN,
+    chatID: process.env.TELEGRAM_CHAT_ID
+  }
+})
+
+module.exports = createEagle

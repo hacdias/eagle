@@ -23,7 +23,10 @@ const getWebmentions = async (page) => {
 
   for (let i = 0; (mentions = await getWebmentions(i)).length > 0; i++) {
     for (const mention of mentions) {
-      eagle.receiveWebMention({ post: mention, target: mention['wm-target'] }, { skipGit: true, skipBuild: true })
+      await eagle.webmentions.receive({
+        post: mention,
+        target: mention['wm-target']
+      })
     }
   }
 })()
