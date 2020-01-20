@@ -60,12 +60,9 @@ function createEagle ({ domain, ...config }) {
 
   const receiveWebmention = (webmention) => wrapAndLimit(async () => {
     await webmentions.receive(webmention)
-
-    wrapAndLimit(async () => {
-      git.commit(`webmention from ${webmention.post.url}`)
-      hugo.build()
-      telegram.send(`💬 Received webmention: ${webmention.target}`)
-    })()
+    git.commit(`webmention from ${webmention.post.url}`)
+    hugo.build()
+    telegram.send(`💬 Received webmention: ${webmention.target}`)
   })
 
   const processMicropub = ({ post, url, content, type, data, relatedURL }) => wrapAndLimit(async () => {
