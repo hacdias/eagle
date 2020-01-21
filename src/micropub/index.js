@@ -103,8 +103,7 @@ module.exports = ({ queryHandler, postHandler, mediaHandler, tokenReference }) =
       return badRequest(res, e.stack)
     }
 
-    postHandler(request, req.hostname)
-      .then(loc => res.redirect(201, loc))
+    postHandler(req, res, request)
       .catch(e => {
         debug('internal error on post handler: %s', e.stack)
         res.status(500).json({

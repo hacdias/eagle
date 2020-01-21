@@ -30,12 +30,12 @@ module.exports = ({ eagle }) => micropub({
     console.log(files)
     return 'https://media.hacdias.com/file.jpg'
   },
-  postHandler: async (data, origin) => {
+  postHandler: async (req, res, data) => {
     switch (data.action) {
       case 'create':
-        return eagle.receiveMicropub(data, origin)
+        return eagle.receiveMicropub(req, res, data)
       case 'update':
-        return eagle.updateMicropub(data)
+        return eagle.updateMicropub(req, res, data)
       case 'delete':
         throw new Error('not implemennted')
       default:

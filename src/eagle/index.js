@@ -65,57 +65,7 @@ function createEagle ({ domain, ...config }) {
     telegram.send(`💬 Received webmention: ${webmention.target}`)
   })
 
-  const processMicropub = ({ post, url, content, type, data, relatedURL }) => wrapAndLimit(async () => {
-    git.commit(`add ${post}`)
-    hugo.build()
-
-    telegram.send(`📄 Post published: ${url}`)
-
-    try {
-      const html = await hugo.getEntryHTML(post)
-      await webmentions.sendFromContent({ url, body: html })
-    } catch (e) {
-      telegram.sendError(e)
-    }
-
-    try {
-      const syndication = await posse.analysePost({
-        content,
-        url,
-        type,
-        commands: data.commands,
-        relatedURL
-      })
-
-      if (syndication.length >= 1) {
-        await updateMicropub({
-          url,
-          update: {
-            add: {
-              syndication
-            }
-          }
-        })
-      }
-    } catch (e) {
-      telegram.sendError(e)
-    }
-
-    if (!relatedURL) {
-      return
-    }
-
-    try {
-      await webmentions.send({
-        source: url,
-        targets: [relatedURL]
-      })
-    } catch (e) {
-      telegram.sendError(e)
-    }
-  })
-
-  const receiveMicropub = (data) => wrapAndLimit(async () => {
+  const receiveMicropub = (req, res, data) => wrapAndLimit(async () => {
     const noTitle = data.properties.name
       ? data.properties.name.length === 0
       : false
@@ -142,31 +92,68 @@ function createEagle ({ domain, ...config }) {
     const { post } = await hugo.newEntry({ meta, content, slug })
     const url = `${domain}${post}`
 
-    processMicropub({
-      post,
-      url,
-      content,
-      type,
-      data,
-      relatedURL
-    })
+    res.redirect(202, url)
 
-    return url
+    git.commit(`add ${post}`)
+    hugo.build()
+
+    telegram.send(`📄 Post published: ${url}`)
+
+    try {
+      const html = await hugo.getEntryHTML(post)
+      await webmentions.sendFromContent({ url, body: html })
+    } catch (e) {
+      telegram.sendError(e)
+    }
+
+    try {
+      const syndication = await posse.analysePost({
+        content,
+        url,
+        type,
+        commands: data.commands,
+        relatedURL
+      })
+
+      if (syndication.length >= 1) {
+        await updateMicropub(null, null, {
+          url,
+          update: {
+            add: {
+              syndication
+            }
+          }
+        })
+      }
+    } catch (e) {
+      telegram.sendError(e)
+    }
+
+    if (!relatedURL) {
+      return
+    }
+
+    try {
+      await webmentions.send({
+        source: url,
+        targets: [relatedURL]
+      })
+    } catch (e) {
+      telegram.sendError(e)
+    }
   })
 
-  const updateMicropub = (data) => wrapAndLimit(async () => {
+  const updateMicropub = (req, res, data) => wrapAndLimit(async () => {
     const post = data.url.replace(domain, '', 1)
     let entry = await hugo.getEntry(post)
     entry = micropub.updatePost(entry, data)
     await hugo.saveEntry(post, entry)
 
-    wrapAndLimit(async () => {
-      git.commit(`update ${post}`)
-      hugo.build()
-      telegram.send(`📄 Post updated: ${data.url}`)
-    })()
+    if (res) res.redirect(202, data.url)
 
-    return data.url
+    git.commit(`update ${post}`)
+    hugo.build()
+    telegram.send(`📄 Post updated: ${data.url}`)
   })
 
   const sourceMicropub = async (url) => wrap(async () => {
