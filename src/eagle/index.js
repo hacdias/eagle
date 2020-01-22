@@ -43,7 +43,8 @@ function createEagle ({ domain, ...config }) {
 
   const telegram = createTelegram({
     ...config.telegram,
-    git
+    git,
+    hugo
   })
 
   const posse = createPOSSE({

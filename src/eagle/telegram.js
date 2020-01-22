@@ -1,7 +1,7 @@
 const Telegram = require('telegraf/telegram')
 const Telegraf = require('telegraf')
 
-module.exports = function createTelegram ({ token, chatID, git }) {
+module.exports = function createTelegram ({ token, chatID, git, hugo }) {
   const tg = new Telegram(token)
   const bot = new Telegraf(token)
 
@@ -29,6 +29,14 @@ module.exports = function createTelegram ({ token, chatID, git }) {
         try {
           git.pull()
           reply('Pulled!')
+        } catch (e) {
+          sendError(e)
+        }
+        break
+      case 'build':
+        try {
+          hugo.build()
+          reply('Built!')
         } catch (e) {
           sendError(e)
         }
