@@ -10,8 +10,13 @@ module.exports = function createGit (opts) {
     run('git', ['push'], opts)
   }
 
+  const pull = () => {
+    run('git', ['pull'], opts)
+  }
+
   return Object.freeze({
     commit,
-    push
+    push,
+    pull
   })
 }

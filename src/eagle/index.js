@@ -13,7 +13,6 @@ const createTelegram = require('./telegram')
 
 function createEagle ({ domain, ...config }) {
   const limit = pLimit(1)
-  const telegram = createTelegram(config.telegram)
 
   const hugo = new HugoService({
     ...config.hugo,
@@ -41,6 +40,11 @@ function createEagle ({ domain, ...config }) {
   })
 
   const twitter = createTwitter(config.twitter)
+
+  const telegram = createTelegram({
+    ...config.telegram,
+    git
+  })
 
   const posse = createPOSSE({
     twitter
@@ -208,7 +212,7 @@ createEagle.fromEnvironment = () => createEagle({
   },
   telegram: {
     token: process.env.TELEGRAM_TOKEN,
-    chatID: process.env.TELEGRAM_CHAT_ID
+    chatID: parseInt(process.env.TELEGRAM_CHAT_ID)
   }
 })
 
