@@ -12,8 +12,14 @@ const now = require('./routes/now')
 
 const eagle = Eagle.fromEnvironment()
 
+const tokenReference = {
+  me: 'https://hacdias.com/',
+  endpoint: 'https://tokens.indieauth.com/token'
+}
+
 app.use('/micropub', micropub({
-  eagle
+  eagle,
+  tokenReference
 }))
 
 app.use('/webmention', webmention({
