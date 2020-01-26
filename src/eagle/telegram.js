@@ -40,6 +40,14 @@ module.exports = function createTelegram ({ token, chatID, git, hugo }) {
         } catch (e) {
           sendError(e)
         }
+        break
+      case 'build clean':
+        try {
+          hugo.buildAndClean()
+          reply('Built cleaned version!')
+        } catch (e) {
+          sendError(e)
+        }
     }
   })
 
