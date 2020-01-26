@@ -7,7 +7,6 @@ const createPOSSE = require('./posse')
 const createXRay = require('./xray')
 const HugoService = require('./hugo')
 const createTwitter = require('./twitter')
-const createLocation = require('./location')
 const createGit = require('./git')
 const createTelegram = require('./telegram')
 
@@ -29,8 +28,6 @@ function createEagle ({ domain, ...config }) {
   const git = createGit({
     cwd: hugo.dir
   })
-
-  const location = createLocation()
 
   const webmentions = createWebmention({
     token: config.telegraphToken,
@@ -76,12 +73,6 @@ function createEagle ({ domain, ...config }) {
       : false
 
     const { meta, content, slug, type, relatedURL } = micropub.createPost(data)
-
-    try {
-      location.updateEntry(meta)
-    } catch (e) {
-      telegram.sendError(e)
-    }
 
     if (relatedURL) {
       try {
@@ -139,10 +130,7 @@ function createEagle ({ domain, ...config }) {
     }
 
     try {
-      await webmentions.send({
-        source: url,
-        targets: [relatedURL]
-      })
+      await webmentions.send({ source: url, targets: [relatedURL] })
     } catch (e) {
       telegram.sendError(e)
     }
@@ -185,7 +173,6 @@ function createEagle ({ domain, ...config }) {
     hugo,
     xray,
     git,
-    location,
     webmentions,
     twitter,
     posse,
