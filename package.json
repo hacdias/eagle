@@ -15,15 +15,15 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "fs-extra": "^8.1.0",
-    "got": "^10.2.2",
+    "got": "^10.3.0",
     "js-yaml": "^3.13.1",
     "lodash.invert": "^4.3.0",
     "multer": "^1.4.2",
-    "node-html-parser": "^1.1.18",
+    "node-html-parser": "^1.1.19",
     "oauth-1.0a": "^2.2.6",
     "p-limit": "^2.2.2",
     "pluralize": "^8.0.0",
-    "telegraf": "^3.35.0"
+    "telegraf": "^3.36.0"
   },
   "devDependencies": {
     "standard": "^14.3.1"
