@@ -135,7 +135,7 @@ function createEagle ({ domain, ...config }) {
     entry = micropub.updatePost(entry, data)
 
     if (res) {
-      res.redirect(202, data.url)
+      res.redirect(200, data.url)
 
       // Update updated date!
       if (!entry.meta.publishDate && entry.meta.date) {
