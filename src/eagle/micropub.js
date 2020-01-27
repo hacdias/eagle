@@ -90,12 +90,6 @@ const createPost = ({ properties, commands }) => {
     ? properties[typeToProperty[type]][0]
     : null
 
-  if (meta.title === '') {
-    meta.title = content.length > 15
-      ? content.substring(0, 15).trim() + '...'
-      : content
-  }
-
   if (properties.category) {
     meta.tags = properties.category
   }

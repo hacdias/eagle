@@ -68,18 +68,11 @@ function createEagle ({ domain, ...config }) {
   })
 
   const receiveMicropub = (req, res, data) => wrapAndLimit(async () => {
-    const noTitle = data.properties.name
-      ? data.properties.name.length === 0
-      : false
-
     const { meta, content, slug, type, relatedURL } = micropub.createPost(data)
 
     if (relatedURL) {
       try {
-        const data = await xray.requestAndSave(relatedURL)
-        if (noTitle && data.name) {
-          meta.title = data.name
-        }
+        await xray.requestAndSave(relatedURL)
       } catch (e) {
         telegram.sendError(e)
       }
