@@ -133,10 +133,19 @@ function createEagle ({ domain, ...config }) {
     const post = data.url.replace(domain, '', 1)
     let entry = await hugo.getEntry(post)
     entry = micropub.updatePost(entry, data)
+
+    if (res) {
+      res.redirect(202, data.url)
+
+      // Update updated date!
+      if (!entry.meta.publishDate && entry.meta.date) {
+        entry.meta.publishDate = entry.meta.date
+      }
+
+      entry.meta.date = new Date()
+    }
+
     await hugo.saveEntry(post, entry)
-
-    if (res) res.redirect(202, data.url)
-
     git.commit(`update ${post}`)
     hugo.build()
     telegram.send(`📄 Post updated: ${data.url}`)
