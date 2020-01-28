@@ -146,20 +146,19 @@ const updatePost = ({ meta, content }, { update }) => {
 
   if (Array.isArray(update.delete)) {
     for (const key of update.delete) {
-      if (key === 'name' || key === 'content') {
-        throw new Error(`cannot remove the ${key}`)
-      } else if (key === 'category') {
+      if (key === 'category') {
         meta.tags = []
       } else if (key === 'content') {
+        content = ''
       } else {
         delete meta.properties[key]
       }
     }
   } else {
     for (const [key, value] of Object.entries(update.delete)) {
-      if (key === 'name' || key === 'content') {
-        throw new Error(`cannot remove the ${key}`)
-      } else if (key === 'category') {
+      if (key === 'content') {
+        content = ''
+      } if (key === 'category') {
         meta.tags = meta.tags.filter(tag => !value.includes(tag))
       } else {
         meta.properties[key] = meta.properties[key]
