@@ -42,7 +42,7 @@ module.exports = ({ eagle, tokenReference }) => {
   router.use(upload.single('file'))
 
   router.get('/', ar(async (req, res) => {
-    debug('received GET request with query %o', req.query)
+    debug('GET received; query: %o', req.query)
 
     switch (req.query.q) {
       case 'source':
@@ -61,7 +61,7 @@ module.exports = ({ eagle, tokenReference }) => {
   }))
 
   router.post('/', ar(async (req, res) => {
-    debug('received POST request')
+    debug('POST received')
     let request
 
     if (req.file) {
@@ -79,6 +79,8 @@ module.exports = ({ eagle, tokenReference }) => {
       return badRequest(res, e.stack)
     }
 
+    debug('POST transformed')
+
     switch (request.action) {
       case 'create':
         return eagle.receiveMicropub(req, res, request)
@@ -89,7 +91,7 @@ module.exports = ({ eagle, tokenReference }) => {
       case 'undelete':
         return eagle.undeleteMicropub(req, res, request)
       default:
-        throw new Error('invalid request')
+        return badRequest(res, 'invalid request')
     }
   }))
 
