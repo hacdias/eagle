@@ -151,6 +151,35 @@ function createEagle ({ domain, ...config }) {
     telegram.send(`📄 Post updated: ${data.url}`)
   })
 
+  const deleteMicropub = (req, res, data) => wrapAndLimit(async () => {
+    const post = data.url.replace(domain, '', 1)
+    const entry = await hugo.getEntry(post)
+    entry.meta.expiryDate = new Date()
+    await hugo.saveEntry(post, entry)
+    res.sendStatus(200)
+    git.commit(`delete ${post}`)
+    hugo.build()
+    telegram.send(`📄 Post updated: ${data.url}`)
+  })
+
+  const undeleteMicropub = (req, res, data) => wrapAndLimit(async () => {
+    const post = data.url.replace(domain, '', 1)
+    const entry = await hugo.getEntry(post)
+
+    if (entry.meta.expiryDate) {
+      delete entry.meta.expiryDate
+      await hugo.saveEntry(post, entry)
+
+      res.sendStatus(200)
+
+      git.commit(`delete ${post}`)
+      hugo.build()
+      telegram.send(`📄 Post updated: ${data.url}`)
+    } else {
+      res.sendStatus(200)
+    }
+  })
+
   const sourceMicropub = async (url) => wrap(async () => {
     if (!url.startsWith(domain)) {
       throw new Error('invalid request')
@@ -182,7 +211,9 @@ function createEagle ({ domain, ...config }) {
     receiveWebmention,
     updateMicropub,
     sourceMicropub,
-    receiveMicropub
+    receiveMicropub,
+    deleteMicropub,
+    undeleteMicropub
   })
 }
 

@@ -85,7 +85,9 @@ module.exports = ({ eagle, tokenReference }) => {
       case 'update':
         return eagle.updateMicropub(req, res, request)
       case 'delete':
-        throw new Error('not implemennted')
+        return eagle.deleteMicropub(req, res, request)
+      case 'undelete':
+        return eagle.undeleteMicropub(req, res, request)
       default:
         throw new Error('invalid request')
     }
