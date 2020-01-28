@@ -59,7 +59,9 @@ module.exports = function createTelegram ({ token, chatID, git, hugo }) {
   }
 
   const send = (msg) => {
-    tg.sendMessage(chatID, msg)
+    tg.sendMessage(chatID, msg, {
+      disable_web_page_preview: true
+    })
   }
 
   return Object.freeze({
