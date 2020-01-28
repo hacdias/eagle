@@ -74,10 +74,13 @@ module.exports = class HugoService {
     const pathToCheck = join(this.contentDir, year, month, day)
     fs.ensureDirSync(pathToCheck)
 
-    const lastNum = fs.readdirSync(pathToCheck)
-      .filter(f => fs.statSync(join(pathToCheck, f)).isDirectory())
-      .sort().pop() || '0'
+    const lastNum = Math.max(
+      ...fs.readdirSync(pathToCheck)
+        .filter(f => fs.statSync(join(pathToCheck, f)).isDirectory())
+        .map(n => parseInt(n)),
+      0
+    )
 
-    return (parseInt(lastNum) + 1).toString()
+    return (lastNum + 1).toString()
   }
 }
