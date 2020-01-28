@@ -158,8 +158,8 @@ function createEagle ({ domain, ...config }) {
     await hugo.saveEntry(post, entry)
     res.sendStatus(200)
     git.commit(`delete ${post}`)
-    hugo.build()
-    telegram.send(`📄 Post updated: ${data.url}`)
+    hugo.buildAndClean()
+    telegram.send(`📄 Post deleted: ${data.url}`)
   })
 
   const undeleteMicropub = (req, res, data) => wrapAndLimit(async () => {
@@ -174,7 +174,7 @@ function createEagle ({ domain, ...config }) {
 
       git.commit(`delete ${post}`)
       hugo.build()
-      telegram.send(`📄 Post updated: ${data.url}`)
+      telegram.send(`📄 Post undeleted: ${data.url}`)
     } else {
       res.sendStatus(200)
     }
