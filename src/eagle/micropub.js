@@ -8,6 +8,7 @@ const propertyToType = Object.freeze({
   'in-reply-to': 'reply',
   'bookmark-of': 'bookmark',
   'follow-of': 'follow',
+  'read-of': 'read',
   checkin: 'checkin',
   video: 'video',
   audio: 'audio',
@@ -17,7 +18,7 @@ const propertyToType = Object.freeze({
 const typeToProperty = invert(propertyToType)
 
 const supportedTypes = Object.freeze([
-  'repost', 'like', 'reply', 'bookmark', 'video', 'photo', 'note'
+  'repost', 'like', 'reply', 'bookmark', 'video', 'photo', 'note', 'read'
 ])
 
 const hasURL = Object.freeze([
@@ -63,7 +64,11 @@ const postType = (post) => {
 
 // creates a new post.
 const createPost = ({ properties, commands }) => {
-  const date = new Date()
+  const date = properties.published
+    ? new Date(properties.published)
+    : new Date()
+
+  delete properties.published
   const type = postType(properties)
 
   if (!supportedTypes.includes(type)) {
@@ -77,11 +82,12 @@ const createPost = ({ properties, commands }) => {
   delete properties.content
 
   const meta = {
-    title: properties.name
-      ? properties.name.join(' ').trim()
-      : '',
     categories: [pluralize(type)],
     date
+  }
+
+  if (properties.name) {
+    meta.title = properties.name.join(' ').trim()
   }
 
   delete properties.name
