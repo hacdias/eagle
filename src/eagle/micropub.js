@@ -71,6 +71,11 @@ const createPost = ({ properties, commands }) => {
   delete properties.published
   const type = postType(properties)
 
+  if (type === 'read') {
+    // delete unwanted summary from indiebookclub.biz
+    delete properties.summary
+  }
+
   if (!supportedTypes.includes(type)) {
     throw new Error(`type '${type} is not supported yet`)
   }
