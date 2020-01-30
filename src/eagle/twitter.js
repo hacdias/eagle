@@ -57,7 +57,7 @@ module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, acces
   const tweet = ({ status, inReplyTo }) => {
     debug('tweeting "%s", replying to %s', status, inReplyTo)
 
-    let url = `https://api.twitter.com/1.1/statuses/update.json?status=${encodeURIComponent(status)}`
+    let url = `https://api.twitter.com/1.1/statuses/update.json?status=${rfc3986Encode(status)}`
 
     if (inReplyTo) {
       url += `&in_reply_to_status_id=${inReplyTo}&auto_populate_reply_metadata=true`
@@ -71,5 +71,12 @@ module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, acces
     like,
     retweet,
     tweet
+  })
+}
+
+// RFC 3986
+function rfc3986Encode (str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+    return '%' + c.charCodeAt(0).toString(16)
   })
 }
