@@ -179,14 +179,20 @@ function createEagle ({ domain, ...config }) {
     const post = url.replace(domain, '', 1)
     const { meta, content } = await hugo.getEntry(post)
 
-    return {
+    const entry = {
       type: ['h-entry'],
-      properties: {
-        ...meta.properties,
-        name: [meta.title],
-        content: [content]
-      }
+      properties: meta.properties
     }
+
+    if (meta.title) {
+      entry.properties.name = [meta.title]
+    }
+
+    if (content) {
+      entry.properties.content = [content]
+    }
+
+    return entry
   })
 
   return Object.freeze({
