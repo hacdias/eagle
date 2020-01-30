@@ -88,45 +88,36 @@ function createEagle ({ domain, ...config }) {
 
     telegram.send(`📄 Post published: ${url}`)
 
-    try {
+    await wrap(async () => {
       const html = await hugo.getEntryHTML(post)
       await webmentions.sendFromContent({ url, body: html })
-    } catch (e) {
-      telegram.sendError(e)
+    })
+
+    if (relatedURL) {
+      await wrap(() => webmentions.send({ source: url, targets: [relatedURL] }))
     }
 
-    try {
-      const syndication = await posse.analysePost({
-        content,
-        url,
-        type,
-        commands: data.commands,
-        relatedURL
-      })
+    const syndication = await posse.analysePost({
+      content,
+      url,
+      type,
+      commands: data.commands,
+      relatedURL
+    })
 
-      if (syndication.length >= 1) {
-        await updateMicropub(null, null, {
-          url,
-          update: {
-            add: {
-              syndication
-            }
-          }
-        })
-      }
-    } catch (e) {
-      telegram.sendError(e)
-    }
-
-    if (!relatedURL) {
+    if (syndication.length === 0) {
       return
     }
 
-    try {
-      await webmentions.send({ source: url, targets: [relatedURL] })
-    } catch (e) {
-      telegram.sendError(e)
-    }
+    // do not await here! otherwise, deadlock
+    wrap(() => updateMicropub(null, null, {
+      url,
+      update: {
+        add: {
+          syndication
+        }
+      }
+    }))
   })
 
   const updateMicropub = (req, res, data) => wrapAndLimit(async () => {
