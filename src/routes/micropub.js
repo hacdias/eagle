@@ -178,7 +178,7 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue
           return badRequest(res, 'url must be set on source query')
         }
 
-        return res.json(await queue.add(source(req.query.url)))
+        return res.json(await queue.add(() => source(req.query.url)))
       case 'config':
         return res.json(config)
       case 'syndicate-to':
