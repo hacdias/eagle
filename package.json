@@ -22,6 +22,7 @@
     "node-html-parser": "^1.1.19",
     "oauth-1.0a": "^2.2.6",
     "p-limit": "^2.2.2",
+    "p-queue": "^6.2.1",
     "pluralize": "^8.0.0",
     "telegraf": "^3.36.0"
   },
