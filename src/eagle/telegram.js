@@ -3,7 +3,7 @@ const Telegraf = require('telegraf')
 
 module.exports = function createTelegram ({ token, chatID, git, hugo }) {
   const tg = new Telegram(token)
-  /* const bot = new Telegraf(token)
+  const bot = new Telegraf(token)
 
   bot.on('text', async ({ update, reply }) => {
     if (update.message.chat.id !== chatID) {

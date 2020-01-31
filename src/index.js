@@ -24,12 +24,7 @@ const git = require('./eagle/git')({
   cwd: hugo.dir
 })
 
-const webmentions = require('./eagle/webmentions')({
-  token: config.telegraphToken,
-  domain: config.domain,
-  xray,
-  dir: join(hugo.dataDir, 'mentions')
-})
+const webmentions = require('./eagle/webmentions')(config.telegraphToken)
 
 const telegram = require('./eagle/telegram')({
   ...config.telegram,
@@ -46,7 +41,7 @@ const queue = new PQueue({
   autoStart: true
 })
 
-/* OTHERS */
+/* SETUP EXPRESS APP */
 
 const app = express()
 

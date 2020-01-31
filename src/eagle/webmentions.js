@@ -2,7 +2,7 @@ const got = require('got')
 const debug = require('debug')('eagle:webmentions')
 const { parse } = require('node-html-parser')
 
-module.exports = function createWebmention ({ token, domain, dir, xray }) {
+module.exports = function createWebmention (token) {
   const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
@@ -33,24 +33,18 @@ module.exports = function createWebmention ({ token, domain, dir, xray }) {
 
   const sendFromContent = async ({ url, body }) => {
     debug('will scrap %s for webmentions', url)
-    const ray = await xray.request({ url, body })
+    const parsed = parse(body)
 
-    const targets = []
-    const toCheck = ['like-of', 'in-reply-to', 'repost-of']
-
-    for (const param of toCheck) {
-      if (Array.isArray(ray.data[param])) {
-        targets.push(...ray.data[param])
-      }
-    }
-
-    if (ray.data.content && ray.data.content.html) {
-      const parsed = parse(ray.data.content.html)
-      targets.push(
-        ...parsed.querySelectorAll('a')
-          .map(p => p.attributes.href)
-      )
-    }
+    const targets = parsed.querySelectorAll('.h-entry .e-content a')
+      .map(p => p.attributes.href)
+      .map(href => {
+        try {
+          const u = new URL(href, url)
+          return u.href
+        } catch (_) {
+          return href
+        }
+      })
 
     debug('found webmentions: %o', targets)
 
