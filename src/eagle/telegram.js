@@ -51,7 +51,7 @@ module.exports = function createTelegram ({ token, chatID, git, hugo }) {
     }
   })
 
-  bot.launch() */
+  bot.launch()
 
   const sendError = (e) => {
     const formatted = `An error occurred on the server\n\n${e.stack}`
