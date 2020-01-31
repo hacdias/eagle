@@ -24,7 +24,12 @@ module.exports = function () {
     cwd: hugo.dir
   })
 
-  const webmentions = require('../services/webmentions')(config.telegraphToken)
+  const webmentions = require('../services/webmentions')({
+    token: config.telegraphToken,
+    domain: config.domain,
+    dir: join(hugo.dataDir, 'mentions'),
+    git
+  })
 
   const telegram = require('../services/telegram')({
     ...config.telegram,
@@ -62,6 +67,7 @@ module.exports = function () {
     secret: process.env.WEBMENTION_IO_WEBHOOK_SECRET,
     dir: join(hugo.dataDir, 'mentions'),
     domain: config.domain,
+    webmentions,
     git,
     hugo,
     telegram,

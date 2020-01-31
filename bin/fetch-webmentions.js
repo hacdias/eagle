@@ -2,9 +2,9 @@
 'use strict'
 
 require('dotenv').config()
-
 const got = require('got')
-const eagle = require('../src/eagle').fromEnvironment()
+const { join } = require('path')
+const config = require('../src/config')()
 
 const getWebmentions = async (page) => {
   const { body } = await got('https://webmention.io/api/mentions.jf2', {
@@ -18,12 +18,25 @@ const getWebmentions = async (page) => {
   return body.children
 }
 
+const hugo = require('../src/services/hugo')(config.hugo)
+
+const git = require('../src/services/git')({
+  cwd: hugo.dir
+})
+
+const webmentions = require('../src/services/webmentions')({
+  token: config.telegraphToken,
+  domain: config.domain,
+  dir: join(hugo.dataDir, 'mentions'),
+  git
+})
+
 ;(async () => {
   let mentions
 
   for (let i = 0; (mentions = await getWebmentions(i)).length > 0; i++) {
     for (const mention of mentions) {
-      await eagle.webmentions.receive({
+      await webmentions.receive({
         post: mention,
         target: mention['wm-target']
       })

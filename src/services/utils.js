@@ -1,4 +1,9 @@
 const { spawnSync } = require('child_process')
+const crypto = require('crypto')
+
+function sha256 (data) {
+  return crypto.createHash('sha256').update(data).digest('hex')
+}
 
 function run () {
   const res = spawnSync(...arguments)
@@ -6,5 +11,6 @@ function run () {
 }
 
 module.exports = {
-  run
+  run,
+  sha256
 }

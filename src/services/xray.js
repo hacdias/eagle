@@ -1,12 +1,8 @@
 const got = require('got')
-const crypto = require('crypto')
 const fs = require('fs-extra')
 const { join } = require('path')
 const debug = require('debug')('eagle:xray')
-
-function sha256 (data) {
-  return crypto.createHash('sha256').update(data).digest('hex')
-}
+const { sha256 } = require('./utils')
 
 module.exports = function createXRay ({ domain, entrypoint, twitter, dir }) {
   const makeOptions = () => {

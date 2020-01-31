@@ -1,8 +1,11 @@
 const got = require('got')
 const debug = require('debug')('eagle:webmentions')
 const { parse } = require('node-html-parser')
+const { sha256 } = require('./utils')
+const fs = require('fs-extra')
+const { join } = require('path')
 
-module.exports = function createWebmention (token) {
+module.exports = function createWebmention ({ token, git, domain, dir }) {
   const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
@@ -54,8 +57,53 @@ module.exports = function createWebmention (token) {
     })
   }
 
+  const receive = async (webmention) => {
+    const permalink = webmention.target.replace(domain, '', 1)
+    const hash = sha256(permalink)
+    const file = join(dir, `${hash}.json`)
+
+    if (!await fs.exists(file)) {
+      await fs.outputJSON(file, [])
+    }
+
+    const mentions = await fs.readJSON(file)
+
+    if (mentions.find(m => m['wm-id'] === webmention.post['wm-id'])) {
+      debug('duplicated webmention for %s: %s', permalink, webmention.post['wm-id'])
+      return
+    }
+
+    const types = {
+      'like-of': 'like',
+      'repost-of': 'repost',
+      'mention-of': 'mention',
+      'in-reply-to': 'reply'
+    }
+
+    const entry = {
+      type: types[webmention.post['wm-property']] || 'mention',
+      url: webmention.post.url || webmention.post['wm-source'],
+      date: new Date(webmention.post.published || webmention.post['wm-received']),
+      private: webmention.post['wm-private'] || false,
+      'wm-id': webmention.post['wm-id'],
+      content: webmention.post.content,
+      author: webmention.post.author
+    }
+
+    delete entry.author.type
+
+    mentions.push(entry)
+
+    await fs.outputJSON(file, mentions, {
+      spaces: 2
+    })
+
+    git.commit(`webmention from ${webmention.url}`)
+  }
+
   return Object.freeze({
     send,
-    sendFromContent
+    sendFromContent,
+    receive
   })
 }
