@@ -178,7 +178,6 @@ const updatePost = ({ meta, content }, { update }) => {
     }
   }
 
-  meta.properties.category = meta.tags
   return { meta, content }
 }
 
