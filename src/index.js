@@ -17,6 +17,8 @@ const tokenReference = {
   endpoint: 'https://tokens.indieauth.com/token'
 }
 
+app.use(express.json())
+
 app.use('/micropub', micropub({
   eagle,
   tokenReference
