@@ -1,4 +1,4 @@
-const debug = require('debug')('eagle:routes:webmention')
+const debug = require('debug')('eagle:server:webmention')
 const { join } = require('path')
 const fs = require('fs-extra')
 const crypto = require('crypto')
