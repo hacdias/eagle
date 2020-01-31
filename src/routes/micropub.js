@@ -105,6 +105,10 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue
       entry.properties.name = [meta.title]
     }
 
+    if (meta.tags) {
+      entry.properties.category = meta.tags
+    }
+
     if (content) {
       entry.properties.content = [content]
     }
