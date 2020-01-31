@@ -1,9 +1,6 @@
 const got = require('got')
-const { join } = require('path')
 const debug = require('debug')('eagle:webmentions')
 const { parse } = require('node-html-parser')
-const { sha256 } = require('./utils')
-const fs = require('fs-extra')
 
 module.exports = function createWebmention ({ token, domain, dir, xray }) {
   const send = async ({ source, targets }) => {

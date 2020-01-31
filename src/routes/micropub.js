@@ -64,7 +64,7 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue
       }
     }
 
-    const syndication = await posse.analysePost({
+    const syndication = await posse({
       content,
       url,
       type,

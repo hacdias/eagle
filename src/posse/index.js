@@ -1,7 +1,35 @@
 const debug = require('debug')('eagle:posse')
+const createTwitter = require('./twitter')
 
-module.exports = function createPOSSE ({ twitter }) {
-  const analysePost = async ({ content, url, type, commands, relatedURL }) => {
+module.exports = function createPOSSE (conf) {
+  const twitter = createTwitter(conf.twitter)
+
+  const relatesToTwitter = async ({ url, type, status }) => {
+    const id = new URL(url).pathname.split('/').pop()
+    let res, syndication
+
+    switch (type) {
+      case 'like':
+        await twitter.like(id)
+        break
+      case 'repost':
+        await twitter.retweet(id)
+        break
+      case 'reply':
+        res = await twitter.tweet({
+          status: status,
+          inReplyTo: id
+        })
+        syndication = `https://twitter.com/hacdias/status/${res.id_str}`
+        break
+      default:
+        break
+    }
+
+    return syndication
+  }
+
+  return async ({ content, url, type, commands, relatedURL }) => {
     const syndications = []
     const errors = []
 
@@ -43,33 +71,4 @@ module.exports = function createPOSSE ({ twitter }) {
 
     return syndications
   }
-
-  const relatesToTwitter = async ({ url, type, status }) => {
-    const id = new URL(url).pathname.split('/').pop()
-    let res, syndication
-
-    switch (type) {
-      case 'like':
-        await twitter.like(id)
-        break
-      case 'repost':
-        await twitter.retweet(id)
-        break
-      case 'reply':
-        res = await twitter.tweet({
-          status: status,
-          inReplyTo: id
-        })
-        syndication = `https://twitter.com/hacdias/status/${res.id_str}`
-        break
-      default:
-        break
-    }
-
-    return syndication
-  }
-
-  return Object.freeze({
-    analysePost
-  })
 }

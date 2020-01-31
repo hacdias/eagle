@@ -37,8 +37,8 @@ const telegram = require('./eagle/telegram')({
   hugo
 })
 
-const posse = require('./eagle/posse')({
-  twitter: require('./eagle/twitter')(config.twitter)
+const posse = require('./posse')({
+  twitter: config.twitter
 })
 
 const queue = new PQueue({
