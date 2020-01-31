@@ -51,6 +51,7 @@ module.exports = function createHugo ({ dir, publicDir }) {
     const [frontmatter, content] = file.split('\n---')
 
     return {
+      post,
       meta: yaml.safeLoad(frontmatter),
       content: content.trim()
     }
@@ -75,6 +76,20 @@ module.exports = function createHugo ({ dir, publicDir }) {
     return (lastNum + 1).toString()
   }
 
+  const getAll = async function * () {
+    const files = getAllFiles(contentDir)
+      .filter(p => p.endsWith('/index.md'))
+      .map(p => {
+        p = p.replace('/index.md', '', 1)
+        p = p.replace(contentDir, '', 1)
+        return p
+      })
+
+    for (const file of files) {
+      yield getEntry(file)
+    }
+  }
+
   return Object.freeze({
     contentDir,
     dataDir,
@@ -85,7 +100,24 @@ module.exports = function createHugo ({ dir, publicDir }) {
     buildAndClean,
     newEntry,
     saveEntry,
+    getAll,
     getEntry,
     getEntryHTML
   })
+}
+
+const getAllFiles = function (dirPath, arrayOfFiles) {
+  const files = fs.readdirSync(dirPath)
+
+  arrayOfFiles = arrayOfFiles || []
+
+  files.forEach(function (file) {
+    if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+      arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
+    } else {
+      arrayOfFiles.push(join(dirPath, '/', file))
+    }
+  })
+
+  return arrayOfFiles
 }
