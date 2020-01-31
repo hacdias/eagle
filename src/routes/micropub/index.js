@@ -1,5 +1,5 @@
 const express = require('express')
-const debug = require('debug')('micropub')
+const debug = require('debug')('eagle:micropub')
 const multer = require('multer')
 const { ar } = require('../utils')
 
