@@ -6,6 +6,10 @@ module.exports = function createGit (opts) {
     run('git', ['commit', '-m', message], opts)
   }
 
+  const commitFile = (message, ...files) => {
+    run('git', ['commit', '-m', message, '-o', ...files], opts)
+  }
+
   const push = () => {
     run('git', ['push'], opts)
   }
@@ -16,6 +20,7 @@ module.exports = function createGit (opts) {
 
   return Object.freeze({
     commit,
+    commitFile,
     push,
     pull
   })

@@ -63,50 +63,8 @@ module.exports = function createWebmention ({ token, domain, dir, xray }) {
     })
   }
 
-  const receive = async (webmention) => {
-    const permalink = webmention.target.replace(domain, '', 1)
-    const hash = sha256(permalink)
-    const file = join(dir, `${hash}.json`)
-
-    if (!await fs.exists(file)) {
-      await fs.outputJSON(file, [])
-    }
-
-    const mentions = await fs.readJSON(file)
-
-    if (mentions.find(m => m['wm-id'] === webmention.post['wm-id'])) {
-      return
-    }
-
-    const types = {
-      'like-of': 'like',
-      'repost-of': 'repost',
-      'mention-of': 'mention',
-      'in-reply-to': 'reply'
-    }
-
-    const entry = {
-      type: types[webmention.post['wm-property']] || 'mention',
-      url: webmention.post.url || webmention.post['wm-source'],
-      date: new Date(webmention.post.published || webmention.post['wm-received']),
-      private: webmention.post['wm-private'] || false,
-      'wm-id': webmention.post['wm-id'],
-      content: webmention.post.content,
-      author: webmention.post.author
-    }
-
-    delete entry.author.type
-
-    mentions.push(entry)
-
-    await fs.outputJSON(file, mentions, {
-      spaces: 2
-    })
-  }
-
   return Object.freeze({
     send,
-    sendFromContent,
-    receive
+    sendFromContent
   })
 }

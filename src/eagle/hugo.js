@@ -3,36 +3,27 @@ const fs = require('fs-extra')
 const yaml = require('js-yaml')
 const { run } = require('./utils')
 
-module.exports = class HugoService {
-  constructor ({ dir, publicDir, domain }) {
-    this.dir = dir
-    this.contentDir = join(dir, 'content')
-    this.dataDir = join(dir, 'data')
-    this.publicDir = publicDir
-    this.domain = domain
-  }
+module.exports = function createHugo ({ dir, publicDir, domain }) {
+  const contentDir = join(dir, 'content')
+  const dataDir = join(dir, 'data')
 
-  build () {
-    run('hugo', ['--minify', '--destination', this.publicDir], {
-      cwd: this.dir
-    })
-  }
+  const build = () => run('hugo', ['--minify', '--destination', publicDir], {
+    cwd: dir
+  })
 
-  buildAndClean () {
-    run('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', this.publicDir], {
-      cwd: this.dir
-    })
-  }
+  const buildAndClean = () => run('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
+    cwd: dir
+  })
 
   // Creates a new entry from metadata, content and a slug and returns
   // an object { post, path } where post is the post directory as in uri
   // and path is the local path in disk.
-  async newEntry ({ meta, content, slug }) {
+  const newEntry = async ({ meta, content, slug }) => {
     const year = meta.date.getFullYear().toString()
     const month = (meta.date.getMonth() + 1).toString().padStart(2, '0')
     const day = meta.date.getDate().toString().padStart(2, '0')
 
-    const num = this._getNextPostNumber(year, month, day)
+    const num = getNextPostNumber(year, month, day)
     let path = `/${year}/${month}/${day}/${num}/`
 
     if (slug !== '') {
@@ -40,13 +31,13 @@ module.exports = class HugoService {
       path += `${slug}/`
     }
 
-    return this.saveEntry(path, { meta, content })
+    return saveEntry(path, { meta, content })
   }
 
   // Saves an already existing entry. Takes a post path (uri) and an object
   // with { meta, content }.
-  async saveEntry (post, { meta, content }) {
-    const path = join(this.contentDir, post)
+  const saveEntry = async (post, { meta, content }) => {
+    const path = join(contentDir, post)
     const index = join(path, 'index.md')
     const val = `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content}`
     await fs.outputFile(index, val)
@@ -54,8 +45,8 @@ module.exports = class HugoService {
   }
 
   // Gets an entry as a { meta, content } object.
-  async getEntry (post) {
-    const index = join(this.contentDir, post, 'index.md')
+  const getEntry = async (post) => {
+    const index = join(contentDir, post, 'index.md')
     const file = (await fs.readFile(index)).toString()
     const [frontmatter, content] = file.split('\n---')
 
@@ -65,13 +56,13 @@ module.exports = class HugoService {
     }
   }
 
-  async getEntryHTML (post) {
-    const index = join(this.publicDir, post, 'index.html')
+  const getEntryHTML = async (post) => {
+    const index = join(publicDir, post, 'index.html')
     return (await fs.readFile(index)).toString()
   }
 
-  _getNextPostNumber (year, month, day) {
-    const pathToCheck = join(this.contentDir, year, month, day)
+  const getNextPostNumber = (year, month, day) => {
+    const pathToCheck = join(contentDir, year, month, day)
     fs.ensureDirSync(pathToCheck)
 
     const lastNum = Math.max(
@@ -83,4 +74,18 @@ module.exports = class HugoService {
 
     return (lastNum + 1).toString()
   }
+
+  return Object.freeze({
+    contentDir,
+    dataDir,
+    publicDir,
+    dir,
+
+    build,
+    buildAndClean,
+    newEntry,
+    saveEntry,
+    getEntry,
+    getEntryHTML
+  })
 }
