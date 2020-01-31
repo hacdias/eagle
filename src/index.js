@@ -8,32 +8,32 @@ const config = require('./config')()
 
 /* CONFIGURE SERVICES */
 
-const hugo = require('./eagle/hugo')({
+const hugo = require('./services/hugo')({
   ...config.hugo,
   domain: config.domain
 })
 
-const xray = require('./eagle/xray')({
+const xray = require('./services/xray')({
   domain: config.domain,
   twitter: config.twitter,
   entrypoint: config.xrayEntrypoint,
   dir: join(hugo.dataDir, 'xray')
 })
 
-const git = require('./eagle/git')({
+const git = require('./services/git')({
   cwd: hugo.dir
 })
 
-const webmentions = require('./eagle/webmentions')(config.telegraphToken)
+const webmentions = require('./services/webmentions')(config.telegraphToken)
 
-const telegram = require('./eagle/telegram')({
+const telegram = require('./services/telegram')({
   ...config.telegram,
   git,
   hugo
 })
 
-const posse = require('./posse')({
-  twitter: config.twitter
+const posse = require('./services/posse')({
+  twitter: require('./services/twitter')(config.twitter)
 })
 
 const queue = new PQueue({

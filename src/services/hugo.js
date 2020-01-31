@@ -3,7 +3,7 @@ const fs = require('fs-extra')
 const yaml = require('js-yaml')
 const { run } = require('./utils')
 
-module.exports = function createHugo ({ dir, publicDir, domain }) {
+module.exports = function createHugo ({ dir, publicDir }) {
   const contentDir = join(dir, 'content')
   const dataDir = join(dir, 'data')
 

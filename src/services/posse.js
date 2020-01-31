@@ -1,9 +1,6 @@
 const debug = require('debug')('eagle:posse')
-const createTwitter = require('./twitter')
 
-module.exports = function createPOSSE (conf) {
-  const twitter = createTwitter(conf.twitter)
-
+module.exports = function createPOSSE ({ twitter }) {
   const relatesToTwitter = async ({ url, type, status }) => {
     const id = new URL(url).pathname.split('/').pop()
     let res, syndication

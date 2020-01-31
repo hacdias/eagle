@@ -1,11 +1,11 @@
 const express = require('express')
 const debug = require('debug')('micropub')
 const multer = require('multer')
-const { ar } = require('./utils')
+const { ar } = require('../utils')
 
 const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
 const indieauth = require('@hacdias/indieauth-middleware')
-const micropub = require('../eagle/micropub')
+const transformer = require('./transformer')
 
 // https://www.w3.org/TR/micropub
 
@@ -29,7 +29,7 @@ const config = Object.freeze({
 
 module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue, tokenReference }) => {
   const receive = async (req, res, data) => {
-    const { meta, content, slug, type, relatedURL } = micropub.createPost(data)
+    const { meta, content, slug, type, relatedURL } = transformer.createPost(data)
 
     if (relatedURL) {
       try {
@@ -119,7 +119,7 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue
   const update = async (req, res, data) => {
     const post = data.url.replace(domain, '', 1)
     let entry = await hugo.getEntry(post)
-    entry = micropub.updatePost(entry, data)
+    entry = transformer.updatePost(entry, data)
 
     // Update updated date!
     if (!entry.meta.publishDate && entry.meta.date) {
