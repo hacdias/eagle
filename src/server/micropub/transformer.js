@@ -118,7 +118,7 @@ const createPost = ({ properties, commands }) => {
     delete properties.category
   }
 
-  if (type === 'checkin') {
+  if (type === 'checkin' && meta.tags) {
     // Go over the tags and check if there's a person tag!
     const realTags = []
 
