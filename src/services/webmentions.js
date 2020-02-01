@@ -90,6 +90,10 @@ module.exports = function createWebmention ({ token, git, domain, dir }) {
       author: webmention.post.author
     }
 
+    if (webmention.post['swarm-coins']) {
+      entry['swarm-coins'] = webmention.post['swarm-coins']
+    }
+
     delete entry.author.type
 
     mentions.push(entry)
