@@ -18,7 +18,7 @@ const propertyToType = Object.freeze({
 const typeToProperty = invert(propertyToType)
 
 const supportedTypes = Object.freeze([
-  'repost', 'like', 'reply', 'bookmark', 'video', 'photo', 'note', 'read'
+  'repost', 'like', 'reply', 'bookmark', 'video', 'photo', 'note', 'read', 'checkin'
 ])
 
 const hasURL = Object.freeze([
@@ -115,6 +115,24 @@ const createPost = ({ properties, commands }) => {
 
   if (properties.category) {
     meta.tags = properties.category
+    delete properties.category
+  }
+
+  if (type === 'checkin') {
+    // Go over the tags and check if there's a person tag!
+    const realTags = []
+
+    for (const tag of meta.tags) {
+      if (typeof tag === 'string') {
+        realTags.push(tag)
+        continue
+      }
+
+      meta.checkinWith = meta.checkinWith || []
+      meta.checkinWith.push(tag)
+    }
+
+    meta.tags = realTags
   }
 
   meta.properties = properties
