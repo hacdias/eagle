@@ -116,7 +116,7 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
       spaces: 2
     })
 
-    git.commit(`webmention from ${webmention.url}`)
+    git.commit(`webmention from ${entry.url}`)
   }
 
   return Object.freeze({
