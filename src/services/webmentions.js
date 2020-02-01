@@ -3,9 +3,9 @@ const debug = require('debug')('eagle:webmentions')
 const { parse } = require('node-html-parser')
 const { sha256 } = require('./utils')
 const fs = require('fs-extra')
-const { join } = require('path')
+const { join, extname } = require('path')
 
-module.exports = function createWebmention ({ token, git, domain, dir }) {
+module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
   const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
@@ -92,6 +92,20 @@ module.exports = function createWebmention ({ token, git, domain, dir }) {
 
     if (webmention.post['swarm-coins']) {
       entry['swarm-coins'] = webmention.post['swarm-coins']
+    }
+
+    // upload avatar to cdn
+    if (entry.author && entry.author.photo) {
+      try {
+        const ext = extname(entry.author.photo)
+        const base = sha256(entry.author.photo)
+
+        const stream = got.stream(entry.author.photo)
+        const url = await cdn.upload(stream, `/webmentions/${base}${ext}`)
+        entry.author.photo = url
+      } catch (e) {
+        debug('could not upload photo to cdn %s: %s', entry.author.photo, e.stack)
+      }
     }
 
     delete entry.author.type

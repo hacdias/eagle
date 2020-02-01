@@ -20,5 +20,10 @@ module.exports = () => ({
   tokenReference: {
     me: process.env.TOKEN_REF_ME,
     endpoint: process.env.TOKEN_REF_ENDPOINT
+  },
+  bunny: {
+    zone: process.env.BUNNY_ZONE,
+    key: process.env.BUNNY_KEY,
+    base: process.env.BUNNY_BASE
   }
 })

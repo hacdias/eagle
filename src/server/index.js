@@ -8,6 +8,8 @@ const config = require('../config')()
 module.exports = function () {
   // Configure services
 
+  const cdn = require('../services/bunnycdn')(config.bunny)
+
   const hugo = require('../services/hugo')({
     ...config.hugo,
     domain: config.domain
@@ -28,7 +30,8 @@ module.exports = function () {
     token: config.telegraphToken,
     domain: config.domain,
     dir: join(hugo.dataDir, 'mentions'),
-    git
+    git,
+    cdn
   })
 
   const telegram = require('../services/telegram')({

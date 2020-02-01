@@ -24,11 +24,14 @@ const git = require('../src/services/git')({
   cwd: hugo.dir
 })
 
+const cdn = require('../src/services/bunnycdn')(config.bunny)
+
 const webmentions = require('../src/services/webmentions')({
   token: config.telegraphToken,
   domain: config.domain,
   dir: join(hugo.dataDir, 'mentions'),
-  git
+  git,
+  cdn
 })
 
 ;(async () => {
