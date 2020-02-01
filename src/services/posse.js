@@ -10,7 +10,8 @@ module.exports = function createPOSSE ({ twitter }) {
         await twitter.like(id)
         break
       case 'repost':
-        await twitter.retweet(id)
+        res = await twitter.retweet(id)
+        syndication = `https://twitter.com/hacdias/status/${res.id_str}`
         break
       case 'reply':
         res = await twitter.tweet({
