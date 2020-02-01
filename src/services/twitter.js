@@ -70,7 +70,10 @@ module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, acces
     timeline,
     like,
     retweet,
-    tweet
+    tweet,
+
+    get,
+    post
   })
 }
 
