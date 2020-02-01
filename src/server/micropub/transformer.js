@@ -97,9 +97,21 @@ const createPost = ({ properties, commands }) => {
 
   delete properties.name
 
-  const relatedURL = hasURL.includes(type)
+  let relatedURL = hasURL.includes(type)
     ? properties[typeToProperty[type]][0]
     : null
+
+  // Cleanup twitter url removing any search param.
+  if (relatedURL && relatedURL.starsWith('https://twitter.com') && relatedURL.includes('/status/')) {
+    relatedURL = new URL(relatedURL)
+
+    for (const param of relatedURL.searchParams.keys()) {
+      relatedURL.searchParams.delete(param)
+    }
+
+    relatedURL = relatedURL.href
+    properties[typeToProperty[type]][0] = relatedURL
+  }
 
   if (properties.category) {
     meta.tags = properties.category
