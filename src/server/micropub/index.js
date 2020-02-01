@@ -1,8 +1,11 @@
 const express = require('express')
 const debug = require('debug')('eagle:server:micropub')
 const multer = require('multer')
+const mime = require('mime-types')
 const { ar } = require('../utils')
 
+const { extname } = require('path')
+const { sha256 } = require('../../services/utils')
 const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
 const indieauth = require('@hacdias/indieauth-middleware')
 const transformer = require('./transformer')
@@ -27,7 +30,7 @@ const config = Object.freeze({
   ]
 })
 
-module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue, tokenReference }) => {
+module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, queue, tokenReference }) => {
   const receive = async (req, res, data) => {
     const { meta, content, slug, type, relatedURL } = transformer.createPost(data)
 
@@ -159,6 +162,21 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue
     res.sendStatus(200)
   }
 
+  const media = async (req, res) => {
+    debug('media file received')
+    const hash = sha256(req.file.buffer)
+    const ext = extname(
+      req.file.originalname ||
+        '.' + mime.extension(req.file.mimetype)
+    )
+
+    const filename = `${hash}${ext}`
+    const url = await cdn.upload(req.file.buffer, filename)
+
+    debug('media file uploaded to %s', url)
+    return res.redirect(201, url)
+  }
+
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -197,8 +215,7 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, telegram, queue
     let request
 
     if (req.file) {
-      debug('media handler not implemented')
-      return res.sendStatus(501)
+      return media(req, res)
     }
 
     try {

@@ -18,6 +18,7 @@
     "got": "^10.3.0",
     "js-yaml": "^3.13.1",
     "lodash.invert": "^4.3.0",
+    "mime-types": "^2.1.26",
     "multer": "^1.4.2",
     "node-html-parser": "^1.1.19",
     "oauth-1.0a": "^2.2.6",

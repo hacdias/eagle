@@ -63,6 +63,7 @@ module.exports = function () {
     git,
     telegram,
     queue,
+    cdn,
     tokenReference: config.tokenReference
   }))
 
