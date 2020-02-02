@@ -103,7 +103,7 @@ const createPost = ({ properties, commands }) => {
     : null
 
   // Cleanup twitter url removing any search param.
-  if (relatedURL && relatedURL.starsWith('https://twitter.com') && relatedURL.includes('/status/')) {
+  if (relatedURL && relatedURL.startsWith('https://twitter.com') && relatedURL.includes('/status/')) {
     relatedURL = new URL(relatedURL)
 
     for (const param of relatedURL.searchParams.keys()) {
