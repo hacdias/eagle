@@ -2,6 +2,7 @@ const { join } = require('path')
 const fs = require('fs-extra')
 const yaml = require('js-yaml')
 const { run } = require('./utils')
+const converter = require('../mf2-converter')
 
 module.exports = function createHugo ({ dir, publicDir }) {
   const contentDir = join(dir, 'content')
@@ -37,6 +38,10 @@ module.exports = function createHugo ({ dir, publicDir }) {
   // Saves an already existing entry. Takes a post path (uri) and an object
   // with { meta, content }.
   const saveEntry = async (post, { meta, content }) => {
+    if (meta.properties) {
+      meta.properties = converter.mf2ToInternal(meta.properties)
+    }
+
     const path = join(contentDir, post)
     const index = join(path, 'index.md')
     const val = `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content}`
@@ -49,10 +54,15 @@ module.exports = function createHugo ({ dir, publicDir }) {
     const index = join(contentDir, post, 'index.md')
     const file = (await fs.readFile(index)).toString()
     const [frontmatter, content] = file.split('\n---')
+    const meta = yaml.safeLoad(frontmatter)
+
+    if (meta.properties) {
+      meta.properties = converter.internalToMf2(meta.properties)
+    }
 
     return {
       post,
-      meta: yaml.safeLoad(frontmatter),
+      meta,
       content: content.trim()
     }
   }
