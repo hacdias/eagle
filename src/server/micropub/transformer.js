@@ -9,6 +9,7 @@ const propertyToType = Object.freeze({
   'bookmark-of': 'bookmark',
   'follow-of': 'follow',
   'read-of': 'read',
+  'watch-of': 'watch',
   checkin: 'checkin',
   video: 'video',
   audio: 'audio',
