@@ -18,7 +18,7 @@ const { getPhotos } = require('../src/server/micropub/helpers')
       const newPhotos = await getPhotos(meta, cdn)
 
       if (newPhotos) {
-        meta.properties.photos = newPhotos
+        meta.properties.photo = newPhotos
         await hugo.saveEntry(post, { meta, content })
       }
     } catch (e) {

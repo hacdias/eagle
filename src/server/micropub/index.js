@@ -37,7 +37,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
       const newPhotos = await helpers.getPhotos(meta, cdn)
 
       if (newPhotos) {
-        meta.properties.photos = newPhotos
+        meta.properties.photo = newPhotos
         await hugo.saveEntry(post, { meta, content })
         git.commit(`cdn photos on ${post}`)
       }
