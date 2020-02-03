@@ -125,9 +125,11 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
     entry = transformer.updatePost(entry, data)
 
     // Update updated date!
-    if (!entry.meta.publishDate && entry.meta.date) {
-      entry.meta.publishDate = entry.meta.date
-    }
+    // TODO: only update for notes. OR sort posts by publish date
+    // on Hugo and show updated date too.
+    // if (!entry.meta.publishDate && entry.meta.date) {
+    //   entry.meta.publishDate = entry.meta.date
+    // }
 
     entry.meta.date = new Date()
 
