@@ -3,7 +3,7 @@ const debug = require('debug')('eagle:server:micropub')
 const multer = require('multer')
 const mime = require('mime-types')
 const { ar } = require('../utils')
-const got = require('got')
+const helpers = require('./helpers')
 
 const { extname } = require('path')
 const { sha256 } = require('../../services/utils')
@@ -33,37 +33,14 @@ const config = Object.freeze({
 
 module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, queue, tokenReference }) => {
   const getPhotos = async (post, { meta, content }) => {
-    const photos = meta.properties.photo
-    if (!photos || !Array.isArray(photos)) {
-      return
-    }
-
-    const newPhotos = []
-
-    for (const photo of photos) {
-      if (photo.starsWith('https://cdn.hacdias.com')) {
-        newPhotos.push(photo)
-        continue
-      }
-
-      try {
-        const raw = await got(photo)
-        const hash = sha256(raw.body)
-        const ext = extname(photo)
-        const filename = `${hash}${ext}`
-        const url = await cdn.upload(raw.body, filename)
-        newPhotos.push(url)
-      } catch (e) {
-        newPhotos.push(photo)
-        debug('could not download photo %s: %s', photo, e.stack)
-      }
-    }
-
-    meta.properties.photos = newPhotos
-
     try {
-      await hugo.saveEntry(post, { meta, content })
-      git.commit(`cdn photos on ${post}`)
+      const newPhotos = await helpers.getPhotos(meta, cdn)
+
+      if (newPhotos) {
+        meta.properties.photos = newPhotos
+        await hugo.saveEntry(post, { meta, content })
+        git.commit(`cdn photos on ${post}`)
+      }
     } catch (e) {
       debug('could not update post %s', post)
     }

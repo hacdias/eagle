@@ -6,7 +6,7 @@ module.exports = function createCdn ({ zone, key, base }) {
       filename = '/' + filename
     }
 
-    got.put(`https://storage.bunnycdn.com/${zone}${filename}`, {
+    await got.put(`https://storage.bunnycdn.com/${zone}${filename}`, {
       headers: {
         AccessKey: key
       },
