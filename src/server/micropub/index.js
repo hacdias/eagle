@@ -170,8 +170,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
     // if (!entry.meta.publishDate && entry.meta.date) {
     //   entry.meta.publishDate = entry.meta.date
     // }
-
-    entry.meta.date = new Date()
+    // entry.meta.date = new Date()
 
     await hugo.saveEntry(post, entry)
     git.commit(`update ${post}`)
