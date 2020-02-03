@@ -176,6 +176,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
     git.commit(`update ${post}`)
     telegram.send(`📄 Post updated: ${data.url}`)
     res.redirect(200, data.url)
+    queue.add(() => getPhotos(post, entry))
   }
 
   const remove = async (req, res, data) => {
