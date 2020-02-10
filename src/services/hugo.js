@@ -50,13 +50,13 @@ module.exports = function createHugo ({ dir, publicDir }) {
   }
 
   // Gets an entry as a { meta, content } object.
-  const getEntry = async (post) => {
+  const getEntry = async (post, { keepOriginal = false } = {}) => {
     const index = join(contentDir, post, 'index.md')
     const file = (await fs.readFile(index)).toString()
     const [frontmatter, content] = file.split('\n---')
     const meta = yaml.safeLoad(frontmatter)
 
-    if (meta.properties) {
+    if (meta.properties && !keepOriginal) {
       meta.properties = converter.internalToMf2(meta.properties)
     }
 
@@ -86,7 +86,7 @@ module.exports = function createHugo ({ dir, publicDir }) {
     return (lastNum + 1).toString()
   }
 
-  const getAll = async function * () {
+  const getAll = async function * (opts) {
     const files = getAllFiles(contentDir)
       .filter(p => p.endsWith('/index.md'))
       .map(p => {
@@ -96,7 +96,7 @@ module.exports = function createHugo ({ dir, publicDir }) {
       })
 
     for (const file of files) {
-      yield getEntry(file)
+      yield getEntry(file, opts)
     }
   }
 

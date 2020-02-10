@@ -72,7 +72,49 @@ async function outputReads () {
   stream.end()
 }
 
+async function outputCheckins () {
+  const stream = csv.format({
+    headers: [
+      'Date',
+      'Name',
+      'Country',
+      'Region',
+      'Locality',
+      'Address',
+      'Latitude',
+      'Longitude',
+      'Tags'
+    ]
+  })
+  stream.pipe(fs.createWriteStream('checkins.csv'))
+
+  for await (const { meta } of hugo.getAll({ keepOriginal: true })) {
+    if (!meta.properties) {
+      continue
+    }
+
+    if (!meta.categories || !meta.categories.includes('checkins')) {
+      continue
+    }
+
+    stream.write([
+      meta.date.getTime(),
+      meta.properties.checkin.properties.name,
+      meta.properties.checkin.properties['country-name'],
+      meta.properties.checkin.properties.region,
+      meta.properties.checkin.properties.locality,
+      meta.properties.checkin.properties['street-address'],
+      meta.properties.checkin.properties.latitude,
+      meta.properties.checkin.properties.longitude,
+      meta.tags
+    ])
+  }
+
+  stream.end()
+}
+
 ;(async () => {
   await outputBookmarks()
   await outputReads()
+  await outputCheckins()
 })()
