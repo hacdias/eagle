@@ -18,10 +18,6 @@ const propertyToType = Object.freeze({
 
 const typeToProperty = invert(propertyToType)
 
-const supportedTypes = Object.freeze([
-  'repost', 'like', 'reply', 'bookmark', 'video', 'photo', 'note', 'read', 'checkin'
-])
-
 const hasURL = Object.freeze([
   'repost', 'like', 'reply', 'bookmark'
 ])
@@ -75,10 +71,6 @@ const createPost = ({ properties, commands }) => {
   if (type === 'read') {
     // delete unwanted summary from indiebookclub.biz
     delete properties.summary
-  }
-
-  if (!supportedTypes.includes(type)) {
-    throw new Error(`type '${type} is not supported yet`)
   }
 
   const content = properties.content
