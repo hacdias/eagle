@@ -19,6 +19,10 @@ function mf2ToInternal (data) {
 }
 
 function internalToMf2 (data) {
+  if (data === null) {
+    return [null]
+  }
+
   if (typeof data !== 'object') {
     return data
   }

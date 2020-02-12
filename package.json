@@ -19,6 +19,7 @@
     "got": "^10.5.5",
     "js-yaml": "^3.13.1",
     "lodash.invert": "^4.3.0",
+    "meow": "^6.0.0",
     "mime-types": "^2.1.26",
     "multer": "^1.4.2",
     "node-html-parser": "^1.2.4",
