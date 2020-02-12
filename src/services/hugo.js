@@ -19,7 +19,7 @@ module.exports = function createHugo ({ dir, publicDir }) {
   // Creates a new entry from metadata, content and a slug and returns
   // an object { post, path } where post is the post directory as in uri
   // and path is the local path in disk.
-  const newEntry = async ({ meta, content, slug }) => {
+  const newEntry = async ({ meta, content, slug }, opts) => {
     const year = meta.date.getFullYear().toString()
     const month = (meta.date.getMonth() + 1).toString().padStart(2, '0')
     const day = meta.date.getDate().toString().padStart(2, '0')
@@ -32,13 +32,13 @@ module.exports = function createHugo ({ dir, publicDir }) {
       path += `${slug}/`
     }
 
-    return saveEntry(path, { meta, content })
+    return saveEntry(path, { meta, content }, opts)
   }
 
   // Saves an already existing entry. Takes a post path (uri) and an object
   // with { meta, content }.
-  const saveEntry = async (post, { meta, content }) => {
-    if (meta.properties) {
+  const saveEntry = async (post, { meta, content }, { keepOriginal = false } = {}) => {
+    if (meta.properties && !keepOriginal) {
       meta.properties = converter.mf2ToInternal(meta.properties)
     }
 
