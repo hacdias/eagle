@@ -153,6 +153,8 @@ const updatePost = ({ meta, content }, { update }) => {
   update.add = update.add || {}
   update.delete = update.delete || {}
 
+  // TODO: add published to this rules. Use date and move date to publishDate
+  // if publishDate does not exist.
   for (const key in update.replace) {
     if (key === 'name') {
       meta.title = update.replace.name.join(' ').trim()
