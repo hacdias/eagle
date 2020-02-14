@@ -5,6 +5,27 @@ const { sha256 } = require('./utils')
 const fs = require('fs-extra')
 const { join, extname } = require('path')
 
+const types = Object.freeze({
+  'like-of': 'like',
+  'repost-of': 'repost',
+  'mention-of': 'mention',
+  'in-reply-to': 'reply'
+})
+
+async function uploadToCdn (entry, cdn) {
+  try {
+    const ext = extname(entry.author.photo)
+    const base = sha256(entry.author.photo)
+    const stream = got.stream(entry.author.photo)
+    const url = await cdn.upload(stream, `/webmentions/${base}${ext}`)
+    entry.author.photo = url
+  } catch (e) {
+    debug('could not upload photo to cdn %s: %s', entry.author.photo, e.stack)
+  }
+
+  return entry
+}
+
 module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
   const send = async ({ source, targets }) => {
     for (const target of targets) {
@@ -69,10 +90,8 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
     const mentions = await fs.readJSON(file)
 
     if (webmention.deleted) {
-      await fs.outputJSON(file, mentions.filter(m => m.url !== webmention.source), {
-        spaces: 2
-      })
-
+      const newMentions = mentions.filter(m => m.url !== webmention.source)
+      await fs.outputJSON(file, newMentions, { spaces: 2 })
       git.commit(`deleted webmention from ${webmention.source}`)
       return
     }
@@ -82,14 +101,7 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
       return
     }
 
-    const types = {
-      'like-of': 'like',
-      'repost-of': 'repost',
-      'mention-of': 'mention',
-      'in-reply-to': 'reply'
-    }
-
-    const entry = {
+    let entry = {
       type: types[webmention.post['wm-property']] || 'mention',
       url: webmention.post.url || webmention.post['wm-source'],
       date: new Date(webmention.post.published || webmention.post['wm-received']),
@@ -99,32 +111,19 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
       author: webmention.post.author
     }
 
+    delete entry.author.type
+
     if (webmention.post['swarm-coins']) {
       entry['swarm-coins'] = webmention.post['swarm-coins']
     }
 
     // upload avatar to cdn
     if (entry.author && entry.author.photo) {
-      try {
-        const ext = extname(entry.author.photo)
-        const base = sha256(entry.author.photo)
-
-        const stream = got.stream(entry.author.photo)
-        const url = await cdn.upload(stream, `/webmentions/${base}${ext}`)
-        entry.author.photo = url
-      } catch (e) {
-        debug('could not upload photo to cdn %s: %s', entry.author.photo, e.stack)
-      }
+      entry = await uploadToCdn(entry, cdn)
     }
 
-    delete entry.author.type
-
     mentions.push(entry)
-
-    await fs.outputJSON(file, mentions, {
-      spaces: 2
-    })
-
+    await fs.outputJSON(file, mentions, { spaces: 2 })
     git.commit(`webmention from ${entry.url}`)
   }
 
