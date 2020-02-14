@@ -56,6 +56,7 @@ module.exports = function () {
 
   app.use('/micropub', require('./micropub')({
     domain: config.domain,
+    tokenReference: config.tokenReference,
     xray,
     webmentions,
     posse,
@@ -63,16 +64,12 @@ module.exports = function () {
     git,
     telegram,
     queue,
-    cdn,
-    tokenReference: config.tokenReference
+    cdn
   }))
 
   app.use('/webmention', require('./webmention')({
     secret: process.env.WEBMENTION_IO_WEBHOOK_SECRET,
-    dir: join(hugo.dataDir, 'mentions'),
-    domain: config.domain,
     webmentions,
-    git,
     hugo,
     telegram,
     queue
