@@ -68,6 +68,15 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
 
     const mentions = await fs.readJSON(file)
 
+    if (webmention.deleted) {
+      await fs.outputJSON(file, mentions.filter(m => m.url !== webmention.source), {
+        spaces: 2
+      })
+
+      git.commit(`deleted webmention from ${webmention.source}`)
+      return
+    }
+
     if (mentions.find(m => m['wm-id'] === webmention.post['wm-id'])) {
       debug('duplicated webmention for %s: %s', permalink, webmention.post['wm-id'])
       return
