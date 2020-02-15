@@ -59,6 +59,25 @@ const postType = (post) => {
   return 'note'
 }
 
+function cleanupRelatedURL (url) {
+  if (!url) {
+    return url
+  }
+
+  // Cleanup twitter url removing any search param.
+  if (url.startsWith('https://twitter.com') && url.includes('/status/')) {
+    url = new URL(url)
+
+    for (const param of url.searchParams.keys()) {
+      url.searchParams.delete(param)
+    }
+
+    url = url.href
+  }
+
+  return url
+}
+
 // creates a new post.
 const createPost = ({ properties, commands }) => {
   const date = properties.published
@@ -80,7 +99,11 @@ const createPost = ({ properties, commands }) => {
   delete properties.content
 
   const meta = {
-    categories: [pluralize(type)],
+    categories: [
+      // TODO: just use 'articles' as a category. Need to
+      // plan this change ahead though.
+      type === 'article' ? 'blog' : pluralize(type)
+    ],
     date
   }
 
@@ -90,19 +113,11 @@ const createPost = ({ properties, commands }) => {
 
   delete properties.name
 
-  let relatedURL = hasURL.includes(type)
-    ? properties[typeToProperty[type]][0]
+  const relatedURL = hasURL.includes(type)
+    ? cleanupRelatedURL(properties[typeToProperty[type]][0])
     : null
 
-  // Cleanup twitter url removing any search param.
-  if (relatedURL && relatedURL.startsWith('https://twitter.com') && relatedURL.includes('/status/')) {
-    relatedURL = new URL(relatedURL)
-
-    for (const param of relatedURL.searchParams.keys()) {
-      relatedURL.searchParams.delete(param)
-    }
-
-    relatedURL = relatedURL.href
+  if (relatedURL) {
     properties[typeToProperty[type]][0] = relatedURL
   }
 
@@ -153,8 +168,6 @@ const updatePost = ({ meta, content }, { update }) => {
   update.add = update.add || {}
   update.delete = update.delete || {}
 
-  // TODO: add published to this rules. Use date and move date to publishDate
-  // if publishDate does not exist.
   for (const key in update.replace) {
     if (key === 'name') {
       meta.title = update.replace.name.join(' ').trim()
@@ -162,6 +175,12 @@ const updatePost = ({ meta, content }, { update }) => {
       meta.tags = update.replace.category
     } else if (key === 'content') {
       content = update.replace.content.join(' ').trim()
+    } else if (key === 'published') {
+      if (!meta.publishDate && meta.date) {
+        meta.publishDate = meta.date
+      }
+
+      meta.date = new Date(update.replace.published.join(' ').trim())
     } else {
       meta.properties[key] = update.replace[key]
     }
@@ -174,6 +193,12 @@ const updatePost = ({ meta, content }, { update }) => {
       meta.tags.push(...update.add.category)
     } else if (key === 'content') {
       content += update.add.join(' ').trim()
+    } else if (key === 'published') {
+      if (!meta.date) {
+        meta.date = new Date(update.add.published.join(' ').trim())
+      } else {
+        throw new Error('cannot replace published through add method')
+      }
     } else {
       meta.properties[key] = meta.properties[key] || []
       meta.properties[key].push(...update.add[key])
