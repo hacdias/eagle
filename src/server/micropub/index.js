@@ -133,6 +133,10 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
       entry.properties.content = [content]
     }
 
+    if (meta.date) {
+      entry.properties.published = meta.date
+    }
+
     return entry
   }
 
