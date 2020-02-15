@@ -5,11 +5,11 @@ module.exports = function createTelegram ({ token, chatID, git, hugo }) {
     echo: ({ reply }) => reply('echo'),
     push: async ({ reply }) => {
       const { stdout } = await git.push()
-      reply(`Pushed!\n\`\`\`${stdout}\`\`\``)
+      reply(`Pushed!\n\`\`\`\n${stdout}\n\`\`\``)
     },
     pull: async ({ reply }) => {
       const { stdout } = await git.pull()
-      reply(`Pulled!\n\`\`\`${stdout}\`\`\``)
+      reply(`Pulled!\n\`\`\`\n${stdout}\n\`\`\``)
     },
     build: ({ reply }) => {
       hugo.build()
