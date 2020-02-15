@@ -144,7 +144,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     }
 
     if (meta.date) {
-      entry.properties.published = meta.date
+      entry.properties.published = [meta.date]
     }
 
     return entry

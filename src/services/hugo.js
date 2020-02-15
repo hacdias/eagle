@@ -55,6 +55,7 @@ module.exports = function createHugo ({ dir, publicDir }) {
     const file = (await fs.readFile(index)).toString()
     const [frontmatter, content] = file.split('\n---')
     const meta = yaml.safeLoad(frontmatter)
+    meta.properties = meta.properties || {}
 
     if (meta.properties && !keepOriginal) {
       meta.properties = converter.internalToMf2(meta.properties)
