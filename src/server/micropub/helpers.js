@@ -2,6 +2,7 @@ const debug = require('debug')('eagle:server:micropub')
 const got = require('got')
 const { extname } = require('path')
 const { sha256 } = require('../../services/utils')
+const { parse } = require('node-html-parser')
 
 const getPhotos = async (meta, cdn) => {
   const photos = meta.properties.photo
@@ -41,6 +42,26 @@ const getPhotos = async (meta, cdn) => {
   return newPhotos
 }
 
+const getMentions = async (url, body) => {
+  debug('will scrap %s for webmentions', url)
+  const parsed = parse(body)
+
+  const targets = parsed.querySelectorAll('.h-entry .e-content a')
+    .map(p => p.attributes.href)
+    .map(href => {
+      try {
+        const u = new URL(href, url)
+        return u.href
+      } catch (_) {
+        return href
+      }
+    })
+
+  debug('found webmentions: %o', targets)
+  return targets
+}
+
 module.exports = {
-  getPhotos
+  getPhotos,
+  getMentions
 }

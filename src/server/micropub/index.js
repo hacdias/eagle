@@ -46,6 +46,28 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     }
   }
 
+  const sendWebmentions = async (post, url, target) => {
+    const targets = []
+
+    if (target) {
+      targets.push(target)
+    }
+
+    try {
+      const html = await hugo.getEntryHTML(post)
+      const mentions = await helpers.getMentions(url, html)
+      targets.push(...mentions)
+    } catch (err) {
+      notify.sendError(err)
+    }
+
+    try {
+      await webmentions.send({ source: url, targets })
+    } catch (err) {
+      notify.sendError(err)
+    }
+  }
+
   const receive = async (req, res, data) => {
     const { meta, content, slug, type, relatedURL } = transformer.createPost(data)
 
@@ -67,20 +89,8 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
     notify.send(`📄 Post published: ${url}`)
 
-    try {
-      const html = await hugo.getEntryHTML(post)
-      await webmentions.sendFromContent({ url, body: html })
-    } catch (e) {
-      notify.sendError(e)
-    }
-
-    if (relatedURL) {
-      try {
-        await webmentions.send({ source: url, targets: [relatedURL] })
-      } catch (e) {
-        notify.sendError(e)
-      }
-    }
+    // This can be processed async.
+    sendWebmentions(post, url, relatedURL)
 
     await getPhotos(post, { meta, content })
 
@@ -102,9 +112,9 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
       meta.properties.syndication = syndication
       await hugo.saveEntry(post, { meta, content })
       await git.commit(`syndication on ${post}`)
-    } catch (e) {
-      // TODO
-      debug('could not save syndication %s', e.stack)
+    } catch (err) {
+      debug('could not save syndication %s', err.stack)
+      notify.sendError(err)
     }
   }
 
@@ -142,20 +152,11 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
   const update = async (req, res, data) => {
     const post = data.url.replace(domain, '', 1)
-    let entry = await hugo.getEntry(post)
-    entry = transformer.updatePost(entry, data)
-
-    // Update updated date!
-    // TODO: only update for notes. OR sort posts by publish date
-    // on Hugo and show updated date too.
-    // if (!entry.meta.publishDate && entry.meta.date) {
-    //   entry.meta.publishDate = entry.meta.date
-    // }
-    // entry.meta.date = new Date()
+    const entry = transformer.updatePost(await hugo.getEntry(post), data)
 
     await hugo.saveEntry(post, entry)
     await git.commit(`update ${post}`)
-    notify.send(`📄 Post updated: ${data.url}`)
+
     res.redirect(200, data.url)
     queue.add(() => getPhotos(post, entry))
   }
@@ -167,7 +168,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     meta.expiryDate = new Date()
     await hugo.saveEntry(post, { meta, content })
     await git.commit(`delete ${post}`)
-    notify.send(`📄 Post deleted: ${data.url}`)
+
     res.sendStatus(200)
   }
 
@@ -175,14 +176,14 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     const post = data.url.replace(domain, '', 1)
     const entry = await hugo.getEntry(post)
 
-    if (entry.meta.expiryDate) {
-      delete entry.meta.expiryDate
-      await hugo.saveEntry(post, entry)
-      await git.commit(`delete ${post}`)
-      notify.send(`📄 Post undeleted: ${data.url}`)
+    if (!entry.meta.expiryDate) {
+      return res.sendStatus(400)
     }
 
-    res.sendStatus(200)
+    delete entry.meta.expiryDate
+
+    await hugo.saveEntry(post, entry)
+    await git.commit(`delete ${post}`)
   }
 
   const media = async (req, res) => {
@@ -276,9 +277,9 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
       } else {
         hugo.build()
       }
-    } catch (e) {
-      // TODO
-      debug('could not rebuild website %s', e.stack)
+    } catch (err) {
+      debug('could not rebuild website %s', err.stack)
+      notify.sendError(err)
     }
   }))
 

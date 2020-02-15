@@ -1,6 +1,5 @@
 const got = require('got')
 const debug = require('debug')('eagle:webmentions')
-const { parse } = require('node-html-parser')
 const { sha256 } = require('./utils')
 const fs = require('fs-extra')
 const { join, extname } = require('path')
@@ -55,29 +54,6 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
     }
   }
 
-  const sendFromContent = async ({ url, body }) => {
-    debug('will scrap %s for webmentions', url)
-    const parsed = parse(body)
-
-    const targets = parsed.querySelectorAll('.h-entry .e-content a')
-      .map(p => p.attributes.href)
-      .map(href => {
-        try {
-          const u = new URL(href, url)
-          return u.href
-        } catch (_) {
-          return href
-        }
-      })
-
-    debug('found webmentions: %o', targets)
-
-    await send({
-      source: url,
-      targets
-    })
-  }
-
   const receive = async (webmention) => {
     const permalink = webmention.target.replace(domain, '', 1)
     const hash = sha256(permalink)
@@ -129,7 +105,6 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
 
   return Object.freeze({
     send,
-    sendFromContent,
     receive
   })
 }
