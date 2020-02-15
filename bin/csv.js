@@ -29,6 +29,13 @@ const cli = meow(`
   }
 })
 
+const fns = {
+  bookmarks: createBookmarks,
+  checkins: createCheckins,
+  reads: createReads,
+  watches: createWatches
+}
+
 ;(async () => {
   const type = cli.input ? cli.input.join(' ') : ''
   const output = cli.flags.output
@@ -41,22 +48,10 @@ const cli = meow(`
     ? process.stdout
     : fs.createWriteStream(output)
 
-  switch (type) {
-    case 'bookmarks':
-      await createBookmarks(out, hugo)
-      break
-    case 'checkins':
-      await createCheckins(out, hugo)
-      break
-    case 'reads':
-      await createReads(out, hugo)
-      break
-    case 'watches':
-      await createWatches(out, hugo)
-      break
-    default:
-      throw new Error('invalid type')
+  const fn = fns[type]
+  if (fn) {
+    await fn(out, hugo)
+  } else {
+    throw new Error('invalid type')
   }
-
-  console.log(type, output)
 })()
