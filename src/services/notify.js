@@ -1,4 +1,5 @@
 const Telegram = require('telegraf/telegram')
+const debug = require('debug')('eagle:notify')
 
 module.exports = function createNotify ({ chatID, token }) {
   const tg = new Telegram(token)
@@ -8,10 +9,14 @@ module.exports = function createNotify ({ chatID, token }) {
     send(formatted)
   }
 
-  const send = (msg) => {
-    tg.sendMessage(chatID, msg, {
-      disable_web_page_preview: true
-    })
+  const send = async (msg) => {
+    try {
+      await tg.sendMessage(chatID, msg, {
+        disable_web_page_preview: true
+      })
+    } catch (e) {
+      debug('could not send message: %s', e.stack)
+    }
   }
 
   return Object.freeze({
