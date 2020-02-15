@@ -1,7 +1,7 @@
 const debug = require('debug')('eagle:server:webmention')
 const { ar } = require('./utils')
 
-module.exports = ({ webmentions, hugo, telegram, queue, secret }) => ar(async (req, res) => {
+module.exports = ({ webmentions, hugo, notify, queue, secret }) => ar(async (req, res) => {
   debug('incoming webmention')
 
   if (req.body.secret !== secret) {
@@ -15,7 +15,7 @@ module.exports = ({ webmentions, hugo, telegram, queue, secret }) => ar(async (r
 
   try {
     hugo.build()
-    telegram.send(`💬 Received webmention: ${req.body.target}`)
+    notify.send(`💬 Received webmention: ${req.body.target}`)
   } catch (e) {
     // TODO:
     debug('error on post-webmention processor %s', e.stack)

@@ -34,11 +34,7 @@ module.exports = function () {
     cdn
   })
 
-  const telegram = require('../services/telegram')({
-    ...config.telegram,
-    git,
-    hugo
-  })
+  const notify = require('../services/notify')(config.telegram)
 
   const posse = require('../services/posse')({
     twitter: require('../services/twitter')(config.twitter)
@@ -48,6 +44,15 @@ module.exports = function () {
     concurrency: 1,
     autoStart: true
   })
+
+  // Start bot only on production...
+  if (process.env.NODE_ENV === 'production') {
+    require('../services/bot')({
+      ...config.telegram,
+      git,
+      hugo
+    })
+  }
 
   // Setup express app
   const app = express()
@@ -62,7 +67,7 @@ module.exports = function () {
     posse,
     hugo,
     git,
-    telegram,
+    notify,
     queue,
     cdn
   }))
@@ -71,7 +76,7 @@ module.exports = function () {
     secret: process.env.WEBMENTION_IO_WEBHOOK_SECRET,
     webmentions,
     hugo,
-    telegram,
+    notify,
     queue
   }))
 
@@ -89,7 +94,7 @@ module.exports = function () {
 
   app.use((err, req, res, next) => {
     debug(err.stack)
-    telegram.sendError(err)
+    notify.sendError(err)
     res.status(500).send('Something broke!')
   })
 

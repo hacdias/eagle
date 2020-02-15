@@ -31,7 +31,7 @@ const config = Object.freeze({
   ]
 })
 
-module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, queue, tokenReference }) => {
+module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference }) => {
   const getPhotos = async (post, { meta, content }) => {
     try {
       const newPhotos = await helpers.getPhotos(meta, cdn)
@@ -53,7 +53,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
       try {
         await xray.requestAndSave(relatedURL)
       } catch (e) {
-        telegram.sendError(e)
+        notify.sendError(e)
       }
     }
 
@@ -65,20 +65,20 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
     git.commit(`add ${post}`)
     hugo.build()
 
-    telegram.send(`📄 Post published: ${url}`)
+    notify.send(`📄 Post published: ${url}`)
 
     try {
       const html = await hugo.getEntryHTML(post)
       await webmentions.sendFromContent({ url, body: html })
     } catch (e) {
-      telegram.sendError(e)
+      notify.sendError(e)
     }
 
     if (relatedURL) {
       try {
         await webmentions.send({ source: url, targets: [relatedURL] })
       } catch (e) {
-        telegram.sendError(e)
+        notify.sendError(e)
       }
     }
 
@@ -155,7 +155,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
 
     await hugo.saveEntry(post, entry)
     git.commit(`update ${post}`)
-    telegram.send(`📄 Post updated: ${data.url}`)
+    notify.send(`📄 Post updated: ${data.url}`)
     res.redirect(200, data.url)
     queue.add(() => getPhotos(post, entry))
   }
@@ -167,7 +167,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
     meta.expiryDate = new Date()
     await hugo.saveEntry(post, { meta, content })
     git.commit(`delete ${post}`)
-    telegram.send(`📄 Post deleted: ${data.url}`)
+    notify.send(`📄 Post deleted: ${data.url}`)
     res.sendStatus(200)
   }
 
@@ -179,7 +179,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, telegram, 
       delete entry.meta.expiryDate
       await hugo.saveEntry(post, entry)
       git.commit(`delete ${post}`)
-      telegram.send(`📄 Post undeleted: ${data.url}`)
+      notify.send(`📄 Post undeleted: ${data.url}`)
     }
 
     res.sendStatus(200)
