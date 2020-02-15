@@ -3,13 +3,13 @@ const Telegraf = require('telegraf')
 module.exports = function createTelegram ({ token, chatID, git, hugo }) {
   const actions = {
     echo: ({ reply }) => reply('echo'),
-    push: ({ reply }) => {
-      git.push()
-      reply('Pushed!')
+    push: async ({ reply }) => {
+      const { stdout } = await git.push()
+      reply(`Pushed!\n\`\`\`${stdout}\`\`\``)
     },
-    pull: ({ reply }) => {
-      git.pull()
-      reply('Pulled!')
+    pull: async ({ reply }) => {
+      const { stdout } = await git.pull()
+      reply(`Pulled!\n\`\`\`${stdout}\`\`\``)
     },
     build: ({ reply }) => {
       hugo.build()

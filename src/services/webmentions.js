@@ -92,7 +92,7 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
     if (webmention.deleted) {
       const newMentions = mentions.filter(m => m.url !== webmention.source)
       await fs.outputJSON(file, newMentions, { spaces: 2 })
-      git.commit(`deleted webmention from ${webmention.source}`)
+      await git.commit(`deleted webmention from ${webmention.source}`)
       return
     }
 
@@ -124,7 +124,7 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
 
     mentions.push(entry)
     await fs.outputJSON(file, mentions, { spaces: 2 })
-    git.commit(`webmention from ${entry.url}`)
+    await git.commit(`webmention from ${entry.url}`)
   }
 
   return Object.freeze({

@@ -39,7 +39,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
       if (newPhotos) {
         meta.properties.photo = newPhotos
         await hugo.saveEntry(post, { meta, content })
-        git.commit(`cdn photos on ${post}`)
+        await git.commit(`cdn photos on ${post}`)
       }
     } catch (e) {
       debug('could not update post %s', post)
@@ -62,7 +62,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
     res.redirect(202, url)
 
-    git.commit(`add ${post}`)
+    await git.commit(`add ${post}`)
     hugo.build()
 
     notify.send(`📄 Post published: ${url}`)
@@ -101,7 +101,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
       meta.properties = meta.properties || {}
       meta.properties.syndication = syndication
       await hugo.saveEntry(post, { meta, content })
-      git.commit(`syndication on ${post}`)
+      await git.commit(`syndication on ${post}`)
     } catch (e) {
       // TODO
       debug('could not save syndication %s', e.stack)
@@ -154,7 +154,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     // entry.meta.date = new Date()
 
     await hugo.saveEntry(post, entry)
-    git.commit(`update ${post}`)
+    await git.commit(`update ${post}`)
     notify.send(`📄 Post updated: ${data.url}`)
     res.redirect(200, data.url)
     queue.add(() => getPhotos(post, entry))
@@ -166,7 +166,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
     meta.expiryDate = new Date()
     await hugo.saveEntry(post, { meta, content })
-    git.commit(`delete ${post}`)
+    await git.commit(`delete ${post}`)
     notify.send(`📄 Post deleted: ${data.url}`)
     res.sendStatus(200)
   }
@@ -178,7 +178,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     if (entry.meta.expiryDate) {
       delete entry.meta.expiryDate
       await hugo.saveEntry(post, entry)
-      git.commit(`delete ${post}`)
+      await git.commit(`delete ${post}`)
       notify.send(`📄 Post undeleted: ${data.url}`)
     }
 
