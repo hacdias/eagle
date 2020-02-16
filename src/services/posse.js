@@ -6,14 +6,14 @@ module.exports = function createPOSSE ({ twitter }) {
     let res, syndication
 
     switch (type) {
-      case 'like':
+      case 'likes':
         await twitter.like(id)
         break
-      case 'repost':
+      case 'reposts':
         res = await twitter.retweet(id)
         syndication = `https://twitter.com/hacdias/status/${res.id_str}`
         break
-      case 'reply':
+      case 'replies':
         res = await twitter.tweet({
           status: status,
           inReplyTo: id

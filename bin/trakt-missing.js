@@ -11,7 +11,7 @@ const hugo = require('../src/services/hugo')(config.hugo)
   const ids = []
 
   for await (const { meta } of hugo.getAll({ keepOriginal: true })) {
-    if (!meta.properties || !meta.categories || !meta.categories.includes('watches')) {
+    if (!meta.properties || !meta.properties['watch-of']) {
       continue
     }
 
@@ -62,7 +62,6 @@ const hugo = require('../src/services/hugo')(config.hugo)
     }
 
     const meta = {
-      categories: ['watches'],
       date: new Date(item.watched_at),
       properties: {
         'watch-of': {
@@ -72,6 +71,6 @@ const hugo = require('../src/services/hugo')(config.hugo)
       }
     }
 
-    await hugo.newEntry({ meta, content: '', slug: '' }, { keepOriginal: true })
+    await hugo.newEntry({ meta, content: '', slug: '', type: 'watches' }, { keepOriginal: true })
   }
 })()

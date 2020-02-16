@@ -19,17 +19,24 @@ module.exports = function createHugo ({ dir, publicDir }) {
   // Creates a new entry from metadata, content and a slug and returns
   // an object { post, path } where post is the post directory as in uri
   // and path is the local path in disk.
-  const newEntry = async ({ meta, content, slug }, opts) => {
+  const newEntry = async ({ meta, content, slug, type }, opts) => {
     const year = meta.date.getFullYear().toString()
     const month = (meta.date.getMonth() + 1).toString().padStart(2, '0')
     const day = meta.date.getDate().toString().padStart(2, '0')
+    let path = '/'
 
-    const num = getNextPostNumber(year, month, day)
-    let path = `/${year}/${month}/${day}/${num}/`
+    if (type) {
+      const num = getNextPostNumber(type, year, month, day)
+      path += `${type}/${year}/${month}/${day}/${num}/`
+    }
 
     if (slug !== '') {
       meta.aliases = [path]
       path += `${slug}/`
+    }
+
+    if (!type && !slug) {
+      throw new Error('there must be either a type or a slug')
     }
 
     return saveEntry(path, { meta, content }, opts)
@@ -73,8 +80,8 @@ module.exports = function createHugo ({ dir, publicDir }) {
     return (await fs.readFile(index)).toString()
   }
 
-  const getNextPostNumber = (year, month, day) => {
-    const pathToCheck = join(contentDir, year, month, day)
+  const getNextPostNumber = (type, year, month, day) => {
+    const pathToCheck = join(contentDir, type, year, month, day)
     fs.ensureDirSync(pathToCheck)
 
     const lastNum = Math.max(

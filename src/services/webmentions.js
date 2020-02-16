@@ -26,6 +26,20 @@ async function uploadToCdn (entry, cdn) {
 }
 
 module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
+  const redirects = fs.readFileSync(join(__dirname, '../redirects'))
+    .toString()
+    .split('\n')
+    .filter(p => !!p)
+    .map(e => e.split(' '))
+    .reduce((acc, [oldLink, newLink]) => {
+      if (acc[oldLink]) {
+        throw new Error('must not exist')
+      }
+
+      acc[oldLink] = newLink
+      return acc
+    }, {})
+
   const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
@@ -55,7 +69,12 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
   }
 
   const receive = async (webmention) => {
-    const permalink = webmention.target.replace(domain, '', 1)
+    let permalink = webmention.target.replace(domain, '', 1)
+
+    if (redirects[permalink]) {
+      permalink = redirects[permalink]
+    }
+
     const hash = sha256(permalink)
     const file = join(dir, `${hash}.json`)
 

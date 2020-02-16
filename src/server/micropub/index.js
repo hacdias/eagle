@@ -79,7 +79,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
       }
     }
 
-    const { post } = await hugo.newEntry({ meta, content, slug })
+    const { post } = await hugo.newEntry({ meta, content, slug, type })
     const url = `${domain}${post}`
 
     res.redirect(202, url)

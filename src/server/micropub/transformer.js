@@ -85,9 +85,9 @@ const createPost = ({ properties, commands }) => {
     : new Date()
 
   delete properties.published
-  const type = postType(properties)
+  const type = pluralize(postType(properties))
 
-  if (type === 'read') {
+  if (type === 'reads') {
     // delete unwanted summary from indiebookclub.biz
     delete properties.summary
   }
@@ -99,11 +99,6 @@ const createPost = ({ properties, commands }) => {
   delete properties.content
 
   const meta = {
-    categories: [
-      // TODO: just use 'articles' as a category. Need to
-      // plan this change ahead though.
-      type === 'article' ? 'blog' : pluralize(type)
-    ],
     date
   }
 
@@ -126,7 +121,7 @@ const createPost = ({ properties, commands }) => {
     delete properties.category
   }
 
-  if (type === 'checkin' && meta.tags) {
+  if (type === 'checkins' && meta.tags) {
     // Go over the tags and check if there's a person tag!
     const realTags = []
 
