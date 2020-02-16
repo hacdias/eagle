@@ -81,6 +81,7 @@ module.exports = function () {
   }))
 
   app.get('/now', require('./now')())
+  app.get('/webfinger', require('./webfinger')())
 
   app.get('/robots.txt', (_, res) => {
     res.header('Content-Type', 'text/plain')
