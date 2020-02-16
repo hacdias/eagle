@@ -1,18 +1,18 @@
 const { join } = require('path')
 const fs = require('fs-extra')
 const yaml = require('js-yaml')
-const { run } = require('./utils')
+const execa = require('execa')
 const converter = require('../mf2-converter')
 
 module.exports = function createHugo ({ dir, publicDir }) {
   const contentDir = join(dir, 'content')
   const dataDir = join(dir, 'data')
 
-  const build = () => run('hugo', ['--minify', '--destination', publicDir], {
+  const build = () => execa('hugo', ['--minify', '--destination', publicDir], {
     cwd: dir
   })
 
-  const buildAndClean = () => run('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
+  const buildAndClean = () => execa('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
     cwd: dir
   })
 

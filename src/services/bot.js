@@ -15,12 +15,12 @@ module.exports = function createTelegram ({ token, chatID, git, hugo }) {
         parse_mode: 'Markdown'
       })
     },
-    build: ({ reply }) => {
-      hugo.build()
+    build: async ({ reply }) => {
+      await hugo.build()
       reply('Built!')
     },
-    'build clean': ({ reply }) => {
-      hugo.buildAndClean()
+    'build clean': async ({ reply }) => {
+      await hugo.buildAndClean()
       reply('Built cleaned version!')
     }
   }

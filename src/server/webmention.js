@@ -14,7 +14,7 @@ module.exports = ({ webmentions, hugo, notify, queue, secret }) => ar(async (req
   res.sendStatus(200)
 
   try {
-    hugo.build()
+    await hugo.build()
     notify.send(`💬 ${req.body.deleted ? 'Deleted' : 'Received'} webmention: ${req.body.target}`)
   } catch (err) {
     debug('error on post-webmention processor %s', err.stack)

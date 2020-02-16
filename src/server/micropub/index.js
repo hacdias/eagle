@@ -3,6 +3,7 @@ const debug = require('debug')('eagle:server:micropub')
 const multer = require('multer')
 const mime = require('mime-types')
 const { ar } = require('../utils')
+const execa = require('execa')
 const helpers = require('./helpers')
 
 const { extname } = require('path')
@@ -30,6 +31,15 @@ const config = Object.freeze({
     }
   ]
 })
+
+async function reloadCaddy () {
+  try {
+    await execa('pkill', '-USR1', 'caddy')
+    debug('caddy config reloaded')
+  } catch (e) {
+    debug('could not reload caddy config: %s', e.stack)
+  }
+}
 
 module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference }) => {
   const getPhotos = async (post, { meta, content }) => {
@@ -85,7 +95,13 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     res.redirect(202, url)
 
     await git.commit(`add ${post}`)
-    hugo.build()
+    await hugo.build()
+
+    // reload caddy config in parallell if there are any aliases
+    // so it can load the redirects.
+    if (meta.aliases) {
+      reloadCaddy()
+    }
 
     notify.send(`📄 Post published: ${url}`)
 
@@ -273,9 +289,9 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
     try {
       if (request.action === 'delete') {
-        hugo.buildAndClean()
+        await hugo.buildAndClean()
       } else {
-        hugo.build()
+        await hugo.build()
       }
     } catch (err) {
       debug('could not rebuild website %s', err.stack)
