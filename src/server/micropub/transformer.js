@@ -2,31 +2,31 @@ const pluralize = require('pluralize')
 const invert = require('lodash.invert')
 
 const propertyToType = Object.freeze({
-  rsvp: 'rsvp',
-  'repost-of': 'repost',
-  'like-of': 'like',
-  'in-reply-to': 'reply',
-  'bookmark-of': 'bookmark',
-  'follow-of': 'follow',
-  'read-of': 'read',
-  'watch-of': 'watch',
-  checkin: 'checkin',
-  video: 'video',
-  audio: 'audio',
-  photo: 'photo'
+  rsvp: 'rsvps',
+  'repost-of': 'reposts',
+  'like-of': 'likes',
+  'in-reply-to': 'replies',
+  'bookmark-of': 'bookmarks',
+  'follow-of': 'follows',
+  'read-of': 'reads',
+  'watch-of': 'watches',
+  checkin: 'checkins',
+  video: 'videos',
+  audio: 'audios',
+  photo: 'photos'
 })
 
 const typeToProperty = invert(propertyToType)
 
 const hasURL = Object.freeze([
-  'repost', 'like', 'reply', 'bookmark'
+  'reposts', 'likes', 'replies', 'bookmarks'
 ])
 
 // https://www.w3.org/TR/post-type-discovery/
 // Code highly based on https://github.com/aaronpk/XRay/blob/5b2b4f31425ffe9c68833a26903fd1716b75717a/lib/XRay/PostType.php
 const postType = (post) => {
   if (['event', 'recipe', 'review'].includes(post.type)) {
-    return post.type
+    return pluralize(post.type)
   }
 
   for (const prop in propertyToType) {
@@ -43,7 +43,7 @@ const postType = (post) => {
   }
 
   if (typeof post.name === 'undefined' || post.name.join(' ').trim() === '') {
-    return 'note'
+    return 'notes'
   }
 
   // Collapse all sequences of internal whitespace to a single space (0x20) character each
@@ -53,10 +53,10 @@ const postType = (post) => {
   // If this processed "name" property value is NOT a prefix of the
   // processed "content" property, then it is an article post.
   if (content.indexOf(name) === -1) {
-    return 'article'
+    return 'articles'
   }
 
-  return 'note'
+  return 'notes'
 }
 
 function cleanupRelatedURL (url) {
@@ -85,7 +85,7 @@ const createPost = ({ properties, commands }) => {
     : new Date()
 
   delete properties.published
-  const type = pluralize(postType(properties))
+  const type = postType(properties)
 
   if (type === 'reads') {
     // delete unwanted summary from indiebookclub.biz
