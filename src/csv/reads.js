@@ -16,11 +16,7 @@ module.exports = async function outputReads (out, hugo) {
   stream.pipe(out)
 
   for await (const { meta } of hugo.getAll({ keepOriginal: true })) {
-    if (!meta.properties) {
-      continue
-    }
-
-    if (!meta.categories || !meta.categories.includes('reads')) {
+    if (!meta.properties || !meta.properties['read-of']) {
       continue
     }
 

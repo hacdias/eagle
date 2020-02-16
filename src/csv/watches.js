@@ -12,11 +12,7 @@ module.exports = async function (out, hugo) {
   stream.pipe(out)
 
   for await (const { meta } of hugo.getAll({ keepOriginal: true })) {
-    if (!meta.properties) {
-      continue
-    }
-
-    if (!meta.categories || !meta.categories.includes('watches')) {
+    if (!meta.properties || !meta.properties['watch-of']) {
       continue
     }
 

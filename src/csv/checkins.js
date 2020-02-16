@@ -17,11 +17,7 @@ module.exports = async function outputCheckins (out, hugo) {
   stream.pipe(out)
 
   for await (const { meta } of hugo.getAll({ keepOriginal: true })) {
-    if (!meta.properties) {
-      continue
-    }
-
-    if (!meta.categories || !meta.categories.includes('checkins')) {
+    if (!meta.properties || !meta.properties.checkin) {
       continue
     }
 

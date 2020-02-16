@@ -12,11 +12,7 @@ module.exports = async function outputBookmarks (out, hugo) {
   stream.pipe(out)
 
   for await (const { meta } of hugo.getAll({ keepOriginal: true })) {
-    if (!meta.properties) {
-      continue
-    }
-
-    if (!meta.categories || !meta.categories.includes('bookmarks')) {
+    if (!meta.properties || !meta.properties['bookmark-of']) {
       continue
     }
 
