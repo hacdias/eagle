@@ -25,20 +25,32 @@ async function uploadToCdn (entry, cdn) {
   return entry
 }
 
-module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
-  const redirects = fs.readFileSync(join(__dirname, '../redirects'))
-    .toString()
-    .split('\n')
-    .filter(p => !!p)
-    .map(e => e.split(' '))
-    .reduce((acc, [oldLink, newLink]) => {
-      if (acc[oldLink]) {
-        throw new Error('must not exist')
-      }
+module.exports = function createWebmention ({ token, hugo, git, domain, dir, cdn }) {
+  let redirects = {}
 
-      acc[oldLink] = newLink
-      return acc
-    }, {})
+  const loadRedirects = () => {
+    try {
+      const newRedirs = fs.readFileSync(join(hugo.publicDir, 'redirects.txt'))
+        .toString()
+        .split('\n')
+        .filter(p => !!p)
+        .map(e => e.split(' '))
+        .reduce((acc, [oldLink, newLink]) => {
+          if (acc[oldLink]) {
+            throw new Error('must not exist')
+          }
+
+          acc[oldLink] = newLink
+          return acc
+        }, {})
+
+      redirects = newRedirs
+    } catch (e) {
+      debug('cant load redirects %s', e.stack)
+    }
+  }
+
+  loadRedirects()
 
   const send = async ({ source, targets }) => {
     for (const target of targets) {
@@ -69,6 +81,8 @@ module.exports = function createWebmention ({ token, git, domain, dir, cdn }) {
   }
 
   const receive = async (webmention) => {
+    loadRedirects()
+
     let permalink = webmention.target.replace(domain, '', 1)
 
     if (redirects[permalink]) {

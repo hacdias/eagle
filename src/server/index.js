@@ -31,6 +31,7 @@ module.exports = function () {
     domain: config.domain,
     dir: join(hugo.dataDir, 'mentions'),
     git,
+    hugo,
     cdn
   })
 
@@ -82,6 +83,7 @@ module.exports = function () {
 
   app.get('/now', require('./now')())
   app.get('/webfinger', require('./webfinger')())
+  app.get('/activitypub', require('./activitypub')())
 
   app.get('/robots.txt', (_, res) => {
     res.header('Content-Type', 'text/plain')

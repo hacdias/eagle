@@ -9,9 +9,7 @@ const config = require('../src/config')()
 const hugo = require('../src/services/hugo')(config.hugo)
 
 const createBookmarks = require('../src/csv/bookmarks')
-const createCheckins = require('../src/csv/checkins')
 const createReads = require('../src/csv/reads')
-const createWatches = require('../src/csv/watches')
 
 const cli = meow(`
   Usage
@@ -31,9 +29,7 @@ const cli = meow(`
 
 const fns = {
   bookmarks: createBookmarks,
-  checkins: createCheckins,
-  reads: createReads,
-  watches: createWatches
+  reads: createReads
 }
 
 ;(async () => {

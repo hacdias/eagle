@@ -59,6 +59,10 @@ const postType = (post) => {
   return 'notes'
 }
 
+const allowedTypes = Object.freeze([
+  'reposts', 'likes', 'replies', 'bookmarks', 'reads', 'articles'
+])
+
 function cleanupRelatedURL (url) {
   if (!url) {
     return url
@@ -92,6 +96,10 @@ const createPost = ({ properties, commands }) => {
     delete properties.summary
   }
 
+  if (!allowedTypes.includes(type)) {
+    throw new Error('post type not allowed: %s', type)
+  }
+
   const content = properties.content
     ? properties.content.join('\n').trim()
     : ''
@@ -119,23 +127,6 @@ const createPost = ({ properties, commands }) => {
   if (properties.category) {
     meta.tags = properties.category
     delete properties.category
-  }
-
-  if (type === 'checkins' && meta.tags) {
-    // Go over the tags and check if there's a person tag!
-    const realTags = []
-
-    for (const tag of meta.tags) {
-      if (typeof tag === 'string') {
-        realTags.push(tag)
-        continue
-      }
-
-      meta.checkinWith = meta.checkinWith || []
-      meta.checkinWith.push(tag)
-    }
-
-    meta.tags = realTags
   }
 
   meta.properties = properties
