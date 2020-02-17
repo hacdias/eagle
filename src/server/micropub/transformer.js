@@ -60,7 +60,7 @@ const postType = (post) => {
 }
 
 const allowedTypes = Object.freeze([
-  'reposts', 'likes', 'replies', 'bookmarks', 'reads', 'articles'
+  'reposts', 'likes', 'replies', 'bookmarks', 'articles'
 ])
 
 function cleanupRelatedURL (url) {
@@ -90,11 +90,6 @@ const createPost = ({ properties, commands }) => {
 
   delete properties.published
   const type = postType(properties)
-
-  if (type === 'reads') {
-    // delete unwanted summary from indiebookclub.biz
-    delete properties.summary
-  }
 
   if (!allowedTypes.includes(type)) {
     throw new Error('post type not allowed: %s', type)
