@@ -60,7 +60,7 @@ const postType = (post) => {
 }
 
 const allowedTypes = Object.freeze([
-  'reposts', 'likes', 'replies', 'bookmarks', 'articles'
+  'reposts', 'likes', 'replies', 'bookmarks', 'articles', 'notes'
 ])
 
 function cleanupRelatedURL (url) {
@@ -92,7 +92,7 @@ const createPost = ({ properties, commands }) => {
   const type = postType(properties)
 
   if (!allowedTypes.includes(type)) {
-    throw new Error('post type not allowed: %s', type)
+    throw new Error('post type not allowed: ' + type)
   }
 
   const content = properties.content
