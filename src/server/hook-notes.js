@@ -1,8 +1,8 @@
 const { ar } = require('./utils')
-const debug = require('debug')('eagle:server:notes')
 const crypto = require('crypto')
+const execa = require('execa')
 
-module.exports = ({ git, buildKB, secret }) => ar(async (req, res) => {
+module.exports = ({ git, notesRepo, buildKB, hugo, secret, queue }) => ar(async (req, res) => {
   console.log(req.body)
   const sig = 'sha1=' + crypto
     .createHmac('sha1', secret)
@@ -13,6 +13,12 @@ module.exports = ({ git, buildKB, secret }) => ar(async (req, res) => {
     return res.sendStatus(403)
   }
 
-  console.log('should update')
-  return res.sendStatus(200)
+  await queue.add(async () => {
+    await execa('git', ['pull'], { cwd: notesRepo })
+    await buildKB()
+    await git.commit('update kb')
+    await hugo.build()
+  })
+
+  res.sendStatus(200)
 })

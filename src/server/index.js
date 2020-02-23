@@ -93,6 +93,9 @@ module.exports = function () {
   app.post('/notes', require('./hook-notes')({
     git,
     buildKB,
+    queue,
+    hugo,
+    notesRepo: config.notesRepo,
     secret: config.notesSecret
   }))
 
