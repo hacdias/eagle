@@ -13,7 +13,6 @@ module.exports = ({ git, hugo, secret, queue }) => ar(async (req, res) => {
 
   await queue.add(async () => {
     await git.pull()
-    await git.push()
     await hugo.build()
   })
 
