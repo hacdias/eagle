@@ -26,8 +26,5 @@ module.exports = () => ({
     key: process.env.BUNNY_KEY,
     base: process.env.BUNNY_BASE
   },
-  trakt: {
-    clientID: process.env.TRAKT_CLIENT_ID,
-    token: process.env.TRAKT_TOKEN
-  }
+  notesRepo: process.env.NOTES_REPO
 })
