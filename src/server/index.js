@@ -90,7 +90,7 @@ module.exports = function () {
   app.get('/webfinger', require('./webfinger')())
   app.get('/activitypub', require('./activitypub')())
 
-  app.get('/notes', require('./hook-notes')({
+  app.post('/notes', require('./hook-notes')({
     git,
     buildKB,
     secret: config.notesSecret
