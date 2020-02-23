@@ -27,5 +27,6 @@ module.exports = () => ({
     base: process.env.BUNNY_BASE
   },
   notesRepo: process.env.NOTES_REPO,
-  notesSecret: process.env.NOTES_SECRET
+  notesSecret: process.env.NOTES_SECRET,
+  hookSecret: process.env.HOOK_SECRET
 })

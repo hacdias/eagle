@@ -99,6 +99,13 @@ module.exports = function () {
     secret: config.notesSecret
   }))
 
+  app.post('/repo', require('./hook-repo')({
+    git,
+    hugo,
+    queue,
+    secret: config.hookSecret
+  }))
+
   app.get('/robots.txt', (_, res) => {
     res.header('Content-Type', 'text/plain')
     res.send('UserAgent: *\nDisallow: /')

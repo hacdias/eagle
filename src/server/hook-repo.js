@@ -1,8 +1,7 @@
 const { ar } = require('./utils')
 const crypto = require('crypto')
-const execa = require('execa')
 
-module.exports = ({ git, notesRepo, buildKB, hugo, secret, queue }) => ar(async (req, res) => {
+module.exports = ({ git, hugo, secret, queue }) => ar(async (req, res) => {
   const sig = 'sha1=' + crypto
     .createHmac('sha1', secret)
     .update(JSON.stringify(req.body))
@@ -13,9 +12,8 @@ module.exports = ({ git, notesRepo, buildKB, hugo, secret, queue }) => ar(async 
   }
 
   await queue.add(async () => {
-    await execa('git', ['pull'], { cwd: notesRepo })
-    await buildKB()
-    await git.commit('update kb')
+    await git.pull()
+    await git.push()
     await hugo.build()
   })
 
