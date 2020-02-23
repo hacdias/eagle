@@ -3,7 +3,7 @@ const { join } = require('path')
 const yaml = require('js-yaml')
 const slugify = require('slugify')
 
-module.exports = function createKB ({ hugoDir, notesRepoDir, queue }) {
+module.exports = function createKB ({ hugoDir, notesRepoDir }) {
   const kbDir = join(hugoDir, 'content', 'kb')
   const notesDir = join(notesRepoDir, 'notes')
 

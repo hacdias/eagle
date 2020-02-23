@@ -46,6 +46,11 @@ module.exports = function () {
     autoStart: true
   })
 
+  const buildKB = require('../services/kb')({
+    hugoDir: config.hugo.dir,
+    notesRepoDir: config.notesRepo
+  })
+
   // Start bot only on production...
   if (process.env.NODE_ENV === 'production') {
     require('../services/bot')({
@@ -84,6 +89,12 @@ module.exports = function () {
   app.get('/now', require('./now')())
   app.get('/webfinger', require('./webfinger')())
   app.get('/activitypub', require('./activitypub')())
+
+  app.get('/notes', require('./hook-notes')({
+    git,
+    buildKB,
+    secret: config.notesSecret
+  }))
 
   app.get('/robots.txt', (_, res) => {
     res.header('Content-Type', 'text/plain')
