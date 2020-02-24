@@ -22,6 +22,7 @@ module.exports = ({ git, notesRepo, hugo, secret, queue }) => ar(async (req, res
   debug('building from %s: %s', src, dst)
 
   await queue.add(async () => {
+    debug('git pulling notes repo')
     await execa('git', ['pull'], { cwd: notesRepo })
     await buildKB({ src, dst })
     await git.commit('update kb')
