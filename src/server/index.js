@@ -46,11 +46,6 @@ module.exports = function () {
     autoStart: true
   })
 
-  const buildKB = require('../services/kb')({
-    hugoDir: config.hugo.dir,
-    notesRepoDir: config.notesRepo
-  })
-
   // Start bot only on production...
   if (process.env.NODE_ENV === 'production') {
     require('../services/bot')({
@@ -92,9 +87,8 @@ module.exports = function () {
 
   app.post('/notes', require('./hook-notes')({
     git,
-    buildKB,
-    queue,
     hugo,
+    queue,
     notesRepo: config.notesRepo,
     secret: config.notesSecret
   }))

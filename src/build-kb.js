@@ -3,26 +3,23 @@ const { join } = require('path')
 const yaml = require('js-yaml')
 const slugify = require('slugify')
 
-module.exports = function createKB ({ hugoDir, notesRepoDir }) {
-  const kbDir = join(hugoDir, 'content', 'kb')
-  const notesDir = join(notesRepoDir, 'notes')
-
+module.exports = function buildKB ({ src, dst }) {
   return async () => {
-    await fs.remove(kbDir)
-    await fs.ensureDir(kbDir)
+    await fs.remove(dst)
+    await fs.ensureDir(dst)
 
     await fs.outputFile(
-      join(kbDir, '_index.md'),
+      join(dst, '_index.md'),
     `---
 title: Knowledge Base
 emoji: 🧠
 ---`
     )
 
-    const files = await fs.readdir(notesDir)
+    const files = await fs.readdir(src)
 
     for (const index of files) {
-      const path = join(notesDir, index)
+      const path = join(src, index)
       if (fs.statSync(path).isDirectory()) {
         continue
       }
@@ -48,7 +45,7 @@ emoji: 🧠
       }
 
       await fs.outputFile(
-        join(kbDir, `${slugify(meta.title.toLowerCase())}.md`),
+        join(dst, `${slugify(meta.title.toLowerCase())}.md`),
       `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content.trim()}`
       )
     }
