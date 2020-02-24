@@ -127,7 +127,10 @@ module.exports = function () {
   app.use((err, req, res, next) => {
     debug(err.stack)
     notify.sendError(err)
-    res.status(500).send('Something broke!')
+
+    if (!res.headersSent) {
+      res.sendStatus(500)
+    }
   })
 
   app.listen(config.port, () => console.log(`Listening on port ${config.port}!`))

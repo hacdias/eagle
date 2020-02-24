@@ -8,6 +8,8 @@ module.exports = ({ git, secret, queue, source, hugo }) => ar(async (req, res) =
     return res.sendStatus(403)
   }
 
+  res.sendStatus(202)
+
   await queue.add(async () => {
     const relativePath = 'data/watches.json'
     const output = join(hugo.dir, relativePath)
@@ -26,6 +28,4 @@ module.exports = ({ git, secret, queue, source, hugo }) => ar(async (req, res) =
     await hugo.build()
     debug('committed and built')
   })
-
-  return res.sendStatus(200)
 })
