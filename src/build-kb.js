@@ -43,6 +43,10 @@ emoji: 🧠
       content = content.substring(content.indexOf('\n')).trim()
     }
 
+    if (content.match(/(\$\$.*?\$\$|\$.*?\$)/g)) {
+      meta.math = true
+    }
+
     await fs.outputFile(
       join(dst, `${slugify(meta.title.toLowerCase())}.md`),
       `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content.trim()}`
