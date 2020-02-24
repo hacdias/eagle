@@ -21,9 +21,9 @@ module.exports = function createGit (opts) {
     return run('git', ['commit', '-m', message], opts)
   }
 
-  const commitFile = async (file, message) => {
-    debug('committing %s: %s', file, message)
-    return run('git', ['commit', '-m', message, '--', file], opts)
+  const commitFile = async (files, message) => {
+    debug('committing %s: %s', files, message)
+    return run('git', ['commit', '-m', message, '--', ...files], opts)
   }
 
   const diff = async (file) => {

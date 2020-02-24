@@ -1,8 +1,8 @@
 const fs = require('fs-extra')
 const { join } = require('path')
 
-module.exports = async ({ source, output }) => {
-  const rawDir = join(source, 'raw')
+module.exports = async ({ src, dst }) => {
+  const rawDir = join(src, 'raw')
   const historyFile = join(rawDir, 'history.json')
   const history = await fs.readJSON(historyFile)
 
@@ -46,5 +46,5 @@ module.exports = async ({ source, output }) => {
     }, {}))
     .sort((a, b) => b.watched - a.watched)
 
-  await fs.outputJSON(output, data, { spaces: 2 })
+  await fs.outputJSON(dst, data, { spaces: 2 })
 }
