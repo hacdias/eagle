@@ -21,6 +21,16 @@ module.exports = function createGit (opts) {
     return run('git', ['commit', '-m', message], opts)
   }
 
+  const commitFile = async (file, message) => {
+    debug('committing %s: %s', file, message)
+    return run('git', ['commit', '-m', message, '--', file], opts)
+  }
+
+  const diff = async (file) => {
+    debug('diff %s', file)
+    return run('git', ['diff', file], opts)
+  }
+
   const push = async () => {
     debug('pushing')
     return run('git', ['push'], opts)
@@ -33,7 +43,9 @@ module.exports = function createGit (opts) {
 
   return Object.freeze({
     commit,
+    commitFile,
     push,
-    pull
+    pull,
+    diff
   })
 }

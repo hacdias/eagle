@@ -106,6 +106,14 @@ module.exports = function () {
     secret: config.hookSecret
   }))
 
+  app.get('/build/watches', require('./build-watches')({
+    git,
+    hugo,
+    secret: config.traktSecret,
+    queue,
+    source: config.traktData
+  }))
+
   app.get('/robots.txt', (_, res) => {
     res.header('Content-Type', 'text/plain')
     res.send('UserAgent: *\nDisallow: /')

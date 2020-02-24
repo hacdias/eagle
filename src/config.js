@@ -28,5 +28,7 @@ module.exports = () => ({
   },
   notesRepo: process.env.NOTES_REPO,
   notesSecret: process.env.NOTES_SECRET,
-  hookSecret: process.env.HOOK_SECRET
+  hookSecret: process.env.HOOK_SECRET,
+  traktData: process.env.TRAKT_DATA,
+  traktSecret: process.env.TRAKT_SECRET
 })
