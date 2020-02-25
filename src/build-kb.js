@@ -51,6 +51,9 @@ emoji: 🧠
       meta.mermaid = true
     }
 
+    // Replace wiki links by true links that work with Hugo
+    content = content.replace(/\[\[(.*?)\]\]/g, '[$1](/kb/$1)')
+
     await fs.outputFile(
       join(dst, `${slugify(meta.title.toLowerCase())}.md`),
       `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content.trim()}`
