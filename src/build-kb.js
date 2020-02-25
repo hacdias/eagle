@@ -47,6 +47,10 @@ emoji: 🧠
       meta.math = true
     }
 
+    if (content.includes('```mermaid')) {
+      meta.mermaid = true
+    }
+
     await fs.outputFile(
       join(dst, `${slugify(meta.title.toLowerCase())}.md`),
       `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content.trim()}`
