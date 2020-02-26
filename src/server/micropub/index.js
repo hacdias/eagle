@@ -34,7 +34,7 @@ const config = Object.freeze({
 
 async function reloadCaddy () {
   try {
-    await execa('pkill', '-USR1', 'caddy')
+    await execa('pkill', '--signal', 'USR1', 'caddy')
     debug('caddy config reloaded')
   } catch (e) {
     debug('could not reload caddy config: %s', e.stack)
