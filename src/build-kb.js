@@ -52,7 +52,7 @@ emoji: 🧠
     }
 
     // Replace wiki links by true links that work with Hugo
-    content = content.replace(/\[\[(.*?)\]\]/g, '[$1](/kb/$1)')
+    content = content.replace(/\[\[(.*?)\]\]/g, (match, val) => `[${val}](/kb/${slugify(val.toLowerCase())})`)
 
     await fs.outputFile(
       join(dst, `${slugify(meta.title.toLowerCase())}.md`),
