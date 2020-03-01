@@ -3,8 +3,7 @@ const { join } = require('path')
 const fs = require('fs-extra')
 const express = require('express')
 const actors = require('./actor')
-const crypto = require('crypto')
-const got = require('got')
+const requests = require('./req')
 
 const getCategory = async (publicDir, category) => {
   const { items } = await fs.readJSON(join(publicDir, category, 'feed.json'))
@@ -78,31 +77,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       type: 'Accept'
     }
 
-    const inbox = new URL(follower.inbox)
-    const signer = crypto.createSign('sha256')
-    const date = new Date()
-
-    const body = JSON.stringify(accept)
-    const digest = 'SHA-256=' + crypto.createHash('sha256').update(body).digest('base64')
-
-    const stringToSign = `(request-target): post ${inbox.pathname}\nhost: ${inbox.host}\ndate: ${date.toUTCString()}\ndigest: ${digest}`
-    signer.update(stringToSign)
-    signer.end()
-    const signature = signer.sign(privateKey).toString('base64')
-
-    const header = `keyId="https://hacdias.com/#key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature}"`
-
-    await got.post(inbox.href, {
-      body,
-      headers: {
-        'Content-Type': 'application/activity+json',
-        Host: inbox.host,
-        Date: date.toUTCString(),
-        Digest: digest,
-        Signature: header
-      }
-    })
-
+    await requests.sendSigned(privateKey, accept, follower.inbox)
     console.log('SENT')
 
     return res.sendStatus(200)
