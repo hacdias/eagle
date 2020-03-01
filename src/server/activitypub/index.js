@@ -77,6 +77,8 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       type: 'Accept'
     }
 
+    console.log(accept, follower.inbox)
+
     await requests.sendSigned(privateKey, accept, follower.inbox)
     console.log('SENT')
 
