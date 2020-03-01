@@ -86,6 +86,8 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     signer.end()
     const signature = signer.sign(privateKey).toString('base64')
 
+    console.log(stringToSign)
+
     const header = `keyId="https://hacdias.com/#key",headers="(request-target) host date",signature="${signature}"`
 
     await got.post(inbox.href, {
