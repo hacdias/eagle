@@ -59,7 +59,8 @@ module.exports = function () {
     require('../services/bot')({
       ...config.telegram,
       git,
-      hugo
+      hugo,
+      activitypub
     })
   }
 
