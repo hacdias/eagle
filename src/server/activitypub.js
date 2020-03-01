@@ -18,6 +18,10 @@ module.exports = ({ hugo, queue, store }) => {
   const backup = join(store, 'backup.json')
   const followers = join(store, 'followers.json')
 
+  if (!fs.existsSync(followers)) {
+    fs.outputJSONSync(followers, [])
+  }
+
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
