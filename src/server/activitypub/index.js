@@ -81,7 +81,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     const inbox = new URL(follower.inbox)
     const signer = crypto.createSign('sha256')
     const date = new Date()
-    const stringToSign = `(request-target): post ${inbox.pathname}\nhost: ${inbox.origin}\ndate: ${date.toUTCString()}`
+    const stringToSign = `(request-target): post ${inbox.pathname}\nhost: ${inbox.host}\ndate: ${date.toUTCString()}`
     signer.update(stringToSign)
     signer.end()
     const signature = signer.sign(privateKey).toString('base64')
@@ -94,7 +94,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       json: accept,
       headers: {
         'Content-Type': 'application/activity+json',
-        Host: inbox.origin,
+        Host: inbox.host,
         Date: date.toUTCString(),
         Signature: header
       }
