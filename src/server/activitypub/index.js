@@ -95,6 +95,8 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       Signature: header
     }, signature)
 
+    console.log(JSON.stringify(accept))
+
     const rrr = await got.post(inbox.href, {
       json: accept,
       responseType: 'json',
