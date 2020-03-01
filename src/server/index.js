@@ -86,7 +86,7 @@ module.exports = function () {
   app.use('/activitypub', require('./activitypub')({
     queue,
     hugo,
-    backupFile: config.backupActivity
+    store: config.activityPubStore
   }))
 
   app.post('/notes', require('./hook-notes')({

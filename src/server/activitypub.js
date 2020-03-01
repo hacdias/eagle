@@ -12,7 +12,12 @@ const getCategory = async (publicDir, category) => {
   }))
 }
 
-module.exports = ({ hugo, queue, backupFile }) => {
+module.exports = ({ hugo, queue, store }) => {
+  fs.ensureDirSync(store)
+
+  const backup = join(store, 'backup.json')
+  const followers = join(store, 'followers.json')
+
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -33,7 +38,19 @@ module.exports = ({ hugo, queue, backupFile }) => {
   }))
 
   router.post('/inbox', ar(async (req, res) => {
-    await fs.appendFile(backupFile, JSON.stringify(req.body) + '\n')
+    await fs.appendFile(backup, JSON.stringify(req.body) + '\n')
+
+    const sign = req.headers.signature
+      .split(',')
+      .map(pair => pair
+        .split('=')
+        .map(value => value
+          .replace(/A"/, '')
+          .replace(/"z/, '')
+        )
+      )
+
+    console.log(sign)
 
     switch (req.body.type) {
       case 'Follow':

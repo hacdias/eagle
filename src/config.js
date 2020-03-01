@@ -31,5 +31,5 @@ module.exports = () => ({
   hookSecret: process.env.HOOK_SECRET,
   traktData: process.env.TRAKT_DATA,
   traktSecret: process.env.TRAKT_SECRET,
-  backupActivity: process.env.BACKUP_ACTIVITY
+  activityPubStore: process.env.ACTIVITYPUB_STORE
 })
