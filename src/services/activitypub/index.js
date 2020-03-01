@@ -48,7 +48,7 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
   const follow = async (data) => {
     const { url, inbox } = await actors.get(data.actor)
 
-    if (followers[url]) {
+    if (!followers[url]) {
       followers[url] = inbox
       await fs.writeJSON(followersFile, followers)
     }
