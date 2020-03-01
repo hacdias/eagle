@@ -87,11 +87,17 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     const signature = signer.sign(privateKey).toString('base64')
 
     const header = `keyId="https://hacdias.com/#key",headers="(request-target) host date",signature="${signature}"`
-    console.log(header)
-    console.log(JSON.stringify(accept))
 
-    await got.post(inbox.href, {
+    console.log({
+      'Content-Type': 'application/activity+json',
+      Host: inbox.host,
+      Date: date.toUTCString(),
+      Signature: header
+    }, signature)
+
+    const res = await got.post(inbox.href, {
       json: accept,
+      responseType: 'json',
       headers: {
         'Content-Type': 'application/activity+json',
         Host: inbox.host,
@@ -99,6 +105,8 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
         Signature: header
       }
     })
+
+    console.log(res.body)
 
     return res.sendStatus(200)
   }
