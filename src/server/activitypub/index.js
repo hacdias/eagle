@@ -71,7 +71,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     const accept = {
       '@context': 'https://www.w3.org/ns/activitystreams',
       to: req.body.actor,
-      id: require('uuid').v1(),
+      id: 'https://hacdias.com/' + require('uuid').v1(),
       actor: follower.url,
       object: req.body,
       type: 'Accept'
