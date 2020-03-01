@@ -90,7 +90,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
 
     await got.post(inbox.href, {
       json: accept,
-      header: {
+      headers: {
         'Content-Type': 'application/activity+json',
         Host: inbox.origin,
         Date: date.toUTCString(),
