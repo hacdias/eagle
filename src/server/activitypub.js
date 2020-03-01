@@ -18,7 +18,14 @@ module.exports = ({ hugo, queue, backupFile }) => {
     mergeParams: true
   })
 
-  router.use(express.json())
+  router.use(express.json({
+    type: [
+      'application/ld+json',
+      'application/activity+json',
+      'application/json'
+    ]
+  }))
+
   router.use(express.urlencoded({ extended: true }))
 
   router.get('/inbox', ar(async (req, res) => {
