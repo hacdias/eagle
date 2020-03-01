@@ -95,7 +95,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       Signature: header
     }, signature)
 
-    const res = await got.post(inbox.href, {
+    const rrr = await got.post(inbox.href, {
       json: accept,
       responseType: 'json',
       headers: {
@@ -106,7 +106,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       }
     })
 
-    console.log(res.body)
+    console.log(rrr.body)
 
     return res.sendStatus(200)
   }
