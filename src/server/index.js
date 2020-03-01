@@ -86,6 +86,7 @@ module.exports = function () {
   app.use('/activitypub', require('./activitypub')({
     queue,
     hugo,
+    webmentions,
     store: config.activityPubStore
   }))
 

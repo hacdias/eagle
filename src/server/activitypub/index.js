@@ -1,7 +1,10 @@
-const { ar } = require('./utils')
+const { ar } = require('../utils')
 const { join } = require('path')
 const fs = require('fs-extra')
 const express = require('express')
+const actors = require('./actor')
+const crypto = require('crypto')
+const got = require('got')
 
 const getCategory = async (publicDir, category) => {
   const { items } = await fs.readJSON(join(publicDir, category, 'feed.json'))
@@ -12,15 +15,13 @@ const getCategory = async (publicDir, category) => {
   }))
 }
 
-module.exports = ({ hugo, queue, store }) => {
+module.exports = ({ hugo, queue, webmentions, store }) => {
   fs.ensureDirSync(store)
 
   const backup = join(store, 'backup.json')
   const followers = join(store, 'followers.json')
 
-  if (!fs.existsSync(followers)) {
-    fs.outputJSONSync(followers, [])
-  }
+  const privateKey = fs.readFileSync(join(store, 'private.key'), 'ascii')
 
   const router = express.Router({
     caseSensitive: true,
@@ -41,36 +42,76 @@ module.exports = ({ hugo, queue, store }) => {
     res.sendStatus(501)
   }))
 
+  const create = async (req, res) => {
+    if (!req.body.object) {
+      return res.sendStatus(400)
+    }
+
+    const replyTo = req.body.object.inReplyTo
+    const id = req.boy.object.id
+
+    if (typeof replyTo !== 'string' || typeof id !== 'string') {
+      return res.sendStatus(400)
+    }
+
+    await webmentions.send({
+      source: id,
+      targets: [replyTo]
+    })
+
+    return res.sendStatus(201)
+  }
+
+  const follow = async (req, res) => {
+    const follower = await actors.get(req.body.actor)
+
+    await fs.appendFile(followers, JSON.stringify(follower) + '\n')
+
+    delete req.body['@context']
+
+    const accept = {
+      '@context': 'https://www.w3.org/ns/activitystreams',
+      to: req.body.actor,
+      id: require('uuid').v1(),
+      actor: '',
+      object: req.body,
+      type: 'Accept'
+    }
+
+    const inbox = new URL(follower.inbox)
+    const signer = crypto.createSign('sha256')
+    const date = new Date()
+    const stringToSign = `(request-target): post ${inbox.pathname}\nhost: ${inbox.origin}\ndate: ${date.toUTCString()}`
+    signer.update(stringToSign)
+    signer.end()
+    const signature = signer.sign(privateKey).toString('base64')
+
+    const header = `keyId="https://hacdias.com/#key",headers="(request-target) host date",signature="${signature}"`
+
+    await got.post(inbox.href, {
+      json: accept,
+      header: {
+        'Content-Type': 'application/activity+json',
+        Host: inbox.origin,
+        Date: date.toUTCString(),
+        Signature: header
+      }
+    })
+
+    return res.sendStatus(200)
+  }
+
   router.post('/inbox', ar(async (req, res) => {
     await fs.appendFile(backup, JSON.stringify(req.body) + '\n')
 
-    const sign = req.headers.signature
-      .split(',')
-      .map(pair => pair
-        .split('=')
-        .map(value => value
-          .replace(/A"/, '')
-          .replace(/"z/, '')
-        )
-      )
-
-    console.log(sign)
-
     switch (req.body.type) {
       case 'Follow':
-        console.log('Follow request')
-        break
-      case 'Undo':
-        console.log('Undo')
-        break
+        return follow(req, res)
       case 'Create':
-        console.log('Create')
-        break
+        return create(req, res)
       default:
-        return res.sendStatus(404)
+        return res.sendStatus(501)
     }
-
-    res.sendStatus(501)
   }))
 
   router.get('/outbox', ar(async (req, res) => {
