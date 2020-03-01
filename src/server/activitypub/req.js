@@ -1,5 +1,5 @@
 const crypto = require('crypto')
-const got = require('crypto')
+const got = require('got')
 
 const sendSigned = async (privateKey, obj, target) => {
   const url = new URL(target)
