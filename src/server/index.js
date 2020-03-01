@@ -83,7 +83,11 @@ module.exports = function () {
 
   app.get('/now', require('./now')())
   app.get('/webfinger', require('./webfinger')())
-  app.get('/activitypub', require('./activitypub')())
+  app.use('/activitypub', require('./activitypub')({
+    queue,
+    hugo,
+    backupFile: config.backupActivity
+  }))
 
   app.post('/notes', require('./hook-notes')({
     git,
