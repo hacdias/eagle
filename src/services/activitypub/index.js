@@ -2,6 +2,7 @@ const { join } = require('path')
 const fs = require('fs-extra')
 const actors = require('./actor')
 const requests = require('./req')
+const debug = require('debug')('eagle:activity')
 
 const getCategory = async (publicDir, category) => {
   const { items } = await fs.readJSON(join(publicDir, category, 'feed.json'))
@@ -26,7 +27,9 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
     : {}
 
   const create = async (data) => {
+    debug('got create request')
     if (!data.object) {
+      debug('object not present')
       return 400
     }
 
@@ -34,9 +37,11 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
     const id = data.object.id
 
     if (typeof replyTo !== 'string' || typeof id !== 'string') {
+      debug('invalid reply %s or %id', replyTo, id)
       return 400
     }
 
+    debug('creating webmention from %s to %s', id, replyTo)
     await webmentions.send({
       source: id,
       targets: [replyTo]
@@ -46,9 +51,11 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
   }
 
   const follow = async (data) => {
+    debug('follow request')
     const { url, inbox } = await actors.get(data.actor)
 
     if (!followers[url]) {
+      debug('new follower: %s', url)
       followers[url] = inbox
       await fs.writeJSON(followersFile, followers)
     }
@@ -64,6 +71,7 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
       type: 'Accept'
     }
 
+    debug('sending accept')
     await requests.sendSigned(privateKey, accept, inbox)
     return 200
   }
@@ -123,7 +131,31 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
     }
   }
 
+  const postArticle = async (permalink) => {
+    debug('posting %s', permalink)
+    const item = await fs.readJSON(join(hugo.publicDir, permalink, 'index.as2'))
+
+    const post = {
+      '@context': ['https://www.w3.org/ns/activitystreams'],
+      id: item.id,
+      type: 'Create',
+      actor: item.attributedTo,
+      published: item.published,
+      to: item.to,
+      object: item
+    }
+
+    for (const inbox of Object.values(followers)) {
+      try {
+        requests.sendSigned(privateKey, post, inbox)
+      } catch (e) {
+        debug('failed to send %s to %s', permalink, inbox)
+      }
+    }
+  }
+
   return Object.freeze({
+    postArticle,
     outboxHandler,
     inboxHandler
   })

@@ -41,7 +41,7 @@ async function reloadCaddy () {
   }
 }
 
-module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference }) => {
+module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference, activitypub }) => {
   const getPhotos = async (post, { meta, content }) => {
     try {
       const newPhotos = await helpers.getPhotos(meta, cdn)
@@ -96,6 +96,13 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
     await git.commit(`add ${post}`)
     await hugo.build()
+
+    try {
+      activitypub.postArticle(post)
+    } catch (err) {
+      debug('activity failed: %s', err.stack)
+      notify.sendError(err)
+    }
 
     // reload caddy config in parallell if there are any aliases
     // so it can load the redirects.

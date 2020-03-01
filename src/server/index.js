@@ -86,7 +86,8 @@ module.exports = function () {
     webmentions,
     hugo,
     notify,
-    queue
+    queue,
+    activitypub
   }))
 
   app.get('/now', require('./now')())
