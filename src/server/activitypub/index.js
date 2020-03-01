@@ -73,7 +73,7 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
       '@context': 'https://www.w3.org/ns/activitystreams',
       to: req.body.actor,
       id: require('uuid').v1(),
-      actor: '',
+      actor: follower.url,
       object: req.body,
       type: 'Accept'
     }
