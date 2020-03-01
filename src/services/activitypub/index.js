@@ -147,7 +147,7 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
 
     for (const inbox of Object.values(followers)) {
       try {
-        requests.sendSigned(privateKey, post, inbox)
+        await requests.sendSigned(privateKey, post, inbox)
       } catch (e) {
         debug('failed to send %s to %s', permalink, inbox)
       }
