@@ -46,6 +46,14 @@ module.exports = function () {
     autoStart: true
   })
 
+  const activitypub = require('../services/activitypub')({
+    queue,
+    hugo,
+    webmentions,
+    domain: config.domain,
+    store: config.activityPub.store
+  })
+
   // Start bot only on production...
   if (process.env.NODE_ENV === 'production') {
     require('../services/bot')({
@@ -82,12 +90,14 @@ module.exports = function () {
   }))
 
   app.get('/now', require('./now')())
-  app.get('/webfinger', require('./webfinger')())
+
+  app.get('/webfinger', require('./webfinger')({
+    domain: config.domain,
+    user: config.activityPub.user
+  }))
+
   app.use('/activitypub', require('./activitypub')({
-    queue,
-    hugo,
-    webmentions,
-    store: config.activityPubStore
+    activitypub
   }))
 
   app.post('/notes', require('./hook-notes')({
@@ -132,5 +142,5 @@ module.exports = function () {
     }
   })
 
-  app.listen(config.port, () => console.log(`Listening on port ${config.port}!`))
+  app.listen(config.port, () => console.log(`Listening on http://127.0.0.1:${config.port}`))
 }

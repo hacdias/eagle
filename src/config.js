@@ -2,7 +2,7 @@ module.exports = () => ({
   port: process.env.PORT || 3000,
   xrayEntrypoint: process.env.XRAY_ENTRYPOINT,
   telegraphToken: process.env.TELEGRAPH_TOKEN,
-  domain: process.env.DOMAIN,
+  domain: new URL(process.env.DOMAIN).origin,
   hugo: {
     dir: process.env.HUGO_DIR,
     publicDir: process.env.HUGO_PUBLIC_DIR
@@ -31,5 +31,8 @@ module.exports = () => ({
   hookSecret: process.env.HOOK_SECRET,
   traktData: process.env.TRAKT_DATA,
   traktSecret: process.env.TRAKT_SECRET,
-  activityPubStore: process.env.ACTIVITYPUB_STORE
+  activityPub: {
+    store: process.env.ACTIVITYPUB_STORE,
+    user: process.env.ACTIVITYPUB_USER
+  }
 })

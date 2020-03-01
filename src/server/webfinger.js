@@ -1,18 +1,25 @@
 const { ar } = require('./utils')
 
-module.exports = () => ar(async (req, res) => {
-  if (req.query.resource !== 'acct:hacdias@hacdias.com') {
-    return res.sendStatus(404)
-  }
+module.exports = ({ domain, user }) => {
+  const url = new URL(domain)
+  const resource = `acct:${user}@${url.hostname}`
 
-  return res.json({
-    subject: 'acct:hacdias@hacdias.com',
+  const object = {
+    subject: resource,
     links: [
       {
         rel: 'self',
         type: 'application/activity+json',
-        href: 'https://hacdias.com/'
+        href: new URL(domain).origin + '/'
       }
     ]
+  }
+
+  return ar(async (req, res) => {
+    if (req.query.resource !== resource) {
+      return res.sendStatus(404)
+    }
+
+    return res.json(object)
   })
-})
+}
