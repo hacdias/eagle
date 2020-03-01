@@ -117,10 +117,10 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     await fs.appendFile(backup, JSON.stringify(req.body) + '\n')
 
     switch (req.body.type) {
-      case 'Follow':
-        return follow(req, res)
       case 'Create':
         return create(req, res)
+      // case 'Follow':
+        // return follow(req, res)
       default:
         return res.sendStatus(501)
     }
