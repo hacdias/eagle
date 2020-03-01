@@ -152,6 +152,8 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
         debug('failed to send %s to %s', permalink, inbox)
       }
     }
+
+    debug('posting %s done', permalink)
   }
 
   return Object.freeze({
