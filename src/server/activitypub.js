@@ -53,18 +53,27 @@ module.exports = ({ hugo, queue, backupFile }) => {
   }))
 
   router.get('/outbox', ar(async (req, res) => {
-    const posts = await queue.add(async () => (
-      await Promise.all([
-        await getCategory(hugo.publicDir, 'notes'),
-        await getCategory(hugo.publicDir, 'articles'),
-        await getCategory(hugo.publicDir, 'replies')
-      ])
-    ).reduce((acc, curr) => {
-      acc.push(...curr)
-      return acc
-    }, [])
+    const posts = (await queue.add(async () => Promise.all([
+      await getCategory(hugo.publicDir, 'notes'),
+      await getCategory(hugo.publicDir, 'articles'),
+      await getCategory(hugo.publicDir, 'replies')
+    ])))
+      .reduce((acc, curr) => {
+        acc.push(...curr)
+        return acc
+      }, [])
       .sort((a, b) => new Date(b.published) - new Date(a.published))
-    )
+      .map(item => {
+        return {
+          id: item.id,
+          type: 'Create',
+          actor: item.attributedTo,
+          published: item.published,
+          to: item.to,
+          cc: item.cc,
+          object: item
+        }
+      })
 
     res.json({
       '@context': 'https://www.w3.org/ns/activitystreams',
