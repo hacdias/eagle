@@ -81,34 +81,29 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     const inbox = new URL(follower.inbox)
     const signer = crypto.createSign('sha256')
     const date = new Date()
-    const stringToSign = `(request-target): post ${inbox.pathname}\nhost: ${inbox.host}\ndate: ${date.toUTCString()}`
+
+    const body = JSON.stringify(accept)
+    const digest = 'SHA-256=' + crypto.createHash('sha256').update(body).digest('base64')
+
+    const stringToSign = `(request-target): post ${inbox.pathname}\nhost: ${inbox.host}\ndate: ${date.toUTCString()}\ndigest: ${digest}`
     signer.update(stringToSign)
     signer.end()
     const signature = signer.sign(privateKey).toString('base64')
 
-    const header = `keyId="https://hacdias.com/#key",headers="(request-target) host date",signature="${signature}"`
+    const header = `keyId="https://hacdias.com/#key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature}"`
 
-    console.log({
-      'Content-Type': 'application/activity+json',
-      Host: inbox.host,
-      Date: date.toUTCString(),
-      Signature: header
-    }, signature)
-
-    console.log(JSON.stringify(accept))
-
-    const rrr = await got.post(inbox.href, {
-      json: accept,
-      responseType: 'json',
+    await got.post(inbox.href, {
+      body,
       headers: {
         'Content-Type': 'application/activity+json',
         Host: inbox.host,
         Date: date.toUTCString(),
+        Digest: digest,
         Signature: header
       }
     })
 
-    console.log(rrr.body)
+    console.log('SENT')
 
     return res.sendStatus(200)
   }
@@ -119,8 +114,8 @@ module.exports = ({ hugo, queue, webmentions, store }) => {
     switch (req.body.type) {
       case 'Create':
         return create(req, res)
-      // case 'Follow':
-        // return follow(req, res)
+      case 'Follow':
+        return follow(req, res)
       default:
         return res.sendStatus(501)
     }
