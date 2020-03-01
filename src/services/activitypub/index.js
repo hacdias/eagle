@@ -70,7 +70,7 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
 
   const inboxHandler = async (data) => {
     data.handled = false
-    let status
+    let status = 502
 
     try {
       switch (data.type) {
