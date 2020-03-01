@@ -33,7 +33,7 @@ module.exports = ({ hugo, queue, backupFile }) => {
   }))
 
   router.post('/inbox', ar(async (req, res) => {
-    await fs.appendFile(backupFile, JSON.stringify(req.body))
+    await fs.appendFile(backupFile, JSON.stringify(req.body) + '\n')
 
     switch (req.body.type) {
       case 'Follow':
