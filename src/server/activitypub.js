@@ -68,6 +68,7 @@ module.exports = ({ hugo, queue, backupFile }) => {
 
     res.json({
       '@context': 'https://www.w3.org/ns/activitystreams',
+      id: 'https://www.w3.org/ns/activitystreams#Public',
       summary: "Henrique's Posts",
       type: 'OrderedCollection',
       totalItems: posts.length,
