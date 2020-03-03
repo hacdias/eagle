@@ -4,16 +4,18 @@ const yaml = require('js-yaml')
 const slugify = require('slugify')
 
 module.exports = async function buildKB ({ src, dst }) {
-  await fs.remove(dst)
-  await fs.ensureDir(dst)
+  // Delete all files except _index.md
+  if (await fs.exists(dst)) {
+    const files = await fs.readdir(dst)
 
-  await fs.outputFile(
-    join(dst, '_index.md'),
-    `---
-title: Knowledge Base
-emoji: 🧠
----`
-  )
+    for (const file of files) {
+      if (file === '_index.md') {
+        continue
+      }
+
+      await fs.remove(join(dst, file))
+    }
+  }
 
   const files = await fs.readdir(src)
 
