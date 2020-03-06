@@ -42,20 +42,6 @@ async function reloadCaddy () {
 }
 
 module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference, activitypub }) => {
-  const getPhotos = async (post, { meta, content }) => {
-    try {
-      const newPhotos = await helpers.getPhotos(meta, cdn)
-
-      if (newPhotos) {
-        meta.properties.photo = newPhotos
-        await hugo.saveEntry(post, { meta, content })
-        await git.commit(`cdn photos on ${post}`)
-      }
-    } catch (e) {
-      debug('could not update post %s', post)
-    }
-  }
-
   const sendWebmentions = async (post, url, target) => {
     const targets = []
 
@@ -114,8 +100,6 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
 
     // This can be processed async.
     sendWebmentions(post, url, relatedURL)
-
-    await getPhotos(post, { meta, content })
 
     const syndication = await posse({
       content,
@@ -181,7 +165,6 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     await git.commit(`update ${post}`)
 
     res.redirect(200, data.url)
-    queue.add(() => getPhotos(post, entry))
   }
 
   const remove = async (req, res, data) => {
