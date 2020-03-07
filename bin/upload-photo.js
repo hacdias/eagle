@@ -50,7 +50,7 @@ const matrix = {
       for (const sizes of matrix[type]) {
         const trans = sharp(buff)[type]().resize(...sizes)
         const filename = `${hash}_${sizes.join('x')}${sizes.length === 1 ? 'x' : ''}.${type}`
-        await fs.outputFile(filename, await trans.toBuffer())
+        // await fs.outputFile(filename, await trans.toBuffer())
         console.log('\t', await cdn.upload(trans, `photos/${filename}`))
       }
     }
