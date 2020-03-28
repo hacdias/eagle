@@ -91,8 +91,6 @@ module.exports = function () {
     queue
   }))
 
-  app.get('/now', require('./now')())
-
   app.get('/webfinger', require('./webfinger')({
     domain: config.domain,
     user: config.activityPub.user
