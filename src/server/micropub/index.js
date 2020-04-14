@@ -1,13 +1,10 @@
 const express = require('express')
 const debug = require('debug')('eagle:server:micropub')
 const multer = require('multer')
-const mime = require('mime-types')
 const { ar } = require('../utils')
 const execa = require('execa')
 const helpers = require('./helpers')
 
-const { extname } = require('path')
-const { sha256 } = require('../../services/utils')
 const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
 const indieauth = require('@hacdias/indieauth-middleware')
 const transformer = require('./transformer')
@@ -23,7 +20,6 @@ const badRequest = (res, reason, code = 400) => {
 }
 
 const config = Object.freeze({
-  'media-endpoint': 'https://api.hacdias.com/micropub',
   'syndicate-to': [
     {
       uid: 'twitter',
@@ -41,7 +37,7 @@ async function reloadCaddy () {
   }
 }
 
-module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference, activitypub }) => {
+module.exports = ({ domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference, activitypub }) => {
   const sendWebmentions = async (post, url, target) => {
     const targets = []
 
@@ -192,21 +188,6 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     await git.commit(`delete ${post}`)
   }
 
-  const media = async (req, res) => {
-    debug('media file received')
-    const hash = sha256(req.file.buffer)
-    const ext = extname(
-      req.file.originalname ||
-        '.' + mime.extension(req.file.mimetype)
-    )
-
-    const filename = `${hash}${ext}`
-    const url = await cdn.upload(req.file.buffer, filename)
-
-    debug('media file uploaded to %s', url)
-    return res.redirect(201, url)
-  }
-
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
@@ -245,7 +226,7 @@ module.exports = ({ cdn, domain, xray, webmentions, posse, hugo, git, notify, qu
     let request
 
     if (req.file) {
-      return media(req, res)
+      return res.sendStatus(501)
     }
 
     try {

@@ -79,8 +79,7 @@ module.exports = function () {
     hugo,
     git,
     notify,
-    queue,
-    cdn
+    queue
   }))
 
   app.use('/webmention', require('./webmention')({
