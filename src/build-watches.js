@@ -2,8 +2,7 @@ const fs = require('fs-extra')
 const { join } = require('path')
 
 module.exports = async ({ src, dst }) => {
-  const rawDir = join(src, 'raw')
-  const historyFile = join(rawDir, 'history.json')
+  const historyFile = join(src, 'history.json')
   const history = await fs.readJSON(historyFile)
 
   const data = {}
