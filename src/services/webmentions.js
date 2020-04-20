@@ -122,10 +122,6 @@ module.exports = function createWebmention ({ token, hugo, git, domain, dir, cdn
 
     delete entry.author.type
 
-    if (webmention.post['swarm-coins']) {
-      entry['swarm-coins'] = webmention.post['swarm-coins']
-    }
-
     // upload avatar to cdn
     if (entry.author && entry.author.photo) {
       entry = await uploadToCdn(entry, cdn)
