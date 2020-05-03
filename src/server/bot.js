@@ -1,6 +1,8 @@
 const Telegraf = require('telegraf')
 
-module.exports = function createTelegram ({ token, chatID, git, hugo, activitypub }) {
+module.exports = function createTelegram ({ telegramToken, telegramChatId, services }) {
+  const { git, hugo, activitypub } = services
+
   const actions = {
     echo: ({ reply }) => reply('echo'),
     push: async ({ reply }) => {
@@ -36,10 +38,10 @@ module.exports = function createTelegram ({ token, chatID, git, hugo, activitypu
     }
   }
 
-  const bot = new Telegraf(token)
+  const bot = new Telegraf(telegramToken)
 
   bot.on('text', async (event) => {
-    if (event.update.message.chat.id !== chatID) {
+    if (event.update.message.chat.id !== telegramChatId) {
       return
     }
 

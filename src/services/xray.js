@@ -1,17 +1,17 @@
+const debug = require('debug')('eagle:services:xray')
 const got = require('got')
 const fs = require('fs-extra')
 const { join } = require('path')
-const debug = require('debug')('eagle:xray')
-const { sha256 } = require('./utils')
+const sha256 = require('../utils/sha256')
 
-module.exports = function createXRay ({ domain, entrypoint, twitter, dir }) {
+module.exports = function createXRay ({ apiEndpoint, storeDir, twitterConf, defaultDomain }) {
   const makeOptions = () => {
     return {
       form: {
-        twitter_api_key: twitter.apiKey,
-        twitter_api_secret: twitter.apiSecret,
-        twitter_access_token: twitter.accessToken,
-        twitter_access_token_secret: twitter.accessTokenSecret
+        twitter_api_key: twitterConf.apiKey,
+        twitter_api_secret: twitterConf.apiSecret,
+        twitter_access_token: twitterConf.accessToken,
+        twitter_access_token_secret: twitterConf.accessTokenSecret
       },
       responseType: 'json'
     }
@@ -28,7 +28,7 @@ module.exports = function createXRay ({ domain, entrypoint, twitter, dir }) {
       options.form.body = body
     }
 
-    const res = await got.post(`${entrypoint}/parse`, options)
+    const res = await got.post(`${apiEndpoint}/parse`, options)
 
     if (res.body.data && res.body.data.published) {
       res.body.data.published = new Date(res.body.data.published).toISOString()
@@ -38,36 +38,31 @@ module.exports = function createXRay ({ domain, entrypoint, twitter, dir }) {
   }
 
   const requestAndSave = async (url) => {
-    debug('gonna xray %s', url)
+    debug('gonna x-ray %s', url)
 
-    try {
-      const file = join(dir, `${sha256(url)}.json`)
+    const file = join(storeDir, `${sha256(url)}.json`)
 
-      if (url.startsWith('/')) {
-        url = `${domain}${url}`
-      }
-
-      if (!await fs.exists(file)) {
-        const data = await request({ url })
-
-        if (data.code !== 200) {
-          return
-        }
-
-        await fs.outputJSON(file, data.data, {
-          spaces: 2
-        })
-
-        debug('%s successfully xrayed', url)
-        return data.data
-      } else {
-        debug('%s already xrayed: %s', url, file)
-        return fs.readJson(file)
-      }
-    } catch (e) {
-      debug('could not xray %s: %s', url, e.stack)
-      throw e
+    if (url.startsWith('/')) {
+      url = `${defaultDomain}${url}`
     }
+
+    if (await fs.exists(file)) {
+      debug('%s already x-rayed: %s', url, file)
+      return fs.readJson(file)
+    }
+
+    const data = await request({ url })
+
+    if (data.code !== 200) {
+      return
+    }
+
+    await fs.outputJSON(file, data.data, {
+      spaces: 2
+    })
+
+    debug('%s successfully x-rayed', url)
+    return data.data
   }
 
   return Object.freeze({

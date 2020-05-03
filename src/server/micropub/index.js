@@ -1,13 +1,16 @@
-const express = require('express')
 const debug = require('debug')('eagle:server:micropub')
+const express = require('express')
 const multer = require('multer')
-const { ar } = require('../utils')
-const execa = require('execa')
-const helpers = require('./helpers')
+const ar = require('../../utils/ar')
 
 const { parseJson, parseFormEncoded } = require('@hacdias/micropub-parser')
 const indieauth = require('@hacdias/indieauth-middleware')
-const transformer = require('./transformer')
+
+const createRemove = require('./remove')
+const createUnremove = require('./unremove')
+const createSource = require('./source')
+const createUpdate = require('./update')
+const createReceive = require('./receive')
 
 // https://www.w3.org/TR/micropub
 
@@ -28,165 +31,8 @@ const config = Object.freeze({
   ]
 })
 
-async function reloadCaddy () {
-  try {
-    await execa('pkill', '--signal', 'USR1', 'caddy')
-    debug('caddy config reloaded')
-  } catch (e) {
-    debug('could not reload caddy config: %s', e.stack)
-  }
-}
-
-module.exports = ({ domain, xray, webmentions, posse, hugo, git, notify, queue, tokenReference, activitypub }) => {
-  const sendWebmentions = async (post, url, target) => {
-    const targets = []
-
-    if (target) {
-      targets.push(target)
-    }
-
-    try {
-      const html = await hugo.getEntryHTML(post)
-      const mentions = await helpers.getMentions(url, html)
-      targets.push(...mentions)
-    } catch (err) {
-      notify.sendError(err)
-    }
-
-    try {
-      await webmentions.send({ source: url, targets })
-    } catch (err) {
-      notify.sendError(err)
-    }
-  }
-
-  const receive = async (req, res, data) => {
-    const { meta, content, slug, type, relatedURL } = transformer.createPost(data)
-
-    if (relatedURL) {
-      try {
-        await xray.requestAndSave(relatedURL)
-      } catch (e) {
-        notify.sendError(e)
-      }
-    }
-
-    const { post } = await hugo.newEntry({ meta, content, slug, type })
-    const url = `${domain}${post}`
-
-    res.redirect(202, url)
-
-    await git.commit(`add ${post}`)
-    await hugo.build()
-
-    try {
-      activitypub.postArticle(post)
-    } catch (err) {
-      debug('activity failed: %s', err.stack)
-      notify.sendError(err)
-    }
-
-    // reload caddy config in parallell if there are any aliases
-    // so it can load the redirects.
-    if (meta.aliases) {
-      reloadCaddy()
-    }
-
-    notify.send(`📄 Post published: ${url}`)
-
-    // This can be processed async.
-    sendWebmentions(post, url, relatedURL)
-
-    const syndication = await posse({
-      content,
-      url,
-      type,
-      commands: data.commands,
-      relatedURL
-    })
-
-    if (syndication.length === 0) {
-      return
-    }
-
-    try {
-      const { meta, content } = await hugo.getEntry(post)
-      meta.properties = meta.properties || {}
-      meta.properties.syndication = syndication
-      await hugo.saveEntry(post, { meta, content })
-      await git.commit(`syndication on ${post}`)
-    } catch (err) {
-      debug('could not save syndication %s', err.stack)
-      notify.sendError(err)
-    }
-  }
-
-  const source = async (url) => {
-    if (!url.startsWith(domain)) {
-      throw new Error('invalid request')
-    }
-
-    const post = url.replace(domain, '', 1)
-    const { meta, content } = await hugo.getEntry(post)
-
-    const entry = {
-      type: ['h-entry'],
-      properties: meta.properties
-    }
-
-    if (meta.title) {
-      entry.properties.name = [meta.title]
-    }
-
-    if (meta.tags) {
-      entry.properties.category = meta.tags
-    }
-
-    if (content) {
-      entry.properties.content = [content]
-    }
-
-    if (meta.date) {
-      entry.properties.published = [meta.date]
-    }
-
-    return entry
-  }
-
-  const update = async (req, res, data) => {
-    const post = data.url.replace(domain, '', 1)
-    const entry = transformer.updatePost(await hugo.getEntry(post), data)
-
-    await hugo.saveEntry(post, entry)
-    await git.commit(`update ${post}`)
-
-    res.redirect(200, data.url)
-  }
-
-  const remove = async (req, res, data) => {
-    const post = data.url.replace(domain, '', 1)
-    const { meta, content } = await hugo.getEntry(post)
-
-    meta.expiryDate = new Date()
-    await hugo.saveEntry(post, { meta, content })
-    await git.commit(`delete ${post}`)
-
-    res.sendStatus(200)
-  }
-
-  const unremove = async (req, res, data) => {
-    const post = data.url.replace(domain, '', 1)
-    const entry = await hugo.getEntry(post)
-
-    if (!entry.meta.expiryDate) {
-      return res.sendStatus(400)
-    }
-
-    delete entry.meta.expiryDate
-
-    await hugo.saveEntry(post, entry)
-    await git.commit(`delete ${post}`)
-  }
+module.exports = ({ services, domain, tokenReference }) => {
+  const { queue, hugo, notify } = services
 
   const router = express.Router({
     caseSensitive: true,
@@ -201,6 +47,12 @@ module.exports = ({ domain, xray, webmentions, posse, hugo, git, notify, queue, 
   const upload = multer({ storage: storage })
 
   router.use(upload.single('file'))
+
+  const source = createSource({ services, domain })
+  const update = createUpdate({ services, domain })
+  const remove = createRemove({ services, domain })
+  const receive = createReceive({ services, domain })
+  const unremove = createUnremove({ services, domain })
 
   router.get('/', ar(async (req, res) => {
     debug('GET received; query: %o', req.query)

@@ -1,11 +1,13 @@
-const { ar } = require('./utils')
+const debug = require('debug')('eagle:server:hook:notes')
 const crypto = require('crypto')
 const execa = require('execa')
 const { join } = require('path')
-const debug = require('debug')('eagle:server:hook:notes')
-const buildKB = require('../build-kb')
+const ar = require('../utils/ar')
+const buildKB = require('../builders/kb')
 
-module.exports = ({ git, notesRepo, hugo, secret, queue }) => ar(async (req, res) => {
+module.exports = ({ services, repositoryDir, secret }) => ar(async (req, res) => {
+  const { hugo, git, queue } = services
+
   const sig = 'sha1=' + crypto
     .createHmac('sha1', secret)
     .update(JSON.stringify(req.body))
@@ -17,13 +19,13 @@ module.exports = ({ git, notesRepo, hugo, secret, queue }) => ar(async (req, res
 
   res.sendStatus(202)
 
-  const src = join(notesRepo, 'notes')
+  const src = join(repositoryDir, 'notes')
   const dst = join(hugo.dir, 'content', 'kb')
   debug('building from %s: %s', src, dst)
 
   await queue.add(async () => {
     debug('git pulling notes repo')
-    await execa('git', ['pull'], { cwd: notesRepo })
+    await execa('git', ['pull'], { cwd: repositoryDir })
     await buildKB({ src, dst })
     await git.commit('update kb')
     await hugo.build()

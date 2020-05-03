@@ -1,5 +1,6 @@
 const { join } = require('path')
 const fs = require('fs-extra')
+const { v4: uuidv4 } = require('uuid')
 const actors = require('./actor')
 const requests = require('./req')
 const debug = require('debug')('eagle:activity')
@@ -13,7 +14,7 @@ const getCategory = async (publicDir, category) => {
   }))
 }
 
-module.exports = function createActivityPub ({ domain, hugo, queue, webmentions, store }) {
+module.exports = function createActivityPub ({ hugo, webmentions, queue, domain, store }) {
   fs.ensureDirSync(store)
 
   const self = new URL(domain).origin + '/'
@@ -65,7 +66,7 @@ module.exports = function createActivityPub ({ domain, hugo, queue, webmentions,
     const accept = {
       '@context': 'https://www.w3.org/ns/activitystreams',
       to: data.actor,
-      id: self + require('uuid').v1(),
+      id: self + uuidv4(),
       actor: self,
       object: data,
       type: 'Accept'

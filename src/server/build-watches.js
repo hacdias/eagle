@@ -1,21 +1,23 @@
-const { ar } = require('./utils')
-const { join } = require('path')
 const debug = require('debug')('eagle:server:build:watches')
-const buildWatches = require('../build-watches')
+const { join } = require('path')
+const buildWatches = require('../builders/watches')
+const ar = require('../utils/ar')
 
-module.exports = ({ git, secret, queue, source, hugo }) => ar(async (req, res) => {
+module.exports = ({ services, secret, repositoryDir }) => ar(async (req, res) => {
   if (req.query.secret !== secret) {
     return res.sendStatus(403)
   }
 
   res.sendStatus(202)
 
+  const { queue, hugo, git } = services
+
   await queue.add(async () => {
     const relativePath = 'data/watches.json'
     const dst = join(hugo.dir, relativePath)
-    debug('building from %s to %s', source, dst)
+    debug('building from %s to %s', repositoryDir, dst)
 
-    await buildWatches({ src: source, dst })
+    await buildWatches({ src: repositoryDir, dst })
 
     const { stdout } = await git.diff(relativePath)
     if (stdout === '') {

@@ -1,8 +1,9 @@
 module.exports = () => ({
   port: process.env.PORT || 3000,
-  xrayEntrypoint: process.env.XRAY_ENTRYPOINT,
+  xrayEndpoint: process.env.XRAY_ENTRYPOINT,
   telegraphToken: process.env.TELEGRAPH_TOKEN,
   domain: new URL(process.env.DOMAIN).origin,
+  webmentionIoSecret: process.env.WEBMENTION_IO_WEBHOOK_SECRET,
   hugo: {
     dir: process.env.HUGO_DIR,
     publicDir: process.env.HUGO_PUBLIC_DIR
@@ -15,7 +16,7 @@ module.exports = () => ({
   },
   telegram: {
     token: process.env.TELEGRAM_TOKEN,
-    chatID: parseInt(process.env.TELEGRAM_CHAT_ID)
+    chatId: parseInt(process.env.TELEGRAM_CHAT_ID)
   },
   tokenReference: {
     me: process.env.TOKEN_REF_ME,
@@ -26,11 +27,17 @@ module.exports = () => ({
     key: process.env.BUNNY_KEY,
     base: process.env.BUNNY_BASE
   },
-  notesRepo: process.env.NOTES_REPO,
-  notesSecret: process.env.NOTES_SECRET,
-  hookSecret: process.env.HOOK_SECRET,
-  traktData: process.env.TRAKT_DATA,
-  traktSecret: process.env.TRAKT_SECRET,
+  notes: {
+    repositoryDir: process.env.NOTES_REPO,
+    hookSecret: process.env.NOTES_SECRET
+  },
+  website: {
+    hookSecret: process.env.HOOK_SECRET
+  },
+  trakt: {
+    repositoryDir: process.env.TRAKT_DATA,
+    secret: process.env.TRAKT_SECRET
+  },
   activityPub: {
     store: process.env.ACTIVITYPUB_STORE,
     user: process.env.ACTIVITYPUB_USER

@@ -1,7 +1,7 @@
+const debug = require('debug')('eagle:twitter')
 const OAuth = require('oauth-1.0a')
 const got = require('got')
 const crypto = require('crypto')
-const debug = require('debug')('eagle:twitter')
 
 module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, accessTokenSecret }) {
   const oauth = OAuth({
@@ -70,10 +70,7 @@ module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, acces
     timeline,
     like,
     retweet,
-    tweet,
-
-    get,
-    post
+    tweet
   })
 }
 

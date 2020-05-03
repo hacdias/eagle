@@ -1,8 +1,8 @@
-const got = require('got')
 const debug = require('debug')('eagle:webmentions')
-const { sha256 } = require('./utils')
+const got = require('got')
 const fs = require('fs-extra')
 const { join, extname } = require('path')
+const sha256 = require('../utils/sha256')
 
 const types = Object.freeze({
   'like-of': 'like',
@@ -25,63 +25,54 @@ async function uploadToCdn (entry, cdn) {
   return entry
 }
 
-module.exports = function createWebmention ({ token, hugo, git, domain, dir, cdn }) {
-  let redirects = {}
+function loadRedirects (file) {
+  try {
+    return fs.readFileSync(file)
+      .toString()
+      .split('\n')
+      .filter(p => !!p)
+      .map(e => e.split(' '))
+      .reduce((acc, [oldLink, newLink]) => {
+        if (acc[oldLink]) {
+          throw new Error('must not exist')
+        }
 
-  const loadRedirects = () => {
-    try {
-      const newRedirs = fs.readFileSync(join(hugo.publicDir, 'redirects.txt'))
-        .toString()
-        .split('\n')
-        .filter(p => !!p)
-        .map(e => e.split(' '))
-        .reduce((acc, [oldLink, newLink]) => {
-          if (acc[oldLink]) {
-            throw new Error('must not exist')
-          }
-
-          acc[oldLink] = newLink
-          return acc
-        }, {})
-
-      redirects = newRedirs
-    } catch (e) {
-      debug('cant load redirects %s', e.stack)
-    }
+        acc[oldLink] = newLink
+        return acc
+      }, {})
+  } catch (e) {
+    debug('cant load redirects %s', e.stack)
   }
+}
 
-  loadRedirects()
+module.exports = function createWebmention ({ redirectsFile, storeDir, telegraphToken, domain, git, cdn }) {
+  let redirects = loadRedirects(redirectsFile) || {}
 
   const send = async ({ source, targets }) => {
     for (const target of targets) {
       const webmention = { source, target }
 
-      try {
-        debug('outgoing webmention %o', webmention)
+      debug('outgoing webmention %o', webmention)
 
-        const { statusCode, body } = await got.post('https://telegraph.p3k.io/webmention', {
-          form: {
-            ...webmention,
-            token
-          },
-          responseType: 'json',
-          throwHttpErrors: false
-        })
+      const { statusCode, body } = await got.post('https://telegraph.p3k.io/webmention', {
+        form: {
+          ...webmention,
+          token: telegraphToken
+        },
+        responseType: 'json',
+        throwHttpErrors: false
+      })
 
-        if (statusCode >= 400) {
-          debug('outgoing webmention failed: %o', body)
-        } else {
-          debug('outgoing webmention succeeded', webmention)
-        }
-      } catch (e) {
-        debug('outgoing webmention failed: %s', e.stack)
-        throw e
+      if (statusCode >= 400) {
+        debug('outgoing webmention failed: %o', body)
+      } else {
+        debug('outgoing webmention succeeded', webmention)
       }
     }
   }
 
-  const receive = async (webmention) => {
-    loadRedirects()
+  const receive = async (webmention, ignoreGit = false) => {
+    redirects = loadRedirects(redirectsFile) || redirects
 
     let permalink = webmention.target.replace(domain, '', 1)
 
@@ -90,18 +81,16 @@ module.exports = function createWebmention ({ token, hugo, git, domain, dir, cdn
     }
 
     const hash = sha256(permalink)
-    const file = join(dir, `${hash}.json`)
+    const file = join(storeDir, `${hash}.json`)
 
-    if (!await fs.exists(file)) {
-      await fs.outputJSON(file, [])
-    }
-
-    const mentions = await fs.readJSON(file)
+    const mentions = await fs.exists(file)
+      ? await fs.readJSON(file)
+      : []
 
     if (webmention.deleted) {
       const newMentions = mentions.filter(m => m.url !== webmention.source)
       await fs.outputJSON(file, newMentions, { spaces: 2 })
-      await git.commit(`deleted webmention from ${webmention.source}`)
+      if (!ignoreGit) await git.commit(`deleted webmention from ${webmention.source}`)
       return
     }
 
@@ -127,9 +116,10 @@ module.exports = function createWebmention ({ token, hugo, git, domain, dir, cdn
       entry = await uploadToCdn(entry, cdn)
     }
 
+    debug('saving received webmention from %', entry.url)
     mentions.push(entry)
     await fs.outputJSON(file, mentions, { spaces: 2 })
-    await git.commit(`webmention from ${entry.url}`)
+    if (!ignoreGit) await git.commit(`webmention from ${entry.url}`)
   }
 
   return Object.freeze({

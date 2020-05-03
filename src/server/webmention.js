@@ -1,7 +1,7 @@
 const debug = require('debug')('eagle:server:webmention')
-const { ar } = require('./utils')
+const ar = require('../utils/ar')
 
-module.exports = ({ webmentions, hugo, notify, queue, secret }) => ar(async (req, res) => {
+module.exports = ({ services, secret }) => ar(async (req, res) => {
   debug('incoming webmention')
 
   if (req.body.secret !== secret) {
@@ -10,6 +10,9 @@ module.exports = ({ webmentions, hugo, notify, queue, secret }) => ar(async (req
   }
 
   delete req.body.secret
+
+  const { queue, hugo, notify, webmentions } = services
+
   await queue.add(() => webmentions.receive(req.body))
   res.sendStatus(200)
 

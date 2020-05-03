@@ -4,14 +4,14 @@
 require('dotenv').config()
 
 const config = require('../src/config')()
-const buildWatches = require('../src/build-watches')
-const hugo = require('../src/services/hugo')(config.hugo)
+const buildWatches = require('../src/builders/watches')
+const { hugo } = require('../src/services')(config)
 const { join } = require('path')
 
 ;(async () => {
   console.log('Building watches...')
 
-  const src = config.traktData
+  const src = config.trakt.repositoryDir
   const dst = join(config.hugo.dir, 'data/watches.json')
 
   console.log('  - Source:', src)

@@ -63,23 +63,25 @@ const allowedTypes = Object.freeze([
   'reposts', 'likes', 'replies', 'bookmarks', 'articles', 'notes'
 ])
 
-function cleanupRelatedURL (url) {
-  if (!url) {
-    return url
+function cleanupRelated (urls) {
+  if (!Array.isArray(urls)) {
+    throw new Error('urls must be an array')
   }
 
-  // Cleanup twitter url removing any search param.
-  if (url.startsWith('https://twitter.com') && url.includes('/status/')) {
-    url = new URL(url)
+  return urls.map(url => {
+    // Cleanup twitter url removing any search param.
+    if (url.startsWith('https://twitter.com') && url.includes('/status/')) {
+      url = new URL(url)
 
-    for (const param of url.searchParams.keys()) {
-      url.searchParams.delete(param)
+      for (const param of url.searchParams.keys()) {
+        url.searchParams.delete(param)
+      }
+
+      url = url.href
     }
 
-    url = url.href
-  }
-
-  return url
+    return url
+  })
 }
 
 // creates a new post.
@@ -111,12 +113,12 @@ const createPost = ({ properties, commands }) => {
 
   delete properties.name
 
-  const relatedURL = hasURL.includes(type)
-    ? cleanupRelatedURL(properties[typeToProperty[type]][0])
-    : null
+  const related = hasURL.includes(type)
+    ? cleanupRelated(properties[typeToProperty[type]] || [])
+    : []
 
-  if (relatedURL) {
-    properties[typeToProperty[type]][0] = relatedURL
+  if (related.length > 0) {
+    properties[typeToProperty[type]] = related
   }
 
   if (properties.category) {
@@ -135,7 +137,7 @@ const createPost = ({ properties, commands }) => {
     content,
     type,
     slug,
-    relatedURL
+    related
   }
 }
 

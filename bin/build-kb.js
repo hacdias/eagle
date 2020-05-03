@@ -5,10 +5,10 @@ require('dotenv').config()
 
 const { join } = require('path')
 const config = require('../src/config')()
-const buildKB = require('../src/build-kb')
+const buildKB = require('../src/builders/kb')
 
 ;(async () => {
-  const src = join(config.notesRepo, 'notes')
+  const src = join(config.notes.repositoryDir, 'notes')
   const dst = join(config.hugo.dir, 'content', 'kb')
 
   console.log('Building knowledge base...')

@@ -1,4 +1,4 @@
-const { ar } = require('./utils')
+const ar = require('../utils/ar')
 
 module.exports = ({ domain, user }) => {
   const url = new URL(domain)

@@ -3,6 +3,10 @@
 
 require('dotenv').config()
 
+/*
+
+FIXME ?
+
 const config = require('../src/config')()
 const hugo = require('../src/services/hugo')(config.hugo)
 const cdn = require('../src/services/bunnycdn')(config.bunny)
@@ -25,4 +29,4 @@ const { getPhotos } = require('../src/server/micropub/helpers')
       console.error('could not update post %s: %s', post, e.stack)
     }
   }
-})()
+})() */

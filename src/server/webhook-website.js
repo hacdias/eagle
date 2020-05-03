@@ -1,7 +1,9 @@
-const { ar } = require('./utils')
+const ar = require('../utils/ar')
 const crypto = require('crypto')
 
-module.exports = ({ git, hugo, secret, queue }) => ar(async (req, res) => {
+module.exports = ({ services, secret }) => ar(async (req, res) => {
+  const { queue, git, hugo } = services
+
   const sig = 'sha1=' + crypto
     .createHmac('sha1', secret)
     .update(JSON.stringify(req.body))

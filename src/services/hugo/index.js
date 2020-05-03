@@ -1,23 +1,18 @@
 const { join } = require('path')
-const { spawnSync } = require('child_process')
+const execa = require('execa')
 const fs = require('fs-extra')
 const yaml = require('js-yaml')
-const converter = require('../mf2-converter')
-
-function run () {
-  const res = spawnSync(...arguments)
-  if (res.error) throw res.error
-}
+const converter = require('./converter')
 
 module.exports = function createHugo ({ dir, publicDir }) {
   const contentDir = join(dir, 'content')
   const dataDir = join(dir, 'data')
 
-  const build = () => run('hugo', ['--minify', '--destination', publicDir], {
+  const build = () => execa.sync('hugo', ['--minify', '--destination', publicDir], {
     cwd: dir
   })
 
-  const buildAndClean = () => run('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
+  const buildAndClean = () => execa.sync('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
     cwd: dir
   })
 

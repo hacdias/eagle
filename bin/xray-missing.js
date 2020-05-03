@@ -3,17 +3,8 @@
 
 require('dotenv').config()
 
-const { join } = require('path')
-
 const config = require('../src/config')()
-const hugo = require('../src/services/hugo')(config.hugo)
-
-const xray = require('../src/services/xray')({
-  domain: config.domain,
-  twitter: config.twitter,
-  entrypoint: config.xrayEntrypoint,
-  dir: join(hugo.dataDir, 'xray')
-})
+const { hugo, xray } = require('../src/services')(config)
 
 ;(async () => {
   for await (const { meta } of hugo.getAll()) {

@@ -1,145 +1,81 @@
-const { join } = require('path')
-const express = require('express')
-const { default: PQueue } = require('p-queue')
 const debug = require('debug')('eagle:server')
+const express = require('express')
 
-const config = require('../config')()
+const getServices = require('../services')
+const getConfig = require('../config')
+
+const createMicropub = require('./micropub')
+const createWebHookNotes = require('./webhook-notes')
+const createWebHookWebsite = require('./webhook-website')
+const createBuildWatches = require('./build-watches')
+const createWebmention = require('./webmention')
+const createWebfinger = require('./webfinger')
+const createActivityPub = require('./activitypub')
+const createBot = require('./bot')
 
 module.exports = function () {
-  // Configure services
-
-  const cdn = require('../services/bunnycdn')(config.bunny)
-
-  const hugo = require('../services/hugo')({
-    ...config.hugo,
-    domain: config.domain
-  })
-
-  const xray = require('../services/xray')({
-    domain: config.domain,
-    twitter: config.twitter,
-    entrypoint: config.xrayEntrypoint,
-    dir: join(hugo.dataDir, 'xray')
-  })
-
-  const git = require('../services/git')({
-    cwd: hugo.dir
-  })
-
-  const webmentions = require('../services/webmentions')({
-    token: config.telegraphToken,
-    domain: config.domain,
-    dir: join(hugo.dataDir, 'mentions'),
-    git,
-    hugo,
-    cdn
-  })
-
-  const notify = require('../services/notify')(config.telegram)
-
-  const posse = require('../services/posse')({
-    twitter: require('../services/twitter')(config.twitter)
-  })
-
-  const queue = new PQueue({
-    concurrency: 1,
-    autoStart: true
-  })
-
-  const activitypub = require('../services/activitypub')({
-    queue,
-    hugo,
-    webmentions,
-    domain: config.domain,
-    store: config.activityPub.store
-  })
-
-  // Start bot only on production...
-  if (process.env.NODE_ENV === 'production') {
-    require('../services/bot')({
-      ...config.telegram,
-      git,
-      hugo,
-      activitypub
-    })
-  }
-
-  // Setup express app
+  const config = getConfig()
+  const services = getServices(config)
   const app = express()
 
   app.use(express.json())
 
-  app.use('/micropub', require('./micropub')({
+  app.use('/micropub', createMicropub({
+    services,
     domain: config.domain,
-    tokenReference: config.tokenReference,
-    xray,
-    webmentions,
-    posse,
-    activitypub,
-    hugo,
-    git,
-    notify,
-    queue
+    tokenReference: config.tokenReference
   }))
 
-  app.use('/webmention', require('./webmention')({
-    secret: process.env.WEBMENTION_IO_WEBHOOK_SECRET,
-    webmentions,
-    hugo,
-    notify,
-    queue
+  app.post('/webhooks/notes', createWebHookNotes({
+    services,
+    repositoryDir: config.notes.repositoryDir,
+    secret: config.notes.hookSecret
   }))
 
-  app.get('/webfinger', require('./webfinger')({
+  app.post('/webhooks/website', createWebHookWebsite({
+    services,
+    secret: config.website.hookSecret
+  }))
+
+  app.get('/build/watches', createBuildWatches({
+    services,
+    repositoryDir: config.trakt.repositoryDir,
+    secret: config.trakt.secret
+  }))
+
+  app.use('/webmention', createWebmention({
+    secret: config.webmentionIoSecret,
+    services
+  }))
+
+  app.get('/webfinger', createWebfinger({
     domain: config.domain,
     user: config.activityPub.user
   }))
 
-  app.use('/activitypub', require('./activitypub')({
-    activitypub
+  app.use('/activitypub', createActivityPub({
+    services
   }))
-
-  app.post('/notes', require('./hook-notes')({
-    git,
-    hugo,
-    queue,
-    notesRepo: config.notesRepo,
-    secret: config.notesSecret
-  }))
-
-  app.post('/repo', require('./hook-repo')({
-    git,
-    hugo,
-    queue,
-    secret: config.hookSecret
-  }))
-
-  app.get('/build/watches', require('./build-watches')({
-    git,
-    hugo,
-    secret: config.traktSecret,
-    queue,
-    source: config.traktData
-  }))
-
-  app.get('/robots.txt', (_, res) => {
-    res.header('Content-Type', 'text/plain')
-    res.send('UserAgent: *\nDisallow: /')
-  })
-
-  app.use((_, res) => {
-    res.header('Content-Type', 'text/plain')
-    res.status(404).send("Darlings, there's nothing to see here! Muah 💋")
-  })
 
   app.use((err, req, res, next) => {
     debug(err.stack)
-    notify.sendError(err)
+    services.notify.sendError(err)
 
     if (!res.headersSent) {
       res.sendStatus(500)
     }
   })
+
+  // Start bot only on production...
+  if (process.env.NODE_ENV === 'production') {
+    createBot({
+      telegramChatId: config.telegram.chatId,
+      telegramToken: config.telegram.token,
+      services
+    })
+
+    console.log('Telegram bot started!')
+  }
 
   app.listen(config.port, () => console.log(`Listening on http://127.0.0.1:${config.port}`))
 }

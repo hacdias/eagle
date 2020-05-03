@@ -1,5 +1,5 @@
-const execa = require('execa')
 const debug = require('debug')('eagle:git')
+const execa = require('execa')
 
 async function run () {
   const subprocess = execa(...arguments)
@@ -17,7 +17,7 @@ module.exports = function createGit (opts) {
   const commit = async (message) => {
     debug('adding')
     await run('git', ['add', '-A'], opts)
-    debug('committing')
+    debug('committing: %s', message)
     return run('git', ['commit', '-m', message], opts)
   }
 

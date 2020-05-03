@@ -1,9 +1,5 @@
 const crypto = require('crypto')
 
-function sha256 (data) {
+module.exports = (data) => {
   return crypto.createHash('sha256').update(data).digest('hex')
-}
-
-module.exports = {
-  sha256
 }

@@ -1,7 +1,7 @@
-const { ar } = require('./utils')
+const ar = require('../utils/ar')
 const express = require('express')
 
-module.exports = ({ activitypub }) => {
+module.exports = ({ services: { activitypub } }) => {
   const router = express.Router({
     caseSensitive: true,
     mergeParams: true
