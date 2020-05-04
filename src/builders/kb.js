@@ -3,6 +3,13 @@ const { join } = require('path')
 const yaml = require('js-yaml')
 const slugify = require('slugify')
 
+const makeSlug = (wtv) => {
+  return slugify(wtv, {
+    lower: true,
+    strict: true
+  })
+}
+
 module.exports = async function buildKB ({ src, dst }) {
   // Delete all files except _index.md
   if (await fs.exists(dst)) {
@@ -18,6 +25,7 @@ module.exports = async function buildKB ({ src, dst }) {
   }
 
   const files = await fs.readdir(src)
+  const kb = {}
 
   for (const index of files) {
     const path = join(src, index)
@@ -53,18 +61,46 @@ module.exports = async function buildKB ({ src, dst }) {
       meta.mermaid = true
     }
 
+    const slug = makeSlug(meta.title)
+
     // Replace wiki links by true links that work with Hugo
     content = content.replace(/\[\[(.*?)\]\]/g, (match, val) => {
+      let title = val
+      let link = val
+
       if (val.includes('|')) {
         const parts = val.split('|', 2)
-        return `[${parts[0]}](/kb/${slugify(parts[1].toLowerCase())})`
+        title = parts[0]
+        link = parts[1]
       }
 
-      return `[${val}](/kb/${slugify(val.toLowerCase())})`
+      link = makeSlug(link)
+      kb[link] = kb[link] || {}
+      kb[link].refs = kb[link].refs || []
+      kb[link].refs.push(slug)
+
+      return `[${title}](/kb/${link}/)`
     })
 
+    kb[slug] = kb[slug] || {}
+    kb[slug].meta = meta
+    kb[slug].content = content.trim()
+  }
+
+  for (const key in kb) {
+    let { meta, content, refs } = kb[key]
+
+    if (!meta) {
+      continue
+    }
+
+    if (refs) {
+      content += '\n## Referenced In\n\n'
+      content += refs.map(url => `- [${kb[url].meta.title}](/kb/${url})`).join('\n').trim()
+    }
+
     await fs.outputFile(
-      join(dst, `${slugify(meta.title.toLowerCase())}.md`),
+      join(dst, `${key}.md`),
       `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content.trim()}`
     )
   }
