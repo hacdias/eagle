@@ -54,7 +54,14 @@ module.exports = async function buildKB ({ src, dst }) {
     }
 
     // Replace wiki links by true links that work with Hugo
-    content = content.replace(/\[\[(.*?)\]\]/g, (match, val) => `[${val}](/kb/${slugify(val.toLowerCase())})`)
+    content = content.replace(/\[\[(.*?)\]\]/g, (match, val) => {
+      if (val.includes('|')) {
+        const parts = val.split('|', 2)
+        return `[${parts[0]}](/kb/${slugify(parts[1].toLowerCase())})`
+      }
+
+      return `[${val}](/kb/${slugify(val.toLowerCase())})`
+    })
 
     await fs.outputFile(
       join(dst, `${slugify(meta.title.toLowerCase())}.md`),
