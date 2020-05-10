@@ -57,7 +57,7 @@ module.exports = async function syndicate (services, postUri, postUrl, postData,
 
       debug('syndication to %s does not exist', service)
     }),
-    ...postData.relates.map(async url => {
+    ...postData.related.map(async url => {
       try {
         if (isTwitterURL(url)) {
           return sendToTwitter({ url, type, content, postUrl, twitter })
