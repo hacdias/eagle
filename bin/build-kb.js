@@ -8,8 +8,8 @@ const config = require('../src/config')()
 const buildKB = require('../src/builders/kb')
 
 ;(async () => {
-  const src = join(config.notes.repositoryDir, 'notes')
-  const dst = join(config.hugo.dir, 'content', 'kb')
+  const src = join(config.notes.repositoryDir)
+  const dst = join('', 'content')
 
   console.log('Building knowledge base...')
   console.log('  - Source:', src)

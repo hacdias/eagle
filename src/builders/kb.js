@@ -1,56 +1,28 @@
 const fs = require('fs-extra')
 const { join } = require('path')
 const yaml = require('js-yaml')
-const slugify = require('slugify')
-
-const makeSlug = (wtv) => {
-  return slugify(wtv, {
-    lower: true,
-    strict: true
-  })
-}
 
 module.exports = async function buildKB ({ src, dst }) {
-  // Delete all files except _index.md
-  if (await fs.exists(dst)) {
-    const files = await fs.readdir(dst)
-
-    for (const file of files) {
-      if (file === '_index.md') {
-        continue
-      }
-
-      await fs.remove(join(dst, file))
-    }
-  }
+  // Cleanup destination
+  await fs.remove(dst)
+  await fs.ensureDir(dst)
 
   const files = await fs.readdir(src)
   const kb = {}
 
   for (const index of files) {
     const path = join(src, index)
-    if (fs.statSync(path).isDirectory()) {
+    if (fs.statSync(path).isDirectory() || !index.endsWith('.md')) {
       continue
     }
 
     const file = (await fs.readFile(path)).toString()
-    let [frontmatter, content] = file.split('\n---')
+    const [frontmatter] = file.split('\n---', 2)
+    let content = file.replace(frontmatter, '').trim()
     const meta = yaml.safeLoad(frontmatter)
 
-    if ((meta.tags && meta.tags.includes('private')) || meta.deleted) {
+    if (meta.private) {
       continue
-    }
-
-    meta.date = meta.modified
-    meta.publishDate = meta.created
-
-    delete meta.modified
-    delete meta.created
-    delete meta.pinned
-
-    content = content.trim()
-    if (content[0] === '#') {
-      content = content.substring(content.indexOf('\n')).trim()
     }
 
     if (content.match(/(\$\$.*?\$\$|\$.*?\$)/g)) {
@@ -61,34 +33,28 @@ module.exports = async function buildKB ({ src, dst }) {
       meta.mermaid = true
     }
 
-    const slug = makeSlug(meta.title)
-
-    // Replace wiki links by true links that work with Hugo
-    content = content.replace(/\[\[(.*?)\]\]/g, (match, val) => {
-      let title = val
-      let link = val
-
-      if (val.includes('|')) {
-        const parts = val.split('|', 2)
-        title = parts[0]
-        link = parts[1]
+    content = content.replace(/\[(.*?)\]\((.*?)\)/g, (match, title, link) => {
+      if (!link.includes('.md')) {
+        return match
       }
 
-      link = makeSlug(link)
-      kb[link] = kb[link] || {}
-      kb[link].refs = kb[link].refs || []
-      kb[link].refs.push(slug)
+      const cleanLink = '/' + link.replace('.md', '/')
+      const to = link.includes('#') ? link.split('#')[0] : link
 
-      return `[${title}](/kb/${link}/)`
+      kb[to] = kb[to] || {}
+      kb[to].refs = kb[to].refs || []
+      kb[to].refs.push(index)
+
+      return `[${title}](${cleanLink})`
     })
 
-    kb[slug] = kb[slug] || {}
-    kb[slug].meta = meta
-    kb[slug].content = content.trim()
+    kb[index] = kb[index] || {}
+    kb[index].meta = meta
+    kb[index].content = content.trim()
   }
 
-  for (const key in kb) {
-    let { meta, content, refs } = kb[key]
+  for (const file in kb) {
+    let { meta, content, refs } = kb[file]
 
     if (!meta) {
       continue
@@ -96,12 +62,12 @@ module.exports = async function buildKB ({ src, dst }) {
 
     if (refs) {
       content += '\n## Referenced In\n\n'
-      content += refs.map(url => `- [${kb[url].meta.title}](/kb/${url})`).join('\n').trim()
+      content += refs.map(url => `- [${kb[url].meta.title}](/${url.replace('.md', '')}/)`).join('\n').trim()
     }
 
     await fs.outputFile(
-      join(dst, `${key}.md`),
-      `---\n${yaml.safeDump(meta, { sortKeys: true })}---\n\n${content.trim()}`
+      join(dst, file),
+      `---\n${yaml.safeDump(meta, { sortKeys: true })}\n${content.trim()}`
     )
   }
 }
