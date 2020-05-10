@@ -54,13 +54,17 @@ module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, acces
     return post(`https://api.twitter.com/1.1/statuses/retweet/${id}.json`)
   }
 
-  const tweet = ({ status, inReplyTo }) => {
+  const tweet = ({ status, inReplyTo, attachment }) => {
     debug('tweeting "%s", replying to %s', status, inReplyTo)
 
     let url = `https://api.twitter.com/1.1/statuses/update.json?status=${rfc3986Encode(status)}`
 
     if (inReplyTo) {
       url += `&in_reply_to_status_id=${inReplyTo}&auto_populate_reply_metadata=true`
+    }
+
+    if (attachment) {
+      url += `&attachment_url=${rfc3986Encode(attachment)}`
     }
 
     return post(url)

@@ -60,7 +60,7 @@ const postType = (post) => {
 }
 
 const allowedTypes = Object.freeze([
-  'reposts', 'likes', 'replies', 'bookmarks', 'articles', 'notes'
+  'replies', 'articles', 'notes'
 ])
 
 function cleanupRelated (urls) {
@@ -131,6 +131,10 @@ const createPost = ({ properties, commands }) => {
   const slug = Array.isArray(commands['mp-slug']) && commands['mp-slug'].length === 1
     ? commands['mp-slug'][0]
     : ''
+
+  if (!slug) {
+    throw new Error('post must have a slug')
+  }
 
   return {
     meta,

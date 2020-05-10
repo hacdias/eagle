@@ -20,25 +20,10 @@ module.exports = function createHugo ({ dir, publicDir }) {
   // an object { post, path } where post is the post directory as in uri
   // and path is the local path in disk.
   const newEntry = async ({ meta, content, slug, type }, opts) => {
+    type = type === 'article' ? 'article' : 'micro'
     const year = meta.date.getFullYear().toString()
     const month = (meta.date.getMonth() + 1).toString().padStart(2, '0')
-    const day = meta.date.getDate().toString().padStart(2, '0')
-    let path = '/'
-
-    if (type) {
-      const num = getNextPostNumber(type, year, month, day)
-      path += `${type}/${year}/${month}/${day}/${num}/`
-    }
-
-    if (slug !== '') {
-      meta.aliases = [path]
-      path += `${slug}/`
-    }
-
-    if (!type && !slug) {
-      throw new Error('there must be either a type or a slug')
-    }
-
+    const path = `/${type}/${year}/${month}/${slug}/`
     return saveEntry(path, { meta, content }, opts)
   }
 
@@ -78,20 +63,6 @@ module.exports = function createHugo ({ dir, publicDir }) {
   const getEntryHTML = async (post) => {
     const index = join(publicDir, post, 'index.html')
     return (await fs.readFile(index)).toString()
-  }
-
-  const getNextPostNumber = (type, year, month, day) => {
-    const pathToCheck = join(contentDir, type, year, month, day)
-    fs.ensureDirSync(pathToCheck)
-
-    const lastNum = Math.max(
-      ...fs.readdirSync(pathToCheck)
-        .filter(f => fs.statSync(join(pathToCheck, f)).isDirectory())
-        .map(n => parseInt(n)),
-      0
-    )
-
-    return (lastNum + 1).toString()
   }
 
   const getAll = async function * (type, opts) {

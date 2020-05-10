@@ -1,24 +1,33 @@
 const debug = require('debug')('eagle:syndicate')
 
-async function sendToTwitter ({ url, type, status, twitter }) {
-  const id = url ? new URL(url).pathname.split('/').pop() : null
+function smallStatus (content, url) {
+  return content.length <= 280
+    ? content
+    : `${content.substr(0, 230).trim()}... ${url}`
+}
+
+async function sendToTwitter ({ url, type, content, postUrl, twitter }) {
   let res
 
-  switch (type) {
-    case 'notes':
-      res = await twitter.tweet({ status })
-      break
-    case 'likes':
-      await twitter.like(id)
-      break
-    case 'reposts':
-      res = await twitter.retweet(id)
-      break
-    case 'replies':
-      res = await twitter.tweet({ status, inReplyTo: id })
-      break
-    default:
-      break
+  const opts = {
+    status: smallStatus(content, postUrl)
+  }
+
+  if (type === 'notes') {
+    res = await twitter.tweet(opts)
+  } else if (type === 'replies') {
+    if (content.startsWith('RT')) {
+      // "Retweet with comments"
+      opts.attachment = url
+      content = content.substr(2).trim()
+      opts.status = smallStatus(content, postUrl)
+    } else {
+      opts.inReplyTo = new URL(url).pathname.split('/').pop()
+    }
+
+    res = await twitter.tweet(opts)
+  } else {
+    throw new Error('invalid type for twitter syndication' + type)
   }
 
   if (res) {
@@ -33,17 +42,13 @@ module.exports = async function syndicate (services, postUri, postUrl, postData,
   commands['mp-syndicate-to'] = commands['mp-syndicate-to'] || []
 
   const { twitter, hugo, git, notify } = services
-  const { type } = postData
-
-  const status = postData.content.length <= 280
-    ? postData.content
-    : `${postData.content.substr(0, 230).trim()}... ${postUrl}`
+  const { content, type } = postData
 
   const syndications = await Promise.all([
     ...commands['mp-syndicate-to'].map(async service => {
       try {
         if (service === 'twitter') {
-          return sendToTwitter({ type: 'notes', status, twitter })
+          return sendToTwitter({ type: 'notes', content, postUrl, twitter })
         }
       } catch (err) {
         debug('syndication failed to service %s: %s', service, err.stack)
@@ -55,7 +60,7 @@ module.exports = async function syndicate (services, postUri, postUrl, postData,
     ...postData.relates.map(async url => {
       try {
         if (isTwitterURL(url)) {
-          return sendToTwitter({ url, type, status, twitter })
+          return sendToTwitter({ url, type, content, postUrl, twitter })
         }
       } catch (err) {
         debug('syndication failed to service %s: %s', url, err.stack)
