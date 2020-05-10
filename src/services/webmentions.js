@@ -124,6 +124,7 @@ module.exports = function createWebmention ({ redirectsFile, storeDir, telegraph
 
   return Object.freeze({
     send,
-    receive
+    receive,
+    _loadRedirects: loadRedirects
   })
 }

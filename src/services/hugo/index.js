@@ -94,8 +94,10 @@ module.exports = function createHugo ({ dir, publicDir }) {
     return (lastNum + 1).toString()
   }
 
-  const getAll = async function * (opts) {
-    const files = getAllFiles(contentDir)
+  const getAll = async function * (type, opts) {
+    let dir = contentDir
+    if (type) dir = join(dir, type)
+    const files = getAllFiles(dir)
       .filter(p => p.endsWith('/index.md'))
       .map(p => {
         p = p.replace('/index.md', '', 1)
