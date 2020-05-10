@@ -46,7 +46,7 @@ module.exports = function createHugo ({ dir, publicDir }) {
     const index = join(contentDir, post, 'index.md')
     const file = (await fs.readFile(index)).toString()
     const [frontmatter] = file.split('\n---', 2)
-    const content = file.replace(frontmatter, '').trim()
+    const content = file.replace(frontmatter + '\n---', '').trim()
     const meta = yaml.safeLoad(frontmatter)
     meta.properties = meta.properties || {}
 
