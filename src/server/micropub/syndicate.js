@@ -44,7 +44,7 @@ module.exports = async function syndicate (services, postUri, postUrl, postData,
   const { twitter, hugo, git, notify } = services
   const { content, type } = postData
 
-  const syndications = await Promise.all([
+  const syndications = (await Promise.all([
     ...commands['mp-syndicate-to'].map(async service => {
       try {
         if (service === 'twitter') {
@@ -69,7 +69,7 @@ module.exports = async function syndicate (services, postUri, postUrl, postData,
 
       debug('syndication to %s unknown', url)
     })
-  ]).filter(url => !!url)
+  ])).filter(url => !!url)
 
   if (syndications.length === 0) {
     return

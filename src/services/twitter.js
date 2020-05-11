@@ -55,7 +55,7 @@ module.exports = function createTwitter ({ apiKey, apiSecret, accessToken, acces
   }
 
   const tweet = ({ status, inReplyTo, attachment }) => {
-    debug('tweeting "%s", replying to %s', status, inReplyTo)
+    debug('tweeting %o', { status, inReplyTo, attachment })
 
     let url = `https://api.twitter.com/1.1/statuses/update.json?status=${rfc3986Encode(status)}`
 
