@@ -4,7 +4,7 @@ const fs = require('fs-extra')
 const { join } = require('path')
 const sha256 = require('../utils/sha256')
 
-module.exports = function createXRay ({ apiEndpoint, storeDir, twitterConf, defaultDomain }) {
+module.exports = function createXRay({ apiEndpoint, storeDir, twitterConf, defaultDomain }) {
   const makeOptions = () => {
     return {
       form: {
@@ -55,6 +55,10 @@ module.exports = function createXRay ({ apiEndpoint, storeDir, twitterConf, defa
 
     if (data.code !== 200) {
       return
+    }
+
+    if (!data.data.url) {
+      data.data.url = url
     }
 
     await fs.outputJSON(file, data.data, {
