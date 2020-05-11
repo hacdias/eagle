@@ -33,5 +33,9 @@ module.exports = ({ services, secret, repositoryDir }) => ar(async (req, res) =>
     await git.commitFile([relativePath, 'content/watches/index.md'], 'update watches')
     await hugo.build()
     debug('committed and built')
+
+    // Take advantage of this being updated once a day to push at least once
+    // a day too.
+    await git.push()
   })
 })
