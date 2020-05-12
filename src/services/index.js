@@ -47,10 +47,9 @@ module.exports = function getServices (config) {
   })
 
   const webmentions = createWebmentions({
-    redirectsFile: path.join(hugo.publicDir, 'redirects.txt'),
-    storeDir: path.join(hugo.dataDir, 'mentions'),
     telegraphToken: config.telegraphToken,
     domain: config.domain,
+    hugo,
     git,
     cdn
   })

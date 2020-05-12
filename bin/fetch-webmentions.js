@@ -24,10 +24,9 @@ const getWebmentions = async (page) => {
 
   for (let i = 0; (mentions = await getWebmentions(i)).length > 0; i++) {
     for (const mention of mentions) {
-      const url = mention.post.url || mention.post['wm-source']
+      const url = mention.url || mention['wm-source']
 
       if (url.startsWith('https://ownyourswarm.p3k.io/')) {
-        console.log('skipping from swarm')
         continue
       }
 

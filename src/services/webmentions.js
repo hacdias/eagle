@@ -45,7 +45,20 @@ function loadRedirects (file) {
   }
 }
 
-module.exports = function createWebmention ({ redirectsFile, storeDir, telegraphToken, domain, git, cdn }) {
+const ensureJson = (file) => {
+  if (!fs.existsSync(file)) {
+    fs.outputJSONSync(file, [])
+  }
+}
+
+module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, hugo }) {
+  const redirectsFile = join(hugo.publicDir, 'redirects.txt')
+  const orphansFile = join(hugo.dataDir, 'mentions', 'orphans.json')
+  const privateFile = join(hugo.dataDir, 'mentions', 'private.json')
+
+  ensureJson(orphansFile)
+  ensureJson(privateFile)
+
   let redirects = loadRedirects(redirectsFile) || {}
 
   const send = async ({ source, targets }) => {
@@ -71,6 +84,24 @@ module.exports = function createWebmention ({ redirectsFile, storeDir, telegraph
     }
   }
 
+  const storeOnFileArray = async (file, data) => {
+    const array = await fs.readJson(file)
+    array.push(data)
+    await fs.outputJSON(file, array, { spaces: 2 })
+  }
+
+  const storeOrphan = async (webmention, ignoreGit) => {
+    debug('received orphan webmention')
+    await storeOnFileArray(orphansFile, webmention)
+    if (!ignoreGit) await git.commit('add orphan webmention')
+  }
+
+  const storePrivate = async (webmention, ignoreGit) => {
+    debug('received private webmention')
+    await storeOnFileArray(privateFile, webmention)
+    if (!ignoreGit) await git.commit('add private webmention')
+  }
+
   const receive = async (webmention, ignoreGit = false) => {
     redirects = loadRedirects(redirectsFile) || redirects
 
@@ -80,9 +111,11 @@ module.exports = function createWebmention ({ redirectsFile, storeDir, telegraph
       permalink = redirects[permalink]
     }
 
-    const hash = sha256(permalink)
-    const file = join(storeDir, `${hash}.json`)
+    if (!await fs.exists(join(hugo.contentDir, permalink))) {
+      return storeOrphan(webmention, ignoreGit)
+    }
 
+    const file = join(hugo.contentDir, permalink, 'mentions.json')
     const mentions = await fs.exists(file)
       ? await fs.readJSON(file)
       : []
@@ -99,11 +132,14 @@ module.exports = function createWebmention ({ redirectsFile, storeDir, telegraph
       return
     }
 
+    if (webmention.post['wm-private']) {
+      return storePrivate(webmention, ignoreGit)
+    }
+
     let entry = {
       type: types[webmention.post['wm-property']] || 'mention',
       url: webmention.post.url || webmention.post['wm-source'],
       date: new Date(webmention.post.published || webmention.post['wm-received']),
-      private: webmention.post['wm-private'] || false,
       'wm-id': webmention.post['wm-id'],
       content: webmention.post.content,
       author: webmention.post.author
@@ -116,7 +152,7 @@ module.exports = function createWebmention ({ redirectsFile, storeDir, telegraph
       entry = await uploadToCdn(entry, cdn)
     }
 
-    debug('saving received webmention from %', entry.url)
+    debug('saving received webmention from %s', entry.url)
     mentions.push(entry)
     await fs.outputJSON(file, mentions, { spaces: 2 })
     if (!ignoreGit) await git.commit(`webmention from ${entry.url}`)
