@@ -2,9 +2,14 @@
   "name": "eagle",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "lint": "standard src/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hacdias/eagle"
   },
   "author": "Henrique Dias <hacdias.com> (https://hacdias.com)",
   "license": "MIT",

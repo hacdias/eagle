@@ -12,17 +12,19 @@ const types = Object.freeze({
 })
 
 async function uploadToCdn (entry, cdn) {
+  const ext = extname(entry.author.photo)
+  const base = sha256(entry.author.photo)
+
   try {
-    const ext = extname(entry.author.photo)
-    const base = sha256(entry.author.photo)
     const stream = got.stream(entry.author.photo)
     const url = await cdn.upload(stream, `/webmentions/${base}${ext}`)
-    entry.author.photo = url
+    return url
   } catch (e) {
-    debug('could not upload photo to cdn %s: %s', entry.author.photo, e.stack)
+    // who cares?
+    debug('could not upload photo to cdn %s: %s', entry.author.photo)
   }
 
-  return entry
+  return ""
 }
 
 function loadRedirects (file) {
@@ -45,19 +47,10 @@ function loadRedirects (file) {
   }
 }
 
-const ensureJson = (file) => {
-  if (!fs.existsSync(file)) {
-    fs.outputJSONSync(file, [])
-  }
-}
-
 module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, hugo }) {
   const redirectsFile = join(hugo.publicDir, 'redirects.txt')
   const orphansFile = join(hugo.dataDir, 'mentions', 'orphans.json')
   const privateFile = join(hugo.dataDir, 'mentions', 'private.json')
-
-  ensureJson(orphansFile)
-  ensureJson(privateFile)
 
   let redirects = loadRedirects(redirectsFile) || {}
 
@@ -84,25 +77,7 @@ module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, 
     }
   }
 
-  const storeOnFileArray = async (file, data) => {
-    const array = await fs.readJson(file)
-    array.push(data)
-    await fs.outputJSON(file, array, { spaces: 2 })
-  }
-
-  const storeOrphan = async (webmention, ignoreGit) => {
-    debug('received orphan webmention')
-    await storeOnFileArray(orphansFile, webmention)
-    if (!ignoreGit) await git.commit('add orphan webmention')
-  }
-
-  const storePrivate = async (webmention, ignoreGit) => {
-    debug('received private webmention')
-    await storeOnFileArray(privateFile, webmention)
-    if (!ignoreGit) await git.commit('add private webmention')
-  }
-
-  const receive = async (webmention, ignoreGit = false) => {
+  const getPermalink = (webmention) => {
     redirects = loadRedirects(redirectsFile) || redirects
 
     let permalink = webmention.target.replace(domain, '', 1)
@@ -111,32 +86,35 @@ module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, 
       permalink = redirects[permalink]
     }
 
-    if (!await fs.exists(join(hugo.contentDir, permalink))) {
-      return storeOrphan(webmention, ignoreGit)
-    }
+    return permalink
+  }
 
-    const file = join(hugo.contentDir, permalink, 'mentions.json')
-    const mentions = await fs.exists(file)
-      ? await fs.readJSON(file)
+  const receive = async (webmention, ignoreGit = false) => {
+    const permalink = getPermalink(webmention)
+    const isOrphan = !fs.existsSync(join(hugo.contentDir, permalink))
+    const isPrivate = !!webmention.post['wm-private']
+    const storeFile = isOrphan
+      ? orphansFile
+      : isPrivate
+        ? privateFile
+        : join(hugo.contentDir, permalink, 'mentions.json')
+
+    let mentions = fs.existsSync(storeFile)
+      ? fs.readJSONSync(storeFile)
       : []
 
     if (webmention.deleted) {
-      const newMentions = mentions.filter(m => m.url !== webmention.source)
-      await fs.outputJSON(file, newMentions, { spaces: 2 })
-      if (!ignoreGit) await git.commit(`deleted webmention from ${webmention.source}`)
+      mentions = mentions.filter(m => m.url !== webmention.source)
+      fs.outputJSONSync(storeFile, mentions, { spaces: 2 })
+      if (!ignoreGit) return git.commit(`deleted webmention from ${webmention.source}`)
       return
     }
 
     if (mentions.find(m => m['wm-id'] === webmention.post['wm-id'])) {
       debug('duplicated webmention for %s: %s', permalink, webmention.post['wm-id'])
-      return
     }
 
-    if (webmention.post['wm-private']) {
-      return storePrivate(webmention, ignoreGit)
-    }
-
-    let entry = {
+    const entry = {
       type: types[webmention.post['wm-property']] || 'mention',
       url: webmention.post.url || webmention.post['wm-source'],
       date: new Date(webmention.post.published || webmention.post['wm-received']),
@@ -147,15 +125,14 @@ module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, 
 
     delete entry.author.type
 
-    // upload avatar to cdn
-    if (entry.author && entry.author.photo) {
-      entry = await uploadToCdn(entry, cdn)
+    if (entry.author) {
+      entry.author.photo = await uploadToCdn(entry, cdn)
     }
 
     debug('saving received webmention from %s', entry.url)
     mentions.push(entry)
-    await fs.outputJSON(file, mentions, { spaces: 2 })
-    if (!ignoreGit) await git.commit(`webmention from ${entry.url}`)
+    fs.outputJSONSync(storeFile, mentions, { spaces: 2 })
+    if (!ignoreGit) return git.commit(`webmention from ${entry.url}`)
   }
 
   return Object.freeze({
