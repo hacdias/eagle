@@ -1,7 +1,7 @@
 const remark = require('remark')
 const strip = require('strip-markdown')
 
-const TXT_LIMIT = 134
+const TXT_LIMIT = 274
 const DELIMITERS = ['.', '?', '!', '…', ')']
 
 const concat = (prev, curr) => {
@@ -49,7 +49,7 @@ async function createTweets (contents, url) {
 
   const lastTweet = tweets.pop()
 
-  if (url.length + lastTweet.length + 2 <= 140) {
+  if (url.length + lastTweet.length + 2 <= 280) {
     tweets.push(lastTweet + ' ' + url)
   } else if (tweets.length > 1) {
     // In the case we only have one tweet and it is not possible
