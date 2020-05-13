@@ -58,8 +58,7 @@ module.exports = ({ services, domain }) => {
     const postData = transformer.createPost(data)
 
     // Fetch all related URLs XRay. Fail silently.
-    await Promise.all(postData
-      .related
+    await Promise.all(postData.syndication.related
       .map(url => xray.requestAndSave(url).catch(notify.sendError))
     )
 
@@ -83,7 +82,7 @@ module.exports = ({ services, domain }) => {
     notify.send(`📄 Post published: ${url}`)
 
     // Async operations
-    sendWebmentions(post, url, postData.related, services)
+    sendWebmentions(post, url, postData.syndication.related, services)
     syndicate(services, post, url, postData)
   }
 }
