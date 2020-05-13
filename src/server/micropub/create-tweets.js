@@ -45,16 +45,13 @@ async function createTweets (contents, url) {
     return [text]
   }
 
-  let tweets = text
+  const tweets = text
     .split(/(?<=[.?!…])\s/g)
     .map(t => t.trim())
     .filter(t => !!t)
     .reduce(splitMore, [])
     .reduce(concat, [])
-
-  if (tweets.length > 1) {
-    tweets = tweets.map((t, i) => `${t} /${i + 1}`)
-  }
+    .map((t, i) => `${t} /${i + 1}`)
 
   const lastTweet = tweets.pop()
 
