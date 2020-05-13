@@ -13,7 +13,7 @@ async function sendToTwitter ({ url, type, postData, postUrl, twitter }) {
     status: smallStatus(postData.content, postUrl)
   }
 
-  if (type === 'notes') {
+  if (type === 'notes' || type === 'article') {
     res = await twitter.tweet(opts)
   } else if (type === 'replies') {
     if (postData.modifiers.includes('+RT')) {
@@ -32,18 +32,16 @@ async function sendToTwitter ({ url, type, postData, postUrl, twitter }) {
 
 const isTwitterURL = url => url.startsWith('https://twitter.com')
 
-module.exports = async function syndicate (services, postUri, postUrl, postData, commands) {
-  commands = commands || {}
-  commands['mp-syndicate-to'] = commands['mp-syndicate-to'] || []
-
+module.exports = async function syndicate (services, postUri, postUrl, postData) {
   const { twitter, hugo, git, notify } = services
   const { type } = postData
+  const { targets, related } = postData.syndication
 
   const syndications = (await Promise.all([
-    ...commands['mp-syndicate-to'].map(async service => {
+    ...targets.map(async service => {
       try {
         if (service === 'twitter') {
-          return sendToTwitter({ type: 'notes', postData, postUrl, twitter })
+          return sendToTwitter({ type, postData, postUrl, twitter })
         }
       } catch (err) {
         debug('syndication failed to service %s: %s', service, err.stack)
@@ -52,10 +50,10 @@ module.exports = async function syndicate (services, postUri, postUrl, postData,
 
       debug('syndication to %s does not exist', service)
     }),
-    ...postData.related.map(async url => {
+    ...related.map(async url => {
       try {
         if (isTwitterURL(url)) {
-          return sendToTwitter({ url, type, postData, postUrl, twitter })
+          return sendToTwitter({ type, postData, postUrl, twitter, url })
         }
       } catch (err) {
         debug('syndication failed to service %s: %s', url, err.stack)

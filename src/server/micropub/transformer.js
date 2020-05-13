@@ -84,6 +84,22 @@ function cleanupRelated (urls) {
   })
 }
 
+// Parses +HOME, +RT, etc.
+const getModifiers = (content) => {
+  const matches = content.match(/^(\+(.+?) )*/g)
+  if (!Array.isArray(matches) || matches.length === 0) {
+    return { content, modifiers: [] }
+  }
+
+  const modifiers = matches[0]
+    .trim()
+    .split(' ')
+    .map(e => e.trim())
+
+  content = content.replace(matches[0], '').trim()
+  return { modifiers, content }
+}
+
 // creates a new post.
 const createPost = ({ properties, commands }) => {
   const date = properties.published
@@ -97,8 +113,8 @@ const createPost = ({ properties, commands }) => {
     throw new Error('post type not allowed: ' + type)
   }
 
-  const content = properties.content
-    ? properties.content.join('\n').trim()
+  const { content, modifiers } = properties.content
+    ? getModifiers(properties.content.join('\n').trim())
     : ''
 
   delete properties.content
@@ -136,12 +152,22 @@ const createPost = ({ properties, commands }) => {
     throw new Error('post must have a slug')
   }
 
+  const syndication = {
+    related: related,
+    targets: commands['mp-syndicate-to'] || []
+  }
+
+  if (modifiers.includes('+HOME')) {
+    meta.home = true
+  }
+
   return {
     meta,
     content,
+    modifiers,
+    syndication,
     type,
-    slug,
-    related
+    slug
   }
 }
 
@@ -215,7 +241,14 @@ const updatePost = ({ meta, content }, { update }) => {
     }
   }
 
-  return { meta, content }
+  const res = getModifiers(content.join('\n').trim())
+  content = res.content
+
+  if (res.modifiers.includes('+HOME')) {
+    meta.home = true
+  }
+
+  return { meta, content, modifiers: res.modifiers }
 }
 
 module.exports = {

@@ -51,45 +51,17 @@ const sendWebmentions = async (post, url, related, services) => {
   }
 }
 
-// Parses +HOME, +RT, etc.
-const getModifiers = (content) => {
-  const matches = content.match(/^(\+(.+?) )*/g)
-  if (!Array.isArray(matches) || matches.length === 0) {
-    return
-  }
-
-  const modifiers = matches[0]
-    .trim()
-    .split(' ')
-    .map(e => e.trim())
-
-  content = content.replace(matches[0], '').trim()
-  return { modifiers, content }
-}
-
 module.exports = ({ services, domain }) => {
   const { xray, notify, hugo, git, activitypub } = services
 
   return async (req, res, data) => {
     const postData = transformer.createPost(data)
-    const modData = getModifiers(postData.content)
-
-    if (modData) {
-      postData.content = modData.content
-      postData.modifiers = modData.modifiers
-    } else {
-      postData.modifiers = []
-    }
 
     // Fetch all related URLs XRay. Fail silently.
     await Promise.all(postData
       .related
       .map(url => xray.requestAndSave(url).catch(notify.sendError))
     )
-
-    if (postData.modifiers.includes('+HOME')) {
-      postData.meta.home = true
-    }
 
     const { post } = await hugo.newEntry(postData)
     const url = `${domain}${post}`
@@ -112,6 +84,6 @@ module.exports = ({ services, domain }) => {
 
     // Async operations
     sendWebmentions(post, url, postData.related, services)
-    syndicate(services, post, url, postData, data.commands)
+    syndicate(services, post, url, postData)
   }
 }
