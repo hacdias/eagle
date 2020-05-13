@@ -53,14 +53,14 @@ async function createTweets (contents, url) {
     .reduce(concat, [])
     .map((t, i) => `${t} /${i + 1}`)
 
-  const lastTweet = tweets.pop()
+  // const lastTweet = tweets.pop()
 
-  if (url.length + lastTweet.length + 2 <= 280) {
-    tweets.push(lastTweet + ' ' + url)
-  } else {
-    tweets.push(lastTweet)
-    tweets.push('Read more at ' + url)
-  }
+  // if (url.length + lastTweet.length + 2 <= 280) {
+  //   tweets.push(lastTweet + ' ' + url)
+  // } else {
+  //   tweets.push(lastTweet)
+  //   tweets.push('Read more at ' + url)
+  // }
 
   return tweets
 }
