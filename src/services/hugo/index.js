@@ -1,3 +1,4 @@
+const debug = require('debug')('eagle:hugo')
 const { join } = require('path')
 const execa = require('execa')
 const fs = require('fs-extra')
@@ -8,13 +9,19 @@ module.exports = function createHugo ({ dir, publicDir }) {
   const contentDir = join(dir, 'content')
   const dataDir = join(dir, 'data')
 
-  const build = () => execa.sync('hugo', ['--minify', '--destination', publicDir], {
-    cwd: dir
-  })
+  const build = () => {
+    debug('building')
+    return execa.sync('hugo', ['--minify', '--destination', publicDir], {
+      cwd: dir
+    })
+  }
 
-  const buildAndClean = () => execa.sync('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
-    cwd: dir
-  })
+  const buildAndClean = () => {
+    debug('building clean')
+    return execa.sync('hugo', ['--minify', '--gc', '--cleanDestinationDir', '--destination', publicDir], {
+      cwd: dir
+    })
+  }
 
   // Creates a new entry from metadata, content and a slug and returns
   // an object { post, path } where post is the post directory as in uri

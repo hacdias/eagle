@@ -60,7 +60,7 @@ async function sendToTwitter ({ url, type, postData, postUrl, twitter }) {
 
 const isTwitterURL = url => url.startsWith('https://twitter.com')
 
-module.exports = async function syndicate (services, postUri, postUrl, postData) {
+module.exports = async function syndicate (services, queue, postUri, postUrl, postData) {
   const { twitter, hugo, git, notify } = services
   const { type } = postData
   const { targets, related } = postData.syndication
@@ -99,16 +99,19 @@ module.exports = async function syndicate (services, postUri, postUrl, postData)
     return
   }
 
-  try {
-    const { meta, content } = await hugo.getEntry(postUri)
-    meta.properties = meta.properties || {}
-    meta.properties.syndication = syndications
-    await hugo.saveEntry(postUri, { meta, content })
-    await git.commit(`syndication on ${postUri}`)
-  } catch (err) {
-    debug('could not save syndication %s', err.stack)
-    notify.sendError(err)
-  }
+  await queue.add(async () => {
+    try {
+      const { meta, content } = await hugo.getEntry(postUri)
+      meta.properties = meta.properties || {}
+      meta.properties.syndication = syndications
+      await hugo.saveEntry(postUri, { meta, content })
+      await git.commit(`syndication on ${postUri}`)
+      await hugo.build()
+    } catch (err) {
+      debug('could not save syndication %s', err.stack)
+      notify.sendError(err)
+    }
+  })
 }
 
 module.exports.sendToTwitter = sendToTwitter

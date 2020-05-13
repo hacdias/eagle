@@ -82,7 +82,7 @@ module.exports = ({ services, domain }) => {
     notify.send(`📄 Post published: ${url}`)
 
     // Async operations
-    sendWebmentions(post, url, postData.syndication.related, services)
     syndicate(services, post, url, postData)
+    sendWebmentions(post, url, postData.syndication.related, services)
   }
 }
