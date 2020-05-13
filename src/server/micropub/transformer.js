@@ -241,7 +241,7 @@ const updatePost = ({ meta, content }, { update }) => {
     }
   }
 
-  const res = getModifiers(content.join('\n').trim())
+  const res = getModifiers(content.trim())
   content = res.content
 
   if (res.modifiers.includes('+HOME')) {
