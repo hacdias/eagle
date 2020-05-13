@@ -39,7 +39,7 @@ async function createTweets (contents, url) {
     .trim()
     .replace(/\.\.\./g, '…')
 
-  var tweets = text
+  const tweets = text
     .split(/(?<=[.?!…])\s/g)
     .map(t => t.trim())
     .filter(t => !!t)
@@ -47,13 +47,13 @@ async function createTweets (contents, url) {
     .reduce(concat, [])
     .map((t, i) => `${t} /${i + 1}`)
 
-  tweets.forEach(t => console.log(t.length))
-
   const lastTweet = tweets.pop()
 
   if (url.length + lastTweet.length + 2 <= 140) {
     tweets.push(lastTweet + ' ' + url)
-  } else {
+  } else if (tweets.length > 1) {
+    // In the case we only have one tweet and it is not possible
+    // to add the link, we just send ONE tweet without the link.
     tweets.push(lastTweet)
     tweets.push('Read more at ' + url)
   }

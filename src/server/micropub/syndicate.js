@@ -18,6 +18,7 @@ async function sendToTwitter ({ url, type, postData, postUrl, twitter }) {
 
   if (type === 'articles') {
     // An article is the simplest case because I don't want to dump
+    debug('post is article, posting short status')
     // the entire text on Twitter. So, in this case, we just publish
     // a short bit and return that link. However, I rarely publish articles
     // using Micropub anyways.
@@ -26,7 +27,9 @@ async function sendToTwitter ({ url, type, postData, postUrl, twitter }) {
     })]
   }
 
-  const tweets = createTweets(postData.content, postUrl)
+  debug('post is reply or note, posting entire content')
+
+  const tweets = await createTweets(postData.content, postUrl)
   const links = []
 
   let prev = null
