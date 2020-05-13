@@ -24,7 +24,7 @@ async function uploadToCdn (entry, cdn) {
     debug('could not upload photo to cdn %s: %s', entry.author.photo)
   }
 
-  return ""
+  return ''
 }
 
 function loadRedirects (file) {
@@ -92,7 +92,7 @@ module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, 
   const receive = async (webmention, ignoreGit = false) => {
     const permalink = getPermalink(webmention)
     const isOrphan = !fs.existsSync(join(hugo.contentDir, permalink))
-    const isPrivate = !!webmention.post['wm-private']
+    const isPrivate = webmention.post ? !!webmention.post['wm-private'] : false
     const storeFile = isOrphan
       ? orphansFile
       : isPrivate
