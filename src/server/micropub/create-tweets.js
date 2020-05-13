@@ -39,6 +39,12 @@ async function createTweets (contents, url) {
     .trim()
     .replace(/\.\.\./g, '…')
 
+  if (text.length <= 280) {
+    // In the case we only have one tweet and it is not possible
+    // to add the link, we just send ONE tweet without the link.
+    return [text]
+  }
+
   let tweets = text
     .split(/(?<=[.?!…])\s/g)
     .map(t => t.trim())
@@ -54,9 +60,7 @@ async function createTweets (contents, url) {
 
   if (url.length + lastTweet.length + 2 <= 280) {
     tweets.push(lastTweet + ' ' + url)
-  } else if (tweets.length > 1) {
-    // In the case we only have one tweet and it is not possible
-    // to add the link, we just send ONE tweet without the link.
+  } else {
     tweets.push(lastTweet)
     tweets.push('Read more at ' + url)
   }
