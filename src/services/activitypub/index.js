@@ -101,9 +101,8 @@ module.exports = function createActivityPub ({ hugo, webmentions, queue, domain,
 
   const outboxHandler = async () => {
     const posts = (await queue.add(async () => Promise.all([
-      await getCategory(hugo.publicDir, 'notes'),
-      await getCategory(hugo.publicDir, 'articles'),
-      await getCategory(hugo.publicDir, 'replies')
+      await getCategory(hugo.publicDir, 'micro'),
+      await getCategory(hugo.publicDir, 'articles')
     ])))
       .reduce((acc, curr) => {
         acc.push(...curr)
