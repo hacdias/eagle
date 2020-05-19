@@ -60,8 +60,8 @@ async function sendToTwitter ({ url, type, postData, postUrl, twitter }) {
 
 const isTwitterURL = url => url.startsWith('https://twitter.com')
 
-module.exports = async function syndicate (services, queue, postUri, postUrl, postData) {
-  const { twitter, hugo, git, notify } = services
+module.exports = async function syndicate (services, postUri, postUrl, postData) {
+  const { twitter, hugo, git, queue, notify } = services
   const { type } = postData
   const { targets, related } = postData.syndication
 
