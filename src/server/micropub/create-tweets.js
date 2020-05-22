@@ -1,6 +1,3 @@
-const remark = require('remark')
-const strip = require('strip-markdown')
-
 const TXT_LIMIT = 274
 const DELIMITERS = ['.', '?', '!', '…', ')']
 
@@ -34,8 +31,7 @@ const splitMore = (prev, curr) => {
 }
 
 async function createTweets (contents, url) {
-  const text = String(await remark().use(strip)
-    .process(contents))
+  const text = contents
     .trim()
     .replace(/\.\.\./g, '…')
 
