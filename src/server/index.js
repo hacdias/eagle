@@ -7,7 +7,6 @@ const getConfig = require('../config')
 const createMicropub = require('./micropub')
 // const createWebHookNotes = require('./webhook-notes')
 const createWebHookWebsite = require('./webhook-website')
-const createBuildWatches = require('./build-watches')
 const createWebmention = require('./webmention')
 const createWebfinger = require('./webfinger')
 const createActivityPub = require('./activitypub')
@@ -35,12 +34,6 @@ module.exports = function () {
   app.post('/webhooks/website', createWebHookWebsite({
     services,
     secret: config.website.hookSecret
-  }))
-
-  app.get('/build/watches', createBuildWatches({
-    services,
-    repositoryDir: config.trakt.repositoryDir,
-    secret: config.trakt.secret
   }))
 
   app.use('/webmention', createWebmention({
