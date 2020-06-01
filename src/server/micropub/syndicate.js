@@ -68,7 +68,7 @@ module.exports = async function syndicate (services, postUri, postUrl, postData)
   if (related.length === 1 && related[0].startsWith('https://hacdias.com')) {
     try {
       const permalink = related[0].replace('https://hacdias.com', '')
-      const { meta } = hugo.getEntry(permalink)
+      const { meta } = await hugo.getEntry(permalink)
 
       if (meta.properties && meta.properties.syndication) {
         related.push(...meta.properties.syndication)
