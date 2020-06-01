@@ -34,10 +34,6 @@ module.exports = () => ({
   website: {
     hookSecret: process.env.HOOK_SECRET
   },
-  trakt: {
-    repositoryDir: process.env.TRAKT_DATA,
-    secret: process.env.TRAKT_SECRET
-  },
   activityPub: {
     store: process.env.ACTIVITYPUB_STORE,
     user: process.env.ACTIVITYPUB_USER
