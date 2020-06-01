@@ -65,6 +65,20 @@ module.exports = async function syndicate (services, postUri, postUrl, postData)
   const { type } = postData
   const { targets, related } = postData.syndication
 
+  if (related.length === 1 && related[0].startsWith('https://hacdias.com')) {
+    try {
+      const permalink = related[0].replace('https://hacdias.com', '')
+      const { meta } = hugo.getEntry(permalink)
+
+      if (meta.properties && meta.properties.syndication) {
+        related.push(...meta.properties.syndication)
+        debug('added related syndications: %o', meta.properties.syndication)
+      }
+    } catch (err) {
+      debug('could not fetch related syndication: %s', err.stack)
+    }
+  }
+
   const syndications = (await Promise.all([
     ...targets.map(async service => {
       try {
