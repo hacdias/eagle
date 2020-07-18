@@ -76,8 +76,6 @@ module.exports = ({ services, domain }) => {
       reloadCaddy()
     }
 
-    notify.send(`📄 Post published: ${url}`)
-
     // Async operations
     syndicate(services, post, url, postData)
     sendWebmentions(post, url, postData.syndication.related, services)
