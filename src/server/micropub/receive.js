@@ -52,7 +52,7 @@ const sendWebmentions = async (post, url, related, services) => {
 }
 
 module.exports = ({ services, domain }) => {
-  const { xray, notify, hugo, git, activitypub } = services
+  const { xray, notify, hugo, git } = services
 
   return async (req, res, data) => {
     const postData = transformer.createPost(data)
@@ -69,9 +69,6 @@ module.exports = ({ services, domain }) => {
 
     await git.commit(`add ${post}`)
     await hugo.build()
-
-    // Asynchronously post the article in the activity pub world.
-    activitypub.postArticle(post)
 
     // Reload caddy config asynchronously if there are any aliases
     // so it can load the redirects.

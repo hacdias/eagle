@@ -8,8 +8,6 @@ const createMicropub = require('./micropub')
 // const createWebHookNotes = require('./webhook-notes')
 const createWebHookWebsite = require('./webhook-website')
 const createWebmention = require('./webmention')
-const createWebfinger = require('./webfinger')
-const createActivityPub = require('./activitypub')
 const createBot = require('./bot')
 
 module.exports = function () {
@@ -38,15 +36,6 @@ module.exports = function () {
 
   app.use('/webmention', createWebmention({
     secret: config.webmentionIoSecret,
-    services
-  }))
-
-  app.get('/webfinger', createWebfinger({
-    domain: config.domain,
-    user: config.activityPub.user
-  }))
-
-  app.use('/activitypub', createActivityPub({
     services
   }))
 

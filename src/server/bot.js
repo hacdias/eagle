@@ -1,7 +1,7 @@
 const Telegraf = require('telegraf')
 
 module.exports = function createTelegram ({ telegramToken, telegramChatId, services }) {
-  const { git, hugo, activitypub } = services
+  const { git, hugo } = services
 
   const actions = {
     echo: ({ reply }) => reply('echo'),
@@ -26,15 +26,6 @@ module.exports = function createTelegram ({ telegramToken, telegramChatId, servi
 
       await hugo.build()
       reply('Built!')
-    },
-    activity: async ({ reply }, parts) => {
-      if (!parts[1]) {
-        reply('Must provide a post')
-        return
-      }
-
-      activitypub.postArticle(parts[1].trim())
-      reply('Post sent to followers!')
     }
   }
 

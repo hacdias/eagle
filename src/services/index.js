@@ -9,7 +9,6 @@ const createGit = require('./git')
 const createHugo = require('./hugo')
 const createWebmentions = require('./webmentions')
 const createNotify = require('./notify')
-const createActivityPub = require('./activitypub')
 
 module.exports = function getServices (config) {
   const queue = new PQueue({
@@ -59,14 +58,6 @@ module.exports = function getServices (config) {
     telegramToken: config.telegram.token
   })
 
-  const activitypub = createActivityPub({
-    hugo,
-    webmentions,
-    queue,
-    domain: config.domain,
-    store: config.activityPub.store
-  })
-
   return Object.freeze({
     twitter,
     xray,
@@ -75,7 +66,6 @@ module.exports = function getServices (config) {
     hugo,
     webmentions,
     notify,
-    queue,
-    activitypub
+    queue
   })
 }

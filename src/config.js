@@ -33,9 +33,5 @@ module.exports = () => ({
   },
   website: {
     hookSecret: process.env.HOOK_SECRET
-  },
-  activityPub: {
-    store: process.env.ACTIVITYPUB_STORE,
-    user: process.env.ACTIVITYPUB_USER
   }
 })
