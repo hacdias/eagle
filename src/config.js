@@ -27,10 +27,6 @@ module.exports = () => ({
     key: process.env.BUNNY_KEY,
     base: process.env.BUNNY_BASE
   },
-  notes: {
-    repositoryDir: process.env.NOTES_REPO,
-    hookSecret: process.env.NOTES_SECRET
-  },
   website: {
     hookSecret: process.env.HOOK_SECRET
   }

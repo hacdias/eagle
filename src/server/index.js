@@ -5,7 +5,6 @@ const getServices = require('../services')
 const getConfig = require('../config')
 
 const createMicropub = require('./micropub')
-// const createWebHookNotes = require('./webhook-notes')
 const createWebHookWebsite = require('./webhook-website')
 const createWebmention = require('./webmention')
 const createBot = require('./bot')
@@ -22,12 +21,6 @@ module.exports = function () {
     domain: config.domain,
     tokenReference: config.tokenReference
   }))
-
-  // app.post('/webhooks/notes', createWebHookNotes({
-  //   services,
-  //   repositoryDir: config.notes.repositoryDir,
-  //   secret: config.notes.hookSecret
-  // }))
 
   app.post('/webhooks/website', createWebHookWebsite({
     services,
