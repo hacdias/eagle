@@ -29,5 +29,10 @@ module.exports = () => ({
   },
   website: {
     hookSecret: process.env.HOOK_SECRET
+  },
+  notes: {
+    secret: process.env.NOTES_HOOK_SECRET,
+    src: process.env.NOTES_DIR,
+    dst: process.env.NOTES_PUBLIC_DIR
   }
 })
