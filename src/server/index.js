@@ -6,7 +6,6 @@ const getConfig = require('../config')
 
 const createMicropub = require('./micropub')
 const createWebHookWebsite = require('./webhook-website')
-const createWebHookNotes = require('./webhook-notes')
 const createWebmention = require('./webmention')
 const createBot = require('./bot')
 
@@ -28,11 +27,13 @@ module.exports = function () {
     secret: config.website.hookSecret
   }))
 
-  app.post('/webhooks/notes', createWebHookNotes({
-    secret: config.notes.secret,
-    src: config.notes.src,
-    dst: config.notes.dst
-  }))
+  // const createWebHookNotes = require('./webhook-notes')
+  //
+  // app.post('/webhooks/notes', createWebHookNotes({
+  //   secret: config.notes.secret,
+  //   src: config.notes.src,
+  //   dst: config.notes.dst
+  // }))
 
   app.use('/webmention', createWebmention({
     secret: config.webmentionIoSecret,
