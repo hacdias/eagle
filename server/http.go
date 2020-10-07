@@ -12,6 +12,11 @@ import (
 	"github.com/hacdias/eagle/services"
 )
 
+type Server struct {
+	*services.Services
+	Config *config.Config
+}
+
 func Start(c *config.Config, s *services.Services) error {
 	r := chi.NewRouter()
 

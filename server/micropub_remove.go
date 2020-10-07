@@ -13,7 +13,7 @@ type micropubHandlerFunc func(w http.ResponseWriter, r *http.Request, mr *microp
 
 func micropubCreate(s *services.Services, c *config.Config) micropubHandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-		entry, err := s.Hugo.FromMicropub(mr)
+		entry, synd, err := s.Hugo.FromMicropub(mr)
 		if err != nil {
 			return http.StatusBadRequest, err
 		}
@@ -31,8 +31,7 @@ func micropubCreate(s *services.Services, c *config.Config) micropubHandlerFunc 
 			s.Notify.Error(err)
 		}
 
-		// TODO: go syndicate(services, post, url, postdata)
-		// TODO: go sendWebmentions(post, url, postData.syndication.related, services)
+		go s.Gossip(entry, synd)
 
 		return 0, nil
 	}

@@ -17,7 +17,12 @@ var typesWithLinks = map[micropub.Type]string{
 	micropub.TypeBookmark: "bookmark-of",
 }
 
-func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, error) {
+type Syndication struct {
+	Related []string
+	Targets []string
+}
+
+func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, error) {
 	entry := &HugoEntry{
 		Content:  "",
 		Metadata: map[string]interface{}{},
@@ -35,7 +40,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, error) {
 	case micropub.TypeReply, micropub.TypeNote, micropub.TypeArticle:
 		// It's fine.
 	default:
-		return nil, errors.New("type not supported " + string(postType))
+		return nil, nil, errors.New("type not supported " + string(postType))
 	}
 
 	if content, ok := post.Properties.StringsIf("content"); ok {
@@ -50,19 +55,28 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, error) {
 	delete(post.Properties, "content")
 	delete(post.Properties, "name")
 
+	var synd *Syndication
+
 	switch postType {
 	case micropub.TypeRepost, micropub.TypeLike, micropub.TypeReply, micropub.TypeBookmark:
 		links, ok := post.Properties.StringsIf(typesWithLinks[postType])
 		if !ok {
-			return nil, errors.New("type " + string(postType) + " must refer to some link")
+			return nil, nil, errors.New("type " + string(postType) + " must refer to some link")
 		}
 		related, err := cleanRelated(links)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if len(related) > 0 {
 			post.Properties[typesWithLinks[postType]] = related
+		}
+
+		if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
+			synd = &Syndication{
+				Related: related,
+				Targets: targets,
+			}
 		}
 	}
 
@@ -86,21 +100,10 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, error) {
 		month := time.Now().Month()
 		entry.ID = fmt.Sprintf("/%s/%04d/%02ds/%s/", section, year, month, slug)
 	} else {
-		return nil, errors.New("post must have a slug")
+		return nil, nil, errors.New("post must have a slug")
 	}
 
-	/*
-		  const syndication = {
-		    related: related,
-		    targets: commands['mp-syndicate-to'] || []
-		  }
-
-		  return {
-		    syndication,
-			}
-	*/
-
-	return entry, nil
+	return entry, synd, nil
 }
 
 func cleanRelated(urls []string) ([]string, error) {

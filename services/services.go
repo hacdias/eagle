@@ -9,6 +9,7 @@ import (
 )
 
 type Services struct {
+	cfg         *config.Config
 	Git         *Git
 	Hugo        *Hugo
 	Media       *Media
@@ -22,6 +23,7 @@ func NewServices(cfg *config.Config) *Services {
 	mutex := &sync.Mutex{}
 
 	return &Services{
+		cfg: cfg,
 		Git: &Git{
 			Mutex:     mutex,
 			Directory: cfg.Hugo.Source,
