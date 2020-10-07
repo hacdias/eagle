@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/micropub"
+	"github.com/hacdias/eagle/middleware/micropub"
 )
 
 type micropubHandlerFunc func(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error)

@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/indieauth"
+	"github.com/hacdias/eagle/middleware/indieauth"
 	"github.com/hacdias/eagle/services"
 )
 

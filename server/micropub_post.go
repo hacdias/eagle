@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/micropub"
+	"github.com/hacdias/eagle/middleware/micropub"
 	"github.com/hacdias/eagle/services"
 )
 

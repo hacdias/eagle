@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/micropub"
+	"github.com/hacdias/eagle/middleware/micropub"
 )
 
 var typesWithLinks = map[micropub.Type]string{
