@@ -3,6 +3,8 @@ module github.com/hacdias/eagle
 go 1.14
 
 require (
+	github.com/dghubble/go-twitter v0.0.0-20200725221434-4bc8ad7ad1b4 // indirect
+	github.com/dghubble/oauth1 v0.6.0
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/karlseguin/expect v1.0.7 // indirect
 	github.com/karlseguin/typed v1.1.7

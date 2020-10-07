@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"path"
+	"strings"
 )
 
 type notFoundRedirectRespWr struct {
@@ -28,6 +29,11 @@ func staticHandler(dir string) func(http.ResponseWriter, *http.Request) {
 	fs := http.FileServer(http.Dir(dir))
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		accept := r.Header.Get("Accept")
+		if strings.Contains(accept, "application/activity+json") || strings.Contains(accept, `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`) {
+			// TODO: do things
+		}
+
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
 		fs.ServeHTTP(nfw, r)
 

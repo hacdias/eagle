@@ -11,7 +11,6 @@ type Services struct {
 	Hugo        *Hugo
 	Media       *Media
 	Notify      *Notify
-	Twitter     *Twitter
 	Webmentions *Webmentions
 	XRay        *XRay
 }
@@ -30,7 +29,6 @@ func NewServices(cfg *config.Config) *Services {
 		},
 		Media:       &Media{},
 		Notify:      &Notify{},
-		Twitter:     &Twitter{},
 		Webmentions: &Webmentions{},
 		XRay: &XRay{
 			Mutex: mutex,
