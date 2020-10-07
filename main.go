@@ -7,19 +7,21 @@ import (
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/server"
+	"github.com/hacdias/eagle/services"
 )
 
 func main() {
-	conf, err := config.Get()
+	c, err := config.Get()
 	if err != nil {
 		log.Fatal(err)
 	}
+	s := services.NewServices(c)
 
 	quit := make(chan os.Signal, 1)
 
 	go func() {
 		log.Println("Starting server...")
-		err := server.Start(conf)
+		err := server.Start(c, s)
 		if err != nil {
 			log.Println("Failed to start server:")
 			log.Println(err)
@@ -28,7 +30,7 @@ func main() {
 	}()
 
 	log.Println("Starting bot...")
-	bot, err := server.StartBot(&conf.Telegram)
+	bot, err := server.StartBot(&c.Telegram, s)
 	if err != nil {
 		log.Println("Failed to start bot:")
 		log.Println(err)

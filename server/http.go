@@ -12,8 +12,7 @@ import (
 	"github.com/hacdias/eagle/services"
 )
 
-func Start(c *config.Config) error {
-	s := services.NewServices(c)
+func Start(c *config.Config, s *services.Services) error {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
