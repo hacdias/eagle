@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/hacdias/eagle/config"
@@ -39,12 +40,14 @@ func webhookHandler(s *services.Services, c *config.Config) http.HandlerFunc {
 		go func() {
 			err := s.Git.Pull()
 			if err != nil {
+				log.Printf("webhook: error git pull: %s", err)
 				s.Notify.Error(err)
 				return
 			}
 
 			err = s.Hugo.Build(false)
 			if err != nil {
+				log.Printf("webhook: error hugo build: %s", err)
 				s.Notify.Error(err)
 				return
 			}

@@ -2,18 +2,20 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/services"
 )
 
-func webmentionHanndler(s *services.Services, c *config.Config) http.HandlerFunc {
+func webmentionHandler(s *services.Services, c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		wm := &services.WebmentionPayload{}
 		err := json.NewDecoder(r.Body).Decode(&wm)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			log.Printf("webmention: error parsing: %s", err)
 			return
 		}
 
@@ -26,7 +28,7 @@ func webmentionHanndler(s *services.Services, c *config.Config) http.HandlerFunc
 		err = s.Webmentions.Receive(wm)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			// TODO: log
+			log.Printf("webmention: error receiving: %s", err)
 			return
 		}
 
@@ -35,6 +37,7 @@ func webmentionHanndler(s *services.Services, c *config.Config) http.HandlerFunc
 		go func() {
 			err := s.Hugo.Build(false)
 			if err != nil {
+				log.Printf("webmention: error hugo build: %s", err)
 				s.Notify.Error(err)
 			} else {
 				if wm.Deleted {

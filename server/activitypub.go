@@ -9,7 +9,7 @@ import (
 
 func activityPubInboxHandler(s *services.Services, c *config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO
+		// TODO(activitypub): implement inbox
 		w.WriteHeader(http.StatusNotImplemented)
 	}
 }

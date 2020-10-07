@@ -12,10 +12,9 @@ import (
 	"github.com/hacdias/eagle/services"
 )
 
-type Server struct {
-	*services.Services
-	Config *config.Config
-}
+// NOTE: instead of having many functions returning http.handleFunc, maybe I can
+// have a global Server struct that has all handlers associated. That way, I don't
+// need to pass the data to everything.
 
 func Start(c *config.Config, s *services.Services) error {
 	r := chi.NewRouter()
@@ -28,7 +27,7 @@ func Start(c *config.Config, s *services.Services) error {
 	r.With(auth).Post("/micropub", postMicropubHandler(s, c))
 
 	r.Post("/webhook", webhookHandler(s, c))
-	r.Post("/webmention", webmentionHanndler(s, c))
+	r.Post("/webmention", webmentionHandler(s, c))
 	r.Post("/activitypub/inbox", activityPubInboxHandler(s, c))
 
 	r.NotFound(staticHandler(c.Hugo.Destination))

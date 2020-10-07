@@ -30,8 +30,11 @@ func staticHandler(dir string) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		accept := r.Header.Get("Accept")
-		if strings.Contains(accept, "application/activity+json") || strings.Contains(accept, `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`) {
-			// TODO: do things
+		acceptsHTML := strings.Contains(accept, "text/html")
+		acceptsActivity := strings.Contains(accept, "application/activity+json") || strings.Contains(accept, `application/ld+json; profile="https://www.w3.org/ns/activitystreams"`)
+
+		if acceptsActivity && !acceptsHTML {
+			// TODO(activitypub): set content-type and show .as2 instead if exists
 		}
 
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}

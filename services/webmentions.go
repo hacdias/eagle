@@ -1,10 +1,12 @@
 package services
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/hacdias/eagle/config"
+	"github.com/hashicorp/go-multierror"
 )
 
 type WebmentionPayload struct {
@@ -36,10 +38,13 @@ type Webmentions struct {
 }
 
 func (w *Webmentions) Send(source string, targets ...string) error {
+	var errors *multierror.Error
+
 	for _, target := range targets {
 		req, err := http.NewRequest(http.MethodPost, "https://telegraph.p3k.io/webmention", nil)
 		if err != nil {
-			// TODO: log
+			errors = multierror.Append(errors, err)
+			log.Printf("error creating request: %s", err)
 			continue
 		}
 
@@ -50,13 +55,12 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 
 		_, err = http.DefaultClient.Do(req)
 		if err != nil {
-			// TODO: log
-		} else {
-			// TODO: log
+			log.Printf("could not post telegprah: %s ==> %s: %s", source, target, err)
+			errors = multierror.Append(errors, err)
 		}
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func (w *Webmentions) Receive(payload *WebmentionPayload) error {

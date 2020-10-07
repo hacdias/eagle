@@ -55,7 +55,6 @@ func (h *Hugo) internalToMf2(data interface{}) interface{} {
 		for k, value := range data.(map[interface{}]interface{}) {
 			key, ok := k.(string)
 			if !ok {
-				// TODO: ???
 				panic("key must be string")
 			}
 			kind := reflect.ValueOf(value).Kind()
