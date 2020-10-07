@@ -1,6 +1,9 @@
 package services
 
+import "sync"
+
 type Git struct {
+	*sync.Mutex
 	Directory string
 }
 

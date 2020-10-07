@@ -1,19 +1,28 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path"
+	"strings"
+	"sync"
 
+	"github.com/hacdias/eagle/config"
+	"github.com/karlseguin/typed"
 	"gopkg.in/yaml.v2"
 )
 
+type HugoEntry struct {
+	ID       string
+	Metadata typed.Typed
+	Content  string
+}
+
 type Hugo struct {
-	Source      string
-	Destination string
-	dataDir     string
-	contentDir  string
+	*sync.Mutex
+	config.Hugo
 }
 
 func (h *Hugo) Build(clean bool) error {
@@ -27,25 +36,12 @@ func (h *Hugo) Build(clean bool) error {
 	return cmd.Run()
 }
 
-func (h *Hugo) NewEntry() error {
-	return nil
-}
-
-type HugoEntry struct {
-	Post     string
-	Metadata map[string]interface{}
-	Content  string
-}
-
 func (h *Hugo) SaveEntry(e *HugoEntry) error {
-	/*
-		  if (meta.properties && !keepOriginal) {
-				      meta.properties = converter.mf2ToInternal(meta.properties)
-				    }
+	if prop, ok := e.Metadata.MapIf("properties"); ok {
+		e.Metadata["properties"] = h.mf2ToInternal(prop)
+	}
 
-	*/
-
-	filePath := path.Join(h.contentDir, e.Post)
+	filePath := path.Join(h.Source, "content", e.ID)
 	index := path.Join(filePath, "index.md")
 
 	val, err := yaml.Marshal(&e.Metadata)
@@ -65,10 +61,58 @@ func (h *Hugo) GetAll() error {
 	return nil
 }
 
-func (h *Hugo) GetEntry() error {
-	return nil
+func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
+	index := path.Join(h.Source, "content", id, "index.md")
+	bytes, err := ioutil.ReadFile(index)
+	if err != nil {
+		return nil, err
+	}
+
+	splits := strings.SplitN(string(bytes), "\n---", 2)
+	if len(splits) != 2 {
+		return nil, errors.New("could not parse file: splits !== 2")
+	}
+
+	entry := &HugoEntry{
+		ID:       id,
+		Metadata: map[string]interface{}{},
+		Content:  strings.TrimSpace(splits[1]),
+	}
+
+	err = yaml.Unmarshal([]byte(splits[0]), &entry.Metadata)
+	if err != nil {
+		return nil, err
+	}
+
+	if props, ok := entry.Metadata["properties"]; ok {
+		entry.Metadata["properties"] = h.internalToMf2(props)
+	} else {
+		entry.Metadata["properties"] = map[string]interface{}{}
+	}
+
+	return entry, nil
 }
 
-func (h *Hugo) GetEntryHTML() error {
-	return nil
+func (h *Hugo) GetEntryHTML(id string) ([]byte, error) {
+	index := path.Join(h.Destination, id, "index.html")
+	return ioutil.ReadFile(index)
 }
+
+/*
+
+const getAllFiles = function (dirPath, arrayOfFiles) {
+  const files = fs.readdirSync(dirPath)
+
+  arrayOfFiles = arrayOfFiles || []
+
+  files.forEach(function (file) {
+    if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+      arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
+    } else {
+      arrayOfFiles.push(join(dirPath, '/', file))
+    }
+  })
+
+  return arrayOfFiles
+}
+*/

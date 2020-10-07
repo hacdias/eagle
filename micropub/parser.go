@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/karlseguin/typed"
 )
 
 // https://github.com/hacdias/micropub-parser/blob/master/index.js
@@ -29,8 +31,8 @@ type Request struct {
 	Action     Action
 	URL        string
 	Type       string
-	Properties map[string]interface{}
-	Commands   map[string]interface{}
+	Properties typed.Typed
+	Commands   typed.Typed
 	Updates    *RequestUpdates
 }
 

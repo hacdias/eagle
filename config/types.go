@@ -45,6 +45,14 @@ type IndieAuth struct {
 	Endpoint string
 }
 
+func (i *IndieAuth) Authorized() []string {
+	return []string{i.Me}
+}
+
+func (i *IndieAuth) TokenEndpoint() string {
+	return i.Endpoint
+}
+
 type Hugo struct {
 	Source      string
 	Destination string

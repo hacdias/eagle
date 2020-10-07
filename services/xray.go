@@ -1,8 +1,13 @@
 package services
 
-import "github.com/hacdias/eagle/config"
+import (
+	"sync"
+
+	"github.com/hacdias/eagle/config"
+)
 
 type XRay struct {
+	*sync.Mutex
 	config.XRay
 	StoragePath string
 	Twitter     config.Twitter
