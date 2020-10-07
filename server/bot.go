@@ -1,26 +1,20 @@
-package main
+package server
 
 import (
-	"log"
 	"time"
 
+	"github.com/hacdias/eagle/config"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-type telegramSettings struct {
-	Token  string
-	ChatID int64
-}
-
-func newBot(s *telegramSettings) {
+func StartBot(s *config.Telegram) (*tb.Bot, error) {
 	b, err := tb.NewBot(tb.Settings{
 		Token:  s.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 
 	if err != nil {
-		log.Fatal(err)
-		return
+		return nil, err
 	}
 
 	checkUser := func(fn func(m *tb.Message)) func(m *tb.Message) {
@@ -34,20 +28,25 @@ func newBot(s *telegramSettings) {
 	}
 
 	b.Handle("/ping", checkUser(func(m *tb.Message) {
+
 		b.Send(m.Sender, "pong")
 	}))
 
 	b.Handle("/push", checkUser(func(m *tb.Message) {
 		// TODO
+		b.Send(m.Sender, "push")
 	}))
 
 	b.Handle("/pull", checkUser(func(m *tb.Message) {
 		// TODO
+		b.Send(m.Sender, "pull")
 	}))
 
 	b.Handle("/build", checkUser(func(m *tb.Message) {
 		// TODO
+		b.Send(m.Sender, "build")
 	}))
 
-	b.Start()
+	go b.Start()
+	return b, nil
 }
