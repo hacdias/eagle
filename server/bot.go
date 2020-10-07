@@ -1,15 +1,17 @@
 package server
 
 import (
+	"strings"
 	"time"
 
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/services"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func StartBot(s *config.Telegram) (*tb.Bot, error) {
+func StartBot(c *config.Telegram, s *services.Services) (*tb.Bot, error) {
 	b, err := tb.NewBot(tb.Settings{
-		Token:  s.Token,
+		Token:  c.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 
@@ -19,7 +21,7 @@ func StartBot(s *config.Telegram) (*tb.Bot, error) {
 
 	checkUser := func(fn func(m *tb.Message)) func(m *tb.Message) {
 		return func(m *tb.Message) {
-			if m.Chat.ID != s.ChatID {
+			if m.Chat.ID != c.ChatID {
 				b.Send(m.Sender, "This bot is not intended to you. Bye!")
 			} else {
 				fn(m)
@@ -28,23 +30,35 @@ func StartBot(s *config.Telegram) (*tb.Bot, error) {
 	}
 
 	b.Handle("/ping", checkUser(func(m *tb.Message) {
-
 		b.Send(m.Sender, "pong")
 	}))
 
 	b.Handle("/push", checkUser(func(m *tb.Message) {
-		// TODO
-		b.Send(m.Sender, "push")
+		err := s.Git.Push()
+		if err != nil {
+			s.Notify.Error(err)
+		} else {
+			s.Notify.Info("Push was successfull!")
+		}
 	}))
 
 	b.Handle("/pull", checkUser(func(m *tb.Message) {
-		// TODO
-		b.Send(m.Sender, "pull")
+		err := s.Git.Pull()
+		if err != nil {
+			s.Notify.Error(err)
+		} else {
+			s.Notify.Info("Pull was successfull!")
+		}
 	}))
 
 	b.Handle("/build", checkUser(func(m *tb.Message) {
-		// TODO
-		b.Send(m.Sender, "build")
+		clean := strings.Contains(m.Text, "clean")
+		err := s.Hugo.Build(clean)
+		if err != nil {
+			s.Notify.Error(err)
+		} else {
+			s.Notify.Info("Build was successfull!")
+		}
 	}))
 
 	go b.Start()
