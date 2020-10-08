@@ -19,8 +19,13 @@ type Services struct {
 	Twitter     *twitter.Client
 }
 
-func NewServices(cfg *config.Config) *Services {
+func NewServices(cfg *config.Config) (*Services, error) {
 	mutex := &sync.Mutex{}
+
+	notify, err := NewNotify(&cfg.Telegram)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Services{
 		cfg: cfg,
@@ -33,13 +38,13 @@ func NewServices(cfg *config.Config) *Services {
 			Hugo:  cfg.Hugo,
 		},
 		Media:       &Media{cfg.BunnyCDN},
-		Notify:      &Notify{},
+		Notify:      notify,
 		Webmentions: &Webmentions{},
 		XRay: &XRay{
 			Mutex: mutex,
 		},
 		Twitter: createTwitter(cfg),
-	}
+	}, nil
 }
 
 func createTwitter(cfg *config.Config) *twitter.Client {

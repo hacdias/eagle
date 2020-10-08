@@ -15,7 +15,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := services.NewServices(c)
+
+	s, err := services.NewServices(c)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	quit := make(chan os.Signal, 1)
 
