@@ -32,7 +32,7 @@ func NewServices(cfg *config.Config) *Services {
 			Mutex: mutex,
 			Hugo:  cfg.Hugo,
 		},
-		Media:       &Media{},
+		Media:       &Media{cfg.BunnyCDN},
 		Notify:      &Notify{},
 		Webmentions: &Webmentions{},
 		XRay: &XRay{
