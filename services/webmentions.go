@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/config"
@@ -33,11 +34,12 @@ type WebmentionPayload struct {
 }
 
 type Webmentions struct {
+	*sync.Mutex
 	Domain    string
 	Telegraph config.Telegraph
-	Git       Git
-	Media     Media
-	Hugo      Hugo
+	Git       *Git
+	Media     *Media
+	Hugo      *Hugo
 }
 
 func (w *Webmentions) Send(source string, targets ...string) error {
@@ -71,5 +73,10 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 }
 
 func (w *Webmentions) Receive(payload *WebmentionPayload) error {
+	w.Lock()
+	defer w.Unlock()
+
+	// TODO
+
 	return nil
 }

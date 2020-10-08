@@ -26,6 +26,9 @@ type Hugo struct {
 }
 
 func (h *Hugo) Build(clean bool) error {
+	h.Lock()
+	defer h.Unlock()
+
 	args := []string{"--minify", "--destination", h.Destination}
 
 	if clean {
@@ -49,6 +52,9 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 		return err
 	}
 
+	h.Lock()
+	defer h.Unlock()
+
 	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s\n\n---%s", string(val), e.Content)), 0644)
 	if err != nil {
 		return err
@@ -58,10 +64,37 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 }
 
 func (h *Hugo) GetAll() error {
+	h.Lock()
+	defer h.Unlock()
+
+	// TODO:
+
+	/*
+
+	   const getAllFiles = function (dirPath, arrayOfFiles) {
+	     const files = fs.readdirSync(dirPath)
+
+	     arrayOfFiles = arrayOfFiles || []
+
+	     files.forEach(function (file) {
+	       if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+	         arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
+	       } else {
+	         arrayOfFiles.push(join(dirPath, '/', file))
+	       }
+	     })
+
+	     return arrayOfFiles
+	   }
+	*/
+
 	return nil
 }
 
 func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
+	h.Lock()
+	defer h.Unlock()
+
 	index := path.Join(h.Source, "content", id, "index.md")
 	bytes, err := ioutil.ReadFile(index)
 	if err != nil {
@@ -94,25 +127,9 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 }
 
 func (h *Hugo) GetEntryHTML(id string) ([]byte, error) {
+	h.Lock()
+	defer h.Unlock()
+
 	index := path.Join(h.Destination, id, "index.html")
 	return ioutil.ReadFile(index)
 }
-
-/*
-
-const getAllFiles = function (dirPath, arrayOfFiles) {
-  const files = fs.readdirSync(dirPath)
-
-  arrayOfFiles = arrayOfFiles || []
-
-  files.forEach(function (file) {
-    if (fs.statSync(dirPath + '/' + file).isDirectory()) {
-      arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
-    } else {
-      arrayOfFiles.push(join(dirPath, '/', file))
-    }
-  })
-
-  return arrayOfFiles
-}
-*/

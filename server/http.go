@@ -33,6 +33,8 @@ func Start(c *config.Config, s *services.Services) error {
 	r.NotFound(staticHandler(c.Hugo.Destination))
 	r.MethodNotAllowed(staticHandler(c.Hugo.Destination))
 
+	// TODO: /now and redirects (or let them be as they are right now?)
+
 	return http.ListenAndServe(":"+strconv.Itoa(c.Port), r)
 }
 

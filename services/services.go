@@ -20,40 +20,51 @@ type Services struct {
 	Twitter     *twitter.Client
 }
 
-func NewServices(cfg *config.Config) (*Services, error) {
+func NewServices(c *config.Config) (*Services, error) {
 	mutex := &sync.Mutex{}
 
-	notify, err := NewNotify(&cfg.Telegram)
+	notify, err := NewNotify(&c.Telegram)
 	if err != nil {
 		return nil, err
 	}
 
+	git := &Git{
+		Mutex:     mutex,
+		Directory: c.Hugo.Source,
+	}
+
+	hugo := &Hugo{
+		Mutex: mutex,
+		Hugo:  c.Hugo,
+	}
+
+	media := &Media{c.BunnyCDN}
+
+	config := oauth1.NewConfig(c.Twitter.Key, c.Twitter.Secret)
+	token := oauth1.NewToken(c.Twitter.Token, c.Twitter.TokenSecret)
+
+	bird := twitter.NewClient(config.Client(oauth1.NoContext, token))
+
 	return &Services{
-		cfg: cfg,
-		Git: &Git{
+		cfg:    c,
+		Git:    git,
+		Hugo:   hugo,
+		Media:  media,
+		Notify: notify,
+		Webmentions: &Webmentions{
 			Mutex:     mutex,
-			Directory: cfg.Hugo.Source,
+			Domain:    c.Domain,
+			Telegraph: c.Telegraph,
+			Git:       git,
+			Hugo:      hugo,
+			Media:     media,
 		},
-		Hugo: &Hugo{
-			Mutex: mutex,
-			Hugo:  cfg.Hugo,
-		},
-		Media:       &Media{cfg.BunnyCDN},
-		Notify:      notify,
-		Webmentions: &Webmentions{},
 		XRay: &XRay{
-			XRay:        cfg.XRay,
 			Mutex:       mutex,
-			Twitter:     cfg.Twitter,
-			StoragePath: path.Join(cfg.Hugo.Source, "data", "xray"),
+			XRay:        c.XRay,
+			Twitter:     c.Twitter,
+			StoragePath: path.Join(c.Hugo.Source, "data", "xray"),
 		},
-		Twitter: createTwitter(cfg),
+		Twitter: bird,
 	}, nil
-}
-
-func createTwitter(cfg *config.Config) *twitter.Client {
-	config := oauth1.NewConfig(cfg.Twitter.Key, cfg.Twitter.Secret)
-	token := oauth1.NewToken(cfg.Twitter.Token, cfg.Twitter.TokenSecret)
-
-	return twitter.NewClient(config.Client(oauth1.NoContext, token))
 }

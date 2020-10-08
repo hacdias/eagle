@@ -37,6 +37,8 @@ func staticHandler(dir string) func(http.ResponseWriter, *http.Request) {
 			// TODO(activitypub): set content-type and show .as2 instead if exists
 		}
 
+		// TODO: set Content-Type on .as2
+
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
 		fs.ServeHTTP(nfw, r)
 
