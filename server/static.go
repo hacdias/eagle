@@ -144,9 +144,10 @@ TODO:
 - convert mf2 to jf2
 - special .as2 in homepage or /hacdias (PICK ONE)
 - handle webfinger
--
 - Maybe do this in a post processing fashion?
 	- SOLUTION: try converting on the fly right now. Then I can adapt and build it after Hugo :)
+	-	IDEA: check if the file exists (index.mf2 or .as2) if it doesn't, produce it
+		- Remove it when savinng the post
 
 - https://gohugo.io/hugo-pipes/postprocess/#css-purging-with-postcss
 */

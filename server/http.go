@@ -33,7 +33,9 @@ func Start(c *config.Config, s *services.Services) error {
 	r.NotFound(staticHandler(c))
 	r.MethodNotAllowed(staticHandler(c))
 
-	// TODO: /now and redirects (or let them be as they are right now?)
+	// NOTE:
+	//	- Should I handle /now dynamicall?
+	//	- Should I handle all redirects dynamically?
 
 	return http.ListenAndServe(":"+strconv.Itoa(c.Port), r)
 }
