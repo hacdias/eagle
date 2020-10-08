@@ -63,34 +63,6 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 	return nil
 }
 
-func (h *Hugo) GetAll() error {
-	h.Lock()
-	defer h.Unlock()
-
-	// TODO:
-
-	/*
-
-	   const getAllFiles = function (dirPath, arrayOfFiles) {
-	     const files = fs.readdirSync(dirPath)
-
-	     arrayOfFiles = arrayOfFiles || []
-
-	     files.forEach(function (file) {
-	       if (fs.statSync(dirPath + '/' + file).isDirectory()) {
-	         arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
-	       } else {
-	         arrayOfFiles.push(join(dirPath, '/', file))
-	       }
-	     })
-
-	     return arrayOfFiles
-	   }
-	*/
-
-	return nil
-}
-
 func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 	h.Lock()
 	defer h.Unlock()

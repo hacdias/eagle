@@ -42,8 +42,6 @@ func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
 
 	findActivity := func(url string) string {
 		filepath := path.Join(url, "index.as2")
-		// TODO: I'd prefer just stat and not open. Is it better like this
-		// or serve it directly?
 		if fd, err := httpdir.Open(filepath); err == nil {
 			fd.Close()
 			return filepath
@@ -86,7 +84,6 @@ func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "application/activity+json; charset=utf-8")
 		r.URL.Path = as2
-		// TODO: Maybe convert programatically using go from Mf2? AND CACHE BOTH
 		return false
 	}
 
@@ -136,22 +133,19 @@ func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+// TODO(activitypub)
+// 	- GOAL: support MF2, JF2 and AS2
+//	- PRIORITY: support AS2
+//	- I can convert MF2 to JF2 quite easily
+//	- AS2: generate with Hugo or programatically?
+//	- Handle special AS2 for homepage or /hacdias (pick one)
+//	- Handle webfinger
+//	- SOLUTIONS
+//			1. Generate on the fly.
+//			2. Generate on the fly and cache. Evict when there are updates.
+//			2. Run script after 'hugo build' that converts the HTML to MF2, JF2 and AS2
+
 /*
-TODO:
-
-- add alternate metatag on things
-- convert mf2 to as2
-- convert mf2 to jf2
-- special .as2 in homepage or /hacdias (PICK ONE)
-- handle webfinger
-- Maybe do this in a post processing fashion?
-	- SOLUTION: try converting on the fly right now. Then I can adapt and build it after Hugo :)
-	-	IDEA: check if the file exists (index.mf2 or .as2) if it doesn't, produce it
-		- Remove it when savinng the post
-
-- https://gohugo.io/hugo-pipes/postprocess/#css-purging-with-postcss
-*/
-
 func mf2ToAs2(data *microformats.Data) *as2 {
 	if len(data.Items) < 1 {
 		return nil
