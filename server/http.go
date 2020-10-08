@@ -30,8 +30,8 @@ func Start(c *config.Config, s *services.Services) error {
 	r.Post("/webmention", webmentionHandler(s, c))
 	r.Post("/activitypub/inbox", activityPubInboxHandler(s, c))
 
-	r.NotFound(staticHandler(c.Hugo.Destination))
-	r.MethodNotAllowed(staticHandler(c.Hugo.Destination))
+	r.NotFound(staticHandler(c))
+	r.MethodNotAllowed(staticHandler(c))
 
 	// TODO: /now and redirects (or let them be as they are right now?)
 
