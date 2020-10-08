@@ -1,6 +1,7 @@
 package services
 
 import (
+	"path"
 	"sync"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -41,7 +42,10 @@ func NewServices(cfg *config.Config) (*Services, error) {
 		Notify:      notify,
 		Webmentions: &Webmentions{},
 		XRay: &XRay{
-			Mutex: mutex,
+			XRay:        cfg.XRay,
+			Mutex:       mutex,
+			Twitter:     cfg.Twitter,
+			StoragePath: path.Join(cfg.Hugo.Source, "data", "xray"),
 		},
 		Twitter: createTwitter(cfg),
 	}, nil

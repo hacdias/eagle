@@ -49,7 +49,7 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s\n\n---%s", string(val), e.Content)), 0666)
+	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s\n\n---%s", string(val), e.Content)), 0644)
 	if err != nil {
 		return err
 	}

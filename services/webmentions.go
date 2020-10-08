@@ -3,6 +3,9 @@ package services
 import (
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hacdias/eagle/config"
@@ -41,17 +44,21 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 	var errors *multierror.Error
 
 	for _, target := range targets {
-		req, err := http.NewRequest(http.MethodPost, "https://telegraph.p3k.io/webmention", nil)
+		data := url.Values{}
+		data.Set("token", w.Telegraph.Token)
+		data.Set("source", source)
+		data.Set("target", target)
+
+		req, err := http.NewRequest(http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
 		if err != nil {
 			errors = multierror.Append(errors, err)
 			log.Printf("error creating request: %s", err)
 			continue
 		}
 
-		req.PostForm.Add("token", w.Telegraph.Token)
-		req.PostForm.Add("source", source)
-		req.PostForm.Add("target", target)
 		req.Header.Set("Accept", "application/json")
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 
 		_, err = http.DefaultClient.Do(req)
 		if err != nil {
