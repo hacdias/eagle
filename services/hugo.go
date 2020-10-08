@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/yaml"
 	"github.com/karlseguin/typed"
-	"gopkg.in/yaml.v2"
 )
 
 type HugoEntry struct {

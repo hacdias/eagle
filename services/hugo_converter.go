@@ -52,11 +52,7 @@ func (h *Hugo) internalToMf2(data interface{}) interface{} {
 	if kind == reflect.Map {
 		parsed := map[string]interface{}{}
 
-		for k, value := range data.(map[interface{}]interface{}) {
-			key, ok := k.(string)
-			if !ok {
-				panic("key must be string")
-			}
+		for key, value := range data.(map[string]interface{}) {
 			kind := reflect.ValueOf(value).Kind()
 
 			if kind == reflect.Array || kind == reflect.Slice || key == "properties" || key == "value" {

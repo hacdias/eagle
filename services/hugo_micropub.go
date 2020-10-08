@@ -128,3 +128,99 @@ func cleanRelated(urls []string) ([]string, error) {
 
 	return clean, nil
 }
+
+func (h *Hugo) UpdateMicropub(entry *HugoEntry, mr *micropub.Request) (*HugoEntry, error) {
+	//	tags := []string{}
+	prop := map[string]interface{}{}
+
+	/* if t, ok := entry.Metadata.StringsIf("tags"); ok {
+		tags = t
+	}
+
+	if p, ok := entry.Metadata.MapIf("properties"); ok {
+
+	} */
+
+	// TODO
+
+	for key, value := range mr.Updates.Replace {
+		switch key {
+		case "name":
+			// meta.title = update.replace.name.join(' ').trim()
+		case "category":
+			// meta.tags = update.replace.category
+		case "content":
+			// content = update.replace.content.join(' ').trim()
+		case "published":
+			/*
+					 if (!meta.publishDate && meta.date) {
+				        meta.publishDate = meta.date
+				      }
+
+							meta.date = new Date(update.replace.published.join(' ').trim())
+			*/
+		default:
+			prop[key] = value
+		}
+	}
+
+	/*
+
+		  }
+
+		  for (const key in update.add) {
+		    if (key === 'name') {
+		      throw new Error('cannot add a new name')
+		    } else if (key === 'category') {
+		      meta.tags.push(...update.add.category)
+		    } else if (key === 'content') {
+		      content += update.add.join(' ').trim()
+		    } else if (key === 'published') {
+		      if (!meta.date) {
+		        meta.date = new Date(update.add.published.join(' ').trim())
+		      } else {
+		        throw new Error('cannot replace published through add method')
+		      }
+		    } else {
+		      meta.properties[key] = meta.properties[key] || []
+		      meta.properties[key].push(...update.add[key])
+		    }
+		  }
+
+		  if (Array.isArray(update.delete)) {
+		    for (const key of update.delete) {
+		      if (key === 'category') {
+		        meta.tags = []
+		      } else if (key === 'content') {
+		        content = ''
+		      } else {
+		        delete meta.properties[key]
+		      }
+		    }
+		  } else {
+		    for (const [key, value] of Object.entries(update.delete)) {
+		      if (key === 'content') {
+		        content = ''
+		      } if (key === 'category') {
+		        meta.tags = meta.tags.filter(tag => !value.includes(tag))
+		      } else {
+		        meta.properties[key] = meta.properties[key]
+		          .filter(tag => !value.includes(tag))
+		      }
+		    }
+		  }
+
+		  const res = getModifiers(content.trim())
+		  content = res.content
+
+		  if (res.modifiers.includes('+HOME')) {
+		    meta.home = true
+		  }
+
+		  return { meta, content, modifiers: res.modifiers }
+		}
+
+	*/
+
+	return nil, nil
+}
