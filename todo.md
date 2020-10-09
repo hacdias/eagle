@@ -17,6 +17,20 @@
 - Should I keep the current implementation (Hugo + a bunch of APIs)?
 - Should I move to a completly server-side rendering? Write post!
 
+## GOAL: search!
+
+- Maybe do a database indexing strategy
+- Pros:
+  - Easy to search.
+- Cons:
+  - Keep up to date with in-disk stuff.
+
+## GOAL: better logging
+
+- Solution: https://github.com/uber-go/zap
+
+## Other
+
 **TODO**
 - Setup test.hacdias.com
   - With @hacdias_test
