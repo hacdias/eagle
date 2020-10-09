@@ -9,6 +9,9 @@ func Get() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
+	viper.SetDefault("port", 8080)
+	viper.SetDefault("domain", "http://localhost:8080")
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, err
