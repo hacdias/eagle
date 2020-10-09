@@ -50,13 +50,13 @@ func (h *Hugo) internalToMf2(data interface{}) interface{} {
 	}
 
 	if kind == reflect.Map {
-		parsed := map[string]interface{}{}
+		parsed := map[string][]interface{}{}
 
 		for key, value := range data.(map[string]interface{}) {
 			kind := reflect.ValueOf(value).Kind()
 
 			if kind == reflect.Array || kind == reflect.Slice || key == "properties" || key == "value" {
-				parsed[key] = h.internalToMf2(value)
+				parsed[key] = h.internalToMf2(value).([]interface{})
 			} else {
 				parsed[key] = []interface{}{h.internalToMf2(value)}
 			}
@@ -66,5 +66,5 @@ func (h *Hugo) internalToMf2(data interface{}) interface{} {
 		return parsed
 	}
 
-	return data
+	return data.(map[string][]interface{})
 }

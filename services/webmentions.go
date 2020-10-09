@@ -60,7 +60,7 @@ type Webmentions struct {
 	*sync.Mutex
 	Domain    string
 	Telegraph config.Telegraph
-	Git       *Git
+	Git       *GitPlacebo
 	Media     *Media
 	Hugo      *Hugo
 }

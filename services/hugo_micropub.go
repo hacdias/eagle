@@ -33,7 +33,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 	if published, ok := post.Properties.StringIf("published"); ok {
 		entry.Metadata["date"] = published
 	} else {
-		entry.Metadata["date"] = time.Now().String()
+		entry.Metadata["date"] = time.Now().Format(time.RFC3339)
 	}
 
 	postType := micropub.DiscoverType(post.Properties)
@@ -100,7 +100,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 
 		year := time.Now().Year()
 		month := time.Now().Month()
-		entry.ID = fmt.Sprintf("/%s/%04d/%02ds/%s/", section, year, month, slug)
+		entry.ID = fmt.Sprintf("/%s/%04d/%02d/%s/", section, year, month, slug)
 	} else {
 		return nil, nil, errors.New("post must have a slug")
 	}
@@ -162,109 +162,116 @@ func (e *HugoEntry) Update(mr *micropub.Request) error {
 		}
 	}
 
-	for key, value := range mr.Updates.Replace {
-		switch key {
-		case "name":
-			strs := interfacesToStrings(value)
-			e.Metadata["title"] = strings.TrimSpace(strings.Join(strs, " "))
-		case "category":
-			tags = interfacesToStrings(value)
-		case "content":
-			strs := interfacesToStrings(value)
-			e.Content = strings.TrimSpace(strings.Join(strs, " "))
-		case "published":
-			_, hasDate := e.Metadata["date"]
-			_, hasPublishDate := e.Metadata["publishDate"]
-
-			if !hasPublishDate && hasDate {
-				e.Metadata["publishDate"] = e.Metadata["date"]
-			}
-
-			strs := interfacesToStrings(value)
-			e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
-		default:
-			props[key] = value
-		}
-	}
-
-	for key, value := range mr.Updates.Add {
-		switch key {
-		case "name":
-			return errors.New("cannot add a new name")
-		case "category":
-			tags = append(tags, interfacesToStrings(value)...)
-		case "content":
-			strs := interfacesToStrings(value)
-			e.Content += strings.TrimSpace(strings.Join(strs, " "))
-		case "published":
-			if _, ok := e.Metadata["date"]; ok {
-				return errors.New("cannot replace published through add method")
-			}
-			strs := interfacesToStrings(value)
-			e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
-		default:
-			if _, ok := props[key]; !ok {
-				props[key] = []interface{}{}
-			}
-
-			props[key] = append(props[key], value...)
-		}
-	}
-
-	if reflect.TypeOf(mr.Updates.Delete).Kind() == reflect.Slice {
-		toDelete, ok := mr.Updates.Delete.([]string)
-		if !ok {
-			return errors.New("invalid delete array")
-		}
-
-		for _, key := range toDelete {
+	if mr.Updates.Replace != nil {
+		for key, value := range mr.Updates.Replace {
 			switch key {
+			case "name":
+				strs := interfacesToStrings(value)
+				e.Metadata["title"] = strings.TrimSpace(strings.Join(strs, " "))
 			case "category":
-				tags = []string{}
+				tags = interfacesToStrings(value)
 			case "content":
-				e.Content = ""
+				strs := interfacesToStrings(value)
+				e.Content = strings.TrimSpace(strings.Join(strs, " "))
+			case "published":
+				_, hasDate := e.Metadata["date"]
+				_, hasPublishDate := e.Metadata["publishDate"]
+
+				if !hasPublishDate && hasDate {
+					e.Metadata["publishDate"] = e.Metadata["date"]
+				}
+
+				strs := interfacesToStrings(value)
+				e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
 			default:
-				delete(props, key)
+				props[key] = value
 			}
 		}
+	}
 
-		log.Printf("delete is slice")
-	} else {
-		log.Printf("delete is object")
-
-		toDelete, ok := mr.Updates.Delete.(map[string][]interface{})
-		if !ok {
-			return errors.New("invalid delete object")
-		}
-
-		for key, value := range toDelete {
+	if mr.Updates.Add != nil {
+		for key, value := range mr.Updates.Add {
 			switch key {
-			case "content":
-				e.Content = ""
+			case "name":
+				return errors.New("cannot add a new name")
 			case "category":
-				tags = filter(tags, func(ss interface{}) bool {
-					for _, s := range value {
-						if s == ss {
-							return true
-						}
-					}
-					return false
-				}).([]string)
+				tags = append(tags, interfacesToStrings(value)...)
+			case "content":
+				strs := interfacesToStrings(value)
+				e.Content += strings.TrimSpace(strings.Join(strs, " "))
+			case "published":
+				if _, ok := e.Metadata["date"]; ok {
+					return errors.New("cannot replace published through add method")
+				}
+				strs := interfacesToStrings(value)
+				e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
 			default:
 				if _, ok := props[key]; !ok {
 					props[key] = []interface{}{}
 				}
 
-				props[key] = filter(props[key], func(ss interface{}) bool {
-					for _, s := range value {
-						if s == ss {
-							return true
-						}
-					}
-					return false
-				}).([]interface{})
+				props[key] = append(props[key], value...)
+			}
+		}
+	}
+
+	if mr.Updates.Delete != nil {
+		if reflect.TypeOf(mr.Updates.Delete).Kind() == reflect.Slice {
+			toDelete, ok := mr.Updates.Delete.([]interface{})
+			if !ok {
+				return errors.New("invalid delete array")
 			}
 
+			for _, key := range toDelete {
+				switch key {
+				case "category":
+					tags = []string{}
+				case "content":
+					e.Content = ""
+				default:
+					delete(props, fmt.Sprint(key))
+				}
+			}
+		} else {
+			toDelete, ok := mr.Updates.Delete.(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("invalid delete object: expected map[string]interaface{}, got: %s", reflect.TypeOf(mr.Updates.Delete))
+			}
+
+			for key, v := range toDelete {
+				value, ok := v.([]interface{})
+				if !ok {
+					return fmt.Errorf("invalid value: expected []interaface{}, got: %s", reflect.TypeOf(value))
+				}
+
+				switch key {
+				case "content":
+					e.Content = ""
+				case "category":
+					tags = filter(tags, func(ss interface{}) bool {
+						for _, s := range value {
+							if s == ss {
+								return false
+							}
+						}
+						return true
+					}).([]string)
+				default:
+					if _, ok := props[key]; !ok {
+						props[key] = []interface{}{}
+					}
+
+					props[key] = filter(props[key], func(ss interface{}) bool {
+						for _, s := range value {
+							if s == ss {
+								return false
+							}
+						}
+						return true
+					}).([]interface{})
+				}
+
+			}
 		}
 	}
 

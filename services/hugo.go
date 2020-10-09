@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -36,7 +39,10 @@ func (h *Hugo) Build(clean bool) error {
 	}
 
 	cmd := exec.Command("hugo", args...)
-	return cmd.Run()
+	cmd.Dir = h.Source
+	out, err := cmd.Output()
+	log.Printf("hugo run: %s", out)
+	return err
 }
 
 func (h *Hugo) SaveEntry(e *HugoEntry) error {
@@ -44,8 +50,13 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 		e.Metadata["properties"] = h.mf2ToInternal(prop)
 	}
 
-	filePath := path.Join(h.Source, "content", e.ID)
-	index := path.Join(filePath, "index.md")
+	filePath := filepath.Join(h.Source, "content", e.ID)
+	err := os.MkdirAll(filePath, 0777)
+	if err != nil {
+		return err
+	}
+
+	index := filepath.Join(filePath, "index.md")
 
 	val, err := yaml.Marshal(&e.Metadata)
 	if err != nil {
@@ -55,9 +66,9 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 	h.Lock()
 	defer h.Unlock()
 
-	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s\n\n---%s", string(val), e.Content)), 0644)
+	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s---\n\n%s", string(val), e.Content)), 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not save entry: %s", err)
 	}
 
 	return nil
@@ -84,15 +95,19 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 		Content:  strings.TrimSpace(splits[1]),
 	}
 
-	err = yaml.Unmarshal([]byte(splits[0]), &entry.Metadata)
+	var metadata map[string]interface{}
+
+	err = yaml.Unmarshal([]byte(splits[0]), &metadata)
 	if err != nil {
 		return nil, err
 	}
 
+	entry.Metadata = metadata
+
 	if props, ok := entry.Metadata["properties"]; ok {
 		entry.Metadata["properties"] = h.internalToMf2(props)
 	} else {
-		entry.Metadata["properties"] = map[string]interface{}{}
+		entry.Metadata["properties"] = map[string][]interface{}{}
 	}
 
 	return entry, nil

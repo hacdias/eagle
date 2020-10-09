@@ -94,7 +94,7 @@ type requestJSON struct {
 	Properties map[string][]interface{} `json:"properties,omitempty"`
 	Replace    map[string][]interface{} `json:"replace,omitempty"`
 	Add        map[string][]interface{} `json:"add,omitempty"`
-	Delete     []interface{}            `json:"delete,omitempty"`
+	Delete     interface{}              `json:"delete,omitempty"`
 }
 
 func parseJSON(body requestJSON) (*Request, error) {

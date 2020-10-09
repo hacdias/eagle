@@ -11,7 +11,7 @@ import (
 
 type Services struct {
 	cfg         *config.Config
-	Git         *Git
+	Git         *GitPlacebo
 	Hugo        *Hugo
 	Media       *Media
 	Notify      *Notify
@@ -28,10 +28,12 @@ func NewServices(c *config.Config) (*Services, error) {
 		return nil, err
 	}
 
-	git := &Git{
-		Mutex:     mutex,
-		Directory: c.Hugo.Source,
-	}
+	// git := &Git{
+	// 	Mutex:     mutex,
+	// 	Directory: c.Hugo.Source,
+	// }
+
+	git := &GitPlacebo{}
 
 	hugo := &Hugo{
 		Mutex: mutex,

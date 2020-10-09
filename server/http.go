@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/middleware/indieauth"
 	"github.com/hacdias/eagle/services"
 )
 
@@ -21,10 +20,12 @@ func Start(c *config.Config, s *services.Services) error {
 
 	r.Use(middleware.Logger)
 
-	auth := indieauth.With(&c.IndieAuth)
+	// auth := indieauth.With(&c.IndieAuth)
 
-	r.With(auth).Get("/micropub", getMicropubHandler(s, c))
-	r.With(auth).Post("/micropub", postMicropubHandler(s, c))
+	r.Get("/micropub", getMicropubHandler(s, c))
+	// r.With(auth).Get("/micropub", getMicropubHandler(s, c))
+	r.Post("/micropub", postMicropubHandler(s, c))
+	// r.With(auth).Post("/micropub", postMicropubHandler(s, c))
 
 	r.Post("/webhook", webhookHandler(s, c))
 	r.Post("/webmention", webmentionHandler(s, c))

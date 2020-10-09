@@ -47,26 +47,31 @@ func micropubSource(s *services.Services, c *config.Config) http.HandlerFunc {
 		}
 
 		entry := map[string]interface{}{
-			"type":       []string{"h-entry"},
-			"properties": post.Metadata["properties"],
+			"type": []string{"h-entry"},
 		}
 
+		props := post.Metadata["properties"].(map[string][]interface{})
+
 		if title, ok := post.Metadata.StringIf("title"); ok {
-			entry["properties"].(map[string]interface{})["name"] = []string{title}
+			props["name"] = []interface{}{title}
 		}
 
 		if tags, ok := post.Metadata.StringsIf("tags"); ok {
-			entry["properties"].(map[string]interface{})["category"] = tags
+			props["category"] = []interface{}{}
+			for _, tag := range tags {
+				props["category"] = append(props["category"], tag)
+			}
 		}
 
 		if date, ok := post.Metadata.StringIf("date"); ok {
-			entry["properties"].(map[string]interface{})["published"] = []string{date}
+			props["published"] = []interface{}{date}
 		}
 
 		if post.Content != "" {
-			entry["properties"].(map[string]interface{})["content"] = []string{post.Content}
+			props["content"] = []interface{}{post.Content}
 		}
 
+		entry["properties"] = props
 		serveJSON(w, http.StatusOK, entry)
 	}
 }

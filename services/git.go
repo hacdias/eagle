@@ -55,3 +55,21 @@ func (g *Git) Pull() error {
 	err := cmd.Run()
 	return err
 }
+
+type GitPlacebo struct{}
+
+func (g *GitPlacebo) Commit(msg string) error {
+	return nil
+}
+
+func (g *GitPlacebo) CommitFile(msg string, files ...string) error {
+	return nil
+}
+
+func (g *GitPlacebo) Push() error {
+	return nil
+}
+
+func (g *GitPlacebo) Pull() error {
+	return nil
+}

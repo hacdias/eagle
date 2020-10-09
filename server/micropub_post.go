@@ -47,6 +47,10 @@ func postMicropubHandler(s *services.Services, c *config.Config) http.HandlerFun
 			serveError(w, code, err)
 		}
 
+		if mr.Action == micropub.ActionCreate {
+			return
+		}
+
 		err = s.Hugo.Build(mr.Action == micropub.ActionDelete)
 		if err != nil {
 			log.Printf("micropub: error hugo build: %s", err)
@@ -68,11 +72,17 @@ func micropubCreate(s *services.Services, c *config.Config) micropubHandlerFunc 
 		}
 
 		url := c.Domain + entry.ID
-		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, url, http.StatusAccepted)
 
 		err = s.Git.Commit("add " + entry.ID)
 		if err != nil {
 			log.Printf("micropub: error git commit: %s", err)
+			s.Notify.Error(err)
+		}
+
+		err = s.Hugo.Build(false)
+		if err != nil {
+			log.Printf("micropub: error hugo build: %s", err)
 			s.Notify.Error(err)
 		}
 
