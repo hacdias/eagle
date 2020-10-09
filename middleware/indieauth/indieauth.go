@@ -34,7 +34,7 @@ func With(prov Provider) func(next http.Handler) http.Handler {
 				return
 			}
 
-			token, err := getToken(prov, bearer)
+			token, err := getToken(r.Context(), prov, bearer)
 			if err != nil {
 				serveJSON(w, http.StatusUnauthorized, oauthError{
 					Error:       "unauthorized",
@@ -113,8 +113,8 @@ type tokenResponse struct {
 	StatusCode       int
 }
 
-func getToken(prov Provider, bearer string) (*tokenResponse, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+func getToken(ctx context.Context, prov Provider, bearer string) (*tokenResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", prov.TokenEndpoint(), nil)
