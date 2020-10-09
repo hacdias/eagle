@@ -52,7 +52,7 @@ module.exports = function createWebmention ({ telegraphToken, domain, git, cdn, 
   const orphansFile = join(hugo.dataDir, 'mentions', 'orphans.json')
   const privateFile = join(hugo.dataDir, 'mentions', 'private.json')
 
-  let redirects = loadRedirects(redirectsFile) || {}
+  let redirects =  {}
 
   const send = async ({ source, targets }) => {
     for (const target of targets) {
