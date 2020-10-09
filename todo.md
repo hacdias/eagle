@@ -16,3 +16,12 @@
 
 - Should I keep the current implementation (Hugo + a bunch of APIs)?
 - Should I move to a completly server-side rendering? Write post!
+
+**TODO**
+- Setup test.hacdias.com
+  - With @hacdias_test
+  - With a testing repository too
+  - On Hetzner
+  - Check ActivityPub
+  - Check webmention suite
+  - Check with new config.yml WITH EVERYTHING FOR testing
