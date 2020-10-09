@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -100,7 +101,10 @@ func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "application/mf2+json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(data)
+		err := json.NewEncoder(w).Encode(data)
+		if err != nil {
+			log.Printf("error while serving json: %s", err)
+		}
 		return true
 	}
 

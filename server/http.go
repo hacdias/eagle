@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -44,7 +45,10 @@ func Start(c *config.Config, s *services.Services) error {
 func serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(data)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		log.Printf("error while serving json: %s", err)
+	}
 }
 
 func serveError(w http.ResponseWriter, code int, err error) {

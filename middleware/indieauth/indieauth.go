@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -84,7 +85,10 @@ type oauthError struct {
 func serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(data)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		log.Printf("error while serving json: %s", err)
+	}
 }
 
 func getBearer(r *http.Request) string {
@@ -144,8 +148,10 @@ func compareHostnames(a string, allowed string) error {
 	if err != nil {
 		return err
 	}
-	if strings.ToLower(h1.Hostname()) != strings.ToLower(allowed) {
+
+	if strings.EqualFold(h1.Hostname(), allowed) {
 		return fmt.Errorf("hostnames do not match, %s is not %s", h1, allowed)
 	}
+
 	return nil
 }
