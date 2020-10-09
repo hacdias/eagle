@@ -79,6 +79,14 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		s.Notify.Error(err)
 	}
 
+	for _, rel := range synd.Related {
+		err = s.XRay.RequestAndSave(rel)
+		if err != nil {
+			s.Warnf("could not xray %s: %s", rel, err)
+			s.Notify.Error(err)
+		}
+	}
+
 	go s.Gossip(entry, synd)
 	s.Debug("micropub: create request ok")
 	return 0, nil
