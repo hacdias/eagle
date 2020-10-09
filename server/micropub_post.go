@@ -64,8 +64,13 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	url := s.c.Domain + entry.ID
-	http.Redirect(w, r, url, http.StatusAccepted)
+	for _, rel := range synd.Related {
+		err = s.XRay.RequestAndSave(rel)
+		if err != nil {
+			s.Warnf("could not xray %s: %s", rel, err)
+			s.Notify.Error(err)
+		}
+	}
 
 	err = s.Store.Persist("add " + entry.ID)
 	if err != nil {
@@ -79,13 +84,8 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		s.Notify.Error(err)
 	}
 
-	for _, rel := range synd.Related {
-		err = s.XRay.RequestAndSave(rel)
-		if err != nil {
-			s.Warnf("could not xray %s: %s", rel, err)
-			s.Notify.Error(err)
-		}
-	}
+	url := s.c.Domain + entry.ID
+	http.Redirect(w, r, url, http.StatusAccepted)
 
 	go s.Gossip(entry, synd)
 	s.Debug("micropub: create request ok")
