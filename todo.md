@@ -1,3 +1,7 @@
+## GOAL: Support Markdown/RAW articles on Micropublish.net
+
+https://github.com/barryf/micropublish/issues/42#issuecomment-704980299
+
 ## GOAL: provide each post in MF2, JF2 and AS2
 
 - **Current implementation**
