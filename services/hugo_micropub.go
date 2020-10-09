@@ -46,6 +46,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 	}
 
 	if content, ok := post.Properties.StringsIf("content"); ok {
+		// TODO: check content like { html: , text: }. Return unsupported for that.
 		entry.Content = strings.TrimSpace(strings.Join(content, "\n"))
 	}
 
