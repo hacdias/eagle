@@ -114,7 +114,10 @@ type tokenResponse struct {
 }
 
 func getToken(prov Provider, bearer string) (*tokenResponse, error) {
-	req, err := http.NewRequest("GET", prov.TokenEndpoint(), nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", prov.TokenEndpoint(), nil)
 	if err != nil {
 		return nil, err
 	}

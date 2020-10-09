@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -13,6 +14,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/config"
 )
@@ -49,7 +51,10 @@ func (x *XRay) Request(opts *XRayRequest) (*xrayResponse, error) {
 		data.Set("body", opts.Body)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, x.Endpoint+"/parse", strings.NewReader(data.Encode()))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.Endpoint+"/parse", strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}

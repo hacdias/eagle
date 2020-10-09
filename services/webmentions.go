@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hashicorp/go-multierror"
@@ -71,7 +73,10 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 		data.Set("source", source)
 		data.Set("target", target)
 
-		req, err := http.NewRequest(http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
 		if err != nil {
 			errors = multierror.Append(errors, err)
 			log.Printf("error creating request: %s", err)

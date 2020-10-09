@@ -1,10 +1,12 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/config"
 )
@@ -18,7 +20,10 @@ func (m *Media) Upload(filename string, data io.Reader) (string, error) {
 		filename = "/" + filename
 	}
 
-	req, err := http.NewRequest(http.MethodPut, "https://storage.bunnycdn.com/"+m.Zone+filename, data)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "https://storage.bunnycdn.com/"+m.Zone+filename, data)
 	if err != nil {
 		return "", err
 	}
