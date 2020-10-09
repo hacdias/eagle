@@ -19,11 +19,6 @@ var typesWithLinks = map[micropub.Type]string{
 	micropub.TypeBookmark: "bookmark-of",
 }
 
-type Syndication struct {
-	Related []string
-	Targets []string
-}
-
 func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, error) {
 	entry := &HugoEntry{
 		Content:  "",
@@ -77,6 +72,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 
 		if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
 			synd = &Syndication{
+				Type:    postType,
 				Related: related,
 				Targets: targets,
 			}
@@ -102,6 +98,11 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 		year := time.Now().Year()
 		month := time.Now().Month()
 		entry.ID = fmt.Sprintf("/%s/%04d/%02d/%s/", section, year, month, slug)
+		permalink, err := h.makeURL(entry.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+		entry.Permalink = permalink
 	} else {
 		return nil, nil, errors.New("post must have a slug")
 	}

@@ -66,5 +66,5 @@ func (h *Hugo) internalToMf2(data interface{}) interface{} {
 		return parsed
 	}
 
-	return data.(map[string][]interface{})
+	return data
 }

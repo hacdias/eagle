@@ -3,8 +3,6 @@ package services
 import (
 	"path"
 
-	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/oauth1"
 	"github.com/hacdias/eagle/config"
 )
 
@@ -16,7 +14,7 @@ type Services struct {
 	Notify      *Notify
 	Webmentions *Webmentions
 	XRay        *XRay
-	Twitter     *twitter.Client
+	Syndicator  Syndicator
 }
 
 func NewServices(c *config.Config) (*Services, error) {
@@ -40,10 +38,11 @@ func NewServices(c *config.Config) (*Services, error) {
 
 	media := &Media{c.BunnyCDN}
 
-	config := oauth1.NewConfig(c.Twitter.Key, c.Twitter.Secret)
-	token := oauth1.NewToken(c.Twitter.Token, c.Twitter.TokenSecret)
+	syndicator := Syndicator{}
 
-	bird := twitter.NewClient(config.Client(oauth1.NoContext, token))
+	if c.Twitter.User != "" {
+		syndicator["https://twitter.com/"+c.Twitter.User] = NewTwitter(&c.Twitter)
+	}
 
 	return &Services{
 		cfg:    c,
@@ -62,6 +61,6 @@ func NewServices(c *config.Config) (*Services, error) {
 			Twitter:     c.Twitter,
 			StoragePath: path.Join(c.Hugo.Source, "data", "xray"),
 		},
-		Twitter: bird,
+		Syndicator: syndicator,
 	}, nil
 }

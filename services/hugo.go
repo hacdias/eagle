@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -16,12 +17,14 @@ import (
 )
 
 type HugoEntry struct {
-	ID       string
-	Metadata typed.Typed
-	Content  string
+	ID        string
+	Permalink string
+	Metadata  typed.Typed
+	Content   string
 }
 
 type Hugo struct {
+	Domain string
 	config.Hugo
 }
 
@@ -39,6 +42,15 @@ func (h *Hugo) Build(clean bool) error {
 		return fmt.Errorf("hugo run failed: %s: %s", err, out)
 	}
 	return nil
+}
+
+func (h *Hugo) makeURL(id string) (string, error) {
+	u, err := url.Parse(h.Domain)
+	if err != nil {
+		return "", err
+	}
+	u.Path = id
+	return u.String(), nil
 }
 
 func (h *Hugo) SaveEntry(e *HugoEntry) error {
@@ -79,10 +91,16 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 		return nil, errors.New("could not parse file: splits !== 2")
 	}
 
+	permalink, err := h.makeURL(id)
+	if err != nil {
+		return nil, err
+	}
+
 	entry := &HugoEntry{
-		ID:       id,
-		Metadata: map[string]interface{}{},
-		Content:  strings.TrimSpace(splits[1]),
+		ID:        id,
+		Permalink: permalink,
+		Metadata:  map[string]interface{}{},
+		Content:   strings.TrimSpace(splits[1]),
 	}
 
 	var metadata map[string]interface{}

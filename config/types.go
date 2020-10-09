@@ -16,6 +16,7 @@ type Config struct {
 }
 
 type Twitter struct {
+	User        string
 	Key         string
 	Secret      string
 	Token       string
