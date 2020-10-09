@@ -24,7 +24,7 @@ const (
 type RequestUpdates struct {
 	Replace map[string][]interface{}
 	Add     map[string][]interface{}
-	Delete  []interface{}
+	Delete  interface{}
 }
 
 type Request struct {

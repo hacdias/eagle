@@ -3,7 +3,9 @@ package services
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -129,98 +131,157 @@ func cleanRelated(urls []string) ([]string, error) {
 	return clean, nil
 }
 
-func (h *Hugo) UpdateMicropub(entry *HugoEntry, mr *micropub.Request) (*HugoEntry, error) {
-	//	tags := []string{}
-	prop := map[string]interface{}{}
+func interfacesToStrings(data []interface{}) []string {
+	res := []string{}
 
-	/* if t, ok := entry.Metadata.StringsIf("tags"); ok {
+	for _, v := range data {
+		switch v.(type) {
+		case string:
+			res = append(res, v.(string))
+		default:
+			log.Printf("convert item from non-string to string: %x", v)
+			res = append(res, fmt.Sprint(v))
+		}
+	}
+
+	return res
+}
+
+func (e *HugoEntry) Update(mr *micropub.Request) error {
+	tags := []string{}
+	props := map[string][]interface{}{}
+
+	if t, ok := e.Metadata.StringsIf("tags"); ok {
 		tags = t
 	}
 
-	if p, ok := entry.Metadata.MapIf("properties"); ok {
-
-	} */
-
-	// TODO
+	if p, ok := e.Metadata.InterfaceIf("properties"); ok {
+		props, ok = p.(map[string][]interface{})
+		if !ok {
+			return errors.New("invalid properties on entry")
+		}
+	}
 
 	for key, value := range mr.Updates.Replace {
 		switch key {
 		case "name":
-			// meta.title = update.replace.name.join(' ').trim()
+			strs := interfacesToStrings(value)
+			e.Metadata["title"] = strings.TrimSpace(strings.Join(strs, " "))
 		case "category":
-			// meta.tags = update.replace.category
+			tags = interfacesToStrings(value)
 		case "content":
-			// content = update.replace.content.join(' ').trim()
+			strs := interfacesToStrings(value)
+			e.Content = strings.TrimSpace(strings.Join(strs, " "))
 		case "published":
-			/*
-					 if (!meta.publishDate && meta.date) {
-				        meta.publishDate = meta.date
-				      }
+			_, hasDate := e.Metadata["date"]
+			_, hasPublishDate := e.Metadata["publishDate"]
 
-							meta.date = new Date(update.replace.published.join(' ').trim())
-			*/
+			if !hasPublishDate && hasDate {
+				e.Metadata["publishDate"] = e.Metadata["date"]
+			}
+
+			strs := interfacesToStrings(value)
+			e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
 		default:
-			prop[key] = value
+			props[key] = value
 		}
 	}
 
-	/*
+	for key, value := range mr.Updates.Add {
+		switch key {
+		case "name":
+			return errors.New("cannot add a new name")
+		case "category":
+			tags = append(tags, interfacesToStrings(value)...)
+		case "content":
+			strs := interfacesToStrings(value)
+			e.Content += strings.TrimSpace(strings.Join(strs, " "))
+		case "published":
+			if _, ok := e.Metadata["date"]; ok {
+				return errors.New("cannot replace published through add method")
+			}
+			strs := interfacesToStrings(value)
+			e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
+		default:
+			if _, ok := props[key]; !ok {
+				props[key] = []interface{}{}
+			}
 
-		  }
+			props[key] = append(props[key], value...)
+		}
+	}
 
-		  for (const key in update.add) {
-		    if (key === 'name') {
-		      throw new Error('cannot add a new name')
-		    } else if (key === 'category') {
-		      meta.tags.push(...update.add.category)
-		    } else if (key === 'content') {
-		      content += update.add.join(' ').trim()
-		    } else if (key === 'published') {
-		      if (!meta.date) {
-		        meta.date = new Date(update.add.published.join(' ').trim())
-		      } else {
-		        throw new Error('cannot replace published through add method')
-		      }
-		    } else {
-		      meta.properties[key] = meta.properties[key] || []
-		      meta.properties[key].push(...update.add[key])
-		    }
-		  }
-
-		  if (Array.isArray(update.delete)) {
-		    for (const key of update.delete) {
-		      if (key === 'category') {
-		        meta.tags = []
-		      } else if (key === 'content') {
-		        content = ''
-		      } else {
-		        delete meta.properties[key]
-		      }
-		    }
-		  } else {
-		    for (const [key, value] of Object.entries(update.delete)) {
-		      if (key === 'content') {
-		        content = ''
-		      } if (key === 'category') {
-		        meta.tags = meta.tags.filter(tag => !value.includes(tag))
-		      } else {
-		        meta.properties[key] = meta.properties[key]
-		          .filter(tag => !value.includes(tag))
-		      }
-		    }
-		  }
-
-		  const res = getModifiers(content.trim())
-		  content = res.content
-
-		  if (res.modifiers.includes('+HOME')) {
-		    meta.home = true
-		  }
-
-		  return { meta, content, modifiers: res.modifiers }
+	if reflect.TypeOf(mr.Updates.Delete).Kind() == reflect.Slice {
+		toDelete, ok := mr.Updates.Delete.([]string)
+		if !ok {
+			return errors.New("invalid delete array")
 		}
 
-	*/
+		for _, key := range toDelete {
+			switch key {
+			case "category":
+				tags = []string{}
+			case "content":
+				e.Content = ""
+			default:
+				delete(props, key)
+			}
+		}
 
-	return nil, nil
+		log.Printf("delete is slice")
+	} else {
+		log.Printf("delete is object")
+
+		toDelete, ok := mr.Updates.Delete.(map[string][]interface{})
+		if !ok {
+			return errors.New("invalid delete object")
+		}
+
+		for key, value := range toDelete {
+			switch key {
+			case "content":
+				e.Content = ""
+			case "category":
+				tags = filter(tags, func(ss interface{}) bool {
+					for _, s := range value {
+						if s == ss {
+							return true
+						}
+					}
+					return false
+				}).([]string)
+			default:
+				if _, ok := props[key]; !ok {
+					props[key] = []interface{}{}
+				}
+
+				props[key] = filter(props[key], func(ss interface{}) bool {
+					for _, s := range value {
+						if s == ss {
+							return true
+						}
+					}
+					return false
+				}).([]interface{})
+			}
+
+		}
+	}
+
+	e.Metadata["tags"] = tags
+	e.Metadata["properties"] = props
+	return nil
+}
+
+func filter(arr interface{}, cond func(interface{}) bool) interface{} {
+	contentType := reflect.TypeOf(arr)
+	contentValue := reflect.ValueOf(arr)
+
+	newContent := reflect.MakeSlice(contentType, 0, 0)
+	for i := 0; i < contentValue.Len(); i++ {
+		if content := contentValue.Index(i); cond(content.Interface()) {
+			newContent = reflect.Append(newContent, content)
+		}
+	}
+	return newContent.Interface()
 }

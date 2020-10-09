@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hacdias/eagle/config"
@@ -82,7 +83,32 @@ func micropubCreate(s *services.Services, c *config.Config) micropubHandlerFunc 
 
 func micropubUpdate(s *services.Services, c *config.Config) micropubHandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-		// TODO(micropub): update handler
+		id := strings.Replace(mr.URL, c.Domain, "", 1)
+		entry, err := s.Hugo.GetEntry(id)
+		if err != nil {
+			log.Printf("micropub: cannot get entry: %s", err)
+			return http.StatusBadRequest, err
+		}
+
+		err = entry.Update(mr)
+		if err != nil {
+			log.Printf("micropub: cannot update entry: %s", err)
+			return http.StatusBadRequest, err
+		}
+
+		err = s.Hugo.SaveEntry(entry)
+		if err != nil {
+			log.Printf("micropub: cannot save entry: %s", err)
+			return http.StatusInternalServerError, err
+		}
+
+		err = s.Git.Commit("update " + entry.ID)
+		if err != nil {
+			log.Printf("micropub: cannot git commit: %s", err)
+			return http.StatusInternalServerError, err
+		}
+
+		http.Redirect(w, r, mr.URL, http.StatusOK)
 		return 0, nil
 	}
 }

@@ -13,6 +13,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/viper v1.7.1
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect
 	gopkg.in/tucnak/telebot.v2 v2.3.4
 	gopkg.in/yaml.v2 v2.3.0
