@@ -3,6 +3,7 @@ package config
 type Config struct {
 	Port         int
 	Domain       string
+	Development  bool
 	Telegraph    Telegraph
 	XRay         XRay
 	Hugo         Hugo

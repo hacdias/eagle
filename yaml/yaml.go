@@ -23,22 +23,22 @@ func Unmarshal(data []byte, v interface{}) error {
 	// and change all maps to map[string]interface{} like we would've
 	// gotten from `json`.
 	var ptr interface{}
-	switch v.(type) {
+	switch v := v.(type) {
 	case *map[string]interface{}:
-		ptr = *v.(*map[string]interface{})
+		ptr = *v
 	case *interface{}:
-		ptr = *v.(*interface{})
+		ptr = *v
 	default:
 		// Not a map.
 	}
 
 	if ptr != nil {
 		if mm, changed := stringifyMapKeys(ptr); changed {
-			switch v.(type) {
+			switch v := v.(type) {
 			case *map[string]interface{}:
-				*v.(*map[string]interface{}) = mm.(map[string]interface{})
+				*v = mm.(map[string]interface{})
 			case *interface{}:
-				*v.(*interface{}) = mm
+				*v = mm
 			}
 		}
 	}

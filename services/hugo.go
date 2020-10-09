@@ -4,13 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
@@ -24,14 +22,10 @@ type HugoEntry struct {
 }
 
 type Hugo struct {
-	*sync.Mutex
 	config.Hugo
 }
 
 func (h *Hugo) Build(clean bool) error {
-	h.Lock()
-	defer h.Unlock()
-
 	args := []string{"--minify", "--destination", h.Destination}
 
 	if clean {
@@ -41,8 +35,10 @@ func (h *Hugo) Build(clean bool) error {
 	cmd := exec.Command("hugo", args...)
 	cmd.Dir = h.Source
 	out, err := cmd.Output()
-	log.Printf("hugo run: %s", out)
-	return err
+	if err != nil {
+		return fmt.Errorf("hugo run failed: %s: %s", err, out)
+	}
+	return nil
 }
 
 func (h *Hugo) SaveEntry(e *HugoEntry) error {
@@ -63,9 +59,6 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 		return err
 	}
 
-	h.Lock()
-	defer h.Unlock()
-
 	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s---\n\n%s", string(val), e.Content)), 0644)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %s", err)
@@ -75,9 +68,6 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 }
 
 func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
-	h.Lock()
-	defer h.Unlock()
-
 	index := path.Join(h.Source, "content", id, "index.md")
 	bytes, err := ioutil.ReadFile(index)
 	if err != nil {
@@ -114,9 +104,6 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 }
 
 func (h *Hugo) GetEntryHTML(id string) ([]byte, error) {
-	h.Lock()
-	defer h.Unlock()
-
 	index := path.Join(h.Destination, id, "index.html")
 	return ioutil.ReadFile(index)
 }

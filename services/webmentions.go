@@ -12,7 +12,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hashicorp/go-multierror"
@@ -57,10 +56,8 @@ type WebmentionPayload struct {
 }
 
 type Webmentions struct {
-	*sync.Mutex
 	Domain    string
 	Telegraph config.Telegraph
-	Git       *GitPlacebo
 	Media     *Media
 	Hugo      *Hugo
 }
@@ -96,9 +93,6 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 }
 
 func (w *Webmentions) Receive(payload *WebmentionPayload) error {
-	w.Lock()
-	defer w.Unlock()
-
 	permalink := strings.Replace(payload.Target, w.Domain, "", 1)
 	storeFile := path.Join(w.Hugo.Source, "content", permalink, "mentions.json")
 
@@ -127,7 +121,7 @@ func (w *Webmentions) Receive(payload *WebmentionPayload) error {
 			}
 		}
 
-		return w.save(newMentions, storeFile, "deleted webmention from "+payload.Source)
+		return w.save(newMentions, storeFile)
 	}
 
 	for _, mention := range mentions {
@@ -170,21 +164,16 @@ func (w *Webmentions) Receive(payload *WebmentionPayload) error {
 	}
 
 	mentions = append(mentions, *wm)
-	return w.save(mentions, storeFile, "received webmention from "+wm.URL)
+	return w.save(mentions, storeFile)
 }
 
-func (w *Webmentions) save(mentions []StoredWebmention, file, msg string) error {
+func (w *Webmentions) save(mentions []StoredWebmention, file string) error {
 	bytes, err := json.MarshalIndent(mentions, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(file, bytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return w.Git.Commit(msg)
+	return ioutil.WriteFile(file, bytes, 0644)
 }
 
 type StoredWebmention struct {

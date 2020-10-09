@@ -13,13 +13,11 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/hacdias/eagle/config"
 )
 
 type XRay struct {
-	*sync.Mutex
 	config.XRay
 	Domain      string
 	StoragePath string
@@ -88,9 +86,6 @@ func (x *XRay) RequestAndSave(url string) error {
 	}
 
 	file := path.Join(x.StoragePath, fmt.Sprintf("%x.json", sha256.Sum256([]byte(url))))
-
-	x.Lock()
-	defer x.Unlock()
 
 	if _, err := os.Stat(file); err == nil {
 		log.Printf("%s already x-rayed: %s", url, file)

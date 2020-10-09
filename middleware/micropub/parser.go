@@ -15,7 +15,7 @@ import (
 type Action string
 
 const (
-	ActionCreate   Action = "create"
+	ActionCreate   Action = "create" //nolint
 	ActionUpdate          = "update"
 	ActionDelete          = "delete"
 	ActionUndelete        = "undelete"

@@ -2,34 +2,37 @@ package services
 
 import (
 	"os/exec"
-	"sync"
 )
 
-type Git struct {
-	*sync.Mutex
+type StorageService interface {
+	// Persist persists the files into the storage. If no files are passed
+	// everything should be persisted.
+	Persist(msg string, files ...string) error
+
+	// Sync syncs the storage with whatever sync service we're using. In case
+	// of a CVS, it might be pull + push.
+	Sync() error
+}
+
+type GitStorage struct {
 	Directory string
 }
 
-func (g *Git) Commit(msg string) error {
-	g.Lock()
-	defer g.Unlock()
-	cmd := exec.Command("git", "add", "-A")
-	cmd.Dir = g.Directory
-	err := cmd.Run()
+func (g *GitStorage) Persist(msg string, files ...string) error {
+	if len(files) == 0 {
+		cmd := exec.Command("git", "add", "-A")
+		cmd.Dir = g.Directory
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
+		cmd = exec.Command("git", "commit", "-m", msg)
+		cmd.Dir = g.Directory
+		err = cmd.Run()
 		return err
 	}
 
-	cmd = exec.Command("git", "commit", "-m", msg)
-	cmd.Dir = g.Directory
-	err = cmd.Run()
-	return err
-}
-
-func (g *Git) CommitFile(msg string, files ...string) error {
-	g.Lock()
-	defer g.Unlock()
 	args := []string{"commit", "-m", msg, "--"}
 	args = append(args, files...)
 	cmd := exec.Command("git", args...)
@@ -38,38 +41,25 @@ func (g *Git) CommitFile(msg string, files ...string) error {
 	return err
 }
 
-func (g *Git) Push() error {
-	g.Lock()
-	defer g.Unlock()
-	cmd := exec.Command("git", "push")
-	cmd.Dir = g.Directory
-	err := cmd.Run()
-	return err
-}
-
-func (g *Git) Pull() error {
-	g.Lock()
-	defer g.Unlock()
+func (g *GitStorage) Sync() error {
 	cmd := exec.Command("git", "pull")
 	cmd.Dir = g.Directory
 	err := cmd.Run()
-	return err
+	if err != nil {
+		return err
+	}
+
+	cmd = exec.Command("git", "push")
+	cmd.Dir = g.Directory
+	return cmd.Run()
 }
 
-type GitPlacebo struct{}
+type PlaceboStorage struct{}
 
-func (g *GitPlacebo) Commit(msg string) error {
+func (p *PlaceboStorage) Persist(msg string, files ...string) error {
 	return nil
 }
 
-func (g *GitPlacebo) CommitFile(msg string, files ...string) error {
-	return nil
-}
-
-func (g *GitPlacebo) Push() error {
-	return nil
-}
-
-func (g *GitPlacebo) Pull() error {
+func (p *PlaceboStorage) Sync() error {
 	return nil
 }

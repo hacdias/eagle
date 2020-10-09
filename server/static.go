@@ -3,13 +3,11 @@ package server
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
-	"github.com/hacdias/eagle/config"
 	"willnorris.com/go/microformats"
 )
 
@@ -32,11 +30,11 @@ func (w *notFoundRedirectRespWr) Write(p []byte) (int, error) {
 	return len(p), nil // Lie that we successfully written it
 }
 
-func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
-	httpdir := http.Dir(c.Hugo.Destination)
+func (s *Server) staticHandler() http.HandlerFunc {
+	httpdir := http.Dir(s.c.Hugo.Destination)
 	fs := http.FileServer(httpdir)
 
-	domain, err := url.Parse(c.Domain)
+	domain, err := url.Parse(s.c.Domain)
 	if err != nil {
 		panic("domain is invalid")
 	}
@@ -103,7 +101,7 @@ func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
-			log.Printf("error while serving json: %s", err)
+			s.Errorf("error while serving json: %s", err)
 		}
 		return true
 	}
@@ -132,7 +130,7 @@ func staticHandler(c *config.Config) func(http.ResponseWriter, *http.Request) {
 
 		if nfw.status == http.StatusNotFound {
 			w.Header().Del("Content-Type") // Let http.ServeFile set the correct header
-			http.ServeFile(w, r, path.Join(c.Hugo.Destination, "404.html"))
+			http.ServeFile(w, r, path.Join(s.c.Hugo.Destination, "404.html"))
 		}
 	}
 }

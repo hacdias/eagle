@@ -136,9 +136,9 @@ func interfacesToStrings(data []interface{}) []string {
 	res := []string{}
 
 	for _, v := range data {
-		switch v.(type) {
+		switch v := v.(type) {
 		case string:
-			res = append(res, v.(string))
+			res = append(res, v)
 		default:
 			log.Printf("convert item from non-string to string: %x", v)
 			res = append(res, fmt.Sprint(v))

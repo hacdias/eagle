@@ -2,7 +2,6 @@ package services
 
 import (
 	"path"
-	"sync"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -11,7 +10,7 @@ import (
 
 type Services struct {
 	cfg         *config.Config
-	Git         *GitPlacebo
+	Store       StorageService
 	Hugo        *Hugo
 	Media       *Media
 	Notify      *Notify
@@ -21,23 +20,22 @@ type Services struct {
 }
 
 func NewServices(c *config.Config) (*Services, error) {
-	mutex := &sync.Mutex{}
-
 	notify, err := NewNotify(&c.Telegram)
 	if err != nil {
 		return nil, err
 	}
 
-	// git := &Git{
-	// 	Mutex:     mutex,
-	// 	Directory: c.Hugo.Source,
-	// }
-
-	git := &GitPlacebo{}
+	var store StorageService
+	if c.Development {
+		store = &PlaceboStorage{}
+	} else {
+		store = &GitStorage{
+			Directory: c.Hugo.Source,
+		}
+	}
 
 	hugo := &Hugo{
-		Mutex: mutex,
-		Hugo:  c.Hugo,
+		Hugo: c.Hugo,
 	}
 
 	media := &Media{c.BunnyCDN}
@@ -49,20 +47,17 @@ func NewServices(c *config.Config) (*Services, error) {
 
 	return &Services{
 		cfg:    c,
-		Git:    git,
+		Store:  store,
 		Hugo:   hugo,
 		Media:  media,
 		Notify: notify,
 		Webmentions: &Webmentions{
-			Mutex:     mutex,
 			Domain:    c.Domain,
 			Telegraph: c.Telegraph,
-			Git:       git,
 			Hugo:      hugo,
 			Media:     media,
 		},
 		XRay: &XRay{
-			Mutex:       mutex,
 			XRay:        c.XRay,
 			Twitter:     c.Twitter,
 			StoragePath: path.Join(c.Hugo.Source, "data", "xray"),

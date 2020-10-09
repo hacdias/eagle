@@ -11,7 +11,7 @@ import (
 type Type string
 
 const (
-	TypeRsvp     Type = "rsvp"
+	TypeRsvp     Type = "rsvp" //nolint
 	TypeRepost        = "repost"
 	TypeLike          = "like"
 	TypeReply         = "reply"
@@ -87,7 +87,7 @@ func DiscoverType(properties typed.Typed) Type {
 
 	// If this processed "name" property value is NOT a prefix of the
 	// processed "content" property, then it is an article post.
-	if strings.Index(content, name) == -1 {
+	if strings.Index(content, name) != 0 {
 		return TypeArticle
 	}
 

@@ -16,6 +16,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log := config.NewLogger(c)
+	defer func() {
+		_ = log.Sync()
+	}()
+
 	s, err := services.NewServices(c)
 	if err != nil {
 		log.Fatal(err)
@@ -24,26 +29,24 @@ func main() {
 	quit := make(chan os.Signal, 1)
 
 	go func() {
-		log.Println("Starting server...")
-		err := server.Start(c, s)
+		log.Info("Starting server")
+		err := server.Start(log.Named("server"), c, s)
 		if err != nil {
-			log.Println("Failed to start server:")
-			log.Println(err)
+			log.Errorf("Failed to start server: %s", err)
 		}
 		quit <- os.Interrupt
 	}()
 
-	log.Println("Starting bot...")
-	bot, err := server.StartBot(&c.Telegram, s)
+	log.Info("Starting bot")
+	bot, err := server.StartBot(log.Named("bot"), &c.Telegram, s)
 	if err != nil {
-		log.Println("Failed to start bot:")
-		log.Println(err)
+		log.Errorf("Failed to start bot: %s", err)
 		quit <- os.Interrupt
 	}
 
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	log.Println("Stopping bot...")
+	log.Info("Stopping bot")
 	bot.Stop()
 }

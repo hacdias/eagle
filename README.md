@@ -45,6 +45,7 @@ https://github.com/barryf/micropublish/issues/42#issuecomment-704980299
 ### GOAL: better logging
 
 - Solution: https://github.com/uber-go/zap
+- Add zap logger to services and middleware
 
 ### Others
 
