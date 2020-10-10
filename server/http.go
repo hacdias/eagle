@@ -28,7 +28,7 @@ func Start(log *zap.SugaredLogger, c *config.Config, s *services.Services) error
 		r.Get("/micropub", server.getMicropubHandler)
 		r.Post("/micropub", server.postMicropubHandler)
 	} else {
-		auth := indieauth.With(&c.IndieAuth)
+		auth := indieauth.With(&c.IndieAuth, log.Named("indieauth"))
 		r.With(auth).Get("/micropub", server.getMicropubHandler)
 		r.With(auth).Post("/micropub", server.postMicropubHandler)
 	}

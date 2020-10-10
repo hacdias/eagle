@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -31,7 +33,14 @@ func NewLogger(c *Config) *zap.SugaredLogger {
 	}
 
 	level := zap.NewAtomicLevelAt(zapcore.InfoLevel)
-	if c.Development {
+
+	debug := false
+	val, ok := os.LookupEnv("DEBUG")
+	if ok && strings.EqualFold(val, "true") {
+		debug = true
+	}
+
+	if c.Development || debug {
 		level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
 	}
 

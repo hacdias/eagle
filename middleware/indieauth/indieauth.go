@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Provider interface {
@@ -22,7 +24,7 @@ const (
 	User key = iota
 )
 
-func With(prov Provider) func(next http.Handler) http.Handler {
+func With(prov Provider, log *zap.SugaredLogger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			bearer := getBearer(r)
@@ -58,6 +60,8 @@ func With(prov Provider) func(next http.Handler) http.Handler {
 					r = r.WithContext(ctx)
 					next.ServeHTTP(w, r)
 					return
+				} else {
+					log.Debug(err)
 				}
 			}
 
