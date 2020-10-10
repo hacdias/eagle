@@ -93,25 +93,29 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	url := s.c.Domain + entry.ID
 	http.Redirect(w, r, url, http.StatusAccepted)
 
-	if synd != nil {
-		go s.gossip(entry, synd)
-	}
-
+	go s.gossip(entry, synd)
 	s.Debug("micropub: create request ok")
 	return 0, nil
 }
 
 func (s *Server) gossip(entry *services.HugoEntry, synd *services.Syndication) {
 	targets, err := s.getWebmentionTargets(entry)
+
 	if err != nil {
 		s.Errorf("gossip: failed to get webmentions targets: %s", err)
 		s.Notify.Error(err)
 	} else {
+		s.Debugf("gossip: found webmention targets: %s", targets)
 		err = s.Webmentions.Send(entry.Permalink, targets...)
 		if err != nil {
 			s.Errorf("gossip: failed to send webmentions: %s", err)
 			s.Notify.Error(err)
 		}
+	}
+
+	if synd == nil {
+		s.Debugf("gossip: synd is nil, skipping syndication")
+		return
 	}
 
 	syndication, err := s.Syndicator.Syndicate(entry, synd)
