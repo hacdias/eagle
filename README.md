@@ -37,15 +37,12 @@ https://github.com/barryf/micropublish/issues/42#issuecomment-704980299
 ### GOAL: search!
 
 - Maybe do a database indexing strategy
+- https://github.com/meilisearch/MeiliSearch
+- https://github.com/meilisearch/meilisearch-go
 - Pros:
   - Easy to search.
 - Cons:
   - Keep up to date with in-disk stuff.
-
-### GOAL: better logging
-
-- Solution: https://github.com/uber-go/zap
-- Add zap logger to services and middleware
 
 ## License
 
