@@ -99,6 +99,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 }
 
 func (s *Server) gossip(entry *services.HugoEntry, synd *services.Syndication) {
+	// The function bellow calls the lock!
 	targets, err := s.getWebmentionTargets(entry)
 
 	if err != nil {
@@ -164,6 +165,9 @@ func (s *Server) gossip(entry *services.HugoEntry, synd *services.Syndication) {
 }
 
 func (s *Server) getWebmentionTargets(entry *services.HugoEntry) ([]string, error) {
+	s.Lock()
+	defer s.Unlock()
+
 	html, err := s.Hugo.GetEntryHTML(entry.ID)
 	if err != nil {
 		return nil, err
@@ -184,15 +188,17 @@ func (s *Server) getWebmentionTargets(entry *services.HugoEntry) ([]string, erro
 
 		u, err := url.Parse(val)
 		if err != nil {
-			// ???
+			targets = append(targets, val)
 			return
 		}
 
-		if u.Host == "" {
-			u.Host = s.c.Domain
+		base, err := url.Parse(entry.Permalink)
+		if err != nil {
+			targets = append(targets, val)
+			return
 		}
 
-		targets = append(targets, u.String())
+		targets = append(targets, base.ResolveReference(u).String())
 	})
 
 	return targets, err
