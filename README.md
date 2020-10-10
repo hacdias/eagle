@@ -47,17 +47,6 @@ https://github.com/barryf/micropublish/issues/42#issuecomment-704980299
 - Solution: https://github.com/uber-go/zap
 - Add zap logger to services and middleware
 
-### Others
-
-**TODO**
-- Setup test.hacdias.com
-  - With @hacdias_test
-  - With a testing repository too
-  - On Hetzner
-  - Check ActivityPub
-  - Check webmention suite
-  - Check with new config.yml WITH EVERYTHING FOR testing
-
 ## License
 
 MIT © Henrique Dias

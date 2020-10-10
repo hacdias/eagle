@@ -269,7 +269,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	entry.Metadata["expiryDate"] = time.Now().String()
+	entry.Metadata["expiryDate"] = time.Now().Format(time.RFC3339)
 
 	err = s.Hugo.SaveEntry(entry)
 	if err != nil {
