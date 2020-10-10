@@ -25,9 +25,9 @@ ENV UID 501
 ENV GID 20
 
 RUN apk update && \
-  apk add --no-cache git ca-certificates && \
+  apk add --no-cache git ca-certificates openssh && \
   addgroup -g $UID eagle && \
-  adduser --system --uid $UID --ingroup eagle --home /eagle eagle && \
+  adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
   mkdir /app && \
   chown eagle:eagle /app
 
