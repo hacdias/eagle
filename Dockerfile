@@ -27,7 +27,7 @@ ENV GID 20
 RUN apk update && \
   apk add --no-cache git ca-certificates && \
   addgroup -g $UID eagle && \
-  adduser --system --uid $UID --ingroup eagle eagle && \
+  adduser --system --uid $UID --ingroup eagle --home /eagle eagle && \
   mkdir /app && \
   chown eagle:eagle /app
 
