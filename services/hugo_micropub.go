@@ -53,7 +53,11 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 	delete(post.Properties, "content")
 	delete(post.Properties, "name")
 
-	var synd *Syndication
+	synd := &Syndication{
+		Type:    postType,
+		Related: []string{},
+		Targets: []string{},
+	}
 
 	switch postType {
 	case micropub.TypeRepost, micropub.TypeLike, micropub.TypeReply, micropub.TypeBookmark:
@@ -61,22 +65,19 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 		if !ok {
 			return nil, nil, errors.New("type " + string(postType) + " must refer to some link")
 		}
-		related, err := cleanRelated(links)
+		var err error
+		synd.Related, err = cleanRelated(links)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		if len(related) > 0 {
-			post.Properties[typesWithLinks[postType]] = related
+		if len(synd.Related) > 0 {
+			post.Properties[typesWithLinks[postType]] = synd.Related
 		}
+	}
 
-		if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
-			synd = &Syndication{
-				Type:    postType,
-				Related: related,
-				Targets: targets,
-			}
-		}
+	if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
+		synd.Targets = targets
 	}
 
 	if categories, ok := post.Properties.StringsIf("category"); ok {

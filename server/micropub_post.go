@@ -68,13 +68,11 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	if synd != nil {
-		for _, rel := range synd.Related {
-			err = s.XRay.RequestAndSave(rel)
-			if err != nil {
-				s.Warnf("could not xray %s: %s", rel, err)
-				s.Notify.Error(err)
-			}
+	for _, rel := range synd.Related {
+		err = s.XRay.RequestAndSave(rel)
+		if err != nil {
+			s.Warnf("could not xray %s: %s", rel, err)
+			s.Notify.Error(err)
 		}
 	}
 
@@ -112,11 +110,6 @@ func (s *Server) gossip(entry *services.HugoEntry, synd *services.Syndication) {
 			s.Errorf("gossip: failed to send webmentions: %s", err)
 			s.Notify.Error(err)
 		}
-	}
-
-	if synd == nil {
-		s.Debugf("gossip: synd is nil, skipping syndication")
-		return
 	}
 
 	syndication, err := s.Syndicator.Syndicate(entry, synd)
