@@ -1,8 +1,10 @@
 package services
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -10,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
@@ -26,21 +29,43 @@ type HugoEntry struct {
 type Hugo struct {
 	Domain string
 	config.Hugo
+	DirChanges    chan string
+	currentSubDir string
+}
+
+func generateHash() string {
+	h := fnv.New64a()
+	// the implementation does not return errors
+	_, _ = h.Write([]byte(time.Now().UTC().String()))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func (h *Hugo) Build(clean bool) error {
-	args := []string{"--minify", "--destination", h.Destination}
-
-	if clean {
-		args = append(args, "--gc", "--cleanDestinationDir")
+	dir := h.currentSubDir
+	new := false
+	if dir == "" || clean {
+		new = true
+		dir = generateHash()
 	}
+
+	destination := filepath.Join(h.Destination, dir)
+	args := []string{"--minify", "--destination", destination}
 
 	cmd := exec.Command("hugo", args...)
 	cmd.Dir = h.Source
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
+
 	if err != nil {
 		return fmt.Errorf("hugo run failed: %s: %s", err, out)
 	}
+
+	if new {
+		// We build to a different sub directory so we can change the directory
+		// we are serving seamlessly without users noticing. Check server/satic.go!
+		h.currentSubDir = dir
+		h.DirChanges <- filepath.Join(h.Destination, h.currentSubDir)
+	}
+
 	return nil
 }
 

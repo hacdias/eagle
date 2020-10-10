@@ -2,3 +2,4 @@
 *.md
 Dockerfile
 eagle
+docker-compose.yml

@@ -28,8 +28,8 @@ RUN apk update && \
   apk add --no-cache git ca-certificates openssh && \
   addgroup -g $UID eagle && \
   adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
-  mkdir /app && \
-  chown eagle:eagle /app
+  mkdir /app /app/source /app/public && \
+  chown -R eagle:eagle /app
 
 USER eagle
 

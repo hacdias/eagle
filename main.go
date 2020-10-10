@@ -27,26 +27,27 @@ func main() {
 	}
 
 	quit := make(chan os.Signal, 1)
+	server := server.NewServer(log.Named("server"), c, s)
 
 	go func() {
-		log.Info("Starting server")
-		err := server.Start(log.Named("server"), c, s)
+		log.Info("starting server")
+		err := server.StartHTTP()
 		if err != nil {
-			log.Errorf("Failed to start server: %s", err)
+			log.Errorf("failed to start server: %s", err)
 		}
 		quit <- os.Interrupt
 	}()
 
-	log.Info("Starting bot")
-	bot, err := server.StartBot(log.Named("bot"), &c.Telegram, s)
+	log.Info("starting bot")
+	bot, err := server.StartBot()
 	if err != nil {
-		log.Errorf("Failed to start bot: %s", err)
+		log.Errorf("failed to start bot: %s", err)
 		quit <- os.Interrupt
 	}
 
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	log.Info("Stopping bot")
+	log.Info("stopping bot")
 	bot.Stop()
 }

@@ -7,14 +7,15 @@ import (
 )
 
 type Services struct {
-	cfg         *config.Config
-	Store       StorageService
-	Hugo        *Hugo
-	Media       *Media
-	Notify      *Notify
-	Webmentions *Webmentions
-	XRay        *XRay
-	Syndicator  Syndicator
+	PublicDirChanges chan string
+	cfg              *config.Config
+	Store            StorageService
+	Hugo             *Hugo
+	Media            *Media
+	Notify           *Notify
+	Webmentions      *Webmentions
+	XRay             *XRay
+	Syndicator       Syndicator
 }
 
 func NewServices(c *config.Config) (*Services, error) {
@@ -32,8 +33,11 @@ func NewServices(c *config.Config) (*Services, error) {
 		}
 	}
 
+	dirChanges := make(chan string)
+
 	hugo := &Hugo{
-		Hugo: c.Hugo,
+		Hugo:       c.Hugo,
+		DirChanges: dirChanges,
 	}
 
 	media := &Media{c.BunnyCDN}
@@ -45,11 +49,12 @@ func NewServices(c *config.Config) (*Services, error) {
 	}
 
 	return &Services{
-		cfg:    c,
-		Store:  store,
-		Hugo:   hugo,
-		Media:  media,
-		Notify: notify,
+		PublicDirChanges: dirChanges,
+		cfg:              c,
+		Store:            store,
+		Hugo:             hugo,
+		Media:            media,
+		Notify:           notify,
 		Webmentions: &Webmentions{
 			Domain:    c.Domain,
 			Telegraph: c.Telegraph,

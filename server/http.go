@@ -5,39 +5,32 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/middleware/indieauth"
-	"github.com/hacdias/eagle/services"
-	"go.uber.org/zap"
 )
 
-// NOTE: instead of having many functions returning http.handleFunc, maybe I can
-// have a global Server struct that has all handlers associated. That way, I don't
-// need to pass the data to everything.
-
-func Start(log *zap.SugaredLogger, c *config.Config, s *services.Services) error {
-	server := Server{
-		SugaredLogger: log,
-		Services:      s,
-		c:             c,
-	}
-
+func (s *Server) StartHTTP() error {
 	r := chi.NewRouter()
 
-	if c.Development {
-		r.Get("/micropub", server.getMicropubHandler)
-		r.Post("/micropub", server.postMicropubHandler)
+	if s.c.Development {
+		r.Get("/micropub", s.getMicropubHandler)
+		r.Post("/micropub", s.postMicropubHandler)
 	} else {
-		auth := indieauth.With(&c.IndieAuth, log.Named("indieauth"))
-		r.With(auth).Get("/micropub", server.getMicropubHandler)
-		r.With(auth).Post("/micropub", server.postMicropubHandler)
+		auth := indieauth.With(&s.c.IndieAuth, s.Named("indieauth"))
+		r.With(auth).Get("/micropub", s.getMicropubHandler)
+		r.With(auth).Post("/micropub", s.postMicropubHandler)
 	}
 
-	r.Post("/webhook", server.webhookHandler)
-	r.Post("/webmention", server.webmentionHandler)
-	r.Post("/activitypub/inbox", server.activityPubInboxHandler)
+	r.Post("/webhook", s.webhookHandler)
+	r.Post("/webmention", s.webmentionHandler)
+	r.Post("/activitypub/inbox", s.activityPubInboxHandler)
 
-	static := server.staticHandler()
+	// Make sure we have a built version!
+	err := s.Hugo.Build(false)
+	if err != nil {
+		return err
+	}
+
+	static := s.staticHandler()
 
 	r.NotFound(static)
 	r.MethodNotAllowed(static)
@@ -46,6 +39,6 @@ func Start(log *zap.SugaredLogger, c *config.Config, s *services.Services) error
 	//	- Should I handle /now dynamicall?
 	//	- Should I handle all redirects dynamically?
 
-	log.Infof("Listening on http://localhost:%d", c.Port)
-	return http.ListenAndServe(":"+strconv.Itoa(c.Port), r)
+	s.Infof("Listening on http://localhost:%d", s.c.Port)
+	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), r)
 }

@@ -4,15 +4,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/services"
-	"go.uber.org/zap"
+	"github.com/prometheus/common/log"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func StartBot(log *zap.SugaredLogger, c *config.Telegram, s *services.Services) (*tb.Bot, error) {
+func (s *Server) StartBot() (*tb.Bot, error) {
 	b, err := tb.NewBot(tb.Settings{
-		Token:  c.Token,
+		Token:  s.c.Telegram.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 
@@ -28,8 +26,8 @@ func StartBot(log *zap.SugaredLogger, c *config.Telegram, s *services.Services) 
 
 	checkUser := func(fn func(m *tb.Message)) func(m *tb.Message) {
 		return func(m *tb.Message) {
-			if m.Chat.ID != c.ChatID {
-				_, err := b.Send(m.Sender, "This bot is not intended to you. Bye!")
+			if m.Chat.ID != s.c.Telegram.ChatID {
+				_, err := b.Send(m.Sender, "This bot is not intended to you. 👋")
 				logIfErr(err)
 			} else {
 				fn(m)
@@ -47,7 +45,7 @@ func StartBot(log *zap.SugaredLogger, c *config.Telegram, s *services.Services) 
 		if err != nil {
 			s.Notify.Error(err)
 		} else {
-			s.Notify.Info("Sync was successfull!")
+			s.Notify.Info("Sync was successfull! ⚡️")
 		}
 	}))
 
@@ -57,7 +55,7 @@ func StartBot(log *zap.SugaredLogger, c *config.Telegram, s *services.Services) 
 		if err != nil {
 			s.Notify.Error(err)
 		} else {
-			s.Notify.Info("Build was successfull!")
+			s.Notify.Info("Build was successfull! 💪")
 		}
 	}))
 

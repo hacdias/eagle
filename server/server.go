@@ -14,7 +14,27 @@ type Server struct {
 	sync.Mutex
 	*zap.SugaredLogger
 	*services.Services
-	c *config.Config
+	c       *config.Config
+	httpdir http.Dir
+}
+
+func NewServer(log *zap.SugaredLogger, c *config.Config, s *services.Services) *Server {
+	server := &Server{
+		SugaredLogger: log,
+		Services:      s,
+		c:             c,
+	}
+
+	go func() {
+		log.Info("waiting for new directories")
+		for dir := range s.PublicDirChanges {
+			log.Infof("received new public directory: %s", dir)
+			server.httpdir = http.Dir(dir)
+		}
+		log.Info("stopped waiting for new directories, channel closed")
+	}()
+
+	return server
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {

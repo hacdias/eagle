@@ -31,9 +31,6 @@ func (w *notFoundRedirectRespWr) Write(p []byte) (int, error) {
 }
 
 func (s *Server) staticHandler() http.HandlerFunc {
-	httpdir := http.Dir(s.c.Hugo.Destination)
-	fs := http.FileServer(httpdir)
-
 	domain, err := url.Parse(s.c.Domain)
 	if err != nil {
 		panic("domain is invalid")
@@ -41,7 +38,7 @@ func (s *Server) staticHandler() http.HandlerFunc {
 
 	findActivity := func(url string) string {
 		filepath := path.Join(url, "index.as2")
-		if fd, err := httpdir.Open(filepath); err == nil {
+		if fd, err := s.httpdir.Open(filepath); err == nil {
 			fd.Close()
 			return filepath
 		}
@@ -54,7 +51,7 @@ func (s *Server) staticHandler() http.HandlerFunc {
 			url = path.Join(url, "index.html")
 		}
 
-		fd, err := httpdir.Open(url)
+		fd, err := s.httpdir.Open(url)
 		if err != nil {
 			return nil
 		}
@@ -126,7 +123,7 @@ func (s *Server) staticHandler() http.HandlerFunc {
 		}
 
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
-		fs.ServeHTTP(nfw, r)
+		http.FileServer(s.httpdir).ServeHTTP(nfw, r)
 
 		if nfw.status == http.StatusNotFound {
 			w.Header().Del("Content-Type") // Let http.ServeFile set the correct header
