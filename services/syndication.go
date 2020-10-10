@@ -8,6 +8,7 @@ import (
 )
 
 type SyndicationService interface {
+	Name() string
 	Syndicate(entry *HugoEntry, typ micropub.Type, related string) (string, error)
 	IsRelated(url string) bool
 }

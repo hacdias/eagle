@@ -7,13 +7,6 @@ import (
 )
 
 func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
-	config := map[string]interface{}{
-		"syndicate-to": map[string]interface{}{
-			"uid":  "twitter",
-			"name": "Twitter",
-		},
-	}
-
 	switch r.URL.Query().Get("q") {
 	case "source":
 		s.Lock()
@@ -21,6 +14,18 @@ func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
 
 		s.micropubSource(w, r)
 	case "config", "syndicate-to":
+		syndications := []map[string]string{}
+		for id, service := range s.Syndicator {
+			syndications = append(syndications, map[string]string{
+				"uid":  id,
+				"name": service.Name(),
+			})
+		}
+
+		config := map[string]interface{}{
+			"syndicate-to": syndications,
+		}
+
 		s.serveJSON(w, http.StatusOK, config)
 	default:
 		w.WriteHeader(http.StatusNotFound)

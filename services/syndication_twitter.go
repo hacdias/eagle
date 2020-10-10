@@ -89,3 +89,7 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 func (t *Twitter) IsRelated(url string) bool {
 	return strings.HasPrefix(url, "https://twitter.com")
 }
+
+func (t *Twitter) Name() string {
+	return "Twitter (@" + t.User + ")"
+}
