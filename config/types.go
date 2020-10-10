@@ -13,6 +13,7 @@ type Config struct {
 	WebmentionIO WebmentionIO
 	Webhook      Webhook
 	IndieAuth    IndieAuth
+	MeiliSearch  *MeiliSearch
 }
 
 type Twitter struct {
@@ -66,4 +67,9 @@ type Telegraph struct {
 
 type XRay struct {
 	Endpoint string
+}
+
+type MeiliSearch struct {
+	Endpoint string
+	Key      string
 }

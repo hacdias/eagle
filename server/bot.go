@@ -59,6 +59,27 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		}
 	}))
 
+	b.Handle("/reindex", checkUser(func(m *tb.Message) {
+		if s.MeiliSearch == nil {
+			s.Notify.Info("MeiliSearch is not implemented!")
+			return
+		}
+		// TODO: should lock?
+		entries, err := s.Hugo.GetAll()
+		if err != nil {
+			s.Notify.Error(err)
+			return
+		}
+
+		err = s.MeiliSearch.Add(entries)
+		if err != nil {
+			s.Notify.Error(err)
+			return
+		}
+
+		s.Notify.Info("Successfully indexed! 🔎")
+	}))
+
 	go b.Start()
 	return b, nil
 }

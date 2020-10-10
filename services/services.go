@@ -16,6 +16,7 @@ type Services struct {
 	Webmentions      *Webmentions
 	XRay             *XRay
 	Syndicator       Syndicator
+	MeiliSearch      *MeiliSearch
 }
 
 func NewServices(c *config.Config) (*Services, error) {
@@ -48,7 +49,7 @@ func NewServices(c *config.Config) (*Services, error) {
 		syndicator["https://twitter.com/"+c.Twitter.User] = NewTwitter(&c.Twitter)
 	}
 
-	return &Services{
+	services := &Services{
 		PublicDirChanges: dirChanges,
 		cfg:              c,
 		Store:            store,
@@ -67,5 +68,14 @@ func NewServices(c *config.Config) (*Services, error) {
 			StoragePath: path.Join(c.Hugo.Source, "data", "xray"),
 		},
 		Syndicator: syndicator,
-	}, nil
+	}
+
+	if c.MeiliSearch != nil {
+		services.MeiliSearch, err = NewMeiliSearch(c.MeiliSearch)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return services, nil
 }

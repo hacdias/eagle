@@ -150,3 +150,28 @@ func (h *Hugo) GetEntryHTML(id string) ([]byte, error) {
 	index := path.Join(h.Destination, id, "index.html")
 	return ioutil.ReadFile(index)
 }
+
+func (h *Hugo) GetAll() ([]*HugoEntry, error) {
+	entries := []*HugoEntry{}
+	content := path.Join(h.Source, "content")
+
+	err := filepath.Walk(h.Source, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.Name() != "index.md" {
+			return nil
+		}
+
+		id := strings.TrimPrefix(path.Dir(p), content)
+		entry, err := h.GetEntry(id)
+		if err != nil {
+			return err
+		}
+
+		entries = append(entries, entry)
+		return nil
+	})
+
+	return entries, err
+}
