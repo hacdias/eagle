@@ -19,10 +19,6 @@ type Twitter struct {
 	client *http.Client
 }
 
-type twitterResp struct {
-	ID string `json:"id_str"`
-}
-
 func NewTwitter(opts *config.Twitter) *Twitter {
 	config := oauth1.NewConfig(opts.Key, opts.Secret)
 	token := oauth1.NewToken(opts.Token, opts.TokenSecret)
