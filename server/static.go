@@ -151,9 +151,9 @@ func (s *Server) staticHandler() http.HandlerFunc {
 			s.tryMf2(w, r)
 		}
 
-		if stat, err := s.fs.Stat(r.URL.Path); err == nil && stat.IsDir() {
+		/* if stat, err := s.fs.Stat(r.URL.Path); err == nil && stat.IsDir() {
 			r.URL.Path = "/404.html"
-		}
+		} */
 
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
 		s.httpdir.ServeHTTP(nfw, r)
