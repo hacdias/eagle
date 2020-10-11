@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"errors"
 	"net/http"
 	"net/url"
@@ -277,16 +276,16 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry) {
 	s.Debug("webmentions: entered")
 
 	s.Lock()
-	html, err := s.getHTML(entry.ID)
-	if err != nil {
+	reader := s.getHTML(entry.ID)
+	if reader != nil {
 		s.Unlock()
 		return
 	}
-	s.Unlock()
 
 	s.Debugw("webmentions: got HTML", "entry", entry.ID)
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+	doc, err := goquery.NewDocumentFromReader(reader)
+	s.Unlock()
 	if err != nil {
 		return
 	}
