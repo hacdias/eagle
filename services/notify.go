@@ -1,19 +1,22 @@
 package services
 
 import (
-	"log"
-
 	"github.com/hacdias/eagle/config"
+	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 type Notify struct {
+	*zap.SugaredLogger
 	*config.Telegram
 	b *tb.Bot
 }
 
-func NewNotify(c *config.Telegram) (*Notify, error) {
-	n := &Notify{Telegram: c}
+func NewNotify(c *config.Telegram, log *zap.SugaredLogger) (*Notify, error) {
+	n := &Notify{
+		Telegram:      c,
+		SugaredLogger: log,
+	}
 	b, err := tb.NewBot(tb.Settings{Token: n.Token})
 	if err != nil {
 		return nil, err
@@ -30,7 +33,7 @@ func (n *Notify) Info(msg string) {
 	})
 
 	if err != nil {
-		log.Printf("could not notify: %s", err)
+		n.Errorf("could not notify: %s", err)
 	}
 }
 
@@ -41,6 +44,6 @@ func (n *Notify) Error(err error) {
 	})
 
 	if err2 != nil {
-		log.Printf("could not notify: %s", err2)
+		n.Errorf("could not notify: %s", err2)
 	}
 }

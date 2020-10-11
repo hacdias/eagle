@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,9 +16,11 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/config"
+	"go.uber.org/zap"
 )
 
 type XRay struct {
+	*zap.SugaredLogger
 	config.XRay
 	Domain      string
 	StoragePath string
@@ -93,7 +94,7 @@ func (x *XRay) RequestAndSave(url string) error {
 	file := path.Join(x.StoragePath, fmt.Sprintf("%x.json", sha256.Sum256([]byte(url))))
 
 	if _, err := os.Stat(file); err == nil {
-		log.Printf("%s already x-rayed: %s", url, file)
+		x.Infof("%s already x-rayed: %s", url, file)
 		return nil
 	}
 
@@ -120,6 +121,6 @@ func (x *XRay) RequestAndSave(url string) error {
 		return err
 	}
 
-	log.Printf("%s x-rayed successfully", url)
+	x.Infof("%s x-rayed successfully", url)
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -29,7 +28,7 @@ func With(prov Provider, log *zap.SugaredLogger) func(next http.Handler) http.Ha
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			bearer := getBearer(r)
 			if len(bearer) == 0 {
-				serveJSON(w, http.StatusUnauthorized, oauthError{
+				serveJSON(w, log, http.StatusUnauthorized, oauthError{
 					Error:       "unauthorized",
 					Description: "missing authentication token",
 				})
@@ -38,7 +37,7 @@ func With(prov Provider, log *zap.SugaredLogger) func(next http.Handler) http.Ha
 
 			token, err := getToken(r.Context(), prov, bearer)
 			if err != nil {
-				serveJSON(w, http.StatusUnauthorized, oauthError{
+				serveJSON(w, log, http.StatusUnauthorized, oauthError{
 					Error:       "unauthorized",
 					Description: err.Error(),
 				})
@@ -46,7 +45,7 @@ func With(prov Provider, log *zap.SugaredLogger) func(next http.Handler) http.Ha
 			}
 
 			if token.StatusCode != http.StatusOK {
-				serveJSON(w, http.StatusUnauthorized, oauthError{
+				serveJSON(w, log, http.StatusUnauthorized, oauthError{
 					Error:       "unauthorized",
 					Description: "failed to retrieve authentication information",
 				})
@@ -65,7 +64,7 @@ func With(prov Provider, log *zap.SugaredLogger) func(next http.Handler) http.Ha
 				}
 			}
 
-			serveJSON(w, http.StatusForbidden, oauthError{
+			serveJSON(w, log, http.StatusForbidden, oauthError{
 				Error:       "forbidden",
 				Description: "user not allowed",
 			})
@@ -86,12 +85,12 @@ type oauthError struct {
 	Description string `json:"error_description"`
 }
 
-func serveJSON(w http.ResponseWriter, code int, data interface{}) {
+func serveJSON(w http.ResponseWriter, log *zap.SugaredLogger, code int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		log.Printf("error while serving json: %s", err)
+		log.Warnf("error while serving json: %s", err)
 	}
 }
 

@@ -21,7 +21,7 @@ func main() {
 		_ = log.Sync()
 	}()
 
-	s, err := services.NewServices(c)
+	s, err := services.NewServices(c, log)
 	if err != nil {
 		log.Fatal(err)
 	}

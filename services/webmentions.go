@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hashicorp/go-multierror"
+	"go.uber.org/zap"
 )
 
 var webmentionTypes = map[string]string{
@@ -58,6 +58,7 @@ type WebmentionPayload struct {
 }
 
 type Webmentions struct {
+	*zap.SugaredLogger
 	Domain    string
 	Telegraph config.Telegraph
 	Media     *Media
@@ -80,7 +81,7 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
 			if err != nil {
 				errors = multierror.Append(errors, err)
-				log.Printf("error creating request: %s", err)
+				w.Errorf("error creating request: %s", err)
 				return
 			}
 
@@ -90,7 +91,7 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 
 			_, err = http.DefaultClient.Do(req)
 			if err != nil {
-				log.Printf("could not post telegraph: %s ==> %s: %s", source, target, err)
+				w.Warnf("could not post telegraph: %s ==> %s: %s", source, target, err)
 				errors = multierror.Append(errors, err)
 			}
 		}()
@@ -133,7 +134,7 @@ func (w *Webmentions) Receive(payload *WebmentionPayload) error {
 
 	for _, mention := range mentions {
 		if mention.ID == payload.Post.WmID {
-			log.Printf("duplicated webmention for %s: %d", permalink, payload.Post.WmID)
+			w.Infof("duplicated webmention for %s: %d", permalink, payload.Post.WmID)
 			return nil
 		}
 	}
@@ -198,14 +199,14 @@ func (w *Webmentions) uploadPhoto(url string) string {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Printf("could not upload photo to cdn: %s", url)
+		w.Warnf("could not fetch author photo: %s", url)
 		return url
 	}
 	defer resp.Body.Close()
 
 	newURL, err := w.Media.Upload("/webmentions/"+base+ext, resp.Body)
 	if err != nil {
-		log.Printf("could not upload photo to cdn: %s", url)
+		w.Errorf("could not upload photo to cdn: %s", url)
 		return url
 	}
 	return newURL

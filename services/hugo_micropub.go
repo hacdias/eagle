@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"reflect"
 	"strings"
@@ -142,7 +141,6 @@ func interfacesToStrings(data []interface{}) []string {
 		case string:
 			res = append(res, v)
 		default:
-			log.Printf("convert item from non-string to string: %x", v)
 			res = append(res, fmt.Sprint(v))
 		}
 	}
