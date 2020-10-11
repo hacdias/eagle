@@ -59,17 +59,20 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		}
 	}))
 
-	b.Handle("/index-search", checkUser(func(m *tb.Message) {
+	b.Handle("/buildidx", checkUser(func(m *tb.Message) {
 		if s.MeiliSearch == nil {
 			s.Notify.Info("MeiliSearch is not implemented!")
 			return
 		}
-		// TODO: should lock?
+
+		s.Lock()
 		entries, err := s.Hugo.GetAll()
 		if err != nil {
 			s.Notify.Error(err)
+			s.Unlock()
 			return
 		}
+		s.Unlock()
 
 		err = s.MeiliSearch.Add(entries...)
 		if err != nil {
@@ -80,7 +83,7 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		s.Notify.Info("Successfully indexed! 🔎")
 	}))
 
-	b.Handle("/delete-searchh", checkUser(func(m *tb.Message) {
+	b.Handle("/deleteidx", checkUser(func(m *tb.Message) {
 		if s.MeiliSearch == nil {
 			s.Notify.Info("MeiliSearch is not implemented!")
 			return

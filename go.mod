@@ -13,6 +13,7 @@ require (
 	github.com/prometheus/common v0.4.0
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/viper v1.7.1
+	github.com/writeas/go-strip-markdown v2.0.1+incompatible
 	go.uber.org/zap v1.16.0
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect

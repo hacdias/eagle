@@ -5,6 +5,7 @@ import (
 
 	"github.com/hacdias/eagle/config"
 	"github.com/meilisearch/meilisearch-go"
+	stripmd "github.com/writeas/go-strip-markdown"
 )
 
 const meiliSearchIndex = "posts"
@@ -69,10 +70,16 @@ func (ms *MeiliSearch) Add(entries ...*HugoEntry) error {
 			title = t
 		}
 
+		date := ""
+		if d, ok := entry.Metadata.StringIf("date"); ok {
+			date = d
+		}
+
 		docs = append(docs, map[string]interface{}{
 			meiliSearchKey: hex.EncodeToString([]byte(entry.ID)),
 			"title":        title,
-			"content":      entry.Content,
+			"date":         date,
+			"content":      stripmd.Strip(entry.Content),
 			"tags":         tags,
 		})
 	}
@@ -97,7 +104,7 @@ func (ms *MeiliSearch) Search(query string, page int) ([]interface{}, error) {
 		Offset:           int64(page * 20),
 		Limit:            20,
 		AttributesToCrop: []string{"content"},
-		CropLength:       500,
+		CropLength:       200,
 	})
 
 	if err != nil {
