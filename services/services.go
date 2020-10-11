@@ -4,7 +4,6 @@ import (
 	"path"
 
 	"github.com/hacdias/eagle/config"
-	"go.uber.org/zap"
 )
 
 type Services struct {
@@ -20,8 +19,8 @@ type Services struct {
 	MeiliSearch      *MeiliSearch
 }
 
-func NewServices(c *config.Config, log *zap.SugaredLogger) (*Services, error) {
-	notify, err := NewNotify(&c.Telegram, log.Named("telegram"))
+func NewServices(c *config.Config) (*Services, error) {
+	notify, err := NewNotify(&c.Telegram, c.S().Named("telegram"))
 	if err != nil {
 		return nil, err
 	}
@@ -59,14 +58,14 @@ func NewServices(c *config.Config, log *zap.SugaredLogger) (*Services, error) {
 		Media:            media,
 		Notify:           notify,
 		Webmentions: &Webmentions{
-			SugaredLogger: log.Named("webmentions"),
+			SugaredLogger: c.S().Named("webmentions"),
 			Domain:        c.Domain,
 			Telegraph:     c.Telegraph,
 			Hugo:          hugo,
 			Media:         media,
 		},
 		XRay: &XRay{
-			SugaredLogger: log.Named("xray"),
+			SugaredLogger: c.S().Named("xray"),
 			XRay:          c.XRay,
 			Twitter:       c.Twitter,
 			StoragePath:   path.Join(c.Hugo.Source, "data", "xray"),

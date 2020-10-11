@@ -23,17 +23,17 @@ type Server struct {
 	httpdir http.Handler
 }
 
-func NewServer(log *zap.SugaredLogger, c *config.Config, s *services.Services) *Server {
+func NewServer(c *config.Config, s *services.Services) *Server {
 	server := &Server{
-		SugaredLogger: log,
+		SugaredLogger: c.S().Named("server"),
 		Services:      s,
 		c:             c,
 	}
 
 	go func() {
-		log.Info("waiting for new directories")
+		server.Info("waiting for new directories")
 		for dir := range s.PublicDirChanges {
-			log.Infof("received new public directory: %s", dir)
+			server.Infof("received new public directory: %s", dir)
 			oldDir := server.dir
 
 			// TODO: should this be locked somehow?
@@ -43,11 +43,11 @@ func NewServer(log *zap.SugaredLogger, c *config.Config, s *services.Services) *
 
 			err := os.RemoveAll(oldDir)
 			if err != nil {
-				log.Warnf("could not delete old directory: %s", err)
+				server.Warnf("could not delete old directory: %s", err)
 				s.Notify.Error(err)
 			}
 		}
-		log.Info("stopped waiting for new directories, channel closed")
+		server.Info("stopped waiting for new directories, channel closed")
 	}()
 
 	return server

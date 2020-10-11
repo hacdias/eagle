@@ -1,6 +1,9 @@
 package config
 
+import "go.uber.org/zap"
+
 type Config struct {
+	logger       *zap.Logger `mapstructure:"-"`
 	Port         int
 	Domain       string
 	Development  bool
@@ -14,6 +17,14 @@ type Config struct {
 	Webhook      Webhook
 	IndieAuth    IndieAuth
 	MeiliSearch  *MeiliSearch
+}
+
+func (c *Config) S() *zap.SugaredLogger {
+	return c.logger.Sugar()
+}
+
+func (c *Config) L() *zap.Logger {
+	return c.logger
 }
 
 type Twitter struct {

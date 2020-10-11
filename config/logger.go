@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewLogger(c *Config) *zap.SugaredLogger {
+func (c *Config) setupLogger() {
 	encConfig := zap.NewDevelopmentEncoderConfig()
 	encConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encConfig.EncodeCaller = nil
@@ -49,7 +49,5 @@ func NewLogger(c *Config) *zap.SugaredLogger {
 
 	ws := zapcore.NewMultiWriteSyncer(stdout)
 	core := zapcore.NewCore(encoder, ws, level)
-	logger := zap.New(core, zap.ErrorOutput(stderr))
-
-	return logger.Sugar()
+	c.logger = zap.New(core, zap.ErrorOutput(stderr))
 }

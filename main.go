@@ -16,38 +16,37 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log := config.NewLogger(c)
 	defer func() {
-		_ = log.Sync()
+		_ = c.L().Sync()
 	}()
 
-	s, err := services.NewServices(c, log)
+	s, err := services.NewServices(c)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	quit := make(chan os.Signal, 1)
-	server := server.NewServer(log.Named("server"), c, s)
+	server := server.NewServer(c, s)
 
 	go func() {
-		log.Info("starting server")
+		c.S().Info("starting server")
 		err := server.StartHTTP()
 		if err != nil {
-			log.Errorf("failed to start server: %s", err)
+			c.S().Errorf("failed to start server: %s", err)
 		}
 		quit <- os.Interrupt
 	}()
 
-	log.Info("starting bot")
+	c.S().Info("starting bot")
 	bot, err := server.StartBot()
 	if err != nil {
-		log.Errorf("failed to start bot: %s", err)
+		c.S().Errorf("failed to start bot: %s", err)
 		quit <- os.Interrupt
 	}
 
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	log.Info("stopping bot")
+	c.S().Info("stopping bot")
 	bot.Stop()
 }

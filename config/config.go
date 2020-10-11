@@ -23,5 +23,6 @@ func Get() (*Config, error) {
 		return nil, err
 	}
 
+	conf.setupLogger()
 	return conf, nil
 }
