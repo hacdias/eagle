@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -44,7 +45,9 @@ func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
 		s.serveError(w, code, err)
 	}
 
-	if mr.Action == micropub.ActionCreate {
+	switch mr.Action {
+	case micropub.ActionCreate:
+	case micropub.ActionUpdate:
 		return
 	}
 
@@ -129,6 +132,12 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	if err != nil {
 		s.Errorf("micropub: cannot git commit: %s", err)
 		return http.StatusInternalServerError, err
+	}
+
+	err = s.Hugo.Build(false)
+	if err != nil {
+		s.Errorf("micropub: error hugo build: %s", err)
+		s.Notify.Error(err)
 	}
 
 	http.Redirect(w, r, mr.URL, http.StatusOK)
@@ -227,7 +236,6 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 	}
 
 	s.Lock()
-
 	defer func() {
 		s.Unlock()
 		if err != nil {
@@ -277,7 +285,8 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry) {
 
 	s.Lock()
 	reader := s.getHTML(entry.ID)
-	if reader != nil {
+	if reader == nil {
+		err = fmt.Errorf("could not get reader for %s", entry.ID)
 		s.Unlock()
 		return
 	}
