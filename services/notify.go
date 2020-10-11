@@ -35,5 +35,12 @@ func (n *Notify) Info(msg string) {
 }
 
 func (n *Notify) Error(err error) {
-	n.Info("An error occurred:\n" + err.Error())
+	_, err2 := n.b.Send(&tb.Chat{ID: n.ChatID}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
+		DisableWebPagePreview: true,
+		ParseMode:             tb.ModeDefault,
+	})
+
+	if err2 != nil {
+		log.Printf("could not notify: %s", err2)
+	}
 }
