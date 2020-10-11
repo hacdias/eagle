@@ -151,12 +151,17 @@ func (s *Server) staticHandler() http.HandlerFunc {
 			s.tryMf2(w, r)
 		}
 
+		if stat, err := s.fs.Stat(r.URL.Path); err == nil && stat.IsDir() {
+			r.URL.Path = "/404.html"
+		}
+
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
 		s.httpdir.ServeHTTP(nfw, r)
 
 		if nfw.status == http.StatusNotFound {
 			w.Header().Del("Content-Type") // Let http.ServeFile set the correct header
-			http.ServeFile(w, r, path.Join(s.c.Hugo.Destination, "404.html"))
+			r.URL.Path = "/404.html"
+			s.httpdir.ServeHTTP(w, r)
 		}
 	}
 }
