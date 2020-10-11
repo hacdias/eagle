@@ -83,7 +83,7 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 
 	id, ok := tid["id_str"]
 	if !ok {
-		return "", fmt.Errorf("got invalid response: %s", tid)
+		return "", fmt.Errorf("got invalid response: %x", tid)
 	}
 
 	return "https://twitter.com/" + t.User + "/status/" + fmt.Sprint(id), nil
