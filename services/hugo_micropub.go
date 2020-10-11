@@ -15,7 +15,7 @@ import (
 var typesWithLinks = map[micropub.Type]string{
 	micropub.TypeRepost:   "repost-of",
 	micropub.TypeLike:     "like-of",
-	micropub.TypeReply:    "in-reply-of",
+	micropub.TypeReply:    "in-reply-to",
 	micropub.TypeBookmark: "bookmark-of",
 }
 
