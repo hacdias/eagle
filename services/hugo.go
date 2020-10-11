@@ -43,6 +43,18 @@ func generateHash() string {
 func (h *Hugo) Build(clean bool) error {
 	dir := h.currentSubDir
 	new := false
+
+	if dir == "" {
+		content, err := ioutil.ReadFile(path.Join(h.Destination, "last"))
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}
+		} else {
+			new = true
+			dir = string(content)
+		}
+	}
 	if dir == "" || clean {
 		new = true
 		dir = generateHash()
@@ -64,6 +76,10 @@ func (h *Hugo) Build(clean bool) error {
 		// we are serving seamlessly without users noticing. Check server/satic.go!
 		h.currentSubDir = dir
 		h.DirChanges <- filepath.Join(h.Destination, h.currentSubDir)
+		err = ioutil.WriteFile(path.Join(h.Destination, "last"), []byte(dir), 0644)
+		if err != nil {
+			return fmt.Errorf("could not write last dir: %s", err)
+		}
 	}
 
 	return nil

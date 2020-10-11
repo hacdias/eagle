@@ -5,11 +5,22 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 
+	"github.com/spf13/afero"
 	"willnorris.com/go/microformats"
 )
+
+const activityContentType = "application/activity+json"
+const activityExt = ".as2"
+const mf2ContentType = "application/mf2+json"
+const mf2Ext = ".mf2"
+
+// TODO: add jf2
+// const jf2ContentType = "application/jf2+json"
+// const jf2Ext = ".jf2"
 
 type notFoundRedirectRespWr struct {
 	http.ResponseWriter // We embed http.ResponseWriter
@@ -30,100 +41,118 @@ func (w *notFoundRedirectRespWr) Write(p []byte) (int, error) {
 	return len(p), nil // Lie that we successfully written it
 }
 
+func (s *Server) getHTML(url string) io.ReadCloser {
+	if !strings.HasSuffix(url, ".html") {
+		url = path.Join(url, "index.html")
+	}
+
+	fd, err := s.fs.Open(url)
+	if err != nil {
+		return nil
+	}
+
+	return fd
+}
+
+func (s *Server) tryVariantFile(w http.ResponseWriter, r *http.Request, ext, contentType string) (string, bool) {
+	s.Debugf("trying variant file %s for %s", ext, r.URL.Path)
+	filename := "index" + ext
+	fixedPath := path.Clean(r.URL.Path)
+
+	if !strings.HasSuffix(fixedPath, filename) {
+		fixedPath = path.Join(fixedPath, filename)
+		s.Debugf("added variant file to url: %s", fixedPath)
+	}
+
+	s.Debugf("checking if variant file exists: %s", fixedPath)
+	_, err := s.fs.Stat(fixedPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			s.Debugf("variant file does not exist: %s", fixedPath)
+		} else {
+			s.Debugf("variant file error while stating: %s: %s", fixedPath, err)
+		}
+		return fixedPath, false
+	}
+
+	r.URL.Path = fixedPath
+	s.Debugf("variant file exists: %s", r.URL.Path)
+	w.Header().Set("Content-Type", contentType+"; charset=utf-8")
+	return fixedPath, true
+}
+
+func (s *Server) tryActivity(w http.ResponseWriter, r *http.Request) {
+	s.tryVariantFile(w, r, activityExt, activityContentType)
+}
+
+func (s *Server) tryMf2(w http.ResponseWriter, r *http.Request) {
+	fixedPath, found := s.tryVariantFile(w, r, mf2Ext, mf2ContentType)
+	if found {
+		return
+	}
+
+	buildFor := path.Dir(fixedPath)
+	s.Debugf("build mf2 for: %s", buildFor)
+
+	fd := s.getHTML(buildFor)
+	if fd == nil {
+		return
+	}
+	defer fd.Close()
+
+	abs, err := url.Parse(path.Dir(fixedPath))
+	if err != nil {
+		s.Warnf("could not parse url: %s", path.Dir(fixedPath))
+		return
+	}
+
+	data := microformats.Parse(fd, abs)
+	if data == nil {
+		s.Warnf("microformats returned empty for: %s", fixedPath)
+		return
+	}
+
+	bytes, err := json.Marshal(data)
+	if data == nil {
+		s.Warnf("could not marshal microformats: %s", err)
+		return
+	}
+
+	err = afero.WriteFile(s.fs, fixedPath, bytes, 0644)
+	if err != nil {
+		s.Warnf("could not write file: %s", err)
+		return
+	}
+
+	r.URL.Path = fixedPath
+	w.Header().Set("Content-Type", mf2ContentType+"; charset=utf-8")
+}
+
 func (s *Server) staticHandler() http.HandlerFunc {
 	domain, err := url.Parse(s.c.Domain)
 	if err != nil {
 		panic("domain is invalid")
 	}
 
-	findActivity := func(url string) string {
-		filepath := path.Join(url, "index.as2")
-		if fd, err := s.httpdir.Open(filepath); err == nil {
-			fd.Close()
-			return filepath
-		}
-
-		return ""
-	}
-
-	getHTML := func(url string) io.ReadCloser {
-		if !strings.HasSuffix(url, ".html") {
-			url = path.Join(url, "index.html")
-		}
-
-		fd, err := s.httpdir.Open(url)
-		if err != nil {
-			return nil
-		}
-
-		return fd
-	}
-
-	getMf2 := func(url *url.URL) *microformats.Data {
-		fd := getHTML(url.Path)
-		if fd == nil {
-			return nil
-		}
-		defer fd.Close()
-
-		return microformats.Parse(fd, url)
-	}
-
-	tryActivity := func(w http.ResponseWriter, r *http.Request) bool {
-		if strings.HasSuffix(r.URL.Path, ".as2") {
-			return false
-		}
-		as2 := findActivity(r.URL.Path)
-		if as2 == "" {
-			return false
-		}
-
-		w.Header().Set("Content-Type", "application/activity+json; charset=utf-8")
-		r.URL.Path = as2
-		return false
-	}
-
-	tryMf2 := func(w http.ResponseWriter, r *http.Request) bool {
-		actualURL := r.URL
-		if strings.HasSuffix(actualURL.Path, "index.mf2") {
-			actualURL.Path = strings.TrimSuffix(actualURL.Path, "index.mf2")
-		}
-
-		data := getMf2(actualURL)
-		if data == nil {
-			return false
-		}
-
-		w.Header().Set("Content-Type", "application/mf2+json; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(data)
-		if err != nil {
-			s.Errorf("error while serving json: %s", err)
-		}
-		return true
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		accept := r.Header.Get("Accept")
 		acceptsHTML := strings.Contains(accept, "text/html")
-		acceptsActivity := strings.Contains(accept, "application/activity+json")
-		acceptsMf2 := strings.Contains(accept, "application/mf2+json")
+		acceptsActivity := strings.Contains(accept, activityContentType)
+		acceptsMf2 := strings.Contains(accept, mf2ContentType)
 
 		r.URL.Scheme = domain.Scheme
 		r.URL.Host = domain.Host
 
 		if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
-			_ = tryActivity(w, r)
+			s.tryActivity(w, r)
 		}
 
 		if strings.HasSuffix(r.URL.Path, "index.mf2") || (!acceptsHTML && acceptsMf2) {
-			if ok := tryMf2(w, r); ok {
-				return
-			}
+			s.tryMf2(w, r)
 		}
 
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
-		http.FileServer(s.httpdir).ServeHTTP(nfw, r)
+		s.httpdir.ServeHTTP(nfw, r)
 
 		if nfw.status == http.StatusNotFound {
 			w.Header().Del("Content-Type") // Let http.ServeFile set the correct header

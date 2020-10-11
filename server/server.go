@@ -8,6 +8,7 @@ import (
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/services"
+	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
@@ -15,8 +16,11 @@ type Server struct {
 	sync.Mutex
 	*zap.SugaredLogger
 	*services.Services
-	c       *config.Config
-	httpdir http.Dir
+	c *config.Config
+
+	dir     string
+	fs      afero.Fs
+	httpdir http.Handler
 }
 
 func NewServer(log *zap.SugaredLogger, c *config.Config, s *services.Services) *Server {
@@ -30,8 +34,12 @@ func NewServer(log *zap.SugaredLogger, c *config.Config, s *services.Services) *
 		log.Info("waiting for new directories")
 		for dir := range s.PublicDirChanges {
 			log.Infof("received new public directory: %s", dir)
-			oldDir := string(server.httpdir)
-			server.httpdir = http.Dir(dir)
+			oldDir := server.dir
+
+			// TODO: should this be locked somehow?
+			server.dir = dir
+			server.fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
+			server.httpdir = http.FileServer(afero.NewHttpFs(server.fs).Dir("/"))
 
 			err := os.RemoveAll(oldDir)
 			if err != nil {
