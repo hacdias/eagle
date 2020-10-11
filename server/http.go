@@ -10,6 +10,7 @@ import (
 
 func (s *Server) StartHTTP() error {
 	r := chi.NewRouter()
+	r.Use(s.recoverer)
 
 	if s.c.Development {
 		r.Get("/micropub", s.getMicropubHandler)
