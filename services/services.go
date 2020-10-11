@@ -38,6 +38,7 @@ func NewServices(c *config.Config) (*Services, error) {
 
 	hugo := &Hugo{
 		Hugo:       c.Hugo,
+		Domain:     c.Domain,
 		DirChanges: dirChanges,
 	}
 

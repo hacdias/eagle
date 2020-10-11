@@ -68,30 +68,32 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 	var errors *multierror.Error
 
 	for _, target := range targets {
-		data := url.Values{}
-		data.Set("token", w.Telegraph.Token)
-		data.Set("source", source)
-		data.Set("target", target)
+		func() {
+			data := url.Values{}
+			data.Set("token", w.Telegraph.Token)
+			data.Set("source", source)
+			data.Set("target", target)
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-		defer cancel()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+			defer cancel()
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
-		if err != nil {
-			errors = multierror.Append(errors, err)
-			log.Printf("error creating request: %s", err)
-			continue
-		}
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
+			if err != nil {
+				errors = multierror.Append(errors, err)
+				log.Printf("error creating request: %s", err)
+				return
+			}
 
-		req.Header.Set("Accept", "application/json")
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+			req.Header.Set("Accept", "application/json")
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 
-		_, err = http.DefaultClient.Do(req)
-		if err != nil {
-			log.Printf("could not post telegprah: %s ==> %s: %s", source, target, err)
-			errors = multierror.Append(errors, err)
-		}
+			_, err = http.DefaultClient.Do(req)
+			if err != nil {
+				log.Printf("could not post telegraph: %s ==> %s: %s", source, target, err)
+				errors = multierror.Append(errors, err)
+			}
+		}()
 	}
 
 	return errors.ErrorOrNil()

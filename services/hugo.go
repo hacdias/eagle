@@ -22,13 +22,13 @@ import (
 type HugoEntry struct {
 	ID        string
 	Permalink string
-	Metadata  typed.Typed
 	Content   string
+	Metadata  typed.Typed
 }
 
 type Hugo struct {
-	Domain string
 	config.Hugo
+	Domain        string
 	DirChanges    chan string
 	currentSubDir string
 }
