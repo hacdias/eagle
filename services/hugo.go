@@ -162,11 +162,6 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 	return entry, nil
 }
 
-func (h *Hugo) GetEntryHTML(id string) ([]byte, error) {
-	index := path.Join(h.Destination, id, "index.html")
-	return ioutil.ReadFile(index)
-}
-
 func (h *Hugo) GetAll() ([]*HugoEntry, error) {
 	entries := []*HugoEntry{}
 	content := path.Join(h.Source, "content")

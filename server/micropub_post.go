@@ -277,7 +277,7 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry) {
 	s.Debug("webmentions: entered")
 
 	s.Lock()
-	html, err := s.Hugo.GetEntryHTML(entry.ID)
+	html, err := s.getHTML(entry.ID)
 	if err != nil {
 		s.Unlock()
 		return
