@@ -95,8 +95,8 @@ func (h *Hugo) makeURL(id string) (string, error) {
 }
 
 func (h *Hugo) SaveEntry(e *HugoEntry) error {
-	if prop, ok := e.Metadata.MapIf("properties"); ok {
-		e.Metadata["properties"] = h.mf2ToInternal(prop)
+	if prop, ok := e.Metadata["properties"]; ok {
+		e.Metadata["properties"] = mf2ToInternal(prop)
 	}
 
 	filePath := filepath.Join(h.Source, "content", e.ID)
@@ -154,7 +154,7 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 	entry.Metadata = metadata
 
 	if props, ok := entry.Metadata["properties"]; ok {
-		entry.Metadata["properties"] = h.internalToMf2(props)
+		entry.Metadata["properties"] = internalToMf2(props)
 	} else {
 		entry.Metadata["properties"] = map[string][]interface{}{}
 	}

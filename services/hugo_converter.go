@@ -1,66 +1,73 @@
 package services
 
 import (
+	"fmt"
 	"reflect"
 )
 
-func (h *Hugo) mf2ToInternal(data interface{}) interface{} {
-	kind := reflect.ValueOf(data).Kind()
+func mf2ToInternal(data interface{}) interface{} {
+	value := reflect.ValueOf(data)
+	kind := value.Kind()
 
-	if kind == reflect.Array || kind == reflect.Slice {
-		v := data.([]interface{})
-		if len(v) == 1 {
-			return h.mf2ToInternal(v[0])
+	if kind == reflect.Slice {
+		if value.Len() == 1 {
+			return mf2ToInternal(value.Index(0).Interface())
 		}
 
-		newData := make([]interface{}, len(v))
-		for i, v := range v {
-			newData[i] = h.mf2ToInternal(v)
+		parsed := make([]interface{}, value.Len())
+
+		for i := 0; i < value.Len(); i++ {
+			parsed[i] = mf2ToInternal(value.Index(i).Interface())
 		}
-		return newData
+
+		return parsed
 	}
 
 	if kind == reflect.Map {
 		parsed := map[string]interface{}{}
 
-		for key, value := range data.(map[string]interface{}) {
-			parsed[key] = h.mf2ToInternal(value)
+		for _, k := range value.MapKeys() {
+			v := value.MapIndex(k)
+			parsed[fmt.Sprint(k.Interface())] = mf2ToInternal(v.Interface())
 		}
 
 		return parsed
 	}
 
 	return data
-
 }
 
-func (h *Hugo) internalToMf2(data interface{}) interface{} {
+func internalToMf2(data interface{}) interface{} {
 	if data == nil {
 		return []interface{}{nil}
 	}
 
-	kind := reflect.ValueOf(data).Kind()
-	if kind == reflect.Array || kind == reflect.Slice {
-		v := data.([]interface{})
-		newData := make([]interface{}, len(v))
-		for i, v := range v {
-			newData[i] = h.internalToMf2(v)
+	value := reflect.ValueOf(data)
+	kind := value.Kind()
+
+	if kind == reflect.Slice {
+		parsed := make([]interface{}, value.Len())
+
+		for i := 0; i < value.Len(); i++ {
+			parsed[i] = internalToMf2(value.Index(i).Interface())
 		}
-		return newData
+
+		return parsed
 	}
 
 	if kind == reflect.Map {
 		parsed := map[string][]interface{}{}
 
-		for key, value := range data.(map[string]interface{}) {
-			kind := reflect.ValueOf(value).Kind()
+		for _, k := range value.MapKeys() {
+			v := value.MapIndex(k)
+			key := fmt.Sprint(k.Interface())
+			vk := reflect.TypeOf(v.Interface()).Kind()
 
-			if kind == reflect.Array || kind == reflect.Slice || key == "properties" || key == "value" {
-				parsed[key] = h.internalToMf2(value).([]interface{})
+			if key == "properties" || key == "value" || vk == reflect.Slice || vk == reflect.Array {
+				parsed[key] = internalToMf2(v.Interface()).([]interface{})
 			} else {
-				parsed[key] = []interface{}{h.internalToMf2(value)}
+				parsed[key] = []interface{}{internalToMf2(v.Interface())}
 			}
-
 		}
 
 		return parsed
