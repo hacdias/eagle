@@ -39,7 +39,7 @@ func NewServer(c *config.Config, s *services.Services) *Server {
 			// TODO: should this be locked somehow?
 			server.dir = dir
 			server.fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
-			server.httpdir = http.FileServer(afero.NewHttpFs(server.fs).Dir("/"))
+			server.httpdir = http.FileServer(neuteredFs{afero.NewHttpFs(server.fs).Dir("/")})
 
 			err := os.RemoveAll(oldDir)
 			if err != nil {

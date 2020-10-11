@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -151,10 +152,6 @@ func (s *Server) staticHandler() http.HandlerFunc {
 			s.tryMf2(w, r)
 		}
 
-		/* if stat, err := s.fs.Stat(r.URL.Path); err == nil && stat.IsDir() {
-			r.URL.Path = "/404.html"
-		} */
-
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
 		s.httpdir.ServeHTTP(nfw, r)
 
@@ -164,4 +161,33 @@ func (s *Server) staticHandler() http.HandlerFunc {
 			s.httpdir.ServeHTTP(w, r)
 		}
 	}
+}
+
+type neuteredFs struct {
+	http.FileSystem
+}
+
+func (nfs neuteredFs) Open(path string) (http.File, error) {
+	f, err := nfs.FileSystem.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if s.IsDir() {
+		index := filepath.Join(path, "index.html")
+		if _, err := nfs.FileSystem.Open(index); err != nil {
+			closeErr := f.Close()
+			if closeErr != nil {
+				return nil, closeErr
+			}
+
+			return nil, err
+		}
+	}
+
+	return f, nil
 }
