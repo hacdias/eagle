@@ -53,21 +53,23 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 		return "", err
 	}
 
-	u.Query().Set("status", status)
+	q := u.Query()
+	q.Set("status", status)
 	if typ == micropub.TypeReply {
 		if strings.HasSuffix(related, "/") {
 			related = strings.TrimSuffix(related, "/")
 		}
 		parts := strings.Split(related, "/")
-		u.Query().Set("in_reply_to_status_id", parts[len(parts)-1])
-		u.Query().Set("auto_populate_reply_metadata", "true")
+		q.Set("in_reply_to_status_id", parts[len(parts)-1])
+		q.Set("auto_populate_reply_metadata", "true")
 		// TODO: add attachment_url for retweet with status
 	}
 
+	u.RawQuery = q.Encode()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), nil)
 	if err != nil {
 		return "", err
 	}
@@ -77,13 +79,18 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 		return "", err
 	}
 
-	var tid twitterResp
+	var tid map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&tid)
 	if err != nil {
 		return "", err
 	}
 
-	return "https://twitter.com/" + t.User + "/status/" + tid.ID, nil
+	id, ok := tid["id_str"]
+	if !ok {
+		return "", fmt.Errorf("got invalid response: %s", tid)
+	}
+
+	return "https://twitter.com/" + t.User + "/status/" + fmt.Sprint(id), nil
 }
 
 func (t *Twitter) IsRelated(url string) bool {

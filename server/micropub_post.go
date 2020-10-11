@@ -64,6 +64,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
+	s.Debugw("micropub: create request", "entry", entry, "synd", synd)
 
 	err = s.Hugo.SaveEntry(entry)
 	if err != nil {
@@ -228,27 +229,30 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 }
 
 func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication) {
+	s.Debug("syndicate: started")
 	syndication, err := s.Syndicator.Syndicate(entry, synd)
 	if err != nil {
-		s.Errorf("gossip: failed to syndicate: %s", err)
+		s.Errorf("syndicate: failed to syndicate: %s", err)
 		s.Notify.Error(err)
 		return
 	}
 
+	s.Debugw("syndicate: got syndication results", "syndication", syndication)
 	s.Lock()
 	defer func() {
 		s.Unlock()
 		if err != nil {
-			s.Errorf("gossip: %s", err)
+			s.Errorf("syndicate: %s", err)
 			s.Notify.Error(err)
 		}
 	}()
 
+	s.Debug("syndicate: fetch hugo entry")
 	entry, err = s.Hugo.GetEntry(entry.ID)
 	if err != nil {
-		s.Errorf("gossip: failed to get entry: %s", err)
 		return
 	}
+	s.Debug("syndicate: got hugo entry")
 
 	props := entry.Metadata["properties"].(map[string][]interface{})
 	props["syndication"] = []interface{}{}
@@ -259,10 +263,12 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 
 	entry.Metadata["properties"] = props
 
+	s.Debug("syndicate: saving hugo entry")
 	err = s.Hugo.SaveEntry(entry)
 	if err != nil {
 		return
 	}
+	s.Debug("syndicate: hugo entry saved")
 
 	err = s.Store.Persist("syndication on " + entry.ID)
 	if err != nil {
