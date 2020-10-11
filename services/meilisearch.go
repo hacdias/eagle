@@ -55,7 +55,7 @@ func (ms *MeiliSearch) Wipe() error {
 	return err
 }
 
-func (ms *MeiliSearch) Add(entries []*HugoEntry) error {
+func (ms *MeiliSearch) Add(entries ...*HugoEntry) error {
 	docs := []interface{}{}
 
 	for _, entry := range entries {
@@ -64,8 +64,14 @@ func (ms *MeiliSearch) Add(entries []*HugoEntry) error {
 			tags = t
 		}
 
+		title := ""
+		if t, ok := entry.Metadata.StringIf("title"); ok {
+			title = t
+		}
+
 		docs = append(docs, map[string]interface{}{
 			meiliSearchKey: hex.EncodeToString([]byte(entry.ID)),
+			"title":        title,
 			"content":      entry.Content,
 			"tags":         tags,
 		})
@@ -75,7 +81,7 @@ func (ms *MeiliSearch) Add(entries []*HugoEntry) error {
 	return err
 }
 
-func (ms *MeiliSearch) Delete(entries []HugoEntry) error {
+func (ms *MeiliSearch) Delete(entries ...*HugoEntry) error {
 	ids := []string{}
 	for _, entry := range entries {
 		ids = append(ids, entry.ID)
@@ -87,11 +93,11 @@ func (ms *MeiliSearch) Delete(entries []HugoEntry) error {
 
 func (ms *MeiliSearch) Search(query string, page int) ([]interface{}, error) {
 	res, err := ms.Client.Search(meiliSearchIndex).Search(meilisearch.SearchRequest{
-		Query:  query,
-		Offset: int64(page * 20),
-		Limit:  20,
-		// AttributesToCrop: []string{"content"},
-		CropLength: 500,
+		Query:            query,
+		Offset:           int64(page * 20),
+		Limit:            20,
+		AttributesToCrop: []string{"content"},
+		CropLength:       500,
 	})
 
 	if err != nil {

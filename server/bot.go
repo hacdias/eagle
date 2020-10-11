@@ -59,7 +59,7 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		}
 	}))
 
-	b.Handle("/reindex", checkUser(func(m *tb.Message) {
+	b.Handle("/index-search", checkUser(func(m *tb.Message) {
 		if s.MeiliSearch == nil {
 			s.Notify.Info("MeiliSearch is not implemented!")
 			return
@@ -71,13 +71,28 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 			return
 		}
 
-		err = s.MeiliSearch.Add(entries)
+		err = s.MeiliSearch.Add(entries...)
 		if err != nil {
 			s.Notify.Error(err)
 			return
 		}
 
 		s.Notify.Info("Successfully indexed! 🔎")
+	}))
+
+	b.Handle("/delete-searchh", checkUser(func(m *tb.Message) {
+		if s.MeiliSearch == nil {
+			s.Notify.Info("MeiliSearch is not implemented!")
+			return
+		}
+
+		err = s.MeiliSearch.Wipe()
+		if err != nil {
+			s.Notify.Error(err)
+			return
+		}
+
+		s.Notify.Info("Search index wiped! 🔎")
 	}))
 
 	go b.Start()

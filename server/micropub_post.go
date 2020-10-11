@@ -94,6 +94,11 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	go func() {
 		s.sendWebmentions(entry)
 		s.syndicate(entry, synd)
+		err := s.MeiliSearch.Add(entry)
+		if err != nil {
+			s.Warnf("could not add to meilisearch: %s", err)
+			s.Notify.Error(err)
+		}
 	}()
 
 	s.Debug("micropub: create request ok")
@@ -129,7 +134,16 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 
 	http.Redirect(w, r, mr.URL, http.StatusOK)
 	s.Debug("micropub: update request ok")
-	go s.sendWebmentions(entry)
+
+	go func() {
+		s.sendWebmentions(entry)
+		err := s.MeiliSearch.Add(entry)
+		if err != nil {
+			s.Warnf("could not update meilisearch: %s", err)
+			s.Notify.Error(err)
+		}
+	}()
+
 	return 0, nil
 }
 
@@ -156,6 +170,14 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	go func() {
+		err := s.MeiliSearch.Add(entry)
+		if err != nil {
+			s.Warnf("could not add to meilisearch: %s", err)
+			s.Notify.Error(err)
+		}
+	}()
 
 	s.Debug("micropub: unremove request ok")
 	return http.StatusOK, nil
@@ -184,6 +206,14 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	go func() {
+		err := s.MeiliSearch.Delete(entry)
+		if err != nil {
+			s.Warnf("could not remove from meilisearch: %s", err)
+			s.Notify.Error(err)
+		}
+	}()
 
 	s.Debug("micropub: remove request ok")
 	return http.StatusOK, nil
