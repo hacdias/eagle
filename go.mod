@@ -20,5 +20,4 @@ require (
 	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect
 	gopkg.in/tucnak/telebot.v2 v2.3.4
 	gopkg.in/yaml.v2 v2.3.0
-	willnorris.com/go/microformats v1.1.0
 )

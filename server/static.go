@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -9,19 +8,10 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/spf13/afero"
-	"willnorris.com/go/microformats"
 )
 
 const activityContentType = "application/activity+json"
 const activityExt = ".as2"
-const mf2ContentType = "application/mf2+json"
-const mf2Ext = ".mf2"
-
-// TODO: add jf2
-// const jf2ContentType = "application/jf2+json"
-// const jf2Ext = ".jf2"
 
 type notFoundRedirectRespWr struct {
 	http.ResponseWriter // We embed http.ResponseWriter
@@ -86,49 +76,6 @@ func (s *Server) tryActivity(w http.ResponseWriter, r *http.Request) {
 	s.tryVariantFile(w, r, activityExt, activityContentType)
 }
 
-func (s *Server) tryMf2(w http.ResponseWriter, r *http.Request) {
-	fixedPath, found := s.tryVariantFile(w, r, mf2Ext, mf2ContentType)
-	if found {
-		return
-	}
-
-	buildFor := path.Dir(fixedPath)
-	s.Debugf("build mf2 for: %s", buildFor)
-
-	fd := s.getHTML(buildFor)
-	if fd == nil {
-		return
-	}
-	defer fd.Close()
-
-	abs, err := url.Parse(s.c.Domain + path.Dir(fixedPath))
-	if err != nil {
-		s.Warnf("could not parse url: %s", path.Dir(fixedPath))
-		return
-	}
-
-	data := microformats.Parse(fd, abs)
-	if data == nil {
-		s.Warnf("microformats returned empty for: %s", fixedPath)
-		return
-	}
-
-	bytes, err := json.Marshal(data)
-	if data == nil {
-		s.Warnf("could not marshal microformats: %s", err)
-		return
-	}
-
-	err = afero.WriteFile(s.fs, fixedPath, bytes, 0644)
-	if err != nil {
-		s.Warnf("could not write file: %s", err)
-		return
-	}
-
-	r.URL.Path = fixedPath
-	w.Header().Set("Content-Type", mf2ContentType+"; charset=utf-8")
-}
-
 func (s *Server) staticHandler() http.HandlerFunc {
 	domain, err := url.Parse(s.c.Domain)
 	if err != nil {
@@ -139,14 +86,11 @@ func (s *Server) staticHandler() http.HandlerFunc {
 		accept := r.Header.Get("Accept")
 		acceptsHTML := strings.Contains(accept, "text/html")
 		acceptsActivity := strings.Contains(accept, activityContentType)
-		acceptsMf2 := strings.Contains(accept, mf2ContentType)
 
 		r.URL.Scheme = domain.Scheme
 		r.URL.Host = domain.Host
 
-		if strings.HasSuffix(r.URL.Path, "index.mf2") || (!acceptsHTML && acceptsMf2) {
-			s.tryMf2(w, r)
-		} else if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
+		if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
 			s.tryActivity(w, r)
 		}
 
