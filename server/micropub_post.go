@@ -95,7 +95,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	http.Redirect(w, r, url, http.StatusAccepted)
 
 	go func() {
-		s.sendWebmentions(entry)
+		s.sendWebmentions(entry, synd.Related...)
 		s.syndicate(entry, synd)
 		err := s.MeiliSearch.Add(entry)
 		if err != nil {
@@ -278,7 +278,7 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 	err = s.Hugo.Build(false)
 }
 
-func (s *Server) sendWebmentions(entry *services.HugoEntry) {
+func (s *Server) sendWebmentions(entry *services.HugoEntry, targets ...string) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -306,8 +306,6 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry) {
 	if err != nil {
 		return
 	}
-
-	targets := []string{}
 
 	doc.Find(".h-entry .e-content a").Each(func(i int, q *goquery.Selection) {
 		val, ok := q.Attr("href")
