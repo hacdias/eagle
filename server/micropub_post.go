@@ -284,6 +284,8 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry) {
 		if err != nil {
 			s.Notify.Error(err)
 			s.Warnf("webmentions: %s", err)
+		} else {
+			s.Notify.Info("Webmentions sent successfully for " + entry.ID)
 		}
 	}()
 

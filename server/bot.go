@@ -98,6 +98,18 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		s.Notify.Info("Search index wiped! 🔎")
 	}))
 
+	b.Handle("/webmention", checkUser(func(m *tb.Message) {
+		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmention"))
+
+		entry, err := s.Hugo.GetEntry(id)
+		if err != nil {
+			s.Notify.Error(err)
+			return
+		}
+
+		s.sendWebmentions(entry)
+	}))
+
 	go b.Start()
 	return b, nil
 }
