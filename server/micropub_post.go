@@ -330,6 +330,6 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry) {
 		targets = append(targets, base.ResolveReference(u).String())
 	})
 
-	s.Debugw("webmentions: found targets", "entry", entry.ID, "targets", targets)
+	s.Debugw("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
 	err = s.Webmentions.Send(entry.Permalink, targets...)
 }
