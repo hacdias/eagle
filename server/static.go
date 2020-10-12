@@ -101,7 +101,7 @@ func (s *Server) tryMf2(w http.ResponseWriter, r *http.Request) {
 	}
 	defer fd.Close()
 
-	abs, err := url.Parse(path.Dir(fixedPath))
+	abs, err := url.Parse(s.c.Domain + path.Dir(fixedPath))
 	if err != nil {
 		s.Warnf("could not parse url: %s", path.Dir(fixedPath))
 		return
