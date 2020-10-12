@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 )
+
+var ErrDuplicatedWebmention = errors.New("duplicated webmention")
 
 var webmentionTypes = map[string]string{
 	"like-of":     "like",
@@ -135,7 +138,7 @@ func (w *Webmentions) Receive(payload *WebmentionPayload) error {
 	for _, mention := range mentions {
 		if mention.ID == payload.Post.WmID {
 			w.Infof("duplicated webmention for %s: %d", permalink, payload.Post.WmID)
-			return nil
+			return ErrDuplicatedWebmention
 		}
 	}
 

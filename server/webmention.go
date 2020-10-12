@@ -28,6 +28,11 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	wm.Secret = ""
 	err = s.Webmentions.Receive(wm)
 	if err != nil {
+		if err == services.ErrDuplicatedWebmention {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		w.WriteHeader(http.StatusInternalServerError)
 		s.Errorf("webmention: error parsing: %s", err)
 		return
