@@ -144,12 +144,10 @@ func (s *Server) staticHandler() http.HandlerFunc {
 		r.URL.Scheme = domain.Scheme
 		r.URL.Host = domain.Host
 
-		if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
-			s.tryActivity(w, r)
-		}
-
 		if strings.HasSuffix(r.URL.Path, "index.mf2") || (!acceptsHTML && acceptsMf2) {
 			s.tryMf2(w, r)
+		} else if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
+			s.tryActivity(w, r)
 		}
 
 		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
