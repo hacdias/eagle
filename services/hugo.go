@@ -40,23 +40,39 @@ func generateHash() string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (h *Hugo) Build(clean bool) error {
-	dir := h.currentSubDir
-	new := false
+// ShouldBuild should only be called on startup to make sure there's
+// a built public directory to serve.
+func (h *Hugo) ShouldBuild() (bool, error) {
+	if h.currentSubDir != "" {
+		return false, nil
+	}
 
-	if dir == "" {
-		content, err := ioutil.ReadFile(path.Join(h.Destination, "last"))
+	content, err := ioutil.ReadFile(path.Join(h.Destination, "last"))
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return true, nil
+		}
+
+		return true, err
+	}
+
+	h.currentSubDir = string(content)
+	h.DirChanges <- filepath.Join(h.Destination, h.currentSubDir)
+	return false, nil
+}
+
+func (h *Hugo) Build(clean bool) error {
+	if h.currentSubDir == "" {
+		_, err := h.ShouldBuild()
 		if err != nil {
-			if !os.IsNotExist(err) {
-				return err
-			}
-		} else {
-			new = true
-			dir = string(content)
+			return err
 		}
 	}
-	if dir == "" || clean {
-		new = true
+
+	dir := h.currentSubDir
+	new := dir == "" || clean
+
+	if new {
 		dir = generateHash()
 	}
 
@@ -95,6 +111,7 @@ func (h *Hugo) makeURL(id string) (string, error) {
 }
 
 func (h *Hugo) SaveEntry(e *HugoEntry) error {
+	e.ID = h.cleanID(e.ID)
 	if prop, ok := e.Metadata["properties"]; ok {
 		e.Metadata["properties"] = mf2ToInternal(prop)
 	}
@@ -120,7 +137,15 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 	return nil
 }
 
+func (h *Hugo) cleanID(id string) string {
+	id = path.Clean(id)
+	id = strings.TrimSuffix(id, "/")
+	id = strings.TrimPrefix(id, "/")
+	return "/" + id
+}
+
 func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
+	id = h.cleanID(id)
 	index := path.Join(h.Source, "content", id, "index.md")
 	bytes, err := ioutil.ReadFile(index)
 	if err != nil {

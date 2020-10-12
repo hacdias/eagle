@@ -22,7 +22,9 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	res, err := s.MeiliSearch.Search(query, page)
+	filter := r.URL.Query().Get("f")
+
+	res, err := s.MeiliSearch.Search(query, filter, page)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return

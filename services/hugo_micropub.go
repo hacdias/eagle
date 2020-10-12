@@ -97,7 +97,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 
 		year := time.Now().Year()
 		month := time.Now().Month()
-		entry.ID = fmt.Sprintf("/%s/%04d/%02d/%s/", section, year, month, slug)
+		entry.ID = fmt.Sprintf("/%s/%04d/%02d/%s", section, year, month, slug)
 		permalink, err := h.makeURL(entry.ID)
 		if err != nil {
 			return nil, nil, err

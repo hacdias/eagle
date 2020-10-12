@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/hex"
+	"strings"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/meilisearch/meilisearch-go"
@@ -75,10 +76,19 @@ func (ms *MeiliSearch) Add(entries ...*HugoEntry) error {
 			date = d
 		}
 
+		cleanID := strings.TrimPrefix(entry.ID, "/")
+		cleanID = strings.TrimSuffix(cleanID, "/")
+
+		section := ""
+		if strings.Count(cleanID, "/") >= 1 {
+			section = strings.Split(cleanID, "/")[0]
+		}
+
 		docs = append(docs, map[string]interface{}{
 			meiliSearchKey: hex.EncodeToString([]byte(entry.ID)),
 			"title":        title,
 			"date":         date,
+			"section":      section,
 			"content":      stripmd.Strip(entry.Content),
 			"tags":         tags,
 		})
@@ -98,9 +108,10 @@ func (ms *MeiliSearch) Delete(entries ...*HugoEntry) error {
 	return err
 }
 
-func (ms *MeiliSearch) Search(query string, page int) ([]interface{}, error) {
+func (ms *MeiliSearch) Search(query string, filter string, page int) ([]interface{}, error) {
 	res, err := ms.Client.Search(meiliSearchIndex).Search(meilisearch.SearchRequest{
 		Query:            query,
+		Filters:          filter,
 		Offset:           int64(page * 20),
 		Limit:            20,
 		AttributesToCrop: []string{"content"},

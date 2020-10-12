@@ -27,9 +27,15 @@ func (s *Server) StartHTTP() error {
 	r.Get("/search.json", s.searchHandler)
 
 	// Make sure we have a built version!
-	err := s.Hugo.Build(false)
+	should, err := s.Hugo.ShouldBuild()
 	if err != nil {
 		return err
+	}
+	if should {
+		err = s.Hugo.Build(false)
+		if err != nil {
+			return err
+		}
 	}
 
 	static := s.staticHandler()
