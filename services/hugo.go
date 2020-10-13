@@ -122,7 +122,15 @@ func (h *Hugo) SaveEntry(e *HugoEntry) error {
 		return err
 	}
 
-	index := filepath.Join(filePath, "index.md")
+	index := filePath
+
+	if _, err := os.Stat(filepath.Join(index, "_index.md")); os.IsNotExist(err) {
+		index = filepath.Join(index, "index.md")
+	} else if err != nil {
+		return err
+	} else {
+		index = filepath.Join(index, "_index.md")
+	}
 
 	val, err := yaml.Marshal(&e.Metadata)
 	if err != nil {
@@ -146,7 +154,16 @@ func (h *Hugo) cleanID(id string) string {
 
 func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 	id = h.cleanID(id)
-	index := path.Join(h.Source, "content", id, "index.md")
+	index := filepath.Join(h.Source, "content", id)
+
+	if _, err := os.Stat(filepath.Join(index, "_index.md")); os.IsNotExist(err) {
+		index = filepath.Join(index, "index.md")
+	} else if err != nil {
+		return nil, err
+	} else {
+		index = filepath.Join(index, "_index.md")
+	}
+
 	bytes, err := ioutil.ReadFile(index)
 	if err != nil {
 		return nil, err
