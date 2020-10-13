@@ -17,6 +17,7 @@ type Services struct {
 	XRay             *XRay
 	Syndicator       Syndicator
 	MeiliSearch      *MeiliSearch
+	ActivityPub      *ActivityPub
 }
 
 func NewServices(c *config.Config) (*Services, error) {
@@ -70,7 +71,8 @@ func NewServices(c *config.Config) (*Services, error) {
 			Twitter:       c.Twitter,
 			StoragePath:   path.Join(c.Hugo.Source, "data", "xray"),
 		},
-		Syndicator: syndicator,
+		Syndicator:  syndicator,
+		ActivityPub: &ActivityPub{},
 	}
 
 	if c.MeiliSearch != nil {

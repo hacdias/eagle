@@ -102,6 +102,8 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 			s.Warnf("could not add to meilisearch: %s", err)
 			s.Notify.Error(err)
 		}
+
+		// s.actor.Fol
 	}()
 
 	s.Debug("micropub: create request ok")

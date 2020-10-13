@@ -6,6 +6,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/dghubble/oauth1 v0.6.0
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-fed/activity v1.0.0
+	github.com/go-fed/httpsig v0.1.1-0.20190914113940-c2de3672e5b5
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/karlseguin/expect v1.0.7 // indirect
 	github.com/karlseguin/typed v1.1.7
