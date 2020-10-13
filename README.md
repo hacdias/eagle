@@ -11,10 +11,6 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 
 ## Notes
 
-### GOAL: Support Markdown/RAW articles on Micropublish.net
-
-https://github.com/barryf/micropublish/issues/42#issuecomment-704980299
-
 ## GOAL: support ActivityPub
 
 - Make Inbox
