@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,10 +15,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dchest/uniuri"
 	"github.com/go-fed/httpsig"
+	"github.com/hacdias/eagle/config"
 	"go.uber.org/zap"
 )
 
@@ -28,7 +32,41 @@ type ActivityPub struct {
 	IRI         string
 	pubKeyId    string
 	privKey     crypto.PrivateKey
+	signer      httpsig.Signer
+	signerMu    sync.Mutex
 	Webmentions *Webmentions
+}
+
+func NewActivityPub(c *config.Config) (*ActivityPub, error) {
+	pkfile, err := ioutil.ReadFile(c.ActivityPub.PrivKey)
+	if err != nil {
+		return nil, err
+	}
+	privateKeyDecoded, _ := pem.Decode(pkfile)
+	if privateKeyDecoded == nil {
+		return nil, err
+	}
+	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyDecoded.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
+	digestAlgorithm := httpsig.DigestSha256
+	headersToSign := []string{httpsig.RequestTarget, "date", "host", "digest"}
+	signer, _, err := httpsig.NewSigner(prefs, digestAlgorithm, headersToSign, httpsig.Signature)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActivityPub{
+		SugaredLogger: c.S().Named("activitypub"),
+		Dir:           filepath.Join(c.Hugo.Source, "data", "activity"),
+		IRI:           c.ActivityPub.IRI,
+		pubKeyId:      c.ActivityPub.PubKeyId,
+		privKey:       privateKey,
+		signer:        signer,
+	}, nil
 }
 
 func (ap *ActivityPub) Create(activity map[string]interface{}) error {
@@ -267,9 +305,6 @@ func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[str
 
 func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	ap.Debugw("sending signed request", "to", to, "body", b)
-	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
-	digestAlgorithm := httpsig.DigestSha256
-
 	body, err := json.Marshal(b)
 	if err != nil {
 		return err
@@ -293,17 +328,14 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 
 	r.Header.Add("Accept-Charset", "utf-8")
 	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
+	r.Header.Add("User-Agent", "hacdias.com")
 	r.Header.Add("Accept", "application/activity+json; charset=utf-8")
 	r.Header.Add("Content-Type", "application/activity+json; charset=utf-8")
 	r.Header.Add("Host", iri.Host)
 
-	headersToSign := []string{httpsig.RequestTarget, "date", "host", "digest"}
-	signer, _, err := httpsig.NewSigner(prefs, digestAlgorithm, headersToSign, httpsig.Signature)
-	if err != nil {
-		return err
-	}
-
-	err = signer.SignRequest(ap.privKey, ap.pubKeyId, r, bodyCopy)
+	ap.signerMu.Lock()
+	err = ap.signer.SignRequest(ap.privKey, ap.pubKeyId, r, bodyCopy)
+	ap.signerMu.Unlock()
 	if err != nil {
 		return err
 	}

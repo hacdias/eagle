@@ -1,12 +1,7 @@
 package services
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
-	"io/ioutil"
 	"path"
-	"path/filepath"
 
 	"github.com/hacdias/eagle/config"
 )
@@ -58,19 +53,11 @@ func NewServices(c *config.Config) (*Services, error) {
 		Media:         media,
 	}
 
-	privateKey, err := decodePrivateKey(c.ActivityPub.PrivKey)
+	activitypub, err := NewActivityPub(c)
 	if err != nil {
 		return nil, err
 	}
-
-	activitypub := &ActivityPub{
-		SugaredLogger: c.S().Named("activitypub"),
-		Dir:           filepath.Join(c.Hugo.Source, "data", "activity"),
-		IRI:           c.ActivityPub.IRI,
-		pubKeyId:      c.ActivityPub.PubKeyId,
-		privKey:       privateKey,
-		Webmentions:   webmentions,
-	}
+	activitypub.Webmentions = webmentions
 
 	syndicator := Syndicator{}
 
@@ -104,21 +91,4 @@ func NewServices(c *config.Config) (*Services, error) {
 	}
 
 	return services, nil
-}
-
-func decodePrivateKey(path string) (*rsa.PrivateKey, error) {
-	pkfile, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	privateKeyDecoded, _ := pem.Decode(pkfile)
-	if privateKeyDecoded == nil {
-		return nil, err
-	}
-	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyDecoded.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return privateKey, nil
 }
