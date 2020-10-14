@@ -54,7 +54,7 @@ func NewActivityPub(c *config.Config) (*ActivityPub, error) {
 	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
 	digestAlgorithm := httpsig.DigestSha256
 	headersToSign := []string{httpsig.RequestTarget, "date", "host", "digest"}
-	signer, _, err := httpsig.NewSigner(prefs, digestAlgorithm, headersToSign, httpsig.Signature)
+	signer, _, err := httpsig.NewSigner(prefs, digestAlgorithm, headersToSign, httpsig.Signature, 0)
 	if err != nil {
 		return nil, err
 	}
