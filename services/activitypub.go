@@ -278,12 +278,10 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	bodyCopy := make([]byte, len(body))
 	copy(bodyCopy, body)
 
-	buf := bytes.NewBuffer(body)
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, to, buf)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, to, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -309,6 +307,8 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	if err != nil {
 		return err
 	}
+
+	ap.Debugw("sending request", "header", r.Header, "content", string(bodyCopy))
 
 	resp, err := http.DefaultClient.Do(r)
 	if !isSuccess(resp.StatusCode) {
