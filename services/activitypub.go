@@ -273,6 +273,7 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 		return fmt.Errorf("activity id %s must be string", id)
 	}
 
+	ap.Infof("sending create for %s", id)
 	create := make(map[string]interface{})
 	create["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
 	create["type"] = "Create"
@@ -285,24 +286,29 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 
 	// Boost if it contains "inReplyTo"
 	if activity["inReplyTo"] != nil {
+		ap.Infof("sending announce for %s", id)
 		announce := make(map[string]interface{})
 		announce["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
-		announce["id"] = id + "#announce"
 		announce["type"] = "Announce"
-		announce["object"] = id
+		announce["id"] = id + "#announce"
 		announce["actor"] = activity["attributedTo"]
 		announce["to"] = activity["to"]
 		announce["published"] = activity["published"]
+		announce["object"] = id
 		ap.sendTo(announce, followers)
 	}
 
 	// Send an update event if it contains "updated" and "updated" !== "published"
 	if activity["updated"] != nil && activity["published"] != nil && activity["updated"] != activity["published"] {
+		ap.Infof("sending update for %s", id)
 		update := make(map[string]interface{})
 		update["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
 		update["type"] = "Update"
-		update["object"] = id
 		update["actor"] = activity["attributedTo"]
+		update["to"] = activity["to"]
+		update["published"] = activity["published"]
+		update["updated"] = activity["updated"]
+		update["object"] = activity
 		ap.sendTo(update, followers)
 	}
 
