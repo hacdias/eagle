@@ -310,7 +310,10 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 		return err
 	}
 
-	_, err = http.DefaultClient.Do(r)
+	resp, err := http.DefaultClient.Do(r)
+	if !isSuccess(resp.StatusCode) {
+		return fmt.Errorf("signed request failed with status %d", resp.StatusCode)
+	}
 	return err
 }
 
