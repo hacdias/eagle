@@ -92,7 +92,11 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 	}
 
 	ap.Debug("converting create activity into webmention")
-	return ap.Webmentions.Send(id, reply)
+	err := ap.Webmentions.Send(id, reply)
+	if err != nil {
+		return err
+	}
+	return ErrNoChanges
 }
 
 func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
