@@ -274,6 +274,10 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	if err != nil {
 		return err
 	}
+
+	bodyCopy := make([]byte, len(body))
+	copy(bodyCopy, body)
+
 	buf := bytes.NewBuffer(body)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
@@ -301,7 +305,7 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 		return err
 	}
 
-	err = signer.SignRequest(ap.privKey, ap.pubKeyId, r, body)
+	err = signer.SignRequest(ap.privKey, ap.pubKeyId, r, bodyCopy)
 	if err != nil {
 		return err
 	}
