@@ -38,10 +38,9 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		err = services.ErrNotHandled
 	}
 
-	doNotPersist := false
 	if err == services.ErrNoChanges {
-		doNotPersist = true
-		err = nil
+		w.WriteHeader(http.StatusCreated)
+		return
 	}
 
 	if err == services.ErrNotHandled {
@@ -60,12 +59,10 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		s.Notify.Info(msg)
 	}
 
-	if !doNotPersist {
-		err = s.Store.Persist("activitypub")
-		if err != nil {
-			s.Errorf("activitypub: error git commit: %s", err)
-			s.Notify.Error(err)
-		}
+	err = s.Store.Persist("activitypub")
+	if err != nil {
+		s.Errorf("activitypub: error git commit: %s", err)
+		s.Notify.Error(err)
 	}
 
 	w.WriteHeader(http.StatusCreated)
