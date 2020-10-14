@@ -86,7 +86,7 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 		return errors.New("inReplyTo and id are required and need to be valid")
 	}
 
-	if strings.Contains(reply, ap.IRI) {
+	if !strings.Contains(reply, ap.IRI) {
 		ap.Warnf("create activity is destined to someone else: %s", reply)
 		return fmt.Errorf("reply is not for me: %s", reply)
 	}
