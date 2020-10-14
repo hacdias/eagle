@@ -32,8 +32,10 @@ type ActivityPub struct {
 }
 
 func (ap *ActivityPub) Create(activity map[string]interface{}) error {
+	ap.Debug("processing create activity")
 	object, exists := activity["object"].(map[string]interface{})
 	if !exists {
+		ap.Warn("create activity does not contain object")
 		return errors.New("object must exist")
 	}
 
@@ -41,32 +43,38 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 	id, hasID := object["id"].(string)
 
 	if !hasReply || !hasID || len(reply) == 0 || len(id) == 0 {
+		ap.Warn("create activity has invalid ID or inReplyTo")
 		return errors.New("inReplyTo and id are required and need to be valid")
 	}
 
 	if strings.Contains(reply, ap.IRI) {
+		ap.Warnf("create activity is destined to someone else: %s", reply)
 		return fmt.Errorf("reply is not for me: %s", reply)
 	}
 
+	ap.Debug("converting create activity into webmention")
 	return ap.Webmentions.Send(id, reply)
 }
 
 func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
+	ap.Debug("received delete activity")
 	object, ok := activity["object"].(string)
 	if !ok {
+		ap.Debug("delete activity not ok, not handlind")
 		return "", ErrNotHandled
 	}
 
 	if len(object) > 0 && activity["actor"] == object {
-		// Remove follower
+		ap.Debugf("delete activity is unfollow from: %s", object)
 		return object + " unfollowed you... 😔", ap.removeFollower(object)
 	}
 
+	ap.Debug("delete activity not ok, not handlind")
 	return "", ErrNotHandled
 }
 
 func (ap *ActivityPub) removeFollower(iri string) error {
-	// Remove follower
+	ap.Debugf("removing follower %s", iri)
 	followers, err := ap.Followers()
 	if err != nil {
 		return err
@@ -82,8 +90,10 @@ func (ap *ActivityPub) Like(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
+	ap.Debug("received follow activity")
 	iri, ok := activity["actor"].(string)
 	if !ok || len(iri) == 0 {
+		ap.Debugw("activity has no actor", "activity", activity)
 		return "", errors.New("actor should exist in activity")
 	}
 
@@ -94,11 +104,13 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 
 	follower, err := ap.getActor(iri)
 	if err != nil {
+		ap.Debugf("failed to get actor %s: %s", iri, err)
 		return "", err
 	}
 
 	followers, err := ap.Followers()
 	if err != nil {
+		ap.Debugf("failed to get followers: %s", err)
 		return "", err
 	}
 
@@ -106,6 +118,7 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 
 	err = ap.storeFollowers(followers)
 	if err != nil {
+		ap.Debugf("failed to store followers: %s", err)
 		return "", err
 	}
 
@@ -120,6 +133,7 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 
 	err = ap.sendSigned(accept, follower.Inbox)
 	if err != nil {
+		ap.Debugf("failed to send signed request: %s", err)
 		return "", err
 	}
 
@@ -127,21 +141,26 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
+	ap.Info("received undo activity")
 	object, ok := activity["object"].(map[string]interface{})
 	if !ok {
+		ap.Debug("undo activity: object not ok, not handling")
 		return "", ErrNotHandled
 	}
 
 	objectType, ok := object["type"].(string)
 	if !ok || objectType != "Follow" {
+		ap.Debug("undo activity: object type not supported, not handling")
 		return "", ErrNotHandled
 	}
 
 	iri, ok := object["actor"].(string)
 	if !ok || iri != activity["actor"] {
+		ap.Debug("undo activity: object actor != activity actor, not handling")
 		return "", ErrNotHandled
 	}
 
+	ap.Infof("undo activity: unfollowed by %s", iri)
 	return iri + " unfollowed you... 😔", ap.removeFollower(iri)
 }
 
@@ -247,6 +266,7 @@ func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[str
 }
 
 func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
+	ap.Debugw("sending signed request", "to", to, "body", b)
 	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
 	digestAlgorithm := httpsig.DigestSha256
 
