@@ -64,11 +64,10 @@ func (s *Server) getAS2(url string) (map[string]interface{}, error) {
 
 func (s *Server) tryVariantFile(w http.ResponseWriter, r *http.Request, ext, contentType string) (string, bool) {
 	s.Debugf("trying variant file %s for %s", ext, r.URL.Path)
-	filename := "index" + ext
 	fixedPath := path.Clean(r.URL.Path)
 
-	if !strings.HasSuffix(fixedPath, filename) {
-		fixedPath = path.Join(fixedPath, filename)
+	if !strings.HasSuffix(fixedPath, ext) {
+		fixedPath = path.Join(fixedPath, "index"+ext)
 		s.Debugf("added variant file to url: %s", fixedPath)
 	}
 
