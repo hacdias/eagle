@@ -175,15 +175,8 @@ func (e *HugoEntry) Update(mr *micropub.Request) error {
 				strs := interfacesToStrings(value)
 				e.Content = strings.TrimSpace(strings.Join(strs, " "))
 			case "published":
-				_, hasDate := e.Metadata["date"]
-				_, hasPublishDate := e.Metadata["publishDate"]
-
-				if !hasPublishDate && hasDate {
-					e.Metadata["publishDate"] = e.Metadata["date"]
-				}
-
 				strs := interfacesToStrings(value)
-				e.Metadata["date"] = strings.TrimSpace(strings.Join(strs, " "))
+				e.Metadata["lastmod"] = strings.TrimSpace(strings.Join(strs, " "))
 			default:
 				props[key] = value
 			}

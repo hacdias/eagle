@@ -243,7 +243,7 @@ func (s *Server) activity(entry *services.HugoEntry) {
 		return
 	}
 
-	s.Infow("activity %s scheduled for sending", entry.ID)
+	s.Infof("activity %s scheduled for sending", entry.ID)
 }
 
 func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication) {

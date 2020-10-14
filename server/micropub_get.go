@@ -70,7 +70,9 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if date, ok := post.Metadata.StringIf("date"); ok {
+	if date, ok := post.Metadata.StringIf("lastmod"); ok {
+		props["published"] = []interface{}{date}
+	} else if date, ok := post.Metadata.StringIf("date"); ok {
 		props["published"] = []interface{}{date}
 	}
 
