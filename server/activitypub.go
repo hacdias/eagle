@@ -23,17 +23,17 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	case "Create":
 		err = s.ActivityPub.Create(activity)
 	case "Like":
-		err = s.ActivityPub.Like(activity)
+		msg, err = s.ActivityPub.Like(activity)
 	case "Delete":
-		err = s.ActivityPub.Delete(activity)
+		msg, err = s.ActivityPub.Delete(activity)
 	case "Undo":
-		err = s.ActivityPub.Undo(activity)
+		msg, err = s.ActivityPub.Undo(activity)
 	default:
 		err = services.ErrNotHandled
 	}
 
 	if err == services.ErrNotHandled {
-		msg = "Received Unknown Activity"
+		msg = "Received unhandled Activity"
 		err = s.ActivityPub.Log(activity)
 	}
 

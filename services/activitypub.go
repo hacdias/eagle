@@ -51,17 +51,34 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 	return ap.Webmentions.Send(id, reply)
 }
 
-func (ap *ActivityPub) Delete(activity map[string]interface{}) error {
-	// TODO: based on @jlese's code, try to remove follower
-	// if object, ok := activity["object"].(string); ok && len(object) > 0 && activity["actor"] == object {
-	// 	_ = actor.RemoveFollower(object)
-	// }
-	return ErrNotHandled
+func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
+	object, ok := activity["object"].(string)
+	if !ok {
+		return "", ErrNotHandled
+	}
+
+	if len(object) > 0 && activity["actor"] == object {
+		// Remove follower
+		return object + " unfollowed you 😔", ap.removeFollower(object)
+	}
+
+	return "", ErrNotHandled
 }
 
-func (ap *ActivityPub) Like(activity map[string]interface{}) error {
+func (ap *ActivityPub) removeFollower(iri string) error {
+	// Remove follower
+	followers, err := ap.Followers()
+	if err != nil {
+		return err
+	}
+
+	delete(followers, iri)
+	return ap.storeFollowers(followers)
+}
+
+func (ap *ActivityPub) Like(activity map[string]interface{}) (string, error) {
 	// TODO: make new like and add it to mentions.json, send notification
-	return ErrNotHandled
+	return "", ErrNotHandled
 }
 
 func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
@@ -109,21 +126,23 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 	return follower.IRI + " followed you! 🤯", nil
 }
 
-func (ap *ActivityPub) Undo(activity map[string]interface{}) error {
-	// TODO: based on @jlelse's code, tru to remove follower
-	// if object, ok := activity["object"].(map[string]interface{}); ok {
-	// 	if objectType, ok := object["type"].(string); ok && objectType == "Follow" {
-	// 		if iri, ok := object["actor"].(string); ok && iri == activity["actor"] {
-	// 			_ = actor.RemoveFollower(iri)
-	// 			fmt.Println(iri, "unfollowed")
-	// 			if telegramBot != nil {
-	// 				_ = telegramBot.Post(iri + " unfollowed")
-	// 			}
-	// 		}
-	// 	}
-	// }
+func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
+	object, ok := activity["object"].(map[string]interface{})
+	if !ok {
+		return "", ErrNotHandled
+	}
 
-	return ErrNotHandled
+	objectType, ok := object["type"].(string)
+	if !ok || objectType != "Follow" {
+		return "", ErrNotHandled
+	}
+
+	iri, ok := object["actor"].(string)
+	if !ok || iri != activity["actor"] {
+		return "", ErrNotHandled
+	}
+
+	return iri + " unfollowed you 😔", ap.removeFollower(iri)
 }
 
 func (ap *ActivityPub) Followers() (map[string]string, error) {
