@@ -5,7 +5,7 @@ import "go.uber.org/zap"
 type Config struct {
 	logger       *zap.Logger `mapstructure:"-"`
 	Port         int
-	Domain       string
+	Domain       string // MUST NOT CONTAIN END SLASH
 	Development  bool
 	Telegraph    Telegraph
 	XRay         XRay
@@ -16,6 +16,7 @@ type Config struct {
 	WebmentionIO WebmentionIO
 	Webhook      Webhook
 	IndieAuth    IndieAuth
+	ActivityPub  ActivityPub
 	MeiliSearch  *MeiliSearch
 }
 
@@ -83,4 +84,10 @@ type XRay struct {
 type MeiliSearch struct {
 	Endpoint string
 	Key      string
+}
+
+type ActivityPub struct {
+	IRI      string
+	PubKeyId string `mapstructure:"pub_key_id"`
+	PrivKey  string `mapstructure:"priv_key"`
 }

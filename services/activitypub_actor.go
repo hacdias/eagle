@@ -1,55 +1,61 @@
 package services
 
-/*
-type RemoteActor struct {
-	iri, inbox, sharedInbox string
-	info                    map[string]interface{}
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
+)
+
+type actor struct {
+	IRI   string
+	Inbox string
 }
 
-func NewRemoteActor(iri string) (RemoteActor, error) {
-	info, err := get(iri)
-	if err != nil {
-		return RemoteActor{}, err
-	}
-	inbox := (*info)["inbox"].(string)
-	var endpoints map[string]interface{}
-	var sharedInbox string
-	if (*info)["endpoints"] != nil {
-		endpoints = (*info)["endpoints"].(map[string]interface{})
-		if val, ok := endpoints["sharedInbox"]; ok {
-			sharedInbox = val.(string)
-		}
-	}
-	return RemoteActor{
-		iri:         iri,
-		inbox:       inbox,
-		sharedInbox: sharedInbox,
-	}, err
-}
+func (ap *ActivityPub) getActor(url string) (*actor, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+	defer cancel()
 
-func get(iri string) (info *map[string]interface{}, err error) {
 	buf := new(bytes.Buffer)
-	req, err := http.NewRequest("GET", iri, buf)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, buf)
 	if err != nil {
-		return
+		return nil, err
 	}
-	req.Header.Add("Accept", ContentTypeAs2)
-	req.Header.Add("User-Agent", fmt.Sprintf("%s %s", libName, version))
+
+	req.Header.Add("Accept", "application/activity+json")
 	req.Header.Add("Accept-Charset", "utf-8")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return
+		return nil, err
 	}
+
 	if !isSuccess(resp.StatusCode) {
-		return
+		return nil, fmt.Errorf("request was not successfull: code %d", resp.StatusCode)
 	}
+
 	var e map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&e)
 	if err != nil {
-		return
+		return nil, err
 	}
-	info = &e
-	return
+
+	if e["type"] != "Person" {
+		return nil, fmt.Errorf("actor %s should be a Person, received %s", url, e["type"])
+	}
+
+	iri, iriOK := e["id"].(string)
+	inbox, inboxOK := e["inbox"].(string)
+
+	if !iriOK || !inboxOK || len(iri) == 0 || len(inbox) == 0 {
+		return nil, fmt.Errorf("actor %s has wrong iri or inbox: %s, %s", url, iri, inbox)
+	}
+
+	return &actor{
+		IRI:   iri,
+		Inbox: inbox,
+	}, nil
 }
 
 func isSuccess(code int) bool {
@@ -58,4 +64,3 @@ func isSuccess(code int) bool {
 		code == http.StatusAccepted ||
 		code == http.StatusNoContent
 }
-*/

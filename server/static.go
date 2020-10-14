@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -43,6 +44,22 @@ func (s *Server) getHTML(url string) io.ReadCloser {
 	}
 
 	return fd
+}
+
+func (s *Server) getAS2(url string) (map[string]interface{}, error) {
+	if !strings.HasSuffix(url, ".as2") {
+		url = path.Join(url, "index.as2")
+	}
+
+	fd, err := s.fs.Open(url)
+	if err != nil {
+		return nil, err
+	}
+	defer fd.Close()
+
+	var m map[string]interface{}
+	err = json.NewDecoder(fd).Decode(&m)
+	return m, err
 }
 
 func (s *Server) tryVariantFile(w http.ResponseWriter, r *http.Request, ext, contentType string) (string, bool) {

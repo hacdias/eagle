@@ -15,9 +15,11 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	var msg string
+
 	switch activity["type"] {
 	case "Follow":
-		err = s.ActivityPub.Follow(activity)
+		msg, err = s.ActivityPub.Follow(activity)
 	case "Create":
 		err = s.ActivityPub.Create(activity)
 	case "Like":
@@ -31,12 +33,19 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	if err == services.ErrNotHandled {
-		// TODO: log it
-	} else if err != nil {
+		msg = "Received Unknown Activity"
+		err = s.ActivityPub.Log(activity)
+	}
+
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.Errorf("activity inbox: %s", err)
 		s.Notify.Error(err)
 		return
+	}
+
+	if msg != "" {
+		s.Notify.Info(msg)
 	}
 
 	w.WriteHeader(http.StatusCreated)

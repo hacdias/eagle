@@ -1,20 +1,30 @@
 package services
 
 import (
+	"bytes"
+	"context"
 	"crypto"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/dchest/uniuri"
 	"github.com/go-fed/httpsig"
+	"go.uber.org/zap"
 )
 
 var ErrNotHandled = errors.New("not handled")
 
 type ActivityPub struct {
+	*zap.SugaredLogger
+	Dir         string
 	IRI         string
 	pubKeyId    string
 	privKey     crypto.PrivateKey
@@ -54,48 +64,49 @@ func (ap *ActivityPub) Like(activity map[string]interface{}) error {
 	return ErrNotHandled
 }
 
-func (ap *ActivityPub) Follow(activity map[string]interface{}) error {
+func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
+	iri, ok := activity["actor"].(string)
+	if !ok || len(iri) == 0 {
+		return "", errors.New("actor should exist in activity")
+	}
 
-	/*
-		// it's a follow, write it down
-		newFollower := follow["actor"].(string)
-		fmt.Println("New follow request:", newFollower)
-		// check we aren't following ourselves
-		if newFollower == follow["object"] {
-			// actor and object are equal
-			return
-		}
-		follower, err := NewRemoteActor(newFollower)
-		if err != nil {
-			// Couldn't retrieve remote actor info
-			fmt.Println("Failed to retrieve remote actor info:", newFollower)
-			return
-		}
-		// Add or update follower
-		_ = a.NewFollower(newFollower, follower.inbox)
-		// remove @context from the inner activity
-		delete(follow, "@context")
-		accept := make(map[string]interface{})
-		accept["@context"] = "https://www.w3.org/ns/activitystreams"
-		accept["to"] = follow["actor"]
-		_, accept["id"] = a.newID()
-		accept["actor"] = a.iri
-		accept["object"] = follow
-		accept["type"] = "Accept"
-		err = a.signedHTTPPost(accept, follower.inbox)
-		if err != nil {
-			fmt.Println("Failed to accept:", follower.iri)
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println("Accepted:", follower.iri)
-			if telegramBot != nil {
-				_ = telegramBot.Post(follower.iri + " followed")
-			}
-		}
-	*/
+	if iri == activity["object"] {
+		// Avoid following myself. Why would this happen though?
+		return "", nil
+	}
 
-	// We could pass an error back up, if desired.
-	return ErrNotHandled
+	follower, err := ap.getActor(iri)
+	if err != nil {
+		return "", err
+	}
+
+	followers, err := ap.Followers()
+	if err != nil {
+		return "", err
+	}
+
+	followers[follower.IRI] = follower.Inbox
+
+	err = ap.storeFollowers(followers)
+	if err != nil {
+		return "", err
+	}
+
+	delete(activity, "@context")
+	accept := map[string]interface{}{}
+	accept["@context"] = "https://www.w3.org/ns/activitystreams"
+	accept["to"] = activity["actor"]
+	accept["actor"] = ap.IRI
+	accept["object"] = activity
+	accept["type"] = "Accept"
+	_, accept["id"] = ap.newID()
+
+	err = ap.sendSigned(accept, follower.Inbox)
+	if err != nil {
+		return "", err
+	}
+
+	return follower.IRI + " followed you! 🤯", nil
 }
 
 func (ap *ActivityPub) Undo(activity map[string]interface{}) error {
@@ -115,36 +126,138 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) error {
 	return ErrNotHandled
 }
 
-func (ap *ActivityPub) Followers() ([]string, error) {
-	return []string{}, nil
+func (ap *ActivityPub) Followers() (map[string]string, error) {
+	fd, err := os.Open(filepath.Join(ap.Dir, "followers.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = ap.storeFollowers(map[string]string{})
+			return map[string]string{}, err
+		}
+
+		return nil, err
+	}
+	defer fd.Close()
+
+	var f map[string]string
+	return f, json.NewDecoder(fd).Decode(&f)
+}
+
+func (ap *ActivityPub) Log(activity map[string]interface{}) error {
+	filename := filepath.Join(ap.Dir, "log.json")
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	bytes, err := json.Marshal(activity)
+	if err != nil {
+		return err
+	}
+
+	bytes = append(bytes, '\n')
+
+	_, err = f.Write(bytes)
+	return err
+}
+
+func (ap *ActivityPub) storeFollowers(f map[string]string) error {
+	bytes, err := json.MarshalIndent(f, "", "  ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filepath.Join(ap.Dir, "followers.json"), bytes, 0644)
 }
 
 func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
-	/*
+	followers, err := ap.Followers()
+	if err != nil {
+		return err
+	}
 
-		https://git.jlel.se/jlelse/jsonpub/src/branch/master/actor.go#L112
-	*/
+	id, ok := activity["id"].(string)
+	if !ok {
+		return fmt.Errorf("activity id %s must be string", id)
+	}
+
+	create := make(map[string]interface{})
+	create["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
+	create["type"] = "Create"
+	create["actor"] = activity["attributedTo"]
+	create["id"] = id
+	create["to"] = activity["to"]
+	create["published"] = activity["published"]
+	create["object"] = activity
+	ap.sendTo(create, followers)
+
+	// Boost if it contains "inReplyTo"
+	if activity["inReplyTo"] != nil {
+		announce := make(map[string]interface{})
+		announce["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
+		announce["id"] = id + "#announce"
+		announce["type"] = "Announce"
+		announce["object"] = id
+		announce["actor"] = activity["attributedTo"]
+		announce["to"] = activity["to"]
+		announce["published"] = activity["published"]
+		ap.sendTo(announce, followers)
+	}
+
+	// Send an update event if it contains "updated" and "updated" !== "published"
+	if activity["updated"] != nil && activity["published"] != nil && activity["updated"] != activity["published"] {
+		update := make(map[string]interface{})
+		update["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
+		update["type"] = "Update"
+		update["object"] = id
+		update["actor"] = activity["attributedTo"]
+		ap.sendTo(update, followers)
+	}
 
 	return nil
 }
 
-func (ap *ActivityPub) sendSigned(b interface{}, r *http.Request) error {
+func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[string]string) {
+	for iri := range followers {
+		go func(inbox string) {
+			err := ap.sendSigned(activity, inbox)
+			if err != nil {
+				ap.Errorw("could not send signed", "inbox", inbox, "activity", activity)
+			}
+		}(followers[iri])
+	}
+}
+
+func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
 	digestAlgorithm := httpsig.DigestSha256
+
+	body, err := json.Marshal(b)
+	if err != nil {
+		return err
+	}
+	buf := bytes.NewBuffer(body)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, to, buf)
+	if err != nil {
+		return err
+	}
+
+	iri, err := url.Parse(to)
+	if err != nil {
+		return err
+	}
 
 	r.Header.Add("Accept-Charset", "utf-8")
 	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
 	r.Header.Add("Accept", "application/activity+json; charset=utf-8")
 	r.Header.Add("Content-Type", "application/activity+json; charset=utf-8")
-	r.Header.Add("Host", ap.IRI)
+	r.Header.Add("Host", iri.Host)
 
 	headersToSign := []string{httpsig.RequestTarget, "date", "host", "digest"}
 	signer, _, err := httpsig.NewSigner(prefs, digestAlgorithm, headersToSign, httpsig.Signature)
-	if err != nil {
-		return err
-	}
-
-	body, err := json.Marshal(b)
 	if err != nil {
 		return err
 	}
@@ -156,4 +269,9 @@ func (ap *ActivityPub) sendSigned(b interface{}, r *http.Request) error {
 
 	_, err = http.DefaultClient.Do(r)
 	return err
+}
+
+func (ap *ActivityPub) newID() (hash string, url string) {
+	hash = uniuri.New()
+	return hash, ap.IRI + hash
 }

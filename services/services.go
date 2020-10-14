@@ -1,7 +1,12 @@
 package services
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"io/ioutil"
 	"path"
+	"path/filepath"
 
 	"github.com/hacdias/eagle/config"
 )
@@ -45,6 +50,28 @@ func NewServices(c *config.Config) (*Services, error) {
 
 	media := &Media{c.BunnyCDN}
 
+	webmentions := &Webmentions{
+		SugaredLogger: c.S().Named("webmentions"),
+		Domain:        c.Domain,
+		Telegraph:     c.Telegraph,
+		Hugo:          hugo,
+		Media:         media,
+	}
+
+	privateKey, err := decodePrivateKey(c.ActivityPub.PrivKey)
+	if err != nil {
+		return nil, err
+	}
+
+	activitypub := &ActivityPub{
+		SugaredLogger: c.S().Named("activitypub"),
+		Dir:           filepath.Join(c.Hugo.Source, "data", "activity"),
+		IRI:           c.ActivityPub.IRI,
+		pubKeyId:      c.ActivityPub.PubKeyId,
+		privKey:       privateKey,
+		Webmentions:   webmentions,
+	}
+
 	syndicator := Syndicator{}
 
 	if c.Twitter.User != "" {
@@ -58,13 +85,7 @@ func NewServices(c *config.Config) (*Services, error) {
 		Hugo:             hugo,
 		Media:            media,
 		Notify:           notify,
-		Webmentions: &Webmentions{
-			SugaredLogger: c.S().Named("webmentions"),
-			Domain:        c.Domain,
-			Telegraph:     c.Telegraph,
-			Hugo:          hugo,
-			Media:         media,
-		},
+		Webmentions:      webmentions,
 		XRay: &XRay{
 			SugaredLogger: c.S().Named("xray"),
 			XRay:          c.XRay,
@@ -72,7 +93,7 @@ func NewServices(c *config.Config) (*Services, error) {
 			StoragePath:   path.Join(c.Hugo.Source, "data", "xray"),
 		},
 		Syndicator:  syndicator,
-		ActivityPub: &ActivityPub{},
+		ActivityPub: activitypub,
 	}
 
 	if c.MeiliSearch != nil {
@@ -83,4 +104,21 @@ func NewServices(c *config.Config) (*Services, error) {
 	}
 
 	return services, nil
+}
+
+func decodePrivateKey(path string) (*rsa.PrivateKey, error) {
+	pkfile, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	privateKeyDecoded, _ := pem.Decode(pkfile)
+	if privateKeyDecoded == nil {
+		return nil, err
+	}
+	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyDecoded.Bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return privateKey, nil
 }
