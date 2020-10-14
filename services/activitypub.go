@@ -59,7 +59,7 @@ func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
 
 	if len(object) > 0 && activity["actor"] == object {
 		// Remove follower
-		return object + " unfollowed you 😔", ap.removeFollower(object)
+		return object + " unfollowed you... 😔", ap.removeFollower(object)
 	}
 
 	return "", ErrNotHandled
@@ -142,7 +142,7 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
 		return "", ErrNotHandled
 	}
 
-	return iri + " unfollowed you 😔", ap.removeFollower(iri)
+	return iri + " unfollowed you... 😔", ap.removeFollower(iri)
 }
 
 func (ap *ActivityPub) Followers() (map[string]string, error) {

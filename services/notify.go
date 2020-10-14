@@ -29,7 +29,7 @@ func NewNotify(c *config.Telegram, log *zap.SugaredLogger) (*Notify, error) {
 func (n *Notify) Info(msg string) {
 	_, err := n.b.Send(&tb.Chat{ID: n.ChatID}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
-		ParseMode:             tb.ModeMarkdown,
+		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {

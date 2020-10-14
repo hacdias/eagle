@@ -15,7 +15,13 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	s.Lock()
+	defer s.Unlock()
+
 	var msg string
+
+	// TODO: check if request is signed by the actual user
+	// to prevent misuse of this endpoint.
 
 	switch activity["type"] {
 	case "Follow":
@@ -46,6 +52,12 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 
 	if msg != "" {
 		s.Notify.Info(msg)
+	}
+
+	err = s.Store.Persist("activitypub")
+	if err != nil {
+		s.Errorf("activitypub: error git commit: %s", err)
+		s.Notify.Error(err)
 	}
 
 	w.WriteHeader(http.StatusCreated)
