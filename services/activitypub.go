@@ -312,7 +312,8 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 
 	resp, err := http.DefaultClient.Do(r)
 	if !isSuccess(resp.StatusCode) {
-		return fmt.Errorf("signed request failed with status %d", resp.StatusCode)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("signed request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 	return err
 }
