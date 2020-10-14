@@ -23,7 +23,7 @@ func (s *Server) StartHTTP() error {
 
 	r.Post("/webhook", s.webhookHandler)
 	r.Post("/webmention", s.webmentionHandler)
-	r.Post("/activitypub/inbox", s.activityPubInboxHandler)
+	r.Post("/activitypub/inbox", s.activityPubPostInboxHandler)
 	r.Get("/search.json", s.searchHandler)
 
 	// Make sure we have a built version!

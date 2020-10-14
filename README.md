@@ -16,6 +16,11 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 - Make Inbox
 - Make Outbox (?)
 
+## GOAL: local syncs
+
+- Use local syncs per service. Services should return the files changed!
+- Then, we can commit specific files!
+
 ## License
 
 MIT © Henrique Dias

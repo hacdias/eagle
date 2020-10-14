@@ -1,4 +1,5 @@
 *config.yml
+*.pem
 eagle
 public
 docker-compose.yml

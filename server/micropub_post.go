@@ -97,6 +97,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	go func() {
 		s.sendWebmentions(entry, synd.Related...)
 		s.syndicate(entry, synd)
+		s.activity(entry)
 		err := s.MeiliSearch.Add(entry)
 		if err != nil {
 			s.Warnf("could not add to meilisearch: %s", err)
@@ -146,6 +147,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 
 	go func() {
 		s.sendWebmentions(entry)
+		s.activity(entry)
 		err := s.MeiliSearch.Add(entry)
 		if err != nil {
 			s.Warnf("could not update meilisearch: %s", err)
@@ -226,6 +228,22 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 
 	s.Debug("micropub: remove request ok")
 	return http.StatusOK, nil
+}
+
+func (s *Server) activity(entry *services.HugoEntry) {
+	activity, err := s.getAS2(entry.ID)
+	if err != nil {
+		s.Errorf("coult not fetch activity for %s: %s", entry.ID, err)
+		return
+	}
+
+	err = s.ActivityPub.PostFollowers(activity)
+	if err != nil {
+		s.Errorf("coult not post activity %s: %s", entry.ID, err)
+		return
+	}
+
+	s.Infow("activity %s scheduled for sending", entry.ID)
 }
 
 func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication) {
