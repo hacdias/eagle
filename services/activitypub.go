@@ -25,6 +25,7 @@ import (
 )
 
 var ErrNotHandled = errors.New("not handled")
+var ErrNoChanges = errors.New("no changes")
 
 type ActivityPub struct {
 	*zap.SugaredLogger
@@ -118,6 +119,10 @@ func (ap *ActivityPub) removeFollower(iri string) error {
 		return err
 	}
 
+	if _, ok := followers[iri]; !ok {
+		return ErrNoChanges
+	}
+
 	delete(followers, iri)
 	return ap.storeFollowers(followers)
 }
@@ -152,12 +157,16 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	followers[follower.IRI] = follower.Inbox
+	changed := false
+	if inbox, ok := followers[follower.IRI]; !ok || inbox != follower.Inbox {
+		followers[follower.IRI] = follower.Inbox
+		changed = true
 
-	err = ap.storeFollowers(followers)
-	if err != nil {
-		ap.Debugf("failed to store followers: %s", err)
-		return "", err
+		err = ap.storeFollowers(followers)
+		if err != nil {
+			ap.Debugf("failed to store followers: %s", err)
+			return "", err
+		}
 	}
 
 	delete(activity, "@context")
@@ -175,7 +184,11 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	return follower.IRI + " followed you! 🤯", nil
+	if !changed {
+		err = ErrNoChanges
+	}
+
+	return follower.IRI + " followed you! 🤯", err
 }
 
 func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
