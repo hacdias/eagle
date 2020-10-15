@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -108,6 +109,33 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 	}
 
 	return entry, synd, nil
+}
+
+var handles = regexp.MustCompile(`(?m)@([^\s]*)`)
+
+func checkContent(content string) (newContent string, changed bool) {
+	newContent = handles.ReplaceAllStringFunc(content, func(s string) string {
+		s = s[1:] // Strip out "@" which is encoded in 1 byte
+
+		if idx := strings.Index(s, "@"); idx != -1 {
+			split := strings.SplitN(s, "@", 2)
+			user := split[0]
+			domain := split[1]
+
+			url := "https://" + domain + "/.well-known/webfinger?resource=acct:" + s
+
+			// https://pleroma.site/.well-known/webfinger?resource=acct:hacdias@hacdias.com
+			// Probably federation
+			// Accept json
+			// Json returned for link := range map["links"]: if link["type"] == "text/html", use link["href"]
+
+			return s
+		}
+
+		// TODO: check if Twitter handle exists, if does return url + add mention to metadata
+
+		return "<a href='https://twitter.com/" + s + "' rel='noopener noreferrer' target='_blank'>@" + s + "</a>"
+	})
 }
 
 func cleanRelated(urls []string) ([]string, error) {
