@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -39,9 +40,9 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 		return "", fmt.Errorf("unsupported post type for twitter: %s", typ)
 	}
 
-	status := entry.Content
-	if len(entry.Content) > 280 {
-		status = strings.TrimSpace(entry.Content[0:230]) + "... " + entry.Permalink
+	status := entry.RawContent
+	if len(status) > 280 {
+		status = strings.TrimSpace(status[0:230]) + "... " + entry.Permalink
 	}
 
 	u, err := url.Parse("https://api.twitter.com/1.1/statuses/update.json")
@@ -91,6 +92,33 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 
 func (t *Twitter) IsRelated(url string) bool {
 	return strings.HasPrefix(url, "https://twitter.com")
+}
+
+func (t *Twitter) UserExists(user string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.twitter.com/1.1/users/lookup.json?screen_name="+user, nil)
+	if err != nil {
+		return false, err
+	}
+
+	res, err := t.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+
+	var r interface{}
+	err = json.NewDecoder(res.Body).Decode(&r)
+	if err != nil {
+		return false, err
+	}
+
+	if reflect.ValueOf(r).Kind() == reflect.Slice {
+		return reflect.ValueOf(r).Len() > 0, nil
+	}
+
+	return false, nil
 }
 
 func (t *Twitter) Name() string {

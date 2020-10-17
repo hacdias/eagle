@@ -38,9 +38,10 @@ func NewServices(c *config.Config) (*Services, error) {
 	dirChanges := make(chan string)
 
 	hugo := &Hugo{
-		Hugo:       c.Hugo,
-		Domain:     c.Domain,
-		DirChanges: dirChanges,
+		SugaredLogger: c.S().Named("hugo"),
+		Hugo:          c.Hugo,
+		Domain:        c.Domain,
+		DirChanges:    dirChanges,
 	}
 
 	media := &Media{c.BunnyCDN}
@@ -62,7 +63,9 @@ func NewServices(c *config.Config) (*Services, error) {
 	syndicator := Syndicator{}
 
 	if c.Twitter.User != "" {
-		syndicator["https://twitter.com/"+c.Twitter.User] = NewTwitter(&c.Twitter)
+		twitter := NewTwitter(&c.Twitter)
+		syndicator["https://twitter.com/"+c.Twitter.User] = twitter
+		hugo.Twitter = twitter
 	}
 
 	services := &Services{

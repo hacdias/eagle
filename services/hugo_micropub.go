@@ -20,8 +20,9 @@ var typesWithLinks = map[micropub.Type]string{
 
 func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, error) {
 	entry := &HugoEntry{
-		Content:  "",
-		Metadata: map[string]interface{}{},
+		Content:    "",
+		RawContent: "",
+		Metadata:   map[string]interface{}{},
 	}
 
 	if published, ok := post.Properties.StringIf("published"); ok {
@@ -41,7 +42,9 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 
 	if content, ok := post.Properties.StringsIf("content"); ok {
 		// TODO: check content like { html: , text: }. Return unsupported for that.
-		entry.Content = strings.TrimSpace(strings.Join(content, "\n"))
+		content := strings.TrimSpace(strings.Join(content, "\n"))
+		entry.RawContent = content
+		entry.Content = content
 	}
 
 	if name, ok := post.Properties.StringsIf("name"); ok {
@@ -107,6 +110,7 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 		return nil, nil, errors.New("post must have a slug")
 	}
 
+	h.findMentions(entry)
 	return entry, synd, nil
 }
 
@@ -271,6 +275,7 @@ func (e *HugoEntry) Update(mr *micropub.Request) error {
 
 	e.Metadata["tags"] = tags
 	e.Metadata["properties"] = props
+	e.RawContent = e.Content
 	return nil
 }
 

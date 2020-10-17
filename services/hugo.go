@@ -17,20 +17,27 @@ import (
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/karlseguin/typed"
+	"go.uber.org/zap"
 )
 
 type HugoEntry struct {
 	ID        string
 	Permalink string
-	Content   string
-	Metadata  typed.Typed
+	// RawContent is the content that comes directly from the
+	// Micropub request. It is populated with .Content on all
+	// other situations.
+	RawContent string
+	Content    string
+	Metadata   typed.Typed
 }
 
 type Hugo struct {
+	*zap.SugaredLogger
 	config.Hugo
 	Domain        string
 	DirChanges    chan string
 	currentSubDir string
+	Twitter       *Twitter
 }
 
 func generateHash() string {
@@ -185,6 +192,8 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 		Metadata:  map[string]interface{}{},
 		Content:   strings.TrimSpace(splits[1]),
 	}
+
+	entry.RawContent = entry.Content
 
 	var metadata map[string]interface{}
 
