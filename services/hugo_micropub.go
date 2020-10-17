@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"regexp"
 	"strings"
 	"time"
 
@@ -21,8 +20,9 @@ var typesWithLinks = map[micropub.Type]string{
 
 func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, error) {
 	entry := &HugoEntry{
-		Content:  "",
-		Metadata: map[string]interface{}{},
+		Content:    "",
+		RawContent: "",
+		Metadata:   map[string]interface{}{},
 	}
 
 	if published, ok := post.Properties.StringIf("published"); ok {
@@ -42,7 +42,9 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 
 	if content, ok := post.Properties.StringsIf("content"); ok {
 		// TODO: check content like { html: , text: }. Return unsupported for that.
-		entry.Content = strings.TrimSpace(strings.Join(content, "\n"))
+		content := strings.TrimSpace(strings.Join(content, "\n"))
+		entry.RawContent = content
+		entry.Content = content
 	}
 
 	if name, ok := post.Properties.StringsIf("name"); ok {
@@ -108,34 +110,8 @@ func (h *Hugo) FromMicropub(post *micropub.Request) (*HugoEntry, *Syndication, e
 		return nil, nil, errors.New("post must have a slug")
 	}
 
+	h.findMentions(entry)
 	return entry, synd, nil
-}
-
-var handles = regexp.MustCompile(`(?m)@([^\s]*)`)
-
-func checkContent(content string) (newContent string, changed bool) {
-	newContent = handles.ReplaceAllStringFunc(content, func(s string) string {
-		s = s[1:] // Strip out "@" which is encoded in 1 byte
-
-		if idx := strings.Index(s, "@"); idx != -1 {
-			split := strings.SplitN(s, "@", 2)
-			user := split[0]
-			domain := split[1]
-
-			url := "https://" + domain + "/.well-known/webfinger?resource=acct:" + s
-
-			// https://pleroma.site/.well-known/webfinger?resource=acct:hacdias@hacdias.com
-			// Probably federation
-			// Accept json
-			// Json returned for link := range map["links"]: if link["type"] == "text/html", use link["href"]
-
-			return s
-		}
-
-		// TODO: check if Twitter handle exists, if does return url + add mention to metadata
-
-		return "<a href='https://twitter.com/" + s + "' rel='noopener noreferrer' target='_blank'>@" + s + "</a>"
-	})
 }
 
 func cleanRelated(urls []string) ([]string, error) {
@@ -299,6 +275,7 @@ func (e *HugoEntry) Update(mr *micropub.Request) error {
 
 	e.Metadata["tags"] = tags
 	e.Metadata["properties"] = props
+	e.RawContent = e.Content
 	return nil
 }
 
