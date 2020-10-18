@@ -59,7 +59,7 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		}
 	}))
 
-	b.Handle("/buildidx", checkUser(func(m *tb.Message) {
+	b.Handle("/build_index", checkUser(func(m *tb.Message) {
 		if s.MeiliSearch == nil {
 			s.Notify.Info("MeiliSearch is not implemented!")
 			return
@@ -83,7 +83,7 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		s.Notify.Info("Successfully indexed! 🔎")
 	}))
 
-	b.Handle("/deleteidx", checkUser(func(m *tb.Message) {
+	b.Handle("/delete_index", checkUser(func(m *tb.Message) {
 		if s.MeiliSearch == nil {
 			s.Notify.Info("MeiliSearch is not implemented!")
 			return
@@ -98,8 +98,8 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		s.Notify.Info("Search index wiped! 🔎")
 	}))
 
-	b.Handle("/webmention", checkUser(func(m *tb.Message) {
-		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmention"))
+	b.Handle("/webmentions", checkUser(func(m *tb.Message) {
+		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmentions"))
 
 		entry, err := s.Hugo.GetEntry(id)
 		if err != nil {
@@ -108,6 +108,18 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		}
 
 		s.sendWebmentions(entry)
+	}))
+
+	b.Handle("/activity", checkUser(func(m *tb.Message) {
+		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/activity"))
+
+		entry, err := s.Hugo.GetEntry(id)
+		if err != nil {
+			s.Notify.Error(err)
+			return
+		}
+
+		s.activity(entry)
 	}))
 
 	go b.Start()
