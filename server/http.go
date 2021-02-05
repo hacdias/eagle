@@ -1,25 +1,16 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/hacdias/eagle/middleware/indieauth"
 )
 
 func (s *Server) StartHTTP() error {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
-
-	if s.c.Development {
-		r.Get("/micropub", s.getMicropubHandler)
-		r.Post("/micropub", s.postMicropubHandler)
-	} else {
-		auth := indieauth.With(&s.c.IndieAuth, s.Named("indieauth"))
-		r.With(auth).Get("/micropub", s.getMicropubHandler)
-		r.With(auth).Post("/micropub", s.postMicropubHandler)
-	}
 
 	r.Post("/webhook", s.webhookHandler)
 	r.Post("/webmention", s.webmentionHandler)
@@ -49,4 +40,20 @@ func (s *Server) StartHTTP() error {
 
 	s.Infof("Listening on http://localhost:%d", s.c.Port)
 	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), r)
+}
+
+func (s *Server) recoverer(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
+				s.Errorf("panic while serving: %s", rvr)
+				s.Notify.Error(fmt.Errorf(fmt.Sprint(rvr)))
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
 }
