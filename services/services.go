@@ -1,12 +1,12 @@
 package services
 
 import (
-	"path"
-
 	"github.com/hacdias/eagle/config"
 )
 
 type Services struct {
+
+	// Old
 	PublicDirChanges chan string
 	cfg              *config.Config
 	Store            StorageService
@@ -21,7 +21,7 @@ type Services struct {
 }
 
 func NewServices(c *config.Config) (*Services, error) {
-	notify, err := NewNotify(&c.Telegram, c.S().Named("telegram"))
+	/* notify, err := NewNotify(&c.Telegram, c.S().Named("telegram"))
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,9 @@ func NewServices(c *config.Config) (*Services, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
+	} */
+
+	services := &Services{}
 
 	return services, nil
 }

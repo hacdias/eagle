@@ -83,6 +83,8 @@ func migrate(c *config.Config) {
 			delete(entry.Metadata, "properties")
 		}
 
+		delete(entry.Metadata, "home")
+		delete(entry.Metadata, "type")
 		moveKey(entry.Metadata, "date", "publishDate")
 		moveKey(entry.Metadata, "lastmod", "updateDate")
 		moveKey(entry.Metadata, "layout", "template")

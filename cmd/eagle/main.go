@@ -26,7 +26,10 @@ func main() {
 	}
 
 	quit := make(chan os.Signal, 1)
-	server := server.NewServer(c, s)
+	server, err := server.NewServer(c, s)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	go func() {
 		c.S().Info("starting server")
@@ -37,16 +40,18 @@ func main() {
 		quit <- os.Interrupt
 	}()
 
-	c.S().Info("starting bot")
+	/* c.S().Info("starting bot")
 	bot, err := server.StartBot()
 	if err != nil {
 		c.S().Errorf("failed to start bot: %s", err)
 		quit <- os.Interrupt
-	}
+	} */
 
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	c.S().Info("stopping bot")
-	bot.Stop()
+	/*
+
+		c.S().Info("stopping bot")
+		bot.Stop() */
 }

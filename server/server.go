@@ -2,8 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
-	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/hacdias/eagle/config"
@@ -18,39 +19,27 @@ type Server struct {
 	*services.Services
 	c *config.Config
 
+	tpl *template.Template
+
 	dir     string
 	fs      afero.Fs
 	httpdir http.Handler
 }
 
-func NewServer(c *config.Config, s *services.Services) *Server {
+func NewServer(c *config.Config, s *services.Services) (*Server, error) {
+	tpl, err := template.ParseGlob(filepath.Join(c.Source, "templates", "*.tmpl"))
+	if err != nil {
+		return nil, err
+	}
+
 	server := &Server{
 		SugaredLogger: c.S().Named("server"),
 		Services:      s,
 		c:             c,
+		tpl:           tpl,
 	}
 
-	go func() {
-		server.Info("waiting for new directories")
-		for dir := range s.PublicDirChanges {
-			server.Infof("received new public directory: %s", dir)
-			oldDir := server.dir
-
-			// TODO: should this be locked somehow?
-			server.dir = dir
-			server.fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
-			server.httpdir = http.FileServer(neuteredFs{afero.NewHttpFs(server.fs).Dir("/")})
-
-			err := os.RemoveAll(oldDir)
-			if err != nil {
-				server.Warnf("could not delete old directory: %s", err)
-				s.Notify.Error(err)
-			}
-		}
-		server.Info("stopped waiting for new directories, channel closed")
-	}()
-
-	return server
+	return server, nil
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {

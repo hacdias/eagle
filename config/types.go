@@ -3,9 +3,11 @@ package config
 import "go.uber.org/zap"
 
 type Config struct {
-	logger       *zap.Logger `mapstructure:"-"`
-	Port         int
-	Domain       string // MUST NOT CONTAIN END SLASH
+	logger *zap.Logger `mapstructure:"-"`
+	Port   int
+	Domain string // MUST NOT CONTAIN END SLASH
+	Source string
+
 	Development  bool
 	Telegraph    Telegraph
 	XRay         XRay
