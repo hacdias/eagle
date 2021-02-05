@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "published": "2020-02-13T08:23:00.000Z",
+  "url": "https://jlelse.blog/micro/2020/02/photos-page/",
+  "category": [
+    "Photos",
+    "Instagram",
+    "Privacy"
+  ],
+  "content": {
+    "text": "I just added a page that lists all the photos from this blog. It’s my alternative to using Instagram. Everyone can view my photos without the need to create an account, seeing advertisements and getting tracked. It was also a little challenge getting Hugo to filter and list all posts.",
+    "html": "<p>I just added <a href=\"https://jlelse.blog/photos/\">a page that lists all the photos from this blog</a>. It’s my alternative to using Instagram. Everyone can view my photos without the need to create an account, seeing advertisements and getting tracked. It was also a little challenge getting Hugo to filter and list all posts.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/02/photos-page/"
+  }
+}

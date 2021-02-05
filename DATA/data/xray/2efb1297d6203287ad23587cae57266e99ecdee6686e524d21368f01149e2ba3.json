@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/raulvk/status/1225147495627608064",
+  "author": {
+    "type": "card",
+    "nickname": "raulvk",
+    "location": "Tenerife, Spain",
+    "bio": "tech leading #libp2p at @protocollabs | engineer: fixer of some things; breaker of many | PMC @TheASF | biohacker, stoic, hiker, dogs",
+    "name": "Raúl Kripalani",
+    "url": "https://twitter.com/raulvk",
+    "photo": "https://pbs.twimg.com/profile_images/1212461280042405891/Q7VM_P8y_normal.jpg"
+  },
+  "content": {
+    "text": "A new star is born in the interplanetary sky! 🌟\n\nI'm proud to announce that we've released v0.1 of the Interplanetary Testground project! 🚀🧪👩‍🔬\n\nhttps://github.com/ipfs/testground/releases/tag/v0.1.0\n\nWhat is this project about, you may ask?",
+    "html": "A new star is born in the interplanetary sky! 🌟<br>\n<br>\nI'm proud to announce that we've released v0.1 of the Interplanetary Testground project! 🚀🧪👩‍🔬<br>\n<br>\n<a href=\"https://github.com/ipfs/testground/releases/tag/v0.1.0\">https://github.com/ipfs/testground/releases/tag/v0.1.0</a><br>\n<br>\nWhat is this project about, you may ask?"
+  },
+  "published": "2020-02-05T20:01:39.000Z",
+  "post-type": "note"
+}

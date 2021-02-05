@@ -1,0 +1,44 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/eldinhadzic_/status/1227947943791071232",
+  "author": {
+    "type": "card",
+    "nickname": "eldinhadzic_",
+    "location": "Germany",
+    "bio": "Linux, Go, Caddy, Rust, Science, and Philosophy enthusiast.\n\nhttp://B.Sc. biology student.",
+    "name": "Eldin Hadzic 🇪🇺 🌍🌏🌎",
+    "url": "https://twitter.com/eldinhadzic_",
+    "photo": "https://pbs.twimg.com/profile_images/1209276785101344769/DmOq-3-T_normal.jpg"
+  },
+  "content": {
+    "text": "Let me quickly burst your bubble of U.S. service supremacy!\n\nI can wire anyone in the SEPA area money instantly if their bank supports it, and if not within a day. I just need their IBAN.",
+    "html": "Let me quickly burst your bubble of U.S. service supremacy!<br>\n<br>\nI can wire anyone in the SEPA area money instantly if their bank supports it, and if not within a day. I just need their IBAN."
+  },
+  "published": "2020-02-13T13:29:38.000Z",
+  "quotation-of": "https://twitter.com/brian_armstrong/status/1227678692425359360",
+  "refs": {
+    "https://twitter.com/brian_armstrong/status/1227678692425359360": {
+      "type": "entry",
+      "url": "https://twitter.com/brian_armstrong/status/1227678692425359360",
+      "author": {
+        "type": "card",
+        "nickname": "brian_armstrong",
+        "location": "San Francisco, CA",
+        "bio": "Co-founder & CEO at @Coinbase\nCo-founder @GiveCrypto\nBuilding an open financial system for the world. Join us: http://coinbase.com/careers",
+        "name": "Brian Armstrong",
+        "url": "https://twitter.com/brian_armstrong",
+        "photo": "https://pbs.twimg.com/profile_images/1039744169026224128/Ne3vqMhM_normal.jpg"
+      },
+      "content": {
+        "text": "Trying to send money to pay back a friend. Paypal tells me \"recipient is unable to receive money\" and SquareCash tells me my bank declined the payment. This is in the U.S. where these services work best. Imagine rest of the world."
+      },
+      "published": "2020-02-12T19:39:44+00:00",
+      "photo": [
+        "https://pbs.twimg.com/media/EQmXQ6CVAAEnX6x.png",
+        "https://pbs.twimg.com/media/EQmXQ6IVUAAXrxf.png"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

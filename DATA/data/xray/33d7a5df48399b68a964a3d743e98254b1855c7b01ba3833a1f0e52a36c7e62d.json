@@ -1,0 +1,14 @@
+{
+  "type": "entry",
+  "url": "https://jlelse.blog/micro/2020/02/2020-02-06-zkrxu/",
+  "published": "2020-02-06T10:41:49.000Z",
+  "summary": "I wonder if I will even be able to finish my ActivityPub implementation during this holiday. ActivityPub is somehow more complex than expected and unfortunately there are not many implementations to get inspiration from. Meanwhile my idea is to use Hugo to generate ActivityStream JSON files which are then sent to the followers with my own implementation. To do this I have to configure Caddy (the server that delivers my blog) to return the JSON files when an &ldquo;Accept&rdquo; HTTP header is received and I have to proxy certain request routes to the implementation.",
+  "author": {
+    "type": "card",
+    "name": "jlelse's Blog",
+    "url": null,
+    "photo": "https://jlelse.dev/profile-128.jpg",
+    "nickname": "en"
+  },
+  "post-type": "note"
+}

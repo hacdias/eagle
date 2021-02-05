@@ -1,0 +1,30 @@
+{
+  "type": "entry",
+  "published": "2018-10-03T20:53:16.000Z",
+  "url": "https://hacdias.com/2018/10/03/03/",
+  "category": [
+    "ipfs"
+  ],
+  "photo": [
+    "https://hacdias.com/2018/10/03/03/DonJhJxX4AAXID8.jpg",
+    "https://hacdias.com/2018/10/03/03/DonJoGaXUAA0A5Y.jpg",
+    "https://hacdias.com/2018/10/03/03/DonJoHXW0AEQmME.jpg"
+  ],
+  "syndication": [
+    "https://twitter.com/hacdias/status/1047590428923584512"
+  ],
+  "content": {
+    "text": "What about a new #IPFS Desktop? More connected to Web UI than ever with support to different connections and prettier! /cc @olizilla @_fsdiogo @daviddias",
+    "html": "<p>What about a new #IPFS Desktop? More connected to Web UI than ever with support to different connections and prettier! /cc <a href=\"https://twitter.com/olizilla\">@olizilla</a> <a href=\"https://twitter.com/_fsdiogo\">@_fsdiogo</a> <a href=\"https://twitter.com/daviddias\">@daviddias</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "photo",
+  "rels": {
+    "canonical": "https://hacdias.com/2018/10/03/03/"
+  }
+}

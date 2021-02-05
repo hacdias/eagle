@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-03-26T15:05:23.000Z",
+  "url": "https://jlelse.blog/micro/2020/03/flow/",
+  "category": [
+    "Thoughts"
+  ],
+  "content": {
+    "text": "It’s amazing how fast time can go by when you’re in a flow state. It’s an incredible feeling. Especially at the moment, when one usually has rather too much time.",
+    "html": "<p>It’s amazing how fast time can go by when you’re in a flow state. It’s an incredible feeling. Especially at the moment, when one usually has rather too much time.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/03/flow/"
+  }
+}

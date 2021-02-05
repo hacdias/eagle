@@ -1,0 +1,44 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/juanbenet/status/1244723718397366272",
+  "author": {
+    "type": "card",
+    "nickname": "juanbenet",
+    "location": "Palo Alto",
+    "bio": "Obsessed with Knowledge, Science, and Technology -- Protocol Labs, IPFS, Filecoin -- http://juan.benet.ai",
+    "name": "Juan Benet",
+    "url": "https://twitter.com/juanbenet",
+    "photo": "https://pbs.twimg.com/profile_images/436772207746756609/1PMRyGnf_normal.png"
+  },
+  "content": {
+    "text": "Excellent post from @dietrich on how android @opera added ipfs:// resolution by default, and what it means for the web. \n\nMajor milestone for ipfs, web3, decentralization!\n\nCovers name resolution w/ @ensdomains, @unstoppableweb, DNS, gateways, and how you can get involved 🎉🚀",
+    "html": "Excellent post from <a href=\"https://twitter.com/dietrich\">@dietrich</a> on how android <a href=\"https://twitter.com/opera\">@opera</a> added ipfs:// resolution by default, and what it means for the web. <br>\n<br>\nMajor milestone for ipfs, web3, decentralization!<br>\n<br>\nCovers name resolution w/ <a href=\"https://twitter.com/ensdomains\">@ensdomains</a>, <a href=\"https://twitter.com/unstoppableweb\">@unstoppableweb</a>, DNS, gateways, and how you can get involved 🎉🚀"
+  },
+  "published": "2020-03-30T20:30:34.000Z",
+  "quotation-of": "https://twitter.com/dietrich/status/1244655656604512256",
+  "refs": {
+    "https://twitter.com/dietrich/status/1244655656604512256": {
+      "type": "entry",
+      "url": "https://twitter.com/dietrich/status/1244655656604512256",
+      "author": {
+        "type": "card",
+        "nickname": "dietrich",
+        "location": "Melbourne, FL",
+        "bio": "A lifestyle brand offering timeless products of unique modernity. @ipfsbot at @protocollabs",
+        "name": "dietrich",
+        "url": "https://twitter.com/dietrich",
+        "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+      },
+      "content": {
+        "text": "Today @opera released ipfs:// support in their Android browser, on by default.\n\nFor the first time, a major browser will load verifiable content without making the user specify which server to get it from.\n\nHuge milestone for P2P, the dweb and @IPFSbot.\n\nhttps://blog.ipfs.io/2020-03-30-ipfs-in-opera-for-android/",
+        "html": "Today <a href=\"https://twitter.com/opera\">@opera</a> released ipfs:// support in their Android browser, on by default.<br>\n<br>\nFor the first time, a major browser will load verifiable content without making the user specify which server to get it from.<br>\n<br>\nHuge milestone for P2P, the dweb and <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>.<br>\n<br>\n<a href=\"https://blog.ipfs.io/2020-03-30-ipfs-in-opera-for-android/\">https://blog.ipfs.io/2020-03-30-ipfs-in-opera-for-android/</a>"
+      },
+      "published": "2020-03-30T16:00:07+00:00",
+      "photo": [
+        "https://pbs.twimg.com/media/EUXnkUzXgAI-kMj.jpg"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "entry",
+  "url": "https://hacdias.com/micro/2019/09/r16/",
+  "published": "2019-09-19T17:37:48.000Z",
+  "content": {
+    "text": "Hey Sawood! We’re using Electron Builder to build IPFS Desktop and as of now it doesn’t support building for Flatback. And it doesn’t seem to be something they’ll add in the near future unfortunately :'( https://github.com/electron-userland/electron-builder/issues/512",
+    "html": "<p>Hey Sawood! We’re using Electron Builder to build IPFS Desktop and as of now it doesn’t support building for Flatback. And it doesn’t seem to be something they’ll add in the near future unfortunately :'( <a href=\"https://github.com/electron-userland/electron-builder/issues/512\">https://github.com/electron-userland/electron-builder/issues/512</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": null,
+    "photo": "https://hacdias.com/me-256.jpg",
+    "nickname": "hacdias"
+  },
+  "post-type": "note"
+}

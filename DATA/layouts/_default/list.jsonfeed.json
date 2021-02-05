@@ -1,0 +1,37 @@
+{{- $pages := (partialCached "get-pages" . .Type .Title) -}}
+{{- $limit := .Site.Config.Services.RSS.Limit -}}
+{{- if ge $limit 1 -}}
+{{- $pages = $pages | first $limit -}}
+{{- end -}}
+{
+  "version": "https://jsonfeed.org/version/1",
+  "title": "{{ .Site.Title }}",
+  "description": "{{ .Site.Params.description }}",
+  "home_page_url": "{{ .Permalink}}",
+  "feed_url": "{{ .Permalink }}feed.json",
+  "author": {
+    "name": "{{ .Site.Author.name }}",
+    "url": "{{ .Site.Author.url }}",
+    "avatar": "{{ .Site.Author.avatar }}"
+  },
+  "items": [
+    {{- range $index, $pages := $pages }}
+    {{- $isReply := false }}
+    {{- if .Params.properties }}{{ if isset .Params.properties "in-reply-to" }}{{ $isReply = true }}{{ end }}{{ end }}
+    {{ if ge $index 1 }}, {{end}}{
+      {{- with .Params.tags }}"tags": {{ . | jsonify }},{{ end }}
+      {{- with .Title }}"title": {{ . | jsonify }},{{ end }}
+      "id": "{{ .Permalink }}",
+      "url": "{{ .Permalink }}",
+      "content_html": {{ partialCached "cleaned-content-full.html" . .Permalink | jsonify }},
+      "summary": {{ .Summary | jsonify }},
+      "date_published": {{ dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }},
+      "date_modified": {{ dateFormat "2006-01-02T15:04:05-07:00" .Lastmod | jsonify }},
+      "_indieweb": {
+        "type": "{{ if eq .Section "articles" }}article{{ else if $isReply }}reply{{ else }}note{{ end }}"{{ if $isReply }},
+        "in-reply-to": "{{ index .Params.properties "in-reply-to" }}" {{ end }}
+      }
+    }
+    {{ end }}
+  ]
+}

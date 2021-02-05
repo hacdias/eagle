@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/GitHubEducation/status/1173997632978608128",
+  "author": {
+    "type": "card",
+    "nickname": "GitHubEducation",
+    "location": "Earth",
+    "bio": "Bringing GitHub to the classroom.   For support, visit https://GitHub.com/support",
+    "name": "GitHub Education",
+    "url": "https://twitter.com/GitHubEducation",
+    "photo": "https://pbs.twimg.com/profile_images/1029098632539123714/6dFCiBGh_normal.jpg"
+  },
+  "content": {
+    "text": "What was your first repository? 🤔 \nDid it start your open source journey, or was it \"test-repo-123\"?\n\nOur first repository was 7 years ago 🎂 \nTo celebrate, we want to hear YOUR stories. \nUse #MyFirstRepo for a chance to win a @GitHub backpack 🎒\n\nhttps://github.blog/2019-09-17-celebrate-seven-years-of-github-education/",
+    "html": "What was your first repository? 🤔 <br>\nDid it start your open source journey, or was it \"test-repo-123\"?<br>\n<br>\nOur first repository was 7 years ago 🎂 <br>\nTo celebrate, we want to hear YOUR stories. <br>\nUse #MyFirstRepo for a chance to win a @GitHub backpack 🎒<br>\n<br>\n<a href=\"https://github.blog/2019-09-17-celebrate-seven-years-of-github-education/\">https://github.blog/2019-09-17-celebrate-seven-years-of-github-education/</a>"
+  },
+  "published": "2019-09-17T16:30:22.000Z",
+  "category": [
+    "MyFirstRepo"
+  ],
+  "post-type": "note"
+}

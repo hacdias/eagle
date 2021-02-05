@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/frontendspeaker/status/1219074547724488704",
+  "author": {
+    "type": "card",
+    "nickname": "seancodesit",
+    "location": "Columbus, OH",
+    "bio": "Software Engineer 👨‍💻 at WillowTree Apps",
+    "name": "Sean Michael",
+    "url": "https://twitter.com/seancodesit",
+    "photo": "https://pbs.twimg.com/profile_images/1200458843270107136/Q533BIo4_normal.jpg"
+  },
+  "content": {
+    "text": "The world is a better place when we share the things we have"
+  },
+  "published": "2020-01-20T01:49:56.000Z",
+  "in-reply-to": [
+    "https://twitter.com/zachleat/status/1219021632662069249"
+  ],
+  "post-type": "reply"
+}

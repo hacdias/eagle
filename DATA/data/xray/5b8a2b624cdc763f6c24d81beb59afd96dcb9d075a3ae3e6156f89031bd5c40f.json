@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/litespeedtech/status/892038913585553408",
+  "author": {
+    "type": "card",
+    "nickname": "litespeedtech",
+    "location": "New Jersey, USA",
+    "bio": "We enable a faster internet through our software solutions. Internet. Accelerated. ⚡ \nFollow @lswsrelease and @openlswsrelease for release-only updates.",
+    "name": "LiteSpeed Tech",
+    "url": "https://twitter.com/litespeedtech",
+    "photo": "https://pbs.twimg.com/profile_images/829749133850378241/9lxca5AK_normal.jpg"
+  },
+  "content": {
+    "text": "Sorry poor wording. Fixed: LiteSpeed is 1st MASS-MARKET server to support QUIC. Also: OpenLiteSpeed has had HTTP/2 support since Feb 2015."
+  },
+  "published": "2017-07-31T15:07:04.000Z",
+  "in-reply-to": [
+    "https://twitter.com/mholt6/status/891549207802204160"
+  ],
+  "post-type": "reply"
+}

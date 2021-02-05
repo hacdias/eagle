@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/newyorkneek/status/1225573662507573249",
+  "author": {
+    "type": "card",
+    "nickname": "NewYorkNeek",
+    "location": "New York, NY",
+    "bio": "I’ma savage,I’ma asshole,I’ma KING!",
+    "name": "🏁",
+    "url": "https://twitter.com/NewYorkNeek",
+    "photo": "https://pbs.twimg.com/profile_images/1225658932800020481/lBlz7EyW_normal.jpg"
+  },
+  "content": {
+    "text": "Y’all ever saw a owl run"
+  },
+  "published": "2020-02-07T00:15:05.000Z",
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1225571602697506823/pu/img/Arr7LxdFWqGUB4RX.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1225571602697506823/pu/vid/640x640/mTUXZSaYmLy-dROc.mp4?tag=10"
+  ],
+  "post-type": "video"
+}

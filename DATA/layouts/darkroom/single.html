@@ -1,0 +1,81 @@
+{{ define "main" }}
+
+<style>
+  {{ safeCSS (partial "darkroom/styles.css") }}
+
+  figure {
+    justify-content: center;
+    height: 100vh;
+    min-width: 100%;
+    display: flex;
+    margin: 0;
+    align-items: center;
+  }
+
+  figure img {
+    max-height: calc(100vh - 6rem);
+    width: auto;
+  }
+
+  .h-entry {
+    margin: var(--space) 0;
+  }
+
+  .info,
+  .content {
+    width: calc(100% - var(--space));
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .info p {
+    margin: 0;
+  }
+
+  .info .p-name {
+    font-weight: bold;
+  }
+
+  .footer {
+    display: none;
+  }
+</style>
+
+<main role='main'>
+  <article class='h-entry'>
+    {{ partial "darkroom/full-figures" . }}
+
+    <div class='info copy'>
+      <p class='p-name'>{{- .Title -}}</p>
+      <p>
+        {{- if not .Date.IsZero -}}
+        <time class='dt-published' datetime='{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}'>
+          <a href="{{ .RelPermalink }}" class="u-url no-link">{{ .Date.Format "2 January 2006" }}</a>
+        </time>
+        {{- end -}}
+      </p>
+      <p>&copy; Henrique Dias. All Rights Reserved.</p>
+    </div>
+
+    {{ with .Content }}
+    <div class='content copy e-content'>{{ . }}</div>
+    {{ end }}
+
+    <footer class='footer'>  
+      {{ with .Params.properties.syndication -}}
+        {{ $arr := partial "must-slice" . }}
+        {{ range $arr -}}
+          <a class='dn u-syndication' rel="noopener noreferrer" target="_blank" href="{{ . }}">{{ . }}</a>
+        {{ end -}}
+      {{ end -}}
+  
+      <!-- Author metadata -->
+      <div class="h-card u-author dn">
+        <data class='u-photo' value="{{ .Site.Author.avatar }}">Picture</data>
+        <a href="{{ .Site.Author.url }}" class="u-url p-name">{{ .Site.Author.name }}</a>
+      </div>
+    </footer>
+  </article>
+</main>
+
+{{ end }}

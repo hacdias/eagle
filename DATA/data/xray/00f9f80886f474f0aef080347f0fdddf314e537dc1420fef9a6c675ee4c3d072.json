@@ -1,0 +1,17 @@
+{
+  "type": "entry",
+  "url": "https://hacdias.com/micro/2020/02/updates/",
+  "published": "2020-02-16T11:06:57.000Z",
+  "content": {
+    "text": "So I just made a few changes to my website and I hope it didn’t break anything like feeds and such. Here’s a small changelog of the changes:\nStopped using Hugo categories for post types (replies, notes, articles, etc) and started using sections, i.e., I know put a note under the /note path. So this also changed the URLs, hopefully for better and now it’s easier to restrict access or remove something if I want.\nI added about ~2000 redirect rules. Does anyone know if Caddy allows me to import the redirect rules from another file? My Caddyfile is getting huge.\nStarted using  partialCached in some places which improved the build time a tiny bit.\nMoved the Articles page from /blog to /articles which I already wanted to do for a while.\nAdded a contact page.\nUpdated the more page with more links!\nAnd… that’s it I think. I’d also love to use this website as a “knowledge base” so I’ll probably create a section for that later. I always want to organize the knowledge I get somehow but I just have tons of files from university and other stuff laying around without any organization. I really loved this braindump from Jethro.",
+    "html": "<p>So I just made a few changes to my website and I hope it didn’t break anything like feeds and such. Here’s a small changelog of the changes:</p>\n<ul><li>Stopped using Hugo <a href=\"https://gohugo.io/categories/\">categories</a> for post types (replies, notes, articles, etc) and started using sections, i.e., I know put a note under the <code>/note</code> path. So this also changed the URLs, hopefully for better and now it’s easier to restrict access or remove something if I want.</li>\n<li>I added about ~2000 redirect rules. Does anyone know if Caddy allows me to import the redirect rules from another file? My Caddyfile is getting huge.</li>\n<li>Started using <a href=\"https://gohugo.io/functions/partialcached/\"> <code>partialCached</code></a> in some places which improved the build time a tiny bit.</li>\n<li>Moved the Articles page from <code>/blog</code> to <code>/articles</code> which I already wanted to do for a while.</li>\n<li>Added a <a href=\"/contact/\">contact</a> page.</li>\n<li>Updated the <a href=\"/more/\">more</a> page with more links!</li>\n</ul><p>And… that’s it I think. I’d also love to use this website as a “knowledge base” so I’ll probably create a section for that later. I always want to organize the knowledge I get somehow but I just have tons of files from university and other stuff laying around without any organization. I really loved this <a href=\"https://braindump.jethro.dev/\">braindump</a> from <a href=\"https://www.jethro.dev/\">Jethro</a>.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": null,
+    "photo": "https://hacdias.com/me-256.jpg",
+    "nickname": "hacdias"
+  },
+  "post-type": "note"
+}

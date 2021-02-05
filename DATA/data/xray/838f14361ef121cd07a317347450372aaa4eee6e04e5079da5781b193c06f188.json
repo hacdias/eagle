@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/agata_krych/status/1119849104505491457",
+  "author": {
+    "type": "card",
+    "nickname": "agata_krych",
+    "location": "",
+    "bio": "Visual Designer in Protocol Labs",
+    "name": "Agata Krych",
+    "url": "https://twitter.com/agata_krych",
+    "photo": "https://pbs.twimg.com/profile_images/979060095093911552/lXkgcJTx_normal.jpg"
+  },
+  "content": {
+    "text": "Love it!"
+  },
+  "published": "2019-04-21T06:23:26.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1118443012420452353"
+  ],
+  "post-type": "reply"
+}

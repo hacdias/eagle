@@ -1,0 +1,6 @@
+{{ $url := urls.Parse ( (.Get "url") | safeURL )}}
+<a class='no-link' href="{{ .Get "url" }}" {{ if $url.IsAbs }}rel='noopener noreferrer' target='_blank'{{ end }}>
+  {{ $img := (.Page.Resources.GetMatch (.Get "img")).Resize "500x" }}
+  <img style="margin-bottom: 0.5rem;" src='{{ $img.RelPermalink }}'>
+  <p style='margin: 0'><span style="font-weight: 600;">{{ .Get "title" }}</span> — {{ .Get "desc" }}</p>
+</a>

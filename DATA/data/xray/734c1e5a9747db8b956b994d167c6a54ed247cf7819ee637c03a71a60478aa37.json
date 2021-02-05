@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mdlayher/status/901106992437231616",
+  "author": {
+    "type": "card",
+    "nickname": "mdlayher",
+    "location": "Kalamazoo, MI",
+    "bio": "@fastly Software Engineer. Go, Linux, and open source software enthusiast. On and ever upward.",
+    "name": "Matt Layher",
+    "url": "https://twitter.com/mdlayher",
+    "photo": "https://pbs.twimg.com/profile_images/1123665864346226692/TXrCB9l8_normal.jpg"
+  },
+  "content": {
+    "text": "I love that asking a question with #golang on Twitter almost guarantees that you'll get a number of helpful responses. This community rules."
+  },
+  "published": "2017-08-25T15:40:23.000Z",
+  "category": [
+    "golang"
+  ],
+  "post-type": "note"
+}

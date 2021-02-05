@@ -1,0 +1,7 @@
+{{ $artists := index .Site.Data.music.tracks }}
+
+<ol>
+  {{ range $i, $artist := $artists }}
+    <li><a target="_blank" rel="noopener noreferrer" href="{{ .url }}">{{ .name }}</a> <small>by {{ .artist }}</small></li>
+  {{ end }}
+</ol>

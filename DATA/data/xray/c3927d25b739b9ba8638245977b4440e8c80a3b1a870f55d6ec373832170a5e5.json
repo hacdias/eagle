@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/NathanBrown929/status/892896279231176704",
+  "author": {
+    "type": "card",
+    "nickname": "NathanBrown929",
+    "location": "Murfreesboro, TN",
+    "bio": "📈 Growth & Marketing Coach | #Search, #Social, & #Analytics\n\nHelping Entrepreneurs & Marketers at\n🚀 Agencies/Consultants\n🚀 #FranchiseDevelopment\n🚀 #Startups",
+    "name": "Nathan Brown",
+    "url": "https://twitter.com/NathanBrown929",
+    "photo": "https://pbs.twimg.com/profile_images/1123305709318410241/IQMZVs12_normal.jpg"
+  },
+  "content": {
+    "text": "File Manager: A stylish web file manager. Plugins for #Docker & #caddy HTTP/2 usage. https://www.producthunt.com/posts/file-manager via @hacdias",
+    "html": "File Manager: A stylish web file manager. Plugins for #Docker & #caddy HTTP/2 usage. <a href=\"https://www.producthunt.com/posts/file-manager\">https://www.producthunt.com/posts/file-manager</a> via <a href=\"https://twitter.com/hacdias\">@hacdias</a>"
+  },
+  "published": "2017-08-02T23:53:56.000Z",
+  "category": [
+    "Docker",
+    "caddy"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/DGQ0bu7UQAE6BMq.jpg"
+  ],
+  "post-type": "photo"
+}

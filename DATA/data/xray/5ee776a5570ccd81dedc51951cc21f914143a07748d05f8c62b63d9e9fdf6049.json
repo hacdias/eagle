@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/ProductHuntHi/status/892760136460238851",
+  "author": {
+    "type": "card",
+    "nickname": "ProductHuntHi",
+    "location": "San Francisco, CA",
+    "bio": "Hi! Welcome to @ProductHunt. We use GIFs and emoji a lot. DM @ProductHunt for support 🤗",
+    "name": "Product Hunt Hi",
+    "url": "https://twitter.com/ProductHuntHi",
+    "photo": "https://pbs.twimg.com/profile_images/662417488806711296/NucHBWWQ_normal.png"
+  },
+  "content": {
+    "text": "@hacdias FYI, you've been added as a maker of File Manager on @ProductHunt https://www.producthunt.com/posts/file-manager",
+    "html": "<a href=\"https://twitter.com/hacdias\">@hacdias</a> FYI, you've been added as a maker of File Manager on <a href=\"https://twitter.com/ProductHunt\">@ProductHunt</a> <a href=\"https://www.producthunt.com/posts/file-manager\">https://www.producthunt.com/posts/file-manager</a>"
+  },
+  "published": "2017-08-02T14:52:57.000Z",
+  "post-type": "note"
+}

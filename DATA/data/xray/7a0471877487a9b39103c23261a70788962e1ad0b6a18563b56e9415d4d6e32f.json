@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/OBonaventure/status/1163700717363896320",
+  "author": {
+    "type": "card",
+    "nickname": "OBonaventure",
+    "location": "Louvain-la-Neuve, Belgium",
+    "bio": "Professor of Computer Science at Université catholique de Louvain, Belgium, co-founder http://tessares.net",
+    "name": "Olivier Bonaventure",
+    "url": "https://twitter.com/OBonaventure",
+    "photo": "https://pbs.twimg.com/profile_images/839247831651209216/MkjGmm0H_normal.jpg"
+  },
+  "content": {
+    "text": "Congratulations again to all #MPTCP developers lead by @cpaasch11 Their hard work during a decade has demonstrated the many benefits that multipath transport protocols can bring in the Internet. https://www.sigcomm.org/content/sigcomm-networking-systems-award",
+    "html": "Congratulations again to all #MPTCP developers lead by <a href=\"https://twitter.com/cpaasch11\">@cpaasch11</a> Their hard work during a decade has demonstrated the many benefits that multipath transport protocols can bring in the Internet. <a href=\"https://www.sigcomm.org/content/sigcomm-networking-systems-award\">https://www.sigcomm.org/content/sigcomm-networking-systems-award</a>"
+  },
+  "published": "2019-08-20T06:34:06.000Z",
+  "category": [
+    "MPTCP"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/ECZLl9EWwAAsdL6.jpg"
+  ],
+  "post-type": "photo"
+}

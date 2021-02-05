@@ -1,0 +1,50 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/polluterofminds/status/1092068755834892289",
+  "author": {
+    "type": "card",
+    "nickname": "polluterofminds",
+    "location": "Dallas, TX",
+    "bio": "Writer. Co-founder @getsimpleid. Founder of @graphitedocs. Greatest Fisher-Price basketball player of all time.",
+    "name": "Justin Hunter",
+    "url": "https://twitter.com/polluterofminds",
+    "photo": "https://pbs.twimg.com/profile_images/1127706310550720512/p6K-1cZz_normal.jpg"
+  },
+  "content": {
+    "text": "This is pretty effing cool"
+  },
+  "published": "2019-02-03T14:34:15.000Z",
+  "quotation-of": "https://twitter.com/hacdias/status/1089919531932364802",
+  "refs": {
+    "https://twitter.com/hacdias/status/1089919531932364802": {
+      "type": "entry",
+      "url": "https://twitter.com/hacdias/status/1089919531932364802",
+      "author": {
+        "type": "card",
+        "nickname": "hacdias",
+        "location": "Portugal",
+        "bio": "Studying Computer Engineering at @istecnico. Digging into the decentralized web at @ProtocolLabs. #opensource advocate.",
+        "name": "Henrique Dias",
+        "url": "https://twitter.com/hacdias",
+        "photo": "https://pbs.twimg.com/profile_images/1133325379970711552/nA18D3Fg_normal.jpg"
+      },
+      "content": {
+        "text": "You'll be able to add stuff to #IPFS via a context menu option on Windows! All of this through #IPFSDesktop! https://github.com/ipfs-shipyard/ipfs-desktop",
+        "html": "You'll be able to add stuff to #IPFS via a context menu option on Windows! All of this through #IPFSDesktop! <a href=\"https://github.com/ipfs-shipyard/ipfs-desktop\">https://github.com/ipfs-shipyard/ipfs-desktop</a>"
+      },
+      "published": "2019-01-28T16:14:00+00:00",
+      "category": [
+        "IPFS",
+        "IPFSDesktop"
+      ],
+      "photo": [
+        "https://pbs.twimg.com/tweet_video_thumb/DyAr-xAW0AAIhJJ.jpg"
+      ],
+      "video": [
+        "https://video.twimg.com/tweet_video/DyAr-xAW0AAIhJJ.mp4"
+      ],
+      "post-type": "video"
+    }
+  },
+  "post-type": "note"
+}

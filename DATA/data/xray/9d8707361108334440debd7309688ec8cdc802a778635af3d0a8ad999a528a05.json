@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/pierangelo1982/status/906180931869868033",
+  "author": {
+    "type": "card",
+    "nickname": "pierangelo1982",
+    "location": "",
+    "bio": "",
+    "name": "Pierangelo Orizio",
+    "url": "https://twitter.com/pierangelo1982",
+    "photo": "https://pbs.twimg.com/profile_images/2675860097/78314da38f1f59b2729370a6a2a25dde_normal.jpeg"
+  },
+  "content": {
+    "text": "“How to create a web server in Go” by @hacdias #golang https://hackernoon.com/how-to-create-a-web-server-in-go-a064277287c9",
+    "html": "“How to create a web server in Go” by <a href=\"https://twitter.com/hacdias\">@hacdias</a> #golang <a href=\"https://hackernoon.com/how-to-create-a-web-server-in-go-a064277287c9\">https://hackernoon.com/how-to-create-a-web-server-in-go-a064277287c9</a>"
+  },
+  "published": "2017-09-08T15:42:24.000Z",
+  "category": [
+    "golang"
+  ],
+  "post-type": "note"
+}

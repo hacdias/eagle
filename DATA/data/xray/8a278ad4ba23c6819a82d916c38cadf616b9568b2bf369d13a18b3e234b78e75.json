@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2020-03-24T17:43:52.000Z",
+  "url": "https://jlelse.blog/links/2020/03/how-to-read-rss-2020/",
+  "category": [
+    "RSS"
+  ],
+  "bookmark-of": [
+    "https://laurakalbag.com/how-to-read-rss-in-2020/"
+  ],
+  "name": "How to read RSS in 2020",
+  "content": {
+    "text": "I often talk about “RSS feeds” and that it’s my favorite way to follow content sources (news, blogs, YouTube channels) on the internet. Laura Kalbag wrote about how to read RSS in 2020 in which she explains the basics and benefits about RSS.RSS is a way to get updates from a website without visiting the site itself. It’s particularly useful for getting the latest news from a news site, or blog posts from a blog.You get to choose what you subscribe to in your feed reader, and the order in which the posts show up. […] Also, RSS does not track you. Not by default, anyway.My favorite feed reader is Miniflux and you can find a list of my blog feeds on this page. According to my server logs a lot of people already follow me via those feeds, thank you. ❤https://laurakalbag.com/how-to-read-rss-in-2020/",
+    "html": "<p><a href=\"https://jlelse.blog/tags/rss/\">I often talk about “RSS feeds”</a> and that it’s my favorite way to follow content sources (news, blogs, <a href=\"https://jlelse.blog/posts/youtube-rss/\">YouTube channels</a>) on the internet. Laura Kalbag wrote about <a href=\"https://laurakalbag.com/how-to-read-rss-in-2020/\">how to read RSS in 2020</a> in which she explains the basics and benefits about RSS.</p><blockquote><p>RSS is a way to get updates from a website without visiting the site itself. It’s particularly useful for getting the latest news from a news site, or blog posts from a blog.</p></blockquote><blockquote><p>You get to choose what you subscribe to in your feed reader, and the order in which the posts show up. […] Also, RSS does not track you. Not by default, anyway.</p></blockquote><p>My favorite feed reader is <a href=\"https://jlelse.blog/posts/miniflux/\">Miniflux</a> and you can find a list of my blog feeds on <a href=\"https://jlelse.blog/feeds/\">this page</a>. According to my server logs a lot of people already follow me via those feeds, thank you. ❤</p><p><a class=\"u-bookmark-of\" href=\"https://laurakalbag.com/how-to-read-rss-in-2020/\">https://laurakalbag.com/how-to-read-rss-in-2020/</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2020/03/how-to-read-rss-2020/"
+  }
+}

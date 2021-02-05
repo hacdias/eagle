@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2020-04-13T10:31:46.000Z",
+  "url": "https://jlelse.blog/links/2020/04/eleventy/",
+  "category": [
+    "Blog18",
+    "Eleventy1",
+    "Hugo27"
+  ],
+  "bookmark-of": [
+    "https://www.11ty.dev/"
+  ],
+  "name": "Eleventy",
+  "content": {
+    "text": "I’m currently browsing the docs of the static site generator Eleventy (also known as 11ty). Although I prefer Go and I’m not a big JavaScript (and npm) fan for various reasons, I now consider Eleventy as an alternative to Hugo for my blog. I’m reaching the limits of Hugo more often and have to find complicated workarounds, because it’s almost impossible to add custom functionalities to Hugo. Eleventy is apparently very flexible and can be easily extended.I might try to rebuild parts of my blog with Eleventy in the near future to see if everything is as great as it looks like (and whether Eleventy is as fast as Hugo), but I’m also curious to hear more testimonials.https://www.11ty.dev/",
+    "html": "<p>I’m currently browsing <a href=\"https://www.11ty.dev/docs/\">the docs</a> of the static site generator <a href=\"https://www.11ty.dev/\">Eleventy</a> (also known as 11ty). Although I prefer Go and I’m not a big JavaScript (and npm) fan for various reasons, I now consider Eleventy as an alternative to Hugo for my blog. I’m reaching the limits of Hugo more often and have to find complicated workarounds, because it’s almost impossible to add custom functionalities to Hugo. Eleventy is apparently very flexible and can be easily extended.</p><p>I might try to rebuild parts of my blog with Eleventy in the near future to see if everything is as great as it looks like (and whether Eleventy is as fast as Hugo), but I’m also curious to hear more testimonials.</p><p><a class=\"u-bookmark-of\" href=\"https://www.11ty.dev/\">https://www.11ty.dev/</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2020/04/eleventy/"
+  }
+}

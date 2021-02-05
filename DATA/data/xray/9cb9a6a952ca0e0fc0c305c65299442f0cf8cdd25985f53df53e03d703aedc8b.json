@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/1084865082050387970",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": "Oh wow, @ProtoSchool just got launched at https://proto.school - learn about decentralized web concepts and how to code with them using @IPFSbot in interactive tutorials, sort of like @nodeschool! 😲",
+    "html": "Oh wow, <a href=\"https://twitter.com/ProtoSchool\">@ProtoSchool</a> just got launched at <a href=\"https://proto.school\">https://proto.school</a> - learn about decentralized web concepts and how to code with them using <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a> in interactive tutorials, sort of like <a href=\"https://twitter.com/nodeschool\">@nodeschool</a>! 😲"
+  },
+  "published": "2019-01-14T17:29:26.000Z",
+  "post-type": "note"
+}

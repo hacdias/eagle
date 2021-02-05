@@ -1,0 +1,31 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/rafahari/status/961912782290673664",
+  "author": {
+    "type": "card",
+    "nickname": "rafahari",
+    "location": "Amsterdam",
+    "bio": "Principal Designer @Netlify, and co-host of @LayoutFM\nPronouns: He/him ✨",
+    "name": "Rafa",
+    "url": "https://twitter.com/rafahari",
+    "photo": "https://pbs.twimg.com/profile_images/1206923885448454145/8n-PCXao_normal.jpg"
+  },
+  "content": {
+    "text": "Olá Henrique 👋\nEstás a correr uBlock ou algo parecido?",
+    "html": "Olá Henrique 👋<br>\nEstás a correr uBlock ou algo parecido?"
+  },
+  "published": "2018-02-09T10:40:53.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/961912068512407552"
+  ],
+  "location": "https://api.twitter.com/1.1/geo/id/b5f9b1150985d719.json",
+  "refs": {
+    "https://api.twitter.com/1.1/geo/id/b5f9b1150985d719.json": {
+      "type": "adr",
+      "name": "Oporto, Portugal",
+      "locality": "Oporto",
+      "country-name": "Portugal"
+    }
+  },
+  "post-type": "reply"
+}

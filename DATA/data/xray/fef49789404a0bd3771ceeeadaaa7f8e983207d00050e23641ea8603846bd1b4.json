@@ -1,0 +1,19 @@
+{
+  "author": {
+    "name": "Jan Boddez",
+    "photo": "https://jan.boddez.net/uploads/avatars/mastodon-social-janboddez.jpg",
+    "type": "card",
+    "url": "https://jan.boddez.net/"
+  },
+  "content": {
+    "html": "\u003cp\u003e\u003ci\u003eIn reply to \u003ca class=\"u-in-reply-to\" href=\"https://hacdias.com/articles/2020/10/rebuilding-eagle-cms/\"\u003ehttps://hacdias.com/articles/2020/10/rebuilding-eagle-cms/\u003c/a\u003e.\u003c/i\u003e\u003c/p\u003e\n\u003cp\u003eInterestingly, your h-feeds seem (somewhat) broken now. Like, could your entries be missing a \u003ccode\u003eu-url\u003c/code\u003e? I also seem to be missing photos in older posts—again, in my h-feed reader. I’d dig a bit deeper, but “posting from my phone,” etc.\u003c/p\u003e",
+    "text": "In reply to https://hacdias.com/articles/2020/10/rebuilding-eagle-cms/.\nInterestingly, your h-feeds seem (somewhat) broken now. Like, could your entries be missing a u-url? I also seem to be missing photos in older posts—again, in my h-feed reader. I’d dig a bit deeper, but “posting from my phone,” etc."
+  },
+  "in-reply-to": [
+    "https://hacdias.com/articles/2020/10/rebuilding-eagle-cms/"
+  ],
+  "post-type": "reply",
+  "published": "2020-10-12T15:12:00+02:00",
+  "type": "entry",
+  "url": "https://jan.boddez.net/notes/b0a62edbe0"
+}

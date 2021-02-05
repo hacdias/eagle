@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/richturn_ms/status/1247947721383612421",
+  "author": {
+    "type": "card",
+    "nickname": "richturn_ms",
+    "location": "Redmond, WA",
+    "bio": "Sr. PM @ Microsoft. Modernizing the Windows Command-Line via Terminal & WSL, and improving the Windows Developer Platform.",
+    "name": "Rich Tur-minal-ner-d",
+    "url": "https://twitter.com/richturn_ms",
+    "photo": "https://pbs.twimg.com/profile_images/708790884037332992/eMGNyazY_normal.jpg"
+  },
+  "content": {
+    "text": "WOOT WOOT WOOT! For those who haven't seen it yet, Windows 10 Insider build 19603 now exposes a \"Linux\" node in File Explorer enumerating your installed WSL distros, through which you can access their file systems 😁"
+  },
+  "published": "2020-04-08T18:01:37.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EVGZx9wUUAERm-b.png"
+  ],
+  "post-type": "photo"
+}

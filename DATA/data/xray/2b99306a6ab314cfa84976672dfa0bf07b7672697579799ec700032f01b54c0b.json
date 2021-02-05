@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1055425328921919488",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "San Francisco, CA",
+    "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "❌Sign in with Facebook?\n❌Sign in with Google?\n\n✅Sign in with my own website!\n\n@aaronpk teaches how to manage your own identity with IndieAuth in the latest piece in the dweb series on @mozhacks.\n\nhttps://hacks.mozilla.org/2018/10/dweb-identity-for-the-decentralized-web-with-indieauth/",
+    "html": "❌Sign in with Facebook?<br>\n❌Sign in with Google?<br>\n<br>\n✅Sign in with my own website!<br>\n<br>\n<a href=\"https://twitter.com/aaronpk\">@aaronpk</a> teaches how to manage your own identity with IndieAuth in the latest piece in the dweb series on <a href=\"https://twitter.com/mozhacks\">@mozhacks</a>.<br>\n<br>\n<a href=\"https://hacks.mozilla.org/2018/10/dweb-identity-for-the-decentralized-web-with-indieauth/\">https://hacks.mozilla.org/2018/10/dweb-identity-for-the-decentralized-web-with-indieauth/</a>"
+  },
+  "published": "2018-10-25T11:46:21.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DqWfjkbWoAA31tX.png"
+  ],
+  "post-type": "photo"
+}

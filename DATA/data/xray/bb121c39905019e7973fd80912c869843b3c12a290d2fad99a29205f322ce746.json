@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/stphndrt/status/1147207415626194944",
+  "author": {
+    "type": "card",
+    "nickname": "stphndrt",
+    "location": "Leiria, Lisboa ou por aí",
+    "bio": "23. Software Engineer 👨‍💻",
+    "name": "STPHN",
+    "url": "https://twitter.com/stphndrt",
+    "photo": "https://pbs.twimg.com/profile_images/1058048706023485440/Qb_XxJ6d_normal.jpg"
+  },
+  "content": {
+    "text": "Para quem quer um pequeno desafio de fim-de-semana, descobri este https://userinyerface.com/",
+    "html": "Para quem quer um pequeno desafio de fim-de-semana, descobri este <a href=\"https://userinyerface.com/\">https://userinyerface.com/</a>"
+  },
+  "published": "2019-07-05T18:15:36.000Z",
+  "post-type": "note"
+}

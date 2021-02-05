@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/erinfranmc/status/1148986961207730176",
+  "author": {
+    "type": "card",
+    "nickname": "erinfranmc",
+    "location": "🌍",
+    "bio": "front-end developer 🌱 • emoji enthusiast • bread fan 🥙 • #100DaysOfCode • 🌴🏳️‍🌈🌹",
+    "name": "Erin 🐠",
+    "url": "https://twitter.com/erinfranmc",
+    "photo": "https://pbs.twimg.com/profile_images/1155871957189111808/ZhAH5XQx_normal.jpg"
+  },
+  "content": {
+    "text": "expect(umbrellaOpens).toBe(true)\n\ntests: 1 passed, 1 total\n\n**all tests passed**",
+    "html": "expect(umbrellaOpens).toBe(true)<br>\n<br>\ntests: 1 passed, 1 total<br>\n<br>\n**all tests passed**"
+  },
+  "published": "2019-07-10T16:06:53.000Z",
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1148986932740988929/pu/img/VCIreofp5Z9TRIuC.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1148986932740988929/pu/vid/626x1080/owzUWLaBmW43OcTv.mp4?tag=10"
+  ],
+  "post-type": "video"
+}

@@ -1,0 +1,35 @@
+<figure {{ with .Get "class" }}class="{{ . }}"{{ end }} {{ with .Get "style" }}style="{{ . }}"{{ end }}>
+  {{- $name := .Get "name" -}}
+  {{- $size := or (.Get "size") "regular" -}}
+
+  {{- $lowres := "1000x" -}}
+  {{- $highres := "2000x" -}}
+
+  {{- if eq $size "thumb" -}}
+    {{ $lowres = "250x" -}}
+    {{ $highres = "500x" -}}
+  {{- else if eq $size "small" -}}
+    {{ $lowres = "500x" -}}
+    {{ $highres = "1000x" -}}
+  {{- end -}}
+
+  {{- if .Get "link" -}}
+    <a href="{{ .Get "link" }}"{{ with .Get "target" }} target="{{ . }}"{{ end }}{{ with .Get "rel" }} rel="{{ relURL . }}"{{ end }}>
+  {{- end }}
+
+  <picture>
+    <source srcset="https://cdn.hacdias.com/photos/t/{{ $name }}-{{ $lowres }}.webp 1000w, https://cdn.hacdias.com/photos/t/{{ $name }}-{{ $highres }}.webp 2000w" type="image/webp">
+    <source srcset="https://cdn.hacdias.com/photos/t/{{ $name }}-{{ $lowres }}.jpeg 1000w, https://cdn.hacdias.com/photos/t/{{ $name }}-{{ $highres }}.jpeg 2000w">
+    <img src="https://cdn.hacdias.com/photos/t/{{ $name }}-2000x.jpeg"
+      {{- if or (.Get "alt") (.Get "caption") }}
+      alt="{{ with .Get "alt" }}{{ . }}{{ else }}{{ .Get "caption" | markdownify| plainify }}{{ end }}"
+      {{- end -}}
+      {{- with .Get "width" }} width="{{ . }}"{{ end -}}
+      {{- with .Get "height" }} height="{{ . }}"{{ end -}} >
+  </picture>
+
+  {{- if .Get "link" -}}
+    </a>
+  {{- end }}
+  {{- partial "figcaption" . -}}
+</figure>

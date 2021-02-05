@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Whyrusleeping/status/1023116433113247746",
+  "author": {
+    "type": "card",
+    "nickname": "Whyrusleeping",
+    "location": "Earth",
+    "bio": "Ipfs and the distributed web.",
+    "name": "Jeromy Johnson",
+    "url": "https://twitter.com/Whyrusleeping",
+    "photo": "https://pbs.twimg.com/profile_images/1149815348931129344/0IT-68mm_normal.png"
+  },
+  "content": {
+    "text": "Just released a new version of go-ipfs, v0.4.17! It contains a few goodies in preparation for the Decentralized Web Summit next week! Check out the changelog here: https://github.com/ipfs/go-ipfs/blob/master/CHANGELOG.md#0417-2018-07-27",
+    "html": "Just released a new version of go-ipfs, v0.4.17! It contains a few goodies in preparation for the Decentralized Web Summit next week! Check out the changelog here: <a href=\"https://github.com/ipfs/go-ipfs/blob/master/CHANGELOG.md#0417-2018-07-27\">https://github.com/ipfs/go-ipfs/blob/master/CHANGELOG.md#0417-2018-07-27</a>"
+  },
+  "published": "2018-07-28T08:02:20.000Z",
+  "post-type": "note"
+}

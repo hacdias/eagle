@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/GitHubHelp/status/892061055979065346",
+  "author": {
+    "type": "card",
+    "nickname": "GitHubHelp",
+    "location": "",
+    "bio": "Official @github support is here to help! No DMs, please. Tweet or send a note to http://git.io/c. Find even more answers at http://help.github.com and http://github.community.",
+    "name": "GitHub Support",
+    "url": "https://twitter.com/GitHubHelp",
+    "photo": "https://pbs.twimg.com/profile_images/818913837034278913/E5R-Rwjp_normal.jpg"
+  },
+  "content": {
+    "text": "We're aware & looking into it! Keep an eye on http://status.github.com for updates. -SJ",
+    "html": "We're aware & looking into it! Keep an eye on <a href=\"http://status.github.com\">http://status.github.com</a> for updates. -SJ"
+  },
+  "published": "2017-07-31T16:35:04.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/892060851426951168"
+  ],
+  "post-type": "reply"
+}

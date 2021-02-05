@@ -1,0 +1,29 @@
+{
+  "type": "entry",
+  "published": "2019-04-20T11:40:41.000Z",
+  "url": "https://hacdias.com/notes/2019/04/20/1/",
+  "category": [
+    "pirilampomagico",
+    "pixelart"
+  ],
+  "video": [
+    "https://hacdias.com/notes/2019/04/20/1/D4l_xxzXsAIe1Kg.mp4"
+  ],
+  "syndication": [
+    "https://twitter.com/hacdias/status/1119566555141017605"
+  ],
+  "content": {
+    "text": "Here’s an animation with some creatures only Portuguese people will understand. We’d call them “Magic Fireflies”. Do you still buy them? #PirilampoMagico #pixelart",
+    "html": "<p>Here’s an animation with some creatures only Portuguese people will understand. We’d call them “Magic Fireflies”. Do you still buy them? #PirilampoMagico #pixelart</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "video",
+  "rels": {
+    "canonical": "https://hacdias.com/notes/2019/04/20/1/"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/regouga/status/1215414301739057155",
+  "author": {
+    "type": "card",
+    "nickname": "regouga",
+    "location": "Lisboa, Portugal",
+    "bio": "MSc Computer Science & Engineering @istecnico | Coordinator @SINFOist | Speakers Acquisition Specialist @landingfest | Curator @Landing_jobs [RT ≠ endorsement]",
+    "name": "Miguel Hugo Regouga",
+    "url": "https://twitter.com/regouga",
+    "photo": "https://pbs.twimg.com/profile_images/1171157628417970177/_DtfKx7n_normal.jpg"
+  },
+  "content": {
+    "text": "Um segredo difícil de conter, mas que posso finalmente riscar da minha bucket list. Que esta seja a melhor edição de sempre! ❤️ @sinfoist 27",
+    "html": "Um segredo difícil de conter, mas que posso finalmente riscar da minha bucket list. Que esta seja a melhor edição de sempre! ❤️ <a href=\"https://twitter.com/sinfoist\">@sinfoist</a> 27"
+  },
+  "published": "2020-01-09T23:25:25.000Z",
+  "quotation-of": "https://twitter.com/sinfoist/status/1215383332806168611",
+  "refs": {
+    "https://twitter.com/sinfoist/status/1215383332806168611": {
+      "type": "entry",
+      "url": "https://twitter.com/sinfoist/status/1215383332806168611",
+      "author": {
+        "type": "card",
+        "nickname": "sinfoist",
+        "location": "Lisbon, Portugal",
+        "bio": "SINFO is an annual technological event organised exclusively by college students who strive for a more interesting and ground-breaking conference each edition.",
+        "name": "SINFO",
+        "url": "https://twitter.com/sinfoist",
+        "photo": "https://pbs.twimg.com/profile_images/1082376902885675008/EH80rHH9_normal.jpg"
+      },
+      "content": {
+        "text": "A P P L E? Apple!!! 🍏 This one is big and, trust us on this, we're just as excited as you are!!! 😍🎉\n\n🚨🚨 Bhairav Mehta, Data Science Manager @ Apple, Inc. 🚨🚨",
+        "html": "A P P L E? Apple!!! 🍏 This one is big and, trust us on this, we're just as excited as you are!!! 😍🎉<br>\n<br>\n🚨🚨 Bhairav Mehta, Data Science Manager @ Apple, Inc. 🚨🚨"
+      },
+      "published": "2020-01-09T21:22:21+00:00",
+      "photo": [
+        "https://pbs.twimg.com/media/EN3olVeXkAAFBLq.jpg"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

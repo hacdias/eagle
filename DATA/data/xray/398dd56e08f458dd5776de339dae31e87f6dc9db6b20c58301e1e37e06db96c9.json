@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mafintosh/status/1259596991857930243",
+  "author": {
+    "type": "card",
+    "nickname": "mafintosh",
+    "location": "Copenhagen, Denmark",
+    "bio": "Nøde.js hacker @hyperdivisiondk @beakerbrowser and more",
+    "name": "Mathias Buus",
+    "url": "https://twitter.com/mafintosh",
+    "photo": "https://pbs.twimg.com/profile_images/1225723870407221248/3SwtnsWB_normal.jpg"
+  },
+  "content": {
+    "text": "Distributed holepunching through the Hyperswarm DHT"
+  },
+  "published": "2020-05-10T21:31:39.000Z",
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1259596911394328576/pu/img/sRAN4nNTau5ls1C_.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1259596911394328576/pu/vid/960x720/kFm7vGpgjoSRCGfl.mp4?tag=10"
+  ],
+  "post-type": "video"
+}

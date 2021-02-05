@@ -1,0 +1,40 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/890536347261214721",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "M.S. CompSci. @caddyserver & @relicabackup. Member of the restored Church of Jesus Christ. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🧗‍♂️ Matt Holt",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1220393540364013569/tMngABRf_normal.jpg"
+  },
+  "content": {
+    "text": "This is probably one of the most important things Troy has ever written"
+  },
+  "published": "2017-07-27T11:36:25.000Z",
+  "quotation-of": "https://twitter.com/troyhunt/status/890114515307835393",
+  "refs": {
+    "https://twitter.com/troyhunt/status/890114515307835393": {
+      "type": "entry",
+      "url": "https://twitter.com/troyhunt/status/890114515307835393",
+      "author": {
+        "type": "card",
+        "nickname": "troyhunt",
+        "location": "Australia",
+        "bio": "Pluralsight author. Microsoft Regional Director and MVP for Developer Security. Online security, technology and “The Cloud”. Creator of @haveibeenpwned.",
+        "name": "Troy Hunt",
+        "url": "https://twitter.com/troyhunt",
+        "photo": "https://pbs.twimg.com/profile_images/1154092629/Square__small__normal.jpg"
+      },
+      "content": {
+        "text": "Passwords have changed: Don't force composition rules. Don't force regular changes. Don't block password managers. https://www.troyhunt.com/passwords-evolved-authentication-guidance-for-the-modern-era/",
+        "html": "Passwords have changed: Don't force composition rules. Don't force regular changes. Don't block password managers. <a href=\"https://www.troyhunt.com/passwords-evolved-authentication-guidance-for-the-modern-era/\">https://www.troyhunt.com/passwords-evolved-authentication-guidance-for-the-modern-era/</a>"
+      },
+      "published": "2017-07-26T07:40:12+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

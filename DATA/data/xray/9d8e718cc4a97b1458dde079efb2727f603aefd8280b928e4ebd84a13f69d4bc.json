@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2020-03-27T20:27:03.000Z",
+  "url": "https://jlelse.blog/thoughts/2020/03/storage-setup/",
+  "category": [
+    "Cloud",
+    "Nextcloud",
+    "Storage"
+  ],
+  "in-reply-to": [
+    "https://hacdias.com/notes/2020/03/27/1/backup/"
+  ],
+  "name": "My storage setup",
+  "content": {
+    "text": "Since I use many different devices and want to access the same files from all of them, I run my “own cloud” at home with an Odroid-HC2 (a Raspberry 4 or similar device should work just as well). A 2 TB NAS hard disk (Seagate Ironwolf) is connected to the HC2, where all files are stored. Using Docker I have installed Nextcloud for files (documents, photos, etc.) as well as Gitea (code repositories). Encrypted incremental backups are done daily at night using restic and uploaded to Backblaze B2 Cloud Storage (they are quite cheap and now also have a European data center).This strategy allows me to keep only the files I currently need on my computers. In the settings of the desktop app of Nextcloud I can select the appropriate folders individually. New photos from my phone are also automatically backed up to my cloud.I don’t store anything important outside my Nextcloud folder, so it wouldn’t be a big deal if I reset or reinstall a computer. Some time ago I liked to experiment with Linux distributions and so I didn’t have to make sure to back up all files before formatting the hard drive, because they were already stored in my cloud.Since my apartment has a good internet connection for German standards (100 Mbit/s download and 40 Mbit/s upload, VDSL), I can also access files from on the road.",
+    "html": "<p>Since <a href=\"https://jlelse.dev/uses/hardware/\">I use many different devices</a> and want to access the same files from all of them, I run my “own cloud” at home with an Odroid-HC2 (a Raspberry 4 or similar device should work just as well). A 2 TB NAS hard disk (Seagate Ironwolf) is connected to the HC2, where all files are stored. Using Docker I have installed Nextcloud for files (documents, photos, etc.) as well as Gitea (code repositories). Encrypted incremental backups are done daily at night <a href=\"https://jlelse.blog/dev/restic-docker/\">using restic</a> and uploaded to Backblaze B2 Cloud Storage (they are quite cheap and now also have a European data center).</p><p>This strategy allows me to keep only the files I currently need on my computers. In the settings of the desktop app of Nextcloud I can select the appropriate folders individually. New photos from my phone are also automatically backed up to my cloud.</p><p>I don’t store anything important outside my Nextcloud folder, so it wouldn’t be a big deal if I reset or reinstall a computer. Some time ago I liked to experiment with Linux distributions and so I didn’t have to make sure to back up all files before formatting the hard drive, because they were already stored in my cloud.</p><p>Since my apartment has a good internet connection for German standards (100 Mbit/s download and 40 Mbit/s upload, VDSL), I can also access files from on the road.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/03/storage-setup/"
+  }
+}

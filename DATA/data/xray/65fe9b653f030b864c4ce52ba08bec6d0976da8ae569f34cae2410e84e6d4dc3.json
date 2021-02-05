@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/caddyserver/status/887421761230221312",
+  "author": {
+    "type": "card",
+    "nickname": "caddyserver",
+    "location": "User Space",
+    "bio": "Serving your sites over HTTPS+HTTP/2 automatically. On a mission to put every site on HTTPS! Visit our forum for help: http://caddy.community",
+    "name": "Caddy Web Server",
+    "url": "https://twitter.com/caddyserver",
+    "photo": "https://pbs.twimg.com/profile_images/855149118049497090/Kh8BmlCZ_normal.jpg"
+  },
+  "content": {
+    "text": "The filemanager plugin got a major upgrade today! https://caddyserver.com/docs/http.filemanager",
+    "html": "The filemanager plugin got a major upgrade today! <a href=\"https://caddyserver.com/docs/http.filemanager\">https://caddyserver.com/docs/http.filemanager</a>"
+  },
+  "published": "2017-07-18T21:20:10.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DFDBRWjUQAAawNg.jpg",
+    "https://pbs.twimg.com/media/DFDBRnaVoAAqXvY.jpg"
+  ],
+  "post-type": "photo"
+}

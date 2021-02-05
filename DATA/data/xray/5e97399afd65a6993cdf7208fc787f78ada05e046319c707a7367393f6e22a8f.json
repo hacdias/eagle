@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Fardokbk/status/888807675525574661",
+  "author": {
+    "type": "card",
+    "nickname": "Fardokbk",
+    "location": "Wien, Österreich",
+    "bio": "#ico #blockchain #golang #ai #flutter",
+    "name": "topCoder",
+    "url": "https://twitter.com/Fardokbk",
+    "photo": "https://pbs.twimg.com/profile_images/1036339368385032192/UEDSnl-e_normal.jpg"
+  },
+  "content": {
+    "text": "What happens with webdav?)"
+  },
+  "published": "2017-07-22T17:07:17.000Z",
+  "in-reply-to": [
+    "https://twitter.com/caddyserver/status/887421761230221312"
+  ],
+  "post-type": "reply"
+}

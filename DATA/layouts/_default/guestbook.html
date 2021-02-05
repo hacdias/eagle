@@ -1,0 +1,89 @@
+{{ define "main" }}
+
+<style>
+  #guestbook {
+    background-image: repeating-linear-gradient(#feff9c 0px,#feff9c 24px,teal 25px);
+    width: calc(100% + 2 * var(--space));
+    margin: 1rem 0 1rem calc(var(--space) * -1);
+    padding: 0 var(--space);
+    line-height: 25px;
+  }
+
+  #guestbook ol,
+  #guestbook ul {
+    margin: 25px 0;
+  }
+
+  #guestbook a:hover {
+    background: none;
+  }
+
+  .entry {
+    padding: 25px 0;
+    position: relative;
+  }
+
+  form textarea,
+  form input {
+    display: block;
+    width: 100%;
+    margin: 1rem 0;
+  }
+
+  form textarea {
+    min-height: 10rem;
+  }
+</style>
+
+<main role='main'>
+  <h1>{{ .Title }}</h1>
+
+  {{ $url := printf "https://quill.p3k.io/?dontask=1&%s" (querify "me" "https://commentpara.de/" "reply" .Permalink) }}
+  <div class='copy'>
+    {{ .Content }}
+    <p>
+      This guestbook is powered by <a href="https://indieweb.org/Webmention" rel="noopener noreferrer" target="_blank">webmentions</a>. If your website doesn't support webmentions or you don't know what that is, you can still <a rel="noopener noreferrer" target="_blank" href="{{ $url }}"><strong>post an entry!</strong></a> Bear in mind that this page may not reflect changes immediately.
+    </p>
+  </div>
+
+  {{ $mentions := .Resources.GetMatch "mentions.json" }}
+  {{ if $mentions }}
+    {{ $mentions = unmarshal $mentions }}
+    {{ $mentions = where $mentions "type" "ne" "like" }}
+    {{ $mentions = where $mentions "type" "ne" "repost" }}
+    {{ $mentions = sort $mentions "date" "desc" }}
+  {{ end }}
+
+  <div id="guestbook">
+    {{ if $mentions -}}
+      {{- range $i, $data := $mentions }}
+      <div class="entry">
+        <span>
+          <strong>Name:</strong>
+          {{ with .url }}<a rel="noopener noreferrer" target="_link" href="{{ . }}">{{ end }}
+          {{ with .author.name }}{{ . }}{{ else }}Unknown{{ end }}
+          {{ with .url }}</a>{{ end }}
+        </span><br>
+        {{- with .author.url}}
+          {{ $url := urls.Parse . }}
+          <span>
+            <strong>Site:</strong>
+            <a rel="noopener noreferrer" target="_link" href="{{ . }}">{{ $url.Host }}</a>
+          </span><br>
+        {{ end }}
+        {{- with .date}}
+          <span>
+            <strong>Date:</strong> {{ dateFormat "02 Jan 2006 15:04" . }}
+          </span><br>
+        {{ end }}
+
+        {{ with .content.text }}
+          <br><span>{{ . |  safeHTML }}</span>
+        {{ end }}
+      </div>
+      {{ end }}
+    {{ end -}}
+  </div>
+</main>
+
+{{ end }}

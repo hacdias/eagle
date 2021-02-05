@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Fardokbk/status/891424416369979396",
+  "author": {
+    "type": "card",
+    "nickname": "Fardokbk",
+    "location": "Wien, Österreich",
+    "bio": "#ico #blockchain #golang #ai #flutter",
+    "name": "topCoder",
+    "url": "https://twitter.com/Fardokbk",
+    "photo": "https://pbs.twimg.com/profile_images/1036339368385032192/UEDSnl-e_normal.jpg"
+  },
+  "content": {
+    "text": "I want to use webdav for a lot of users (>1000)  so i need a simple rest api"
+  },
+  "published": "2017-07-29T22:25:17.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/891286214892032000"
+  ],
+  "post-type": "reply"
+}

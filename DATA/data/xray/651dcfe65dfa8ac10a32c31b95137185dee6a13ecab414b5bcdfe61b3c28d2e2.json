@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/protocollabs/status/1243319510637195265",
+  "author": {
+    "type": "card",
+    "nickname": "protocollabs",
+    "location": "Decentralized",
+    "bio": "We believe the internet has become humanity's most important technology. \nWe build protocols, systems, and tools to improve how it works.",
+    "name": "Protocol Labs",
+    "url": "https://twitter.com/protocollabs",
+    "photo": "https://pbs.twimg.com/profile_images/828656153978613760/xwRfPxqt_normal.jpg"
+  },
+  "content": {
+    "text": "Protocol Labs announces COVID-19 Open Innovation Grants: https://research.protocol.ai/posts/202003-covid-grants/",
+    "html": "Protocol Labs announces COVID-19 Open Innovation Grants: <a href=\"https://research.protocol.ai/posts/202003-covid-grants/\">https://research.protocol.ai/posts/202003-covid-grants/</a>"
+  },
+  "published": "2020-03-26T23:30:45.000Z",
+  "post-type": "note"
+}

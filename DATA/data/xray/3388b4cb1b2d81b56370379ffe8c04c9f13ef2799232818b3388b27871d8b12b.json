@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/josepostiga/status/890133082271076352",
+  "author": {
+    "type": "card",
+    "nickname": "josepostiga",
+    "location": "Portugal",
+    "bio": "Senior Backend Developer @infraspeak, co-host on @LaravelPortugal Podcast, volunteer member @VOSTPT, Open Source Software contributor.",
+    "name": "José Postiga",
+    "url": "https://twitter.com/josepostiga",
+    "photo": "https://pbs.twimg.com/profile_images/1177905035650445312/g2JxJgtY_normal.jpg"
+  },
+  "content": {
+    "text": "Usas isso para projetos próprios ou também para projetos de clientes? Falo de sites institucionais, lojas online, etc..."
+  },
+  "published": "2017-07-26T08:53:59.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/889791589652066304"
+  ],
+  "post-type": "reply"
+}

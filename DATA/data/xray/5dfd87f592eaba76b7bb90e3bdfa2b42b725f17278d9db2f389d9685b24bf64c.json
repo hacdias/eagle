@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1254053068620120065",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "Melbourne, FL",
+    "bio": "A lifestyle brand offering timeless products of unique modernity. @ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "Actually, the IPFS team engaged @igalia for this work, to accelerate browser features needed by all dweb protocols. \n\nAnd get Chromium up to par with Gecko in this case. Compat matters!\n\nNo signal if Google will ship it in Chrome, but other Chromium-based browsers are interested.",
+    "html": "Actually, the IPFS team engaged <a href=\"https://twitter.com/igalia\">@igalia</a> for this work, to accelerate browser features needed by all dweb protocols. <br>\n<br>\nAnd get Chromium up to par with Gecko in this case. Compat matters!<br>\n<br>\nNo signal if Google will ship it in Chrome, but other Chromium-based browsers are interested."
+  },
+  "published": "2020-04-25T14:22:05.000Z",
+  "quotation-of": "https://twitter.com/stshank/status/1253879743591510017",
+  "refs": {
+    "https://twitter.com/stshank/status/1253879743591510017": {
+      "type": "entry",
+      "url": "https://twitter.com/stshank/status/1253879743591510017",
+      "author": {
+        "type": "card",
+        "nickname": "stshank",
+        "location": "SF Bay Area, CA",
+        "bio": "Senior editor, CNET News. I cover browsers, photography, lots of new tech. DMs open or email first.last@cbsi.com\n\nThe squirming facts exceed the squamous mind.",
+        "name": "Stephen Shankland",
+        "url": "https://twitter.com/stshank",
+        "photo": "https://pbs.twimg.com/profile_images/968582401243856896/URPK12fK_normal.jpg"
+      },
+      "content": {
+        "text": "Google plans to add into Chrome the ability to handle decentralized web protocols (e.g. dat, dweb, ipfs, ipns, ssb). Decentralized web = more of a peer-to-peer design, where individuals host their own content. https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/7nHTRUP1EGY",
+        "html": "Google plans to add into Chrome the ability to handle decentralized web protocols (e.g. dat, dweb, ipfs, ipns, ssb). Decentralized web = more of a peer-to-peer design, where individuals host their own content. <a href=\"https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/7nHTRUP1EGY\">https://groups.google.com/a/chromium.org/forum/#!topic/blink-dev/7nHTRUP1EGY</a>"
+      },
+      "published": "2020-04-25T02:53:21+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

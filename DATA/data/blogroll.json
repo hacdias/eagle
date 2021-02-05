@@ -1,0 +1,196 @@
+{
+  "following": [
+    {
+      "feed": "https://aaronparecki.com/feed.json",
+      "site": "https://aaronparecki.com/",
+      "title": "Aaron Parecki"
+    },
+    {
+      "feed": "https://adlrocha.substack.com/feed",
+      "site": "https://adlrocha.substack.com",
+      "title": "Alfonso de la Rocha"
+    },
+    {
+      "feed": "https://ohhelloana.blog/feed.xml",
+      "site": "https://ohhelloana.blog",
+      "title": "Ana Rodrigues"
+    },
+    {
+      "feed": "https://annoying.technology/index.xml",
+      "site": "https://annoying.technology/",
+      "title": "Annoying Technology"
+    },
+    {
+      "feed": "https://ar.al/index.xml",
+      "site": "https://ar.al/",
+      "title": "Aral Balkan"
+    },
+    {
+      "feed": "https://blog.benjojo.co.uk/rss.xml",
+      "site": "https://blog.benjojo.co.uk",
+      "title": "Ben Cox"
+    },
+    {
+      "feed": "https://christine.website/blog.json",
+      "site": "https://christine.website",
+      "title": "Christine Dodrill"
+    },
+    {
+      "feed": "https://blog.codinghorror.com/rss/",
+      "site": "https://blog.codinghorror.com/",
+      "title": "Coding Horror"
+    },
+    {
+      "feed": "https://dannyvankooten.com/feed.xml",
+      "site": "https://dannyvankooten.com/",
+      "title": "Danny van Kooten"
+    },
+    {
+      "feed": "https://blog.filippo.io/rss/",
+      "site": "https://blog.filippo.io/",
+      "title": "Filippo Valsorda"
+    },
+    {
+      "feed": "https://zerokspot.com/index.xml",
+      "site": "https://zerokspot.com/",
+      "title": "Horst Gutmann"
+    },
+    {
+      "feed": "https://www.paritybit.ca/feeds/sitewide-feed.xml",
+      "site": "https://www.paritybit.ca",
+      "title": "Jake Bauer"
+    },
+    {
+      "feed": "https://feeds.feedburner.com/fennifith",
+      "site": "https://jfenn.me",
+      "title": "James Fenn"
+    },
+    {
+      "feed": "https://jan.boddez.net/articles/feed",
+      "site": "https://jan.boddez.net",
+      "title": "Jan Boddez"
+    },
+    {
+      "feed": "https://jlelse.blog/.json",
+      "site": "https://jlelse.blog/",
+      "title": "Jan-Lukas Else"
+    },
+    {
+      "feed": "https://blog.jethro.dev/index.xml",
+      "site": "https://blog.jethro.dev/",
+      "title": "Jethro Kuan"
+    },
+    {
+      "feed": "https://martin.to/feeds/most.atom",
+      "site": "https://martin.to",
+      "title": "Martin Borchert"
+    },
+    {
+      "feed": "https://www.arp242.net/feed.xml",
+      "site": "https://www.arp242.net/",
+      "title": "Martin Tournoij"
+    },
+    {
+      "feed": "https://mxb.dev/feed.xml",
+      "site": "https://mxb.dev",
+      "title": "Max Böck"
+    },
+    {
+      "feed": "https://mcol.xyz/rss.xml",
+      "site": "https://mcol.xyz",
+      "title": "mcol.xyz"
+    },
+    {
+      "feed": "https://mikestone.me/feed.xml",
+      "site": "https://mikestone.me/",
+      "title": "Mike Stone"
+    },
+    {
+      "feed": "https://oscarbenedito.com/blog/index.xml",
+      "site": "https://oscarbenedito.com/blog/",
+      "title": "Oscar's Blog"
+    },
+    {
+      "feed": "https://neustadt.fr/rss.xml",
+      "site": "https://neustadt.fr/",
+      "title": "Parimal Satyal"
+    },
+    {
+      "feed": "https://pudesse-eu.tumblr.com/rss",
+      "site": "https://pudesse-eu.tumblr.com/",
+      "title": "Ricardo Miguel"
+    },
+    {
+      "feed": "https://rusingh.com/feed.xml",
+      "site": "https://rusingh.com/",
+      "title": "Ru Singh"
+    },
+    {
+      "feed": "https://seblog.nl/feed.rss",
+      "site": "https://seblog.nl/feed",
+      "title": "Sebastiaan Andeweg"
+    },
+    {
+      "feed": "https://stanislas.blog/rss/",
+      "site": "https://stanislas.blog/",
+      "title": "Stanislas"
+    },
+    {
+      "feed": "http://tantek.com/updates.atom",
+      "site": "https://tantek.com/",
+      "title": "Tantek Çelik"
+    },
+    {
+      "feed": "https://blog.acolyer.org/feed/",
+      "site": "https://blog.acolyer.org",
+      "title": "The Morning Paper"
+    },
+    {
+      "feed": "https://whimsical.club/feed.xml",
+      "site": "https://whimsical.club",
+      "title": "The Whimsical Web"
+    },
+    {
+      "feed": "https://macwright.com/rss.xml",
+      "site": "https://macwright.com",
+      "title": "Tom MacWright"
+    },
+    {
+      "feed": "https://vmx.cx/cgi-bin/blog/index.cgi/feed/",
+      "site": "http://vmx.cx/cgi-bin/blog/index.cgi",
+      "title": "Volker Mische"
+    },
+    {
+      "feed": "https://zalberico.com/feed.xml",
+      "site": "https://zalberico.com/",
+      "title": "Zach Alberico"
+    },
+    {
+      "feed": "https://schollz.com/index.xml",
+      "site": "https://schollz.com/",
+      "title": "Zack Scholl"
+    }
+  ],
+  "comics": [
+    {
+      "feed": "https://www.commitstrip.com/en/feed/?",
+      "site": "https://www.commitstrip.com",
+      "title": "ComitStrip"
+    },
+    {
+      "feed": "https://dilbert.com/feed",
+      "site": "http://dilbert.com",
+      "title": "Dilbert"
+    },
+    {
+      "feed": "https://heyokyay.com/feed/",
+      "site": "https://heyokyay.com",
+      "title": "Hey Ok Yay?"
+    },
+    {
+      "feed": "https://xkcd.com/rss.xml",
+      "site": "https://xkcd.com/",
+      "title": "XKCD"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset=utf-8>
+  <meta http-equiv=x-ua-compatible content="IE=edge">
+  <meta name=viewport content="width=device-width,initial-scale=1">
+  <title>Pixel-color-mania</title>
+  <meta name=description content="A little colorful experiment where you can randomly create squares, lines and adjust their size and sobreposition settings.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div>
+    <div>
+      <input onclick="set(event, 'overlay')" type="checkbox" id="overlay">
+      <label for="overlay">Overlay</label>
+    </div>
+    <div>
+      <input onclick="set(event, 'lines')" type="checkbox" id="lines">
+      <label for="lines">Lines</label>
+    </div>
+    <div>
+      <label>Size</label>
+      <input onchange="setSize(event)" type="range" min="10" max="500" value="100">
+    </div>
+    <button onclick="reset()">Restart</button>
+    <button onclick="toggle(event)">Stop</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

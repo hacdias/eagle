@@ -1,0 +1,42 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/travis/status/1027625231085699072",
+  "author": {
+    "type": "card",
+    "nickname": "travis",
+    "location": "Irondequoit",
+    "bio": "don't @ travis  \n👨🏻‍💻 in #ROC \nmeme inspector \nhe/him \n@travis@mastodon.social",
+    "name": "travis",
+    "url": "https://twitter.com/travis",
+    "photo": "https://pbs.twimg.com/profile_images/979930958630735872/UD-fvF5l_normal.jpg"
+  },
+  "content": {
+    "text": "the story of my life"
+  },
+  "published": "2018-08-09T18:38:42.000Z",
+  "quotation-of": "https://twitter.com/hacdias/status/1027605100339126272",
+  "refs": {
+    "https://twitter.com/hacdias/status/1027605100339126272": {
+      "type": "entry",
+      "url": "https://twitter.com/hacdias/status/1027605100339126272",
+      "author": {
+        "type": "card",
+        "nickname": "hacdias",
+        "location": "Portugal",
+        "bio": "Studying Computer Engineering at @istecnico. Digging into the decentralized web at @ProtocolLabs. #opensource advocate.",
+        "name": "Henrique Dias",
+        "url": "https://twitter.com/hacdias",
+        "photo": "https://pbs.twimg.com/profile_images/1133325379970711552/nA18D3Fg_normal.jpg"
+      },
+      "content": {
+        "text": "Well, this wasn't the Travis I wanted 😂"
+      },
+      "published": "2018-08-09T17:18:42+00:00",
+      "in-reply-to": [
+        "https://twitter.com/travis/status/1027604820834873344"
+      ],
+      "post-type": "reply"
+    }
+  },
+  "post-type": "note"
+}

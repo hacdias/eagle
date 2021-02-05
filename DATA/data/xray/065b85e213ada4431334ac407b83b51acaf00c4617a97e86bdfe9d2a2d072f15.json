@@ -1,0 +1,30 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/VictorBjelkholm/status/951035327560474625",
+  "author": {
+    "type": "card",
+    "nickname": "VictorBjelkholm",
+    "location": "Barcelona, Catalunya",
+    "bio": "Swedish developer in Barcelona, hacking on @theopenregistry, Open-Services and @bravostudioapp\n\nFormer dev at @vreasy, @typeform and @protocollabs/@ipfsbot",
+    "name": "ᴠɪᴄᴛᴏʀ ʙ‏ᴊᴇʟᴋʜᴏʟᴍ",
+    "url": "https://twitter.com/VictorBjelkholm",
+    "photo": "https://pbs.twimg.com/profile_images/822084603796213761/GplJ5WWH_normal.jpg"
+  },
+  "content": {
+    "text": "hacdi.as ;)"
+  },
+  "published": "2018-01-10T10:17:46.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/951028848577142784"
+  ],
+  "location": "https://api.twitter.com/1.1/geo/id/c1430b24da8e9229.json",
+  "refs": {
+    "https://api.twitter.com/1.1/geo/id/c1430b24da8e9229.json": {
+      "type": "adr",
+      "name": "Lisbon, Portugal",
+      "locality": "Lisbon",
+      "country-name": "Portugal"
+    }
+  },
+  "post-type": "reply"
+}

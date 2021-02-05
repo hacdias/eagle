@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2019-08-22T20:07:00.000Z",
+  "url": "https://jlelse.blog/thoughts/2019/no-amp/",
+  "category": [
+    "Google",
+    "AMP",
+    "Opinion",
+    "Web"
+  ],
+  "name": "Why my blog has NO AMP version",
+  "content": {
+    "text": "Two days ago, Owen Williams shared a story on Medium’s OneZero with the title “Google Is Tightening Its Grip on Your Website”. He tells that it seems like Google is trying to get more power over the web in a somewhat evil way by forcing sites to implement an AMP (“accelerated mobile pages”) version. When sites don’t implement it, they won’t appear in Chrome’s discover page or in the top search results.Robin Rendle replied to it and I would like to highlight this:We must remember that by building a website for one company and one platform for the sake of analytics and eyeballs will provide only short term gains. There are more important things in this world than impressions and clicks, and there is something important we must sacrifice to the Big G in order to get them.I don’t provide an AMP version of my blog, because I think it’s unnecessary. My website loads blazingly fast, because I hand optimized every line of code and it only has a minimal amount of JavaScript and usually no images at all. The basic AMP JavaScript library is bigger than all resources needed for the page you are currently reading. Loading the page would take much longer and be much more heavy on the hardware resources. And with AMP it wouldn’t be possible to visit the page with disabled JavaScript.Why do we need to complicate things by implementing lightweight AMP versions, when one could just remove all the bloat from the original website and make it faster for everyone? AMP may try to solve a problem, but in my opinion it’s the wrong solution to an important problem.And I honestly don’t care about whether Google features any of my articles or not, I’m not blogging for a profit. I rather want to get my voice out there and document things. Those should stay even in case Google isn’t anymore.Google AMP is not a good thing.",
+    "html": "<p>Two days ago, Owen Williams shared a story on Medium’s OneZero with the title <a href=\"https://onezero.medium.com/google-is-tightening-its-iron-grip-on-your-website-27e06b3150e0\">“Google Is Tightening Its Grip on Your Website”</a>. He tells that it seems like Google is trying to get more power over the web in a somewhat evil way by forcing sites to implement an <a href=\"https://amp.dev/\">AMP</a> (“accelerated mobile pages”) version. When sites don’t implement it, they won’t appear in Chrome’s discover page or in the top search results.</p><p>Robin Rendle <a href=\"https://www.robinrendle.com/notes/taking-shortcuts\">replied to it</a> and I would like to highlight this:</p><blockquote><p>We must remember that by building a website for one company and one platform for the sake of analytics and eyeballs will provide only short term gains. There are more important things in this world than impressions and clicks, and there is something important we must sacrifice to the Big G in order to get them.</p></blockquote><p>I don’t provide an AMP version of my blog, because I think it’s unnecessary. My website loads blazingly fast, because I hand optimized every line of code and it only has a minimal amount of JavaScript and usually no images at all. The <a href=\"https://cdn.ampproject.org/v0.js\">basic AMP JavaScript library</a> is bigger than all resources needed for the page you are currently reading. Loading the page would take much longer and be much more heavy on the hardware resources. And with AMP it wouldn’t be possible to visit the page with disabled JavaScript.</p><p>Why do we need to complicate things by implementing <em>lightweight</em> AMP versions, when one could just remove all the bloat from the original website and make it faster for everyone? AMP may try to solve a problem, but in my opinion it’s the wrong solution to an important problem.</p><p>And I honestly don’t care about whether Google features any of my articles or not, I’m not blogging for a profit. I rather want to get my voice out there and document things. Those should stay even in case Google isn’t anymore.</p><p><a href=\"https://danielmiessler.com/blog/google-amp-not-good-thing/\">Google AMP is <strong>not</strong> a good thing.</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2019/no-amp/"
+  }
+}

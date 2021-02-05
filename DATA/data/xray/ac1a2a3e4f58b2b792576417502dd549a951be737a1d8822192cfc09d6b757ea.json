@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/emmabostian/status/1232412585397571584",
+  "author": {
+    "type": "card",
+    "nickname": "EmmaBostian",
+    "location": "Karlsruhe, Germany",
+    "bio": "Software Engineer | Design Systems @logmein; previously @ibm && creating content @ladybugpodcast @codingcoach_io | American living in Germany 🇩🇪",
+    "name": "Emma Bostian 🐞",
+    "url": "https://twitter.com/EmmaBostian",
+    "photo": "https://pbs.twimg.com/profile_images/1228620966693154816/AuiCdXC5_normal.jpg"
+  },
+  "content": {
+    "text": "*Honest job interview*\n\nInterviewer: “What’s your biggest weakness?”\n\nMe: “Sometimes I fuck up my rebase so badly I delete the repo and clone a new copy 🔥🙆‍♀️”",
+    "html": "*Honest job interview*<br>\n<br>\nInterviewer: “What’s your biggest weakness?”<br>\n<br>\nMe: “Sometimes I fuck up my rebase so badly I delete the repo and clone a new copy 🔥🙆‍♀️”"
+  },
+  "published": "2020-02-25T21:10:32.000Z",
+  "post-type": "note"
+}

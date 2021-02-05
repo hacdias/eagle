@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/jachands/status/900434773717524480",
+  "author": {
+    "type": "card",
+    "nickname": "jachands",
+    "location": "United States",
+    "bio": "Trying to be too clever and breaking things",
+    "name": "Jacob Hands",
+    "url": "https://twitter.com/jachands",
+    "photo": "https://pbs.twimg.com/profile_images/1111277569071087617/riN4Guh0_normal.jpg"
+  },
+  "content": {
+    "text": "This is how you know a program is written in Go\n\n#golang",
+    "html": "This is how you know a program is written in Go<br>\n<br>\n#golang"
+  },
+  "published": "2017-08-23T19:09:13.000Z",
+  "category": [
+    "golang"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/DH78lbnUAAQsQHy.jpg"
+  ],
+  "post-type": "photo"
+}

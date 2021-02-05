@@ -1,0 +1,27 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/1022827122551865346",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": "🚨 Guess what? A brand new #JS #IPFS will set sail just in time for the Decentralized Web Summit 2018!!! \\o/ js-ipfs 0.31 will add a sprinkling of connectivity magic 🧚 and support for raw leaves 🌿 in your DAGs. Wowzers!  @IPFSbot #DWebSummit #distributed #DAG #shipping",
+    "html": "🚨 Guess what? A brand new #JS #IPFS will set sail just in time for the Decentralized Web Summit 2018!!! \\o/ js-ipfs 0.31 will add a sprinkling of connectivity magic 🧚 and support for raw leaves 🌿 in your DAGs. Wowzers!  <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a> #DWebSummit #distributed #DAG #shipping"
+  },
+  "published": "2018-07-27T12:52:43.000Z",
+  "category": [
+    "JS",
+    "IPFS",
+    "DWebSummit",
+    "distributed",
+    "DAG",
+    "shipping"
+  ],
+  "post-type": "note"
+}

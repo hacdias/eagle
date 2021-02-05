@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dzesika/status/1167463176553713665",
+  "author": {
+    "type": "card",
+    "nickname": "dzesika",
+    "location": "Boulder, CO + the dweb",
+    "bio": "Builder of open internets by day, player of DJ musics by night. I don't tweet much since the US elections, but I still lurk a lot 😊",
+    "name": "Jessica Schilling",
+    "url": "https://twitter.com/dzesika",
+    "photo": "https://pbs.twimg.com/profile_images/929392653225156610/HzHOFPGF_normal.jpg"
+  },
+  "content": {
+    "text": "Hey #IPFS and #dweb friends! Help us create a next-generation navigation for http://docs.ipfs.io 😊 Join in a collaborative usability session Fri 6 Sep from 1700-1830 UTC on this video call ... http://protocol.zoom.us/my/docsforce",
+    "html": "Hey #IPFS and #dweb friends! Help us create a next-generation navigation for <a href=\"http://docs.ipfs.io\">http://docs.ipfs.io</a> 😊 Join in a collaborative usability session Fri 6 Sep from 1700-1830 UTC on this video call ... <a href=\"http://protocol.zoom.us/my/docsforce\">http://protocol.zoom.us/my/docsforce</a>"
+  },
+  "published": "2019-08-30T15:44:46.000Z",
+  "category": [
+    "IPFS",
+    "dweb"
+  ],
+  "post-type": "note"
+}

@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/1211570821073907713",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "I'm thrilled to share with you the launch of **A New Lab for Resilient Networks Research**, created at @protocollabs Research. \n\nGet to know about its focus & contributions at\nhttps://research.protocol.ai/posts/201912-resnetlab-launch\n#IPFS #libp2p\n\n2020 is set to be just phenomenal! 🥂",
+    "html": "I'm thrilled to share with you the launch of **A New Lab for Resilient Networks Research**, created at <a href=\"https://twitter.com/protocollabs\">@protocollabs</a> Research. <br>\n<br>\nGet to know about its focus & contributions at<br>\n<a href=\"https://research.protocol.ai/posts/201912-resnetlab-launch\">https://research.protocol.ai/posts/201912-resnetlab-launch</a><br>\n#IPFS #libp2p<br>\n<br>\n2020 is set to be just phenomenal! 🥂"
+  },
+  "published": "2019-12-30T08:52:48.000Z",
+  "category": [
+    "IPFS",
+    "libp2p"
+  ],
+  "post-type": "note"
+}

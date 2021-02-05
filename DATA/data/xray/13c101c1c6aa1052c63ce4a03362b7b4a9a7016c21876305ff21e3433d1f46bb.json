@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/sindresorhus/status/890273353063333890",
+  "author": {
+    "type": "card",
+    "nickname": "sindresorhus",
+    "location": "",
+    "bio": "Full-time open-sourcerer. I make macOS apps, CLI tools, npm packages. Currently into Swift & Node.js. Started @AVA__js & @awesome__re. Follow: @sindre_gh_repos",
+    "name": "Sindre Sorhus",
+    "url": "https://twitter.com/sindresorhus",
+    "photo": "https://pbs.twimg.com/profile_images/1131626244745834497/0SzJoz_J_normal.png"
+  },
+  "content": {
+    "text": "Introducing Lungo app - Keeps your Mac awake and your screen from dimming.\n\nhttps://itunes.apple.com/no/app/lungo/id1263070803?mt=12",
+    "html": "Introducing Lungo app - Keeps your Mac awake and your screen from dimming.<br>\n<br>\n<a href=\"https://itunes.apple.com/no/app/lungo/id1263070803?mt=12\">https://itunes.apple.com/no/app/lungo/id1263070803?mt=12</a>"
+  },
+  "published": "2017-07-26T18:11:22.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DFrhQKqXcAApkA2.jpg"
+  ],
+  "post-type": "photo"
+}

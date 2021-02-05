@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/yusadolat/status/1215338522498027520",
+  "author": {
+    "type": "card",
+    "nickname": "Yusadolat",
+    "location": "/home/yusadolat",
+    "bio": "Father of Cats  | Fullhouse Developer | Vueveloper | MSP @microsoft | @twilio Champion | Everyday learner | Muslim Pikin",
+    "name": "Yusadolat ☸ 🐳 😀 Happy",
+    "url": "https://twitter.com/Yusadolat",
+    "photo": "https://pbs.twimg.com/profile_images/1184187449045598208/mbsAbVTB_normal.jpg"
+  },
+  "content": {
+    "text": "Our internal Media server runs on File browser and we enjoy it."
+  },
+  "published": "2020-01-09T18:24:18.000Z",
+  "in-reply-to": [
+    "https://twitter.com/Yusadolat/status/1215337173182042113"
+  ],
+  "post-type": "reply"
+}

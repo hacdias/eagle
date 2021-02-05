@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/rgllm/status/967488957981384706",
+  "author": {
+    "type": "card",
+    "nickname": "rgllm",
+    "location": "Portugal",
+    "bio": "Full-stack developer working with front-End @pixelmatters_",
+    "name": "Rogério Moreira",
+    "url": "https://twitter.com/rgllm",
+    "photo": "https://pbs.twimg.com/profile_images/1101268149524140032/DKcjAaUB_normal.jpg"
+  },
+  "content": {
+    "text": "https://github.com/rgllm/uminho/tree/master/03/SRCR  not organized but I think it has some Prolog tips",
+    "html": "<a href=\"https://github.com/rgllm/uminho/tree/master/03/SRCR\">https://github.com/rgllm/uminho/tree/master/03/SRCR</a>  not organized but I think it has some Prolog tips"
+  },
+  "published": "2018-02-24T19:58:37.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/967474209940295680"
+  ],
+  "post-type": "reply"
+}

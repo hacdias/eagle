@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/caddyserver/status/895807310903169024",
+  "author": {
+    "type": "card",
+    "nickname": "caddyserver",
+    "location": "User Space",
+    "bio": "Serving your sites over HTTPS+HTTP/2 automatically. On a mission to put every site on HTTPS! Visit our forum for help: http://caddy.community",
+    "name": "Caddy Web Server",
+    "url": "https://twitter.com/caddyserver",
+    "photo": "https://pbs.twimg.com/profile_images/855149118049497090/Kh8BmlCZ_normal.jpg"
+  },
+  "content": {
+    "text": "Oooo, two new plugins around the corner: http.jekyll (like the hugo plugin, by @hacdias) and http.awses (Elasticsearch Service).",
+    "html": "Oooo, two new plugins around the corner: http.jekyll (like the hugo plugin, by <a href=\"https://twitter.com/hacdias\">@hacdias</a>) and http.awses (Elasticsearch Service)."
+  },
+  "published": "2017-08-11T00:41:20.000Z",
+  "post-type": "note"
+}

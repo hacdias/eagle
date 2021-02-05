@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_johnnymatthews/status/1253383630925246467",
+  "author": {
+    "type": "card",
+    "nickname": "_johnnymatthews",
+    "location": "Toronto, Ontario",
+    "bio": "Tech-writer, circle-pitter, terrible person. Educating devs @IPFSbot @protocollabs.",
+    "name": "Johnny Matthews",
+    "url": "https://twitter.com/_johnnymatthews",
+    "photo": "https://pbs.twimg.com/profile_images/1252316034448703489/KLldiagU_normal.jpg"
+  },
+  "content": {
+    "text": "Regular URLs are dumb. The person that makes a file has to decide what it's called and then tell everyone.\n\nContent identifiers (CIDs) make it so everyone can agree what a file is called, without having to talk to each other.\n\nErgo, #IPFS is great for introverts.",
+    "html": "Regular URLs are dumb. The person that makes a file has to decide what it's called and then tell everyone.<br>\n<br>\nContent identifiers (CIDs) make it so everyone can agree what a file is called, without having to talk to each other.<br>\n<br>\nErgo, #IPFS is great for introverts."
+  },
+  "published": "2020-04-23T18:01:59.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "post-type": "note"
+}

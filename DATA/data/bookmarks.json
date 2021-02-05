@@ -1,0 +1,130 @@
+{
+  "tools": {
+    "name": "Tools",
+    "emoji": "🛠",
+    "items": [
+      {
+        "name": "Squoosh",
+        "url": "https://squoosh.app/",
+        "description": "quickly compress images online"
+      },
+      {
+        "name": "Devhints",
+        "url": "https://devhints.io/",
+        "description": "a big collection of cheatsheets for many programs and programming languages"
+      },
+      {
+        "name": "Pinata",
+        "url": "https://pinata.cloud/",
+        "description": "pinning service for IPFS"
+      },
+      {
+        "name": "Boom",
+        "url": "https://boom.fyi/",
+        "description": "IPFS link shortener"
+      },
+      {
+        "name": "Observable",
+        "url": "https://observablehq.com/",
+        "description": ""
+      },
+      {
+        "name": "Jupyter Notebooks",
+        "url": "https://jupyter.org/",
+        "description": ""
+      },
+      {
+        "name": "Hoppscotch",
+        "url": "https://hoppscotch.io/",
+        "description": ""
+      },
+      {
+        "name": "Textile",
+        "url": "https://textile.io/",
+        "description": ""
+      },
+      {
+        "name": "Wave Share",
+        "url": "https://ggerganov.github.io/wave-share",
+        "description": "serverless, p2p, local file sharing with communication through sound"
+      },
+      {
+        "name": "Regex101",
+        "url": "https://regex101.com/",
+        "description": "easy convertion of regex expressions between different programming languages"
+      },
+      {
+        "name": "Regexr",
+        "url": "https://regexr.com/",
+        "description": ""
+      }
+    ]
+  },
+  "technologies": {
+    "name": "Technologies",
+    "emoji": "💾",
+    "items": [
+      {
+        "name": "Hypercore",
+        "url": "https://hypercore-protocol.org/",
+        "description": "distributed append-only log protocol"
+      },
+      {
+        "name": "Scuttlebut",
+        "url": "https://scuttlebutt.nz/",
+        "description": "distributed social network"
+      },
+      {
+        "name": "IPFS",
+        "url": "https://ipfs.io/",
+        "description": "p2p hypermedia protocol"
+      }
+    ]
+  },
+  "other": {
+    "name": "Other",
+    "emoji": "🕸",
+    "items": [
+      {
+        "name": "How DNS works",
+        "url": "https://howdns.works/",
+        "description": "comics from dnsimple explaining how DNS works"
+      },
+      {
+        "name": "How HTTPS works",
+        "url": "https://howhttps.works/",
+        "description": "comics from dnsimple explaining how HTTPS works"
+      },
+      {
+        "name": "My Business Card Runs Linux",
+        "url": "https://www.thirtythreeforty.net/posts/2019/12/my-business-card-runs-linux/",
+        "description": ""
+      },
+      {
+        "name": "Replacing Cron Jobs With systemd Timers",
+        "url": "https://mjanja.ch/2015/06/replacing-cron-jobs-with-systemd-timers/",
+        "description": ""
+      },
+      {
+        "name": "The WWW History project",
+        "url": "https://bafybeiboj7xkq4jxxbs5r65ditneqanwltqfzis4f4ii2u5bu36twro3yy.ipfs.dweb.link/",
+        "cid": "bafybeiboj7xkq4jxxbs5r65ditneqanwltqfzis4f4ii2u5bu36twro3yy"
+      },
+      {
+        "name": "Nathan's Toasty Tech Page",
+        "url": "https://bafybeib7lyimozj46dotjpzapp33wkig5g4zdcusljwaslwuv3djm2lzsy.ipfs.dweb.link/",
+        "cid": "bafybeib7lyimozj46dotjpzapp33wkig5g4zdcusljwaslwuv3djm2lzsy"
+      },
+      {
+        "name": "Old Internet Files",
+        "url": "https://bafybeigsep2mscdilh7nbrljkhjb36my27rfkihazxxsaw6hahxfzth5am.ipfs.dweb.link/",
+        "cid": "bafybeigsep2mscdilh7nbrljkhjb36my27rfkihazxxsaw6hahxfzth5am"
+      },
+      {
+        "name": "ITCorp",
+        "url": "https://bafybeie47oohr22jwkkxnmjmde2kvczf3a6skrtl2okodj7y6vsd7strmy.ipfs.dweb.link/",
+        "cid": "bafybeie47oohr22jwkkxnmjmde2kvczf3a6skrtl2okodj7y6vsd7strmy"
+      }
+    ]
+  }
+}

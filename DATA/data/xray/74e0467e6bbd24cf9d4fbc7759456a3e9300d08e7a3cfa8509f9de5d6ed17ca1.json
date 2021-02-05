@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/989428513232089094",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "I get a lot of questions of how the IPFS is capable to provide a content addressing. Fun fact is that IPFS core is small, most of the heavy lifting happens on its networking stack, @libp2p. Today, I want to share an overview with y’all on why it exists and why it is so important.",
+    "html": "I get a lot of questions of how the IPFS is capable to provide a content addressing. Fun fact is that IPFS core is small, most of the heavy lifting happens on its networking stack, <a href=\"https://twitter.com/libp2p\">@libp2p</a>. Today, I want to share an overview with y’all on why it exists and why it is so important."
+  },
+  "published": "2018-04-26T08:58:34.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/Dbskkj9W0AAKrUz.jpg"
+  ],
+  "post-type": "photo"
+}

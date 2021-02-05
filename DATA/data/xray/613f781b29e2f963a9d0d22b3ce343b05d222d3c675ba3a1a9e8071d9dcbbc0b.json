@@ -1,0 +1,18 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/ryansnyder/status/1218546897893224448",
+  "author": {
+    "type": "card",
+    "nickname": "ryansnyder",
+    "location": "Portland, OR",
+    "bio": "Dad, Husband, Product leader, meater @meatclubin",
+    "name": "Ryan Snyder",
+    "url": "https://twitter.com/ryansnyder",
+    "photo": "https://pbs.twimg.com/profile_images/1180847278178783234/A9UfMktV_normal.jpg"
+  },
+  "content": {
+    "text": "Is there a list of web infrastructure services that are 100% carbon neutral?"
+  },
+  "published": "2020-01-18T14:53:14.000Z",
+  "post-type": "note"
+}

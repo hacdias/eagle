@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2019-07-16T19:25:00.000Z",
+  "url": "https://jlelse.blog/links/2019/07/16/awesome-blogs/",
+  "bookmark-of": [
+    "https://github.com/jkup/awesome-personal-blogs"
+  ],
+  "name": "Awesome Personal Blogs",
+  "content": {
+    "text": "You’ve probably come across Awesome lists already. This one is quite similar to Personalsit.es, which I linked to recently. It’s nice to have such a long list full of personal blogs to explore. Exploring other’s personal blogs always offers the possibility to learn and discover new things and get to know new people who share interesting stuff.I also have a blogroll, to which I regularly add new links which I find worth featuring. If you have a personal blog too, feel free to send me a link to it via a webmention (I will soon add a form to this blog for easier submission) or the contact form.Just as I type this, the PR I created to add my blog got merged. 😄https://github.com/jkup/awesome-personal-blogs",
+    "html": "<p>You’ve probably come across <a href=\"https://github.com/sindresorhus/awesome\">Awesome lists</a> already. <a href=\"https://github.com/jkup/awesome-personal-blogs\">This one</a> is quite similar to <a href=\"https://jlelse.blog/links/2019/07/07/personalsites/\">Personalsit.es, which I linked to recently</a>. It’s nice to have such a long list full of personal blogs to explore. Exploring other’s personal blogs always offers the possibility to learn and discover new things and get to know new people who share interesting stuff.</p><p>I also have a <a href=\"https://jlelse.blog/blogroll/\">blogroll</a>, to which I regularly add new links which I find worth featuring. If you have a personal blog too, feel free to send me a link to it via a webmention (I will soon add a form to this blog for easier submission) or the <a href=\"https://jlelse.dev/contact/\">contact form</a>.</p><p>Just as I type this, the PR I created to add my blog got merged. 😄</p><p><a class=\"u-bookmark-of\" href=\"https://github.com/jkup/awesome-personal-blogs\">https://github.com/jkup/awesome-personal-blogs</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2019/07/16/awesome-blogs/"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "@context": [
+      "https://www.w3.org/ns/activitystreams",
+      "https://w3id.org/security/v1"
+  ],
+  "id": "{{ "" | absLangURL }}",
+  "url": "{{ "" | absLangURL }}",
+  "type": "Person",
+  "name": "{{ .Site.Author.name }}",
+  "summary": {{ .Site.Params.description | jsonify }},
+  "preferredUsername": "{{ .Site.Author.username }}"
+  {{- with .Site.Author.avatar -}},
+  "icon": {
+      "type": "Image",
+      "url": "{{ . | absURL }}"
+  }
+  {{- end }}
+  {{- with .Site.Author.cover }},
+  "image": {
+    "type": "Image",
+    "mediaType": "image/jpeg",
+    "url": "{{ . | absURL }}"
+  }
+  {{- end }}
+  {{- with .Site.Params.activityPub.inbox -}},
+  "inbox": "{{ . }}"
+  {{- end }}
+  {{- with .Site.Params.activityPub.outbox -}},
+  "outbox": "{{ . }}"
+  {{- end }}
+  {{- with .Site.Params.activityPub.publicKeyPem -}},
+  "publicKey": {
+      "id": "{{ "" | absLangURL }}#key",
+      "owner": "{{ "" | absLangURL }}",
+      "publicKeyPem": "{{ . }}"
+  }
+  {{- end }}
+}

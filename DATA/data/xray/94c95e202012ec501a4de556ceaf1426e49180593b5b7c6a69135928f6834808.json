@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-04-02T20:25:37.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/short-qr-code/",
+  "category": [
+    "QR code"
+  ],
+  "content": {
+    "text": "Currently I use DuckDuckGo (DDG) as my default search engine, especially because I have the feeling that it is quiet fast. But DDG also has many features. For example, you can quickly and easily create a QR code by typing “qr code” + (what should be displayed as QR code).In the browser you can then right-click on the picture and select “Show picture”. The picture will open. But the image is not stored as JPG or PNG file on a server, but is displayed using a base64 data URI.I copied this URI and shortened it with my new URL shortener. Whenever I need a QR code that redirects to my website, I can now call https://jlel.se/qr.I love doing stupid things.",
+    "html": "<p>Currently I use <a href=\"https://duckduckgo.com/\">DuckDuckGo</a> (DDG) as my default search engine, especially because I have the feeling that it is quiet fast. But DDG also has many features. For example, you can quickly and easily create a <a href=\"https://en.wikipedia.org/wiki/QR_code\">QR code</a> by typing “qr code” + (what should be displayed as QR code).</p><p>In the browser you can then right-click on the picture and select “Show picture”. The picture will open. But the image is not stored as JPG or PNG file on a server, but is displayed using a <a href=\"https://en.wikipedia.org/wiki/Data_URI_scheme\">base64 data URI</a>.</p><p>I copied this URI and shortened it with <a href=\"https://jlelse.blog/micro/2020/03/goshort/\">my new URL shortener</a>. Whenever I need a QR code that redirects to my website, I can now call <a href=\"https://jlel.se/qr\"></a><a href=\"https://jlel.se/qr\">https://jlel.se/qr</a>.</p><p><em>I love doing stupid things.</em></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/short-qr-code/"
+  }
+}

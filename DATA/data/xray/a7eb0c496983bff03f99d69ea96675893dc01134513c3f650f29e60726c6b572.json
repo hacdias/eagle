@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2019-08-09T09:57:00.000Z",
+  "url": "https://jlelse.blog/links/2019/08/09/mapscii/",
+  "bookmark-of": [
+    "https://github.com/rastapasta/mapscii"
+  ],
+  "name": "telnet mapscii.me",
+  "content": {
+    "text": "I heard of telnet already, but I never used it in some way. It’s one of the oldest internet standards. Now I discovered a cool project: mapscii.When you are on Linux or macOS, open your terminal and type:telnet mapscii.me\nMaps in your terminal via telnet! 😄To navigate, use the following shortcuts:Arrows up, down, left, right to scroll around\na or z to zoom in and out\nq to quit\nOn Windows you can use PuttY. And if you don’t want to use telnet, you can also download the project and run it locally. It’s NodeJS-based.https://github.com/rastapasta/mapscii",
+    "html": "<p>I heard of <a href=\"https://en.wikipedia.org/wiki/Telnet\">telnet</a> already, but I never used it in some way. It’s one of the oldest internet standards. Now I discovered a cool project: <a href=\"https://github.com/rastapasta/mapscii\">mapscii</a>.</p><p>When you are on Linux or macOS, open your terminal and type:</p><pre style=\"color:#f8f8f2;background-color:#272822;\"><code>telnet mapscii.me\n</code></pre><p>Maps in your terminal via telnet! 😄</p><p>To navigate, use the following shortcuts:</p><ul><li>Arrows up, down, left, right to scroll around</li>\n<li>a or z to zoom in and out</li>\n<li>q to quit</li>\n</ul><p>On Windows you can use PuttY. And if you don’t want to use telnet, you can also download the project and run it locally. It’s NodeJS-based.</p><p><a class=\"u-bookmark-of\" href=\"https://github.com/rastapasta/mapscii\">https://github.com/rastapasta/mapscii</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2019/08/09/mapscii/"
+  }
+}

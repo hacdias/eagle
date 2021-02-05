@@ -1,0 +1,46 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/1201345919494455297",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "M.S. CompSci. @caddyserver & @relicabackup. Member of the restored Church of Jesus Christ. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🧗‍♂️ Matt Holt",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1220393540364013569/tMngABRf_normal.jpg"
+  },
+  "content": {
+    "text": "I hope it has:\n\n* Must contain SQL injection",
+    "html": "I hope it has:<br>\n<br>\n* Must contain SQL injection"
+  },
+  "published": "2019-12-02T03:42:41.000Z",
+  "quotation-of": "https://twitter.com/notdetails/status/1201015962398539777",
+  "refs": {
+    "https://twitter.com/notdetails/status/1201015962398539777": {
+      "type": "entry",
+      "url": "https://twitter.com/notdetails/status/1201015962398539777",
+      "author": {
+        "type": "card",
+        "nickname": "notdetails",
+        "location": "the darkest timeline",
+        "bio": "I design Pull Requests and Code Review at @github for 40 million developers so yeah no pressure. Prev. led Product Design at @digitalocean. he/him",
+        "name": "Joel Califa ✈ Figma Config",
+        "url": "https://twitter.com/notdetails",
+        "photo": "https://pbs.twimg.com/profile_images/848194327272730630/5YtMSV-J_normal.jpg"
+      },
+      "content": {
+        "text": "Less than 3 days since I started working on my new side project, and it's already almost done! Title TBD but it's a password puzzle game:"
+      },
+      "published": "2019-12-01T05:51:33+00:00",
+      "photo": [
+        "https://pbs.twimg.com/ext_tw_video_thumb/1201015905330900992/pu/img/SNEjE9N51AHcmwyB.jpg"
+      ],
+      "video": [
+        "https://video.twimg.com/ext_tw_video/1201015905330900992/pu/vid/1400x720/W4VRtypAPrbD9Mu_.mp4?tag=10"
+      ],
+      "post-type": "video"
+    }
+  },
+  "post-type": "note"
+}

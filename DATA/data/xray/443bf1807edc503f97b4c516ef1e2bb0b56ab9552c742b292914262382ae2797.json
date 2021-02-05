@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/abredabread/status/1208325884802928641",
+  "author": {
+    "type": "card",
+    "nickname": "abredabread",
+    "location": "",
+    "bio": "Uncaught TypeError: Cannot read property 'description' of undefined",
+    "name": "André Breda 🍞",
+    "url": "https://twitter.com/abredabread",
+    "photo": "https://pbs.twimg.com/profile_images/1200786166934638604/gIB1iB7t_normal.jpg"
+  },
+  "content": {
+    "text": "Eu a pensar que me safava dos atrasos por ir hoje de manhã e suprimem-me o comboio\n\nFelizmente havia autocarro. Chego só 1h15 depois do planeado",
+    "html": "Eu a pensar que me safava dos atrasos por ir hoje de manhã e suprimem-me o comboio<br>\n<br>\nFelizmente havia autocarro. Chego só 1h15 depois do planeado"
+  },
+  "published": "2019-12-21T09:58:35.000Z",
+  "post-type": "note"
+}

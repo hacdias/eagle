@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/rgllm/status/967726170744778752",
+  "author": {
+    "type": "card",
+    "nickname": "rgllm",
+    "location": "Portugal",
+    "bio": "Full-stack developer working with front-End @pixelmatters_",
+    "name": "Rogério Moreira",
+    "url": "https://twitter.com/rgllm",
+    "photo": "https://pbs.twimg.com/profile_images/1101268149524140032/DKcjAaUB_normal.jpg"
+  },
+  "content": {
+    "text": "TP1 is prolog, TP2 is extended prolog. Code is not available in the repo but if you want I can send it to you."
+  },
+  "published": "2018-02-25T11:41:13.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/967491617736331264"
+  ],
+  "post-type": "reply"
+}

@@ -1,0 +1,22 @@
+body {
+  background: #2c3e50;
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+}
+
+p {
+  font-family: sans-serif;
+  position: fixed;
+  bottom: 1em;
+  left: 1em;
+  background: white;
+  font-size: 0.9em;
+  padding: 0.5em;
+  margin: 0;
+  z-index: 99999;
+}

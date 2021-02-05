@@ -1,0 +1,15 @@
+<div class="h-cite e-entry bar {{ .Class }}">
+  <p>
+    <span class="p-author h-card">
+      <a rel="noopener noreferrer" target="_link" class="p-name u-url no-link" {{ with .Wm.author.url }}href="{{ . }}"{{ end }}>{{ .Wm.author.name }}</a>
+    </span>
+    {{- with .Wm.published -}}
+      <a rel="noopener noreferrer" target="_link" href="{{ $.Wm.url }}" class="u-url original date">{{ dateFormat "02 Jan 2006 15:04" . }}</a>
+    {{- else -}}
+      <a rel="noopener noreferrer" target="_link" href="{{ $.Wm.url }}" class="u-url original">Original Post</a>
+    {{- end -}}
+  </p>
+  {{- with  (or .Wm.content.text .Wm.summary) -}}
+    <div class="e-content p-name">{{ .| truncate 300 | safeHTML }}</div>
+  {{- end -}}
+</div>

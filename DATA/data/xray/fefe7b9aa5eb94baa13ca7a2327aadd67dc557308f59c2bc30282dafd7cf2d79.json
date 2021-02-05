@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2019-04-18T23:07:33.000Z",
+  "url": "https://hacdias.com/2019/04/19/04/",
+  "category": [
+    "pixel\\_dailies"
+  ],
+  "photo": [
+    "https://hacdias.com/2019/04/19/04/D4eJ4CkWsAALLOx.jpg"
+  ],
+  "syndication": [
+    "https://twitter.com/hacdias/status/1119014633778614272"
+  ],
+  "content": {
+    "text": "A sad lamp for today’s @Pixel_Dailies #pixel_dailies. I feel something with the colours isn’t quite right. But… Blue… Gray.. It’s sad.",
+    "html": "<p>A sad lamp for today’s <a href=\"https://twitter.com/Pixel_Dailies\">@Pixel_Dailies</a> #pixel_dailies. I feel something with the colours isn’t quite right. But… Blue… Gray.. It’s sad.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "photo",
+  "rels": {
+    "canonical": "https://hacdias.com/2019/04/19/04/"
+  }
+}

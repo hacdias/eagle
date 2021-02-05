@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/PascalPrecht/status/1033294756271542272",
+  "author": {
+    "type": "card",
+    "nickname": "PascalPrecht",
+    "location": "Amsterdam, The Netherlands",
+    "bio": "Creator of @thoughtram. Software engineer at @ethstatus. Writing 📚 http://rebase-book.com \n\nLearning @rustlang for fun.",
+    "name": "Pascal Precht",
+    "url": "https://twitter.com/PascalPrecht",
+    "photo": "https://pbs.twimg.com/profile_images/993785060733194241/p3oAIMDP_normal.jpg"
+  },
+  "content": {
+    "text": "Sooo good!!"
+  },
+  "published": "2018-08-25T10:07:22.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1033268764849201152"
+  ],
+  "post-type": "reply"
+}

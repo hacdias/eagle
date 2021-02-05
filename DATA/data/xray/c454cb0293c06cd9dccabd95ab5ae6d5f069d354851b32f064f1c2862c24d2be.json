@@ -1,0 +1,18 @@
+{
+  "author": {
+    "name": "Anonymous",
+    "photo": "https://commentpara.de/img/anonymous.svg",
+    "type": "card",
+    "url": false
+  },
+  "content": {
+    "html": "s/single/simple/\u003cbr /\u003e\ns/lunchd/launchd/\u003cbr /\u003e\n(unless Apple stores now sell sandwiches, I guess...)\u003cbr /\u003e\u003cbr /\u003e\nOtherwise a great article though :)\u003cbr /\u003e\u003cbr /\u003e\nHave you ever considered something like org-mode in Emacs? There are a huge number of export options which could be used as the basis of a site generator (or just fed into Hugo) and it supports inline code quoting allowing for things like Donald Knuth's concept of literate programming.",
+    "text": "s/single/simple/\n\ns/lunchd/launchd/\n\n(unless Apple stores now sell sandwiches, I guess...)\n\n\nOtherwise a great article though :)\n\n\nHave you ever considered something like org-mode in Emacs? There are a huge number of export options which could be used as the basis of a site generator (or just fed into Hugo) and it supports inline code quoting allowing for things like Donald Knuth's concept of literate programming."
+  },
+  "in-reply-to": [
+    "https://hacdias.com/articles/2020/02/notable-to-hugo/"
+  ],
+  "post-type": "reply",
+  "type": "entry",
+  "url": "https://commentpara.de/comment/690.htm"
+}

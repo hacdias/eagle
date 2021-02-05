@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IPFSPinata/status/1158389061779935232",
+  "author": {
+    "type": "card",
+    "nickname": "IPFSPinata",
+    "location": "Interplanetary",
+    "bio": "The Easiest Way to Use #IPFS",
+    "name": "Pinata",
+    "url": "https://twitter.com/IPFSPinata",
+    "photo": "https://pbs.twimg.com/profile_images/1055044637822459906/A6zPwVme_normal.jpg"
+  },
+  "content": {
+    "text": "Hey! Great question. This isn't technically feasible for us right now but it is something we are looking at implementing in the future."
+  },
+  "published": "2019-08-05T14:47:28.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1158387301212459008"
+  ],
+  "post-type": "reply"
+}

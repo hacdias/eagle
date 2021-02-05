@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/966292121828372480",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": "so 🔥 right now, the #IPFS CID inspector website got a big makeover and upgrade thanks to @olizilla:\nhttp://cid-utils.ipfs.team/#zb2rhiVd5G2DSpnbYtty8NhYHeDvNkPxjSqA7YbDPuhdihj9L\nsuper useful if you're wondering what's in those potato hashes",
+    "html": "so 🔥 right now, the #IPFS CID inspector website got a big makeover and upgrade thanks to <a href=\"https://twitter.com/olizilla\">@olizilla</a>:<br>\n<a href=\"http://cid-utils.ipfs.team/#zb2rhiVd5G2DSpnbYtty8NhYHeDvNkPxjSqA7YbDPuhdihj9L\">http://cid-utils.ipfs.team/#zb2rhiVd5G2DSpnbYtty8NhYHeDvNkPxjSqA7YbDPuhdihj9L</a><br>\nsuper useful if you're wondering what's in those potato hashes"
+  },
+  "published": "2018-02-21T12:42:49.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "post-type": "note"
+}

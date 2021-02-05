@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-04-13T06:19:28.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/watches-page/",
+  "category": [
+    "Movies2"
+  ],
+  "content": {
+    "text": "Inspired by Henrique Dias and his “Watches” page, I added such a site to my website too. I’m not using a tracking service to collect the data though, but write down everything manually. Although doing it automagically is pretty cool. I just try to keep things under my own control and don’t want to start to depend on yet another service.For entries I try to link to The Movie Database, a more open alternative to Amazon’s IMDb. When shows or movies are note available there, I’ll link to the streaming platform’s detail page or another adequate website.I watch a lot more movies and shows lately and so I want to keep track of it.",
+    "html": "<p>Inspired by Henrique Dias and <a href=\"https://hacdias.com/watches/\">his “Watches” page</a>, I <a href=\"https://jlelse.dev/watches/\">added such a site to my website too</a>. I’m not using a tracking service to collect the data though, but write down everything manually. Although doing it <a href=\"https://github.com/hacdias/trakt-collector\">automagically</a> is pretty cool. I just try to keep things under my own control and don’t want to start to depend on yet another service.</p><p>For entries I try to link to <a href=\"https://www.themoviedb.org/\">The Movie Database</a>, a more open alternative to Amazon’s IMDb. When shows or movies are note available there, I’ll link to the streaming platform’s detail page or another adequate website.</p><p>I watch a lot more movies and shows lately and so I want to keep track of it.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/watches-page/"
+  }
+}

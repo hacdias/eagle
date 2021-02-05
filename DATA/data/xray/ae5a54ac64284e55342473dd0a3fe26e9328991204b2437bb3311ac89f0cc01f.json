@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/VictorBjelkholm/status/1142060011637678081",
+  "author": {
+    "type": "card",
+    "nickname": "VictorBjelkholm",
+    "location": "Barcelona, Catalunya",
+    "bio": "Swedish developer in Barcelona, hacking on @theopenregistry, Open-Services and @bravostudioapp\n\nFormer dev at @vreasy, @typeform and @protocollabs/@ipfsbot",
+    "name": "ᴠɪᴄᴛᴏʀ ʙ‏ᴊᴇʟᴋʜᴏʟᴍ",
+    "url": "https://twitter.com/VictorBjelkholm",
+    "photo": "https://pbs.twimg.com/profile_images/822084603796213761/GplJ5WWH_normal.jpg"
+  },
+  "content": {
+    "text": "Ah, interesting. Thanks for sharing it! Ironic that the site itself is not blocked (yet?)"
+  },
+  "published": "2019-06-21T13:21:39.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1142038163155800064"
+  ],
+  "post-type": "reply"
+}

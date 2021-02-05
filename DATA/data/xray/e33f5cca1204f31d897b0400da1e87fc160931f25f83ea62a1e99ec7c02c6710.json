@@ -1,0 +1,27 @@
+{
+  "type": "entry",
+  "published": "2020-04-03T17:29:05.000Z",
+  "url": "https://jlelse.blog/links/2020/04/corona-stickers/",
+  "category": [
+    "Corona",
+    "Telegram"
+  ],
+  "bookmark-of": [
+    "https://t.me/addstickers/TheVirus"
+  ],
+  "name": "Coronavirus Telegram stickers",
+  "content": {
+    "text": "Today Telegram published a blog article regarding Coronavirus news. In it they also mentioned a channel where they announce official and verified channels with information on COVID-19. I just visited that channel out of curiosity and saw there’s a sticker pack with virus stickers. I don’t know whether to laugh or cry about it. 🤔https://t.me/addstickers/TheVirus",
+    "html": "<p>Today Telegram published <a href=\"https://telegram.org/blog/coronavirus\">a blog article</a> regarding Coronavirus news. In it they also mentioned <a href=\"https://t.me/s/corona/8\">a channel</a> where they announce official and verified channels with information on COVID-19. I just visited that channel out of curiosity and saw there’s <a href=\"https://t.me/addstickers/TheVirus\">a sticker pack</a> with virus stickers. I don’t know whether to laugh or cry about it. 🤔</p><p><a class=\"u-bookmark-of\" href=\"https://t.me/addstickers/TheVirus\">https://t.me/addstickers/TheVirus</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2020/04/corona-stickers/"
+  }
+}

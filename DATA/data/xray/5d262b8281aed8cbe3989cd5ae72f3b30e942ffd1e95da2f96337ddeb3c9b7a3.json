@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/caddyserver/status/975169694674993152",
+  "author": {
+    "type": "card",
+    "nickname": "caddyserver",
+    "location": "User Space",
+    "bio": "Serving your sites over HTTPS+HTTP/2 automatically. On a mission to put every site on HTTPS! Visit our forum for help: http://caddy.community",
+    "name": "Caddy Web Server",
+    "url": "https://twitter.com/caddyserver",
+    "photo": "https://pbs.twimg.com/profile_images/855149118049497090/Kh8BmlCZ_normal.jpg"
+  },
+  "content": {
+    "text": "The http.filemanager plugin recently usurped http.git as the #1 most-downloaded plugin. Both are awesome! Filemanager by @hacdias lets you manage files on your server, and Git by @abiosoft lets you deploy your site with git push!",
+    "html": "The http.filemanager plugin recently usurped http.git as the #1 most-downloaded plugin. Both are awesome! Filemanager by <a href=\"https://twitter.com/hacdias\">@hacdias</a> lets you manage files on your server, and Git by <a href=\"https://twitter.com/abiosoft\">@abiosoft</a> lets you deploy your site with git push!"
+  },
+  "published": "2018-03-18T00:39:07.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DYh_aCtVwAASY8_.jpg"
+  ],
+  "post-type": "photo"
+}

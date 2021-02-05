@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/958778588085436416",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "It's that time of the year again, @fosdem is happening in 3 days 🌟 and this time I'm coming with a bunch of @IPFSbot people. Howler if you will be there and/or want to chat about the Distributed Web #DWEB",
+    "html": "It's that time of the year again, <a href=\"https://twitter.com/fosdem\">@fosdem</a> is happening in 3 days 🌟 and this time I'm coming with a bunch of <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a> people. Howler if you will be there and/or want to chat about the Distributed Web #DWEB"
+  },
+  "published": "2018-01-31T19:06:43.000Z",
+  "category": [
+    "DWEB"
+  ],
+  "post-type": "note"
+}

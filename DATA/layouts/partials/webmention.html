@@ -1,0 +1,54 @@
+{{ $mentions := .Resources.GetMatch "mentions.json" }}
+{{ if $mentions }}{{ $mentions = unmarshal $mentions.Content }}{{ end }}
+<div class="wm full-width">
+  <form action="https://webmention.io/hacdias.com/webmention" method="post">
+    <input aria-label="Webmention Source" name="source" placeholder="Have you written a response? Paste its URL here!" type="url" required>
+    <input name="target" value="{{ .Permalink }}" type="hidden">
+    <input value="Send Webmention" type="submit">
+  </form>
+
+  <div>
+    <p>
+      Or if you don't know what a <a target="_blank" rel="noopener noreferrer" href="https://indieweb.org/responses">response</a>
+      is, you can always write a webmention comment (you don't need to know what that is).
+    </p>
+
+    <form method="get" action="https://quill.p3k.io/" target="_blank">
+      <input type="hidden" name="dontask" value="1">
+      <input type="hidden" name="me" value="https://commentpara.de/">
+      <input type="hidden" name="reply" value="{{ .Permalink }}">
+      <input type="submit" value="Write a comment">
+    </form>
+  </div>
+
+  {{ with $mentions -}}
+  {{ $count := len $mentions }}
+  <details>
+    <summary>{{ $count }} interaction{{ if gt $count 1 }}s{{end }}</summary>
+    <div class='contents'>
+      {{- $mentions = sort . "date" "desc" }}
+      {{- range $i, $data := $mentions }}
+      <div class="h-cite">
+        <span class="p-author h-card">
+          <img alt="{{ with .author.name }}{{ . }}{{ else }}Unknown{{ end }}" class="u-photo" src="{{ or .author.photo "/unknown.jpg" }}">
+          <a rel="noopener noreferrer" target="_link" class="p-name u-url no-link" href="{{ .url }}">{{ with .author.name }}{{ . }}{{ else }}Unknown{{ end }}</a></span>
+        {{ if eq .type "like" }}
+        liked this post.
+        {{ else if eq .type "repost" }}
+        reposted this.
+        {{ else if eq .type "reply" }}
+        said: <span class="e-content p-name">{{ .content.text | truncate 300 | safeHTML }}</span>
+        {{ else }}
+          {{ with .content.text }}
+            said: <span class="e-content p-name">{{ . | truncate 300 | safeHTML }}</span>
+          {{ else }}
+            mentioned this on <a rel="noopener noreferrer" target="_link" href="{{ .url }}">{{ .url }}</a>.
+          {{ end }}
+        {{ end }}
+        {{- with .date}} — <a rel="noopener noreferrer" target="_link" href="{{ $data.url }}" class="u-url date no-link">{{ dateFormat "02 Jan 2006 15:04" . }}</a>{{ end }}
+      </div>
+      {{ end }}
+    </div>
+  </details>
+  {{ end -}}
+</div>

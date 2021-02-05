@@ -1,0 +1,21 @@
+{
+  "@context": [
+      "https://www.w3.org/ns/activitystreams"
+  ],
+  "to": [
+    "https://www.w3.org/ns/activitystreams#Public"
+  ],
+  "published": {{ dateFormat "2006-01-02T15:04:05-07:00" .Date | jsonify }},
+  "updated": {{ dateFormat "2006-01-02T15:04:05-07:00" .Lastmod | jsonify }},
+  "id": "{{ .Permalink }}",
+  "url": "{{ .Permalink }}",
+  "content": {{ partialCached "cleaned-content.html" . .Permalink | jsonify }},
+  "mediaType": "text/html",
+  {{ with .Title }}"name": {{ . | jsonify }},{{ end }}
+  "type": "{{ if eq .Section "articles" }}Article{{ else }}Note{{ end }}",
+  "attributedTo": "{{ "" | absLangURL }}"{{ if .Params.properties }}{{ if isset .Params.properties "in-reply-to" }},
+  "inReplyTo": "{{ index .Params.properties "in-reply-to" }}"
+  {{ end }}{{ end }},
+  "tag": {{ partial "get-as2-tags" . | jsonify}},
+  "attachment": {{ (partial "get-attachments" . ) | jsonify }}
+}

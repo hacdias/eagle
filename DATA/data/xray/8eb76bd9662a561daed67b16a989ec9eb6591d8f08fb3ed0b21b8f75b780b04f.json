@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2020-01-30T18:59:00.000Z",
+  "url": "https://jlelse.blog/links/2020/01/whatsapp-dangerous/",
+  "category": [
+    "WhatsApp",
+    "Telegram",
+    "Facebook"
+  ],
+  "bookmark-of": [
+    "https://telegra.ph/Why-Using-WhatsApp-Is-Dangerous-01-30-4"
+  ],
+  "name": "Why Using WhatsApp Is Dangerous",
+  "content": {
+    "text": "Pavel Durov, founder of Telegram, wrote about “why using WhatsApp is dangerous”, citing the attack against Jeff Bezos.Second, there are backdoors. Enforcement agencies are not too happy with encryption, forcing app developers to secretly plant vulnerabilities in their apps. I know that because we’ve been approached by some of them – and refused to cooperate. As a result, Telegram is banned in some countries where WhatsApp has no issues with authorities, most suspiciously in Russia and Iran.I’m still using WhatsApp, because I’m more or less forced to do so (important groups etc.), but Telegram is by far my favorite messenger, not necessarily because it’s “more secure”, but because it has a way better user experience. Cross device cloud chats work perfectly when using multiple computers and smartphones. However, I wish Telegram would open-source their backend code too.https://telegra.ph/Why-Using-WhatsApp-Is-Dangerous-01-30-4",
+    "html": "<p><a href=\"https://t.me/durov\">Pavel Durov</a>, founder of Telegram, <a href=\"https://telegra.ph/Why-Using-WhatsApp-Is-Dangerous-01-30-4\">wrote</a> about “why using WhatsApp is dangerous”, citing the attack against Jeff Bezos.</p><blockquote><p>Second, there are backdoors. Enforcement agencies are not too happy with encryption, forcing app developers to secretly plant vulnerabilities in their apps. I know that because we’ve been approached by some of them – and refused to cooperate. As a result, Telegram is banned in some countries where WhatsApp has no issues with authorities, most suspiciously in Russia and Iran.</p></blockquote><p>I’m still using WhatsApp, because I’m more or less forced to do so (important groups etc.), but Telegram is by far my favorite messenger, not necessarily because it’s “more secure”, but because it has a way better user experience. Cross device cloud chats work perfectly when using multiple computers and smartphones. However, I wish Telegram would open-source their backend code too.</p><p><a class=\"u-bookmark-of\" href=\"https://telegra.ph/Why-Using-WhatsApp-Is-Dangerous-01-30-4\">https://telegra.ph/Why-Using-WhatsApp-Is-Dangerous-01-30-4</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2020/01/whatsapp-dangerous/"
+  }
+}

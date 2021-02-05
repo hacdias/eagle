@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/857114504655765504",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "M.S. CompSci. @caddyserver & @relicabackup. Member of the restored Church of Jesus Christ. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🧗‍♂️ Matt Holt",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1220393540364013569/tMngABRf_normal.jpg"
+  },
+  "content": {
+    "text": "Security and Privacy Weaknesses of Neural Networks: https://matt.life/papers/security_privacy_neural_networks.pdf - attacks and defenses to consider for #machinelearning models",
+    "html": "Security and Privacy Weaknesses of Neural Networks: <a href=\"https://matt.life/papers/security_privacy_neural_networks.pdf\">https://matt.life/papers/security_privacy_neural_networks.pdf</a> - attacks and defenses to consider for #machinelearning models"
+  },
+  "published": "2017-04-26T06:09:56.000Z",
+  "category": [
+    "machinelearning"
+  ],
+  "post-type": "note"
+}

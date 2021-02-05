@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/caddyserver/status/978613422102257664",
+  "author": {
+    "type": "card",
+    "nickname": "caddyserver",
+    "location": "User Space",
+    "bio": "Serving your sites over HTTPS+HTTP/2 automatically. On a mission to put every site on HTTPS! Visit our forum for help: http://caddy.community",
+    "name": "Caddy Web Server",
+    "url": "https://twitter.com/caddyserver",
+    "photo": "https://pbs.twimg.com/profile_images/855149118049497090/Kh8BmlCZ_normal.jpg"
+  },
+  "content": {
+    "text": "Caddy 0.10.12 released! Full support for @letsencrypt ACMEv2, automated wildcard certificates, HTTP-01 challenge in a cluster, and more! Available now. https://caddyserver.com/blog/caddy-0_10_12-released",
+    "html": "Caddy 0.10.12 released! Full support for <a href=\"https://twitter.com/letsencrypt\">@letsencrypt</a> ACMEv2, automated wildcard certificates, HTTP-01 challenge in a cluster, and more! Available now. <a href=\"https://caddyserver.com/blog/caddy-0_10_12-released\">https://caddyserver.com/blog/caddy-0_10_12-released</a>"
+  },
+  "published": "2018-03-27T12:43:16.000Z",
+  "post-type": "note"
+}

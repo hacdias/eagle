@@ -1,0 +1,945 @@
+{
+  "to-read": [
+    {
+      "date": null,
+      "author": "R.C. Colaço",
+      "name": "A Conspiração de Atlântida",
+      "isbn": "9789898979520",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Harper Lee",
+      "name": "To Kill a Mockingbird",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Kevin van Whye",
+      "name": "Date Me, Bryson Keller",
+      "isbn": "9780593126042",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Alexis  Hall",
+      "name": "Boyfriend Material",
+      "isbn": "9781728206141",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Annabeth Albert",
+      "name": "Conventionally Yours",
+      "isbn": "9781728200293",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Becky Albertalli",
+      "name": "Simon vs. the Homo Sapiens Agenda",
+      "isbn": "9780062348678",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "André Aciman",
+      "name": "Find Me",
+      "isbn": "9780374155018",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Saifedean Ammous",
+      "name": "The Bitcoin Standard: The Decentralized Alternative to Central Banking",
+      "isbn": "9781119473862",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Karl Fogel",
+      "name": "Producing Open Source Software: How to Run a Successful Free Software Project",
+      "isbn": "9780596007591",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "José Saramago",
+      "name": "O Ano da Morte de Ricardo Reis",
+      "isbn": "9789720048820",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Eça de Queirós",
+      "name": "O Crime do Padre Amaro",
+      "isbn": "9789720049636",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Margaret Atwood",
+      "name": "The Handmaid's Tale",
+      "isbn": "9781784871444",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Alexandre Arlène",
+      "name": "Bloody Harry: La BD dont il ne faut pas prononcer le nom",
+      "isbn": "9782822214339",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Steven Levy",
+      "name": "Hackers: Heroes of the Computer Revolution",
+      "isbn": "9780141000510",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Alex Bellos",
+      "name": "Alex's Adventures in Numberland: Dispatches from the Wonderful World of Mathematics",
+      "isbn": "9781408809594",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Robert Louis Stevenson",
+      "name": "Strange Case of Dr Jekyll and Mr Hyde and Other Stories",
+      "isbn": "9781847493781",
+      "rating": "N/A"
+    }
+  ],
+  "read": [
+    {
+      "date": "2020-08-08T10:11:35.000Z",
+      "author": "Brendan Burns",
+      "name": "Kubernetes: Up and Running: Dive Into the Future of Infrastructure",
+      "isbn": "9781492046530",
+      "rating": "N/A"
+    },
+    {
+      "date": "2020-10-07T13:21:26.000Z",
+      "author": "Ralf Steinmetz",
+      "name": "Peer-To-Peer Systems and Applications",
+      "isbn": "9783540291923",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "António Vieira",
+      "name": "Sermão de Santo António aos Peixes",
+      "isbn": "9789898508386",
+      "rating": 4
+    },
+    {
+      "date": null,
+      "author": "Eça de Queirós",
+      "name": "Os Maias",
+      "isbn": "978972004575",
+      "rating": 5
+    },
+    {
+      "date": null,
+      "author": "Lois Lowry",
+      "name": "The Giver",
+      "isbn": "9780385732550",
+      "rating": 5
+    },
+    {
+      "date": null,
+      "author": "José Eduardo Agualusa",
+      "name": "A Vida no Céu",
+      "isbn": "9789897221101",
+      "rating": 4
+    },
+    {
+      "date": null,
+      "author": "Afonso Cruz",
+      "name": "Para Onde Vão Os Guarda-Chuvas",
+      "isbn": "9789896721978",
+      "rating": 4
+    },
+    {
+      "date": null,
+      "author": "Eça de Queirós",
+      "name": "Contos",
+      "isbn": "9789897110047",
+      "rating": 4
+    },
+    {
+      "date": null,
+      "author": "Jorge Amado",
+      "name": "Capitães da Areia",
+      "isbn": "9789896530075",
+      "rating": 4
+    },
+    {
+      "date": null,
+      "author": "Rosa Lobato de Faria",
+      "name": "O Prenúncio das Águas",
+      "isbn": "9789724129709",
+      "rating": 4
+    },
+    {
+      "date": null,
+      "author": "Afonso Cruz",
+      "name": "Os Livros Que Devoraram o Meu Pai",
+      "isbn": "9789722120951",
+      "rating": 5
+    },
+    {
+      "date": null,
+      "author": "Luís de Sttau Monteiro",
+      "name": "Felizmente Há Luar!",
+      "isbn": "9789726277446",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério das Cartas Anónimas",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério da Casa Invisível",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério do Ladrão Invisível",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério do Príncipe Desaparecido",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério do Saco da Roupa",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura na Serra da Estrela",
+      "isbn": "9789722108379",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura Secreta",
+      "isbn": {
+        "$": {
+          "nil": "true"
+        }
+      },
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Veronica Roth",
+      "name": "Divergente",
+      "isbn": "9789720043818",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Veronica Roth",
+      "name": "Insurgente",
+      "isbn": "9789720043825",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Veronica Roth",
+      "name": "Convergente",
+      "isbn": "9789720043832",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Caragh M. O'Brien",
+      "name": "Marcados à Nascença",
+      "isbn": "9789895015870",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Veronica Roth",
+      "name": "Quatro – Histórias da Série Divergente",
+      "isbn": "9789720047250",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Caragh M. O'Brien",
+      "name": "Apreciada",
+      "isbn": "9789895018987",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "C.S. Lewis",
+      "name": "O Sobrinho do Mágico",
+      "isbn": "9789722329989",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Caragh M. O'Brien",
+      "name": "Prometidos",
+      "isbn": "9789895018994",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "C.S. Lewis",
+      "name": "O cavalo e o seu rapaz",
+      "isbn": "9789722330558",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "C.S. Lewis",
+      "name": "O Príncipe Caspian",
+      "isbn": "9789722330978",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "C.S. Lewis",
+      "name": "A Viagem do Caminheiro da Alvorada",
+      "isbn": "9789722331326",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "C.S. Lewis",
+      "name": "A Última Batalha",
+      "isbn": "9789722332200",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "C.S. Lewis",
+      "name": "O Trono de Prata",
+      "isbn": "9789722331685",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Daniel H. Pink",
+      "name": "A Nova Inteligência",
+      "isbn": "9789724746203",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "John Green",
+      "name": "O Teorema Katherine",
+      "isbn": "9789892326337",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "John Green",
+      "name": "Cidades de Papel",
+      "isbn": "9789722352925",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Stephen Hawking",
+      "name": "Breve História do Tempo: do Big Bang aos Buracos Negros",
+      "isbn": "9789726620105",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Sonia Fernández-Vidal",
+      "name": "A Porta das Três Fechaduras",
+      "isbn": "9789722349567",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério da Casa Queimada",
+      "isbn": "9789895554591",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério da Gata Desaparecida",
+      "isbn": "9789895554607",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério do Quarto Secreto",
+      "isbn": "9789895554829",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério do colar desaparecido Volume 5",
+      "isbn": "9789895555222",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "O Mistério do Gato Cómico",
+      "isbn": "9789895557738",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "Os Cinco na Ilha do Tesouro",
+      "isbn": "9789895557745",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Enid Blyton",
+      "name": "Os Cinco e os Contrabandistas",
+      "isbn": "9789895558360",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Geronimo Stilton",
+      "name": "Naufrágio na Ilha dos Piratas",
+      "isbn": "9789722339360",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Geronimo Stilton",
+      "name": "Quatro Ratos no Faroeste!",
+      "isbn": "9789722344968",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Geronimo Stilton",
+      "name": "Pânico nos Himalaias",
+      "isbn": "9789722336390",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Geronimo Stilton",
+      "name": "O Manuscrito Misterioso",
+      "isbn": "9789722334723",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Sophia de Mello Breyner Andresen",
+      "name": "A Fada Oriana",
+      "isbn": "9789726611950",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Geronimo Stilton",
+      "name": "O Mistério do Olho de Esmeralda",
+      "isbn": "9789722335157",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Sophia de Mello Breyner Andresen",
+      "name": "O Rapaz de Bronze",
+      "isbn": "9789726612032",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Rick Riordan",
+      "name": "O Herói Desaparecido",
+      "isbn": "9789896574918",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Rick Riordan",
+      "name": "Percy Jackson e a Maldição do Titã",
+      "isbn": "9789724620251",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Rick Riordan",
+      "name": "Percy Jackson e o mar dos Monstros",
+      "isbn": "9789724622514",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Rick Riordan",
+      "name": "Percy Jackson e a Batalha do Labirinto",
+      "isbn": "9789724620855",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Rick Riordan",
+      "name": "Percy Jackson e o Último Olimpiano",
+      "isbn": "9789724622415",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Marion Zimmer Bradley",
+      "name": "A Senhora da Magia",
+      "isbn": "9789896373986",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Gregory Bassham",
+      "name": "O Essencial e Definitivo Harry Potter e a Filosofia",
+      "isbn": "9789897180071",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Jeff Kinney",
+      "name": "A Última Gota",
+      "isbn": "9789896680589",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Jeff Kinney",
+      "name": "A Verdade Nua e Crua",
+      "isbn": "9789897070433",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Jeff Kinney",
+      "name": "Um Dia de Cão",
+      "isbn": "9789896680596",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Jeff Kinney",
+      "name": "Tirem-me Daqui!",
+      "isbn": "9789897071102",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Jeff Kinney",
+      "name": "O Emplastro",
+      "isbn": "9789897071188",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Tim    Collins",
+      "name": "Diário de Um Vampiro Banana",
+      "isbn": "9789898260840",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Tim    Collins",
+      "name": "O Diário de Um Lobisomem Banana",
+      "isbn": "9789897070730",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Tim Collins",
+      "name": "Bananus Maximus",
+      "isbn": "9789897071140",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Tim    Collins",
+      "name": "Príncipe da Tansilvânia",
+      "isbn": "9789897070211",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Álvaro Magalhães",
+      "name": "A maldição da estrela morta",
+      "isbn": "9789892310817",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura nas Férias do Natal",
+      "isbn": "9789722100014",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura entre Douro e Minho",
+      "isbn": "9789722100052",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura no Bosque",
+      "isbn": "9789722100045",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura no Deserto",
+      "isbn": "9789722100205",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura em Lisboa",
+      "isbn": "9789722100212",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura no Verão",
+      "isbn": "9789722107747",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Álvaro Magalhães",
+      "name": "Vem aí o cometa negro!",
+      "isbn": "9789892313214",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Álvaro Magalhães",
+      "name": "A última noite do mundo",
+      "isbn": "9789892317465",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Álvaro Magalhães",
+      "name": "A Feiticeira de Paris",
+      "isbn": "9789892321011",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Álvaro Magalhães",
+      "name": "A sombra do caçador",
+      "isbn": "9789892310800",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Álvaro Magalhães",
+      "name": "Operação \"espelho meu\"",
+      "isbn": "9789892314969",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura no Comboio",
+      "isbn": "9789722117906",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura no Labirinto Misterioso",
+      "isbn": "9789722118606",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura na Amazónia",
+      "isbn": "9789722120388",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura no Pulo do Lobo",
+      "isbn": "9789722121026",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura na Praia",
+      "isbn": "9789722108997",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Ana Maria Magalhães",
+      "name": "Uma Aventura na Casa Assombrada",
+      "isbn": "9789722111225",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Suzanne Collins",
+      "name": "Os Jogos da Fome",
+      "isbn": "9789722342391",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "João de Barros",
+      "name": "Os Lusíadas Contados às Crianças e Lembrados ao Povo",
+      "isbn": "9789898470249",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Gonçalo Castro",
+      "name": "O Caderno das Piadas Secas",
+      "isbn": "9789898871077",
+      "rating": "N/A"
+    },
+    {
+      "date": null,
+      "author": "Dale Carnegie",
+      "name": "How to Win Friends and Influence People",
+      "isbn": "9780091906818",
+      "rating": "N/A"
+    },
+    {
+      "date": "2016-09-23T07:00:00.000Z",
+      "author": "John Osborne",
+      "name": "Look Back in Anger",
+      "isbn": "9780571322763",
+      "rating": "N/A"
+    },
+    {
+      "date": "2016-10-14T07:00:00.000Z",
+      "author": "George Orwell",
+      "name": "Nineteen Eighty-Four",
+      "isbn": "9780141393049",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-01T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Philosopher's Stone",
+      "isbn": "9781408855652",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-09T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Chamber of Secrets",
+      "isbn": "9781408855669",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-14T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Prisoner of Azkaban",
+      "isbn": "9781408855676",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-20T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Goblet of Fire",
+      "isbn": "9781408855683",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-24T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Order of the Phoenix",
+      "isbn": "9781408855690",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-26T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Half-Blood Prince",
+      "isbn": "9781408855706",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-29T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Harry Potter and the Deathly Hallows",
+      "isbn": "9781408855713",
+      "rating": 5
+    },
+    {
+      "date": "2017-01-30T08:00:00.000Z",
+      "author": "J.K. Rowling",
+      "name": "Fantastic Beasts and Where to Find Them: The Original Screenplay",
+      "isbn": "9781408708989",
+      "rating": "N/A"
+    },
+    {
+      "date": "2017-05-09T07:00:00.000Z",
+      "author": "José Saramago",
+      "name": "Memorial do Convento",
+      "isbn": "9789720046710",
+      "rating": 5
+    },
+    {
+      "date": "2017-05-09T07:00:00.000Z",
+      "author": "Peter Thiel",
+      "name": "Zero to One: Notes on Start Ups, or How to Build the Future",
+      "isbn": "9780753555200",
+      "rating": "N/A"
+    },
+    {
+      "date": "2017-12-08T08:00:00.000Z",
+      "author": "Ray Bradbury",
+      "name": "Fahrenheit 451",
+      "isbn": "9780007181704",
+      "rating": 4
+    },
+    {
+      "date": "2017-12-23T08:00:00.000Z",
+      "author": "George Orwell",
+      "name": "Animal Farm",
+      "isbn": "9780141036137",
+      "rating": 4
+    },
+    {
+      "date": "2017-12-30T08:00:00.000Z",
+      "author": "Aldous Huxley",
+      "name": "Brave New World",
+      "isbn": "9781784870140",
+      "rating": 5
+    },
+    {
+      "date": "2018-01-01T08:00:00.000Z",
+      "author": "Stephen Chbosky",
+      "name": "The Perks of Being a Wallflower",
+      "isbn": "9781847394071",
+      "rating": 5
+    },
+    {
+      "date": "2018-06-25T07:00:00.000Z",
+      "author": "Brian W. Kernighan",
+      "name": "The Practice of Programming (Addison-Wesley Professional Computing Series)",
+      "isbn": "9780201615869",
+      "rating": 5
+    },
+    {
+      "date": "2020-01-15T08:00:00.000Z",
+      "author": "Steve Kinney",
+      "name": "Electron in Action",
+      "isbn": "9781617294143",
+      "rating": 3
+    },
+    {
+      "date": "2020-01-15T08:00:00.000Z",
+      "author": "Yevgeniy Brikman",
+      "name": "Terraform: Up and Running: Writing Infrastructure as Code",
+      "isbn": "9789352135462",
+      "rating": 4
+    },
+    {
+      "date": "2020-01-15T08:00:00.000Z",
+      "author": "Jerry Weissman",
+      "name": "Presenting to Win: The Art of Telling Your Story",
+      "isbn": "9780130464132",
+      "rating": 4
+    },
+    {
+      "date": "2020-01-15T08:00:00.000Z",
+      "author": "Edward Snowden",
+      "name": "Permanent Record",
+      "isbn": "9781250237231",
+      "rating": 4
+    },
+    {
+      "date": "2020-01-31T08:00:00.000Z",
+      "author": "Lewis Carroll",
+      "name": "Alice's Adventures in Wonderland and Through the Looking-Glass",
+      "isbn": "9780141439761",
+      "rating": 4
+    },
+    {
+      "date": "2020-06-19T14:11:39.000Z",
+      "author": "André Aciman",
+      "name": "Call Me By Your Name",
+      "isbn": "9781786495259",
+      "rating": 5
+    },
+    {
+      "date": "2015-02-28T08:00:00.000Z",
+      "author": "Jeff Kinney",
+      "name": "O Rodrick é Terrível",
+      "isbn": "9789896680060",
+      "rating": "N/A"
+    },
+    {
+      "date": "2015-02-28T08:00:00.000Z",
+      "author": "C.S. Lewis",
+      "name": "O Leão, a Feiticeira e o Guarda-Roupa",
+      "isbn": "9789722330206",
+      "rating": "N/A"
+    }
+  ],
+  "currently-reading": []
+}

@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2020-04-13T21:10:27.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/staying-with-hugo/",
+  "category": [
+    "Eleventy2",
+    "Hugo28"
+  ],
+  "in-reply-to": [
+    "https://hacdias.com/replies/2020/04/13/1/"
+  ],
+  "content": {
+    "text": "I played a bit with 11ty today and came to the conclusion to stay with Hugo for now. Much of what Hugo brings with it (multilingual websites, taxonomies etc.) has to be done manually. Sure, 11ty is much more flexible and everything is somehow possible, but somehow it’s too much effort for me (at least for the moment). I have a working Hugo site and it would be best to stick with it for now and start thinking more about things I can blog about instead of just the site itself. And I should also focus on my studies…Or maybe I should build my own static site generator? 😂",
+    "html": "<p>I played a bit with 11ty today and came to the conclusion to stay with Hugo for now. Much of what Hugo brings with it (multilingual websites, taxonomies etc.) has to be done manually. Sure, 11ty is much more flexible and everything is somehow possible, but somehow it’s too much effort for me (at least for the moment). I have a working Hugo site and it would be best to stick with it for now and start thinking more about things I can blog about instead of just the site itself. <em>And I should also focus on my studies…</em></p><p><del><em>Or maybe I should build my own static site generator? 😂</em></del></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/staying-with-hugo/"
+  }
+}

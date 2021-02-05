@@ -1,0 +1,51 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/juanbenet/status/1250634833258143744",
+  "author": {
+    "type": "card",
+    "nickname": "juanbenet",
+    "location": "Palo Alto",
+    "bio": "Obsessed with Knowledge, Science, and Technology -- Protocol Labs, IPFS, Filecoin -- http://juan.benet.ai",
+    "name": "Juan Benet",
+    "url": "https://twitter.com/juanbenet",
+    "photo": "https://pbs.twimg.com/profile_images/436772207746756609/1PMRyGnf_normal.png"
+  },
+  "content": {
+    "text": "Aaaaaahahaha it’s not enough to fork all our code, rebrand it and lie its theirs; copy paste random chunks of our papers, and defraud their investors with a nonsensical mishmash. Tron also can’t even think of an original logo 🤯🤣"
+  },
+  "published": "2020-04-16T03:59:14.000Z",
+  "quotation-of": "https://twitter.com/BitTorrent/status/1250360420814053377",
+  "refs": {
+    "https://twitter.com/BitTorrent/status/1250360420814053377": {
+      "type": "entry",
+      "url": "https://twitter.com/BitTorrent/status/1250360420814053377",
+      "author": {
+        "type": "card",
+        "nickname": "BitTorrent",
+        "location": "San Francisco, CA",
+        "bio": "Building a better Internet for people to move information freely and safely.",
+        "name": "BitTorrent Inc.",
+        "url": "https://twitter.com/BitTorrent",
+        "photo": "https://pbs.twimg.com/profile_images/730072795330191360/qDyFtdEE_normal.jpg"
+      },
+      "content": {
+        "text": "✨#BTFS Rebrand✨\n\nTo convey the idea & vision of #BTFS in a better way, #BTFS will rebrand itself with new logo👇 during the upcoming release of #BTFS v1.1.0🆕\n#BTFS's mission is to provide a content-addressable, P2P mechanism for better storing & sharing digital content. #BTT",
+        "html": "✨#BTFS Rebrand✨<br>\n<br>\nTo convey the idea & vision of #BTFS in a better way, #BTFS will rebrand itself with new logo👇 during the upcoming release of #BTFS v1.1.0🆕<br>\n#BTFS's mission is to provide a content-addressable, P2P mechanism for better storing & sharing digital content. #BTT"
+      },
+      "published": "2020-04-15T09:48:49+00:00",
+      "category": [
+        "BTFS",
+        "BTFS",
+        "BTFS",
+        "BTFS",
+        "BTFS",
+        "BTT"
+      ],
+      "photo": [
+        "https://pbs.twimg.com/media/EVogIBOU4AAa01I.jpg"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

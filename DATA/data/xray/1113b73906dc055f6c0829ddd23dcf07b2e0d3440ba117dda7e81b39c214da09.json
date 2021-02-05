@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/protocollabs/status/983631632262299648",
+  "author": {
+    "type": "card",
+    "nickname": "protocollabs",
+    "location": "Decentralized",
+    "bio": "We believe the internet has become humanity's most important technology. \nWe build protocols, systems, and tools to improve how it works.",
+    "name": "Protocol Labs",
+    "url": "https://twitter.com/protocollabs",
+    "photo": "https://pbs.twimg.com/profile_images/828656153978613760/xwRfPxqt_normal.jpg"
+  },
+  "content": {
+    "text": "Research is at the core of Protocol Labs. Today we're announcing a grant program with a $5 million initial commitment. First three RFPs support Filecoin and broader blockchain research.\n\nhttps://protocol.ai/blog/ann-research-rfp/",
+    "html": "Research is at the core of Protocol Labs. Today we're announcing a grant program with a $5 million initial commitment. First three RFPs support Filecoin and broader blockchain research.<br>\n<br>\n<a href=\"https://protocol.ai/blog/ann-research-rfp/\">https://protocol.ai/blog/ann-research-rfp/</a>"
+  },
+  "published": "2018-04-10T09:03:50.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DaaOcG9U8AAfKUp.jpg"
+  ],
+  "post-type": "photo"
+}

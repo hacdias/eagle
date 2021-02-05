@@ -1,0 +1,35 @@
+{
+  "type": "entry",
+  "published": "2020-01-22T13:25:29.000Z",
+  "url": "https://aaronparecki.com/2020/01/22/1/",
+  "in-reply-to": [
+    "https://hacdias.com/2020/01/22/6/"
+  ],
+  "content": {
+    "text": "It's all a giant pile of PHP code I wrote ages ago, it's not even map-projection-aware it just plots on a 2D canvas. The animation is basically a timelapse of a bunch of frames of that same script played in a row."
+  },
+  "author": {
+    "type": "card",
+    "name": "Aaron Parecki",
+    "url": "https://aaronparecki.com/",
+    "photo": "https://aaronparecki.com/images/profile.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://hacdias.com/2020/01/22/6/": {
+      "type": "entry",
+      "url": "https://hacdias.com/2020/01/22/6/",
+      "content": {
+        "text": "Hey Aaron! What software/library are you using to generate those maps with your location? Can they be considered heat maps? And what about the animated video?",
+        "html": "<p>Hey Aaron! What software/library are you using to generate those maps with your location? Can they be considered heat maps? And what about the animated video?</p>"
+      },
+      "author": {
+        "type": "card",
+        "name": "Henrique Dias",
+        "url": "https://hacdias.com/",
+        "photo": "https://pkcdn.xyz/hacdias.com/664891eacca0e5248f8e6c7b5849da5c82f3a7d58fe9693e730338d01513b117.jpg"
+      },
+      "post-type": "note"
+    }
+  }
+}

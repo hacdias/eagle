@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "published": "2020-06-01T13:20:27.000Z",
+  "url": "https://janboddez.tech/notes/b6b59a1630",
+  "in-reply-to": [
+    "https://hacdias.com/articles/2020/05/back-90s/"
+  ],
+  "content": {
+    "text": "In reply to https://hacdias.com/articles/2020/05/back-90s/.\nLove the animated GIFs! The background!\nOne thing: my feed reader has a hard time handling the relative image URLs in your RSS … (Hint: https://validator.w3.org/feed/docs/warning/ContainsRelRef.html. [I only know about this link because I ran into the same thing —different blog, though—earlier this week.])\n(Also, I couldn’t help but notice that RSS items lack the “context” that makes replies and such so much more understandable. Not a huge issue, just thought I’d let you know.)",
+    "html": "<p><i>In reply to <a class=\"u-in-reply-to\" href=\"https://hacdias.com/articles/2020/05/back-90s/\">https://hacdias.com/articles/2020/05/back-90s/</a>.</i></p>\n<p>Love the animated GIFs! The background!</p>\n<p>One thing: my feed reader has a hard time handling the relative image URLs in your RSS … (Hint: <a href=\"https://validator.w3.org/feed/docs/warning/ContainsRelRef.html\">https://validator.w3.org/feed/docs/warning/ContainsRelRef.html</a>. [I only know about this link because I ran into the same thing —different blog, though—earlier this week.])</p>\n<p>(Also, I couldn’t help but notice that RSS items lack the “context” that makes replies and such so much more understandable. Not a huge issue, just thought I’d let you know.)</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan Boddez",
+    "url": "https://janboddez.tech/",
+    "photo": "https://janboddez.tech/uploads/avatars/mastodon-social-janboddez.jpg"
+  },
+  "post-type": "reply"
+}

@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/FiloSottile/status/1211716500261875717",
+  "author": {
+    "type": "card",
+    "nickname": "FiloSottile",
+    "location": "Manhattan, NY",
+    "bio": "Cryptogopher @Google / Go team / Opinions mine / @kateconger-knower / RC F'13, F2'17 / he+him\n\nhttp://mkcert.dev / http://age-encryption.org",
+    "name": "Filippo Valsorda",
+    "url": "https://twitter.com/FiloSottile",
+    "photo": "https://pbs.twimg.com/profile_images/1028703543174225920/3cm3bMWC_normal.jpg"
+  },
+  "content": {
+    "text": "Oneliner to generate a new age private key and show a QR code of the public key:\n\nage-keygen | tee key.txt | awk '/public key/{print $4}' | qrencode -t ansiutf8",
+    "html": "Oneliner to generate a new age private key and show a QR code of the public key:<br>\n<br>\nage-keygen | tee key.txt | awk '/public key/{print $4}' | qrencode -t ansiutf8"
+  },
+  "published": "2019-12-30T18:31:40.000Z",
+  "in-reply-to": [
+    "https://twitter.com/FiloSottile/status/1211450553026396162"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/ENDhuRuXkAAjw-m.jpg"
+  ],
+  "post-type": "reply"
+}

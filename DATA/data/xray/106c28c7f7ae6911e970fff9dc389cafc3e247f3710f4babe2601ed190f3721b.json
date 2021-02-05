@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Punk__R0ck/status/1083081236262854657",
+  "author": {
+    "type": "card",
+    "nickname": "Punk__R0ck",
+    "location": "Le Vésinet, France",
+    "bio": "Cloud/DevOps Technical Architect and security evangelist. In love with new tech, fintechs, money management and cars",
+    "name": "Steven",
+    "url": "https://twitter.com/Punk__R0ck",
+    "photo": "https://pbs.twimg.com/profile_images/945707942761910272/nsa_VIkO_normal.jpg"
+  },
+  "content": {
+    "text": "@hacdias Hello ! Please can you test your builds before pushing it on Docker Hub ?",
+    "html": "<a href=\"https://twitter.com/hacdias\">@hacdias</a> Hello ! Please can you test your builds before pushing it on Docker Hub ?"
+  },
+  "published": "2019-01-09T19:21:04.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DwffxnaVsAANOIb.jpg",
+    "https://pbs.twimg.com/media/DwfglK8X4AYg80j.jpg"
+  ],
+  "post-type": "photo"
+}

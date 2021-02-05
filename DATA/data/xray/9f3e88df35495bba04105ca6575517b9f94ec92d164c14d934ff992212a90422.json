@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1182097776202530816",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "San Francisco, CA",
+    "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "cc @hacdias!",
+    "html": "cc <a href=\"https://twitter.com/hacdias\">@hacdias</a>!"
+  },
+  "published": "2019-10-10T00:57:26.000Z",
+  "in-reply-to": [
+    "https://twitter.com/Ceeblows/status/1182096016755089408"
+  ],
+  "post-type": "reply"
+}

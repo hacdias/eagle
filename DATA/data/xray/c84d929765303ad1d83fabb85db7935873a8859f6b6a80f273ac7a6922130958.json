@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/GCPcloud/status/893441387751931905",
+  "author": {
+    "type": "card",
+    "nickname": "GCPcloud",
+    "location": "",
+    "bio": "Helping you build what's next with secure infrastructure, developer tools, APIs, data analytics and machine learning.",
+    "name": "Google Cloud Platform",
+    "url": "https://twitter.com/GCPcloud",
+    "photo": "https://pbs.twimg.com/profile_images/1219725421962571779/_qstUQx__normal.jpg"
+  },
+  "content": {
+    "text": "More than 2.8M open source GitHub repositories are now available in #BigQuery, searchable with regular expressions https://medium.com/google-cloud/github-on-bigquery-analyze-all-the-code-b3576fd2b150",
+    "html": "More than 2.8M open source GitHub repositories are now available in #BigQuery, searchable with regular expressions <a href=\"https://medium.com/google-cloud/github-on-bigquery-analyze-all-the-code-b3576fd2b150\">https://medium.com/google-cloud/github-on-bigquery-analyze-all-the-code-b3576fd2b150</a>"
+  },
+  "published": "2017-08-04T12:00:00.000Z",
+  "category": [
+    "BigQuery"
+  ],
+  "post-type": "note"
+}

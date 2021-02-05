@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IPFSbot/status/1255301051655368708",
+  "author": {
+    "type": "card",
+    "nickname": "IPFSbot",
+    "location": "Earth",
+    "bio": "A peer-to-peer hypermedia protocol to make the web faster, safer, and more open.",
+    "name": "IPFS",
+    "url": "https://twitter.com/IPFSbot",
+    "photo": "https://pbs.twimg.com/profile_images/570059057197625344/h4Bvj_8p_normal.png"
+  },
+  "content": {
+    "text": "IPFS 0.5 is faster, more reliable and full of upgrades to make the user experience even better.\n→ Adding data is 2x faster\n→ DHT improvements help the network use up to 4x less bandwidth\n→ Fetching content is 2-5x faster\nLearn more: http://blog.ipfs.io/2020-04-28-go-ipfs-0-5-0/",
+    "html": "IPFS 0.5 is faster, more reliable and full of upgrades to make the user experience even better.<br>\n→ Adding data is 2x faster<br>\n→ DHT improvements help the network use up to 4x less bandwidth<br>\n→ Fetching content is 2-5x faster<br>\nLearn more: <a href=\"http://blog.ipfs.io/2020-04-28-go-ipfs-0-5-0/\">http://blog.ipfs.io/2020-04-28-go-ipfs-0-5-0/</a>"
+  },
+  "published": "2020-04-29T01:01:07.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EWu5plOWkAAc_2F.jpg"
+  ],
+  "post-type": "photo"
+}

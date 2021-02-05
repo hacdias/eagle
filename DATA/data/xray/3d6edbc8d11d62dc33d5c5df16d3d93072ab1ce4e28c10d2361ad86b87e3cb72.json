@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/DaAleksandersen/status/1100498347822071810",
+  "author": {
+    "type": "card",
+    "nickname": "DaAleksandersen",
+    "location": "Norway",
+    "bio": "Geek. Specialist in obscure details. Imagine this bio contains all the hashtags you’re interested in on Twitter. Get just my blog feed on @CtrlBlog. 🏳️‍🌈",
+    "name": "Daniel Aleksandersen",
+    "url": "https://twitter.com/DaAleksandersen",
+    "photo": "https://pbs.twimg.com/profile_images/1190527459621588993/5mmB4nVT_normal.jpg"
+  },
+  "content": {
+    "text": "Why not use _dnslink.$domain? Reduces data usage since you’re not mixing in TXT records that may be under a the main domain for all kinds of other purposes. Some more arguments for using a subdomain for this: https://github.com/ipfs/specs/issues/76#issuecomment-462334040",
+    "html": "Why not use _dnslink.$domain? Reduces data usage since you’re not mixing in TXT records that may be under a the main domain for all kinds of other purposes. Some more arguments for using a subdomain for this: <a href=\"https://github.com/ipfs/specs/issues/76#issuecomment-462334040\">https://github.com/ipfs/specs/issues/76#issuecomment-462334040</a>"
+  },
+  "published": "2019-02-26T20:50:27.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1099691914847232001"
+  ],
+  "post-type": "reply"
+}

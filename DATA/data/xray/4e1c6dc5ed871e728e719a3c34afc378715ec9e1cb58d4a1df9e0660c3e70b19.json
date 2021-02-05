@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/geopet/status/1242882765353189376",
+  "author": {
+    "type": "card",
+    "nickname": "geopet",
+    "location": "New Mexico",
+    "bio": "I am a person with many interests. Software is my profession. I think you're pretty awesome.",
+    "name": "Geoff Petrie",
+    "url": "https://twitter.com/geopet",
+    "photo": "https://pbs.twimg.com/profile_images/687467846478086144/rF8fwvOZ_normal.jpg"
+  },
+  "content": {
+    "text": "A little over a week ago, the world rejoiced when GitHub announced their intention to acquire npm. A few days later, after nearly a year as a staff engineer at npm, I was laid off along with some other excellent engineers and employees.\n\nNaturally, I am now looking for work.",
+    "html": "A little over a week ago, the world rejoiced when GitHub announced their intention to acquire npm. A few days later, after nearly a year as a staff engineer at npm, I was laid off along with some other excellent engineers and employees.<br>\n<br>\nNaturally, I am now looking for work."
+  },
+  "published": "2020-03-25T18:35:17.000Z",
+  "post-type": "note"
+}

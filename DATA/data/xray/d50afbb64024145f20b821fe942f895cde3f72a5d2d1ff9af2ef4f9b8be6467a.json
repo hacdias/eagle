@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IDavim/status/920925057681108994",
+  "author": {
+    "type": "card",
+    "nickname": "IDavim",
+    "location": "Lisbon",
+    "bio": "I'm a specialist in stuff. Mining engineer on stand-by | Training specialist @pipedrive | Chief Super Mom @HackerSchoolIST",
+    "name": "Inês Davim",
+    "url": "https://twitter.com/IDavim",
+    "photo": "https://pbs.twimg.com/profile_images/785535093293084672/K1ySZZF6_normal.jpg"
+  },
+  "content": {
+    "text": "Inês: can you please send me a screenshot?\nCustomer: *prints webpage in paper*\n*Scans printed page*\n*Sends me pdf file*",
+    "html": "Inês: can you please send me a screenshot?<br>\nCustomer: *prints webpage in paper*<br>\n*Scans printed page*<br>\n*Sends me pdf file*"
+  },
+  "published": "2017-10-19T08:10:18.000Z",
+  "post-type": "note"
+}

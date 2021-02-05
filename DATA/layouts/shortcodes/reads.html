@@ -1,0 +1,20 @@
+{{- $type := .Get "type" -}}
+{{- $books := sort (index .Site.Data.reads $type) "name" "asc"  -}}
+
+{{- if len $books -}}
+<table>
+  <tr>
+    <th width="65%">Name</th>
+    <th width="35%">Author</th>
+  </tr>
+
+  {{- range $i, $book := $books -}}
+  <tr>
+    <td><a target="_blank" href="https://duckduckgo.com/?q={{ .isbn }}+{{ .name }}">{{ .name }}</a></td>
+    <td>{{ $book.author }}</td>
+  </tr>
+  {{- end -}}
+</table>
+{{- else -}}
+  <p>This list seems to be empty for now 😞</p>
+{{- end -}}

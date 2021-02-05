@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "published": "2019-09-19T17:37:48.000Z",
+  "url": "https://hacdias.com/replies/2019/09/19/4/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/1174739380633780225"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/ibnesayeed/status/1174735040267210752"
+  ],
+  "content": {
+    "text": "Hey Sawood! We’re using Electron Builder to build IPFS Desktop and as of now it doesn’t support building for Flatback. And it doesn’t seem to be something they’ll add in the near future unfortunately :'( https://github.com/electron-userland/electron-builder/issues/512",
+    "html": "<p>Hey Sawood! We’re using Electron Builder to build IPFS Desktop and as of now it doesn’t support building for Flatback. And it doesn’t seem to be something they’ll add in the near future unfortunately :'( <a href=\"https://github.com/electron-userland/electron-builder/issues/512\">https://github.com/electron-userland/electron-builder/issues/512</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://twitter.com/ibnesayeed/status/1174735040267210752": {
+      "type": "entry",
+      "url": "https://twitter.com/ibnesayeed/status/1174735040267210752",
+      "content": {
+        "text": "I can see an #AppImage file along with #deb, #rpm, and #snap, YAY!\n#Flatpak is missing though! ;-)"
+      },
+      "author": {
+        "type": "card",
+        "name": "Sawood Alam",
+        "url": "https://twitter.com/ibnesayeed",
+        "photo": null
+      },
+      "post-type": "note"
+    }
+  },
+  "rels": {
+    "canonical": "https://hacdias.com/replies/2019/09/19/4/"
+  }
+}

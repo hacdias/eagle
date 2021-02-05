@@ -1,0 +1,30 @@
+{
+  "type": "entry",
+  "published": "2019-01-29T14:45:48.000Z",
+  "url": "https://hacdias.com/2019/01/29/04/",
+  "category": [
+    "ipfs",
+    "protocols",
+    "dweb"
+  ],
+  "video": [
+    "https://hacdias.com/2019/01/29/04/DyFhZf8UYAAlnCn.mp4"
+  ],
+  "syndication": [
+    "https://twitter.com/hacdias/status/1090259721712427008"
+  ],
+  "content": {
+    "text": "What about supporting ipfs:// (ipns and dweb) links in your browser? #IPFS #protocols #dweb",
+    "html": "<p>What about supporting ipfs:// (ipns and dweb) links in your browser? #IPFS #protocols #dweb</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "video",
+  "rels": {
+    "canonical": "https://hacdias.com/2019/01/29/04/"
+  }
+}

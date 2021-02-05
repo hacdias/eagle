@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/denull/status/939119907517722624",
+  "author": {
+    "type": "card",
+    "nickname": "denull",
+    "location": "London",
+    "bio": "I have no time to look cool on the internet. Founder of @feeldCo @embraceclarity",
+    "name": "Dimo Trifonov",
+    "url": "https://twitter.com/denull",
+    "photo": "https://pbs.twimg.com/profile_images/843952774257786880/iB-2DGj6_normal.jpg"
+  },
+  "content": {
+    "text": "My first open source design contribution was implemented by @hacdias https://github.com/ipfs-shipyard/station Thank you!",
+    "html": "My first open source design contribution was implemented by <a href=\"https://twitter.com/hacdias\">@hacdias</a> <a href=\"https://github.com/ipfs-shipyard/station\">https://github.com/ipfs-shipyard/station</a> Thank you!"
+  },
+  "published": "2017-12-08T13:10:08.000Z",
+  "post-type": "note"
+}

@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2020-05-11T13:51:16.000Z",
+  "category": [
+    "Git",
+    "GitKraken",
+    "lazygit"
+  ],
+  "like-of": [
+    "https://kevq.uk/i-now-know-how-to-use-git/"
+  ],
+  "name": "Git is great",
+  "content": {
+    "text": "After Kev Quirk was initially skeptical about Git and was desperate about using it, he finally made it thanks to community help and realized that Git is better than he thought:After 30 minutes I had successfully carried out my first commit and push from the Git CLI. I have to say, once the basics had clicked into place for me, the whole thing became much simpler to follow.I think I myself started using Git when I was programming an Android app with online friends and we all wanted to work together on the code base. Back then, I was a full Windows user and used the SourceTree tool (because I didn’t know much about the Git CLI).Eventually GitKraken came out and became my tool of choice because I could use it on Linux as well. Meanwhile I mainly use lazygit. (Which I’ve already written about.) I can do the basic things via the Git CLI (clone, add, comit, push, …), but I still prefer to see what I am doing visualized. And often it’s much faster and easier that way.For my studies and apprenticeship I had or have to use SVN and I’m really glad that there is Git and so many tools to work with Git…",
+    "html": "<p>After Kev Quirk was initially skeptical about Git and was desperate about using it, <a href=\"https://kevq.uk/i-now-know-how-to-use-git/\">he finally made it</a> thanks to community help and realized that Git is better than he thought:</p><blockquote><p>After 30 minutes I had successfully carried out my first commit and push from the Git CLI. I have to say, once the basics had clicked into place for me, the whole thing became much simpler to follow.</p></blockquote><p>I think I myself started using Git when I was programming an Android app with online friends and we all wanted to work together on the code base. Back then, I was a full Windows user and used the <a href=\"https://www.sourcetreeapp.com/\">SourceTree</a> tool (because I didn’t know much about the Git CLI).</p><p>Eventually <a href=\"https://www.gitkraken.com/\">GitKraken</a> came out and became my tool of choice because I could use it on Linux as well. Meanwhile I mainly use <a href=\"https://github.com/jesseduffield/lazygit/\">lazygit</a>. (<a href=\"https://jlelse.blog/thoughts/2019/git-clients/\">Which I’ve already written about.</a>) I can do the basic things via the Git CLI (clone, add, comit, push, …), but I still prefer to see what I am doing visualized. And often it’s much faster and easier that way.</p><p>For my studies and apprenticeship I had or have to use SVN and I’m really glad that there is Git and so many tools to work with Git…</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "like",
+  "url": "https://jlelse.blog/thoughts/2020/05/git-is-great/",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/05/git-is-great/"
+  }
+}

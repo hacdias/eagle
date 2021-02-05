@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/protocollabs/status/1209122364786655232",
+  "author": {
+    "type": "card",
+    "nickname": "protocollabs",
+    "location": "Decentralized",
+    "bio": "We believe the internet has become humanity's most important technology. \nWe build protocols, systems, and tools to improve how it works.",
+    "name": "Protocol Labs",
+    "url": "https://twitter.com/protocollabs",
+    "photo": "https://pbs.twimg.com/profile_images/828656153978613760/xwRfPxqt_normal.jpg"
+  },
+  "content": {
+    "text": "‘Tis the season for🎁🎁🎁and we have one of our own: We're happy to announce the launch of the new Protocol Labs Research site! https://research.protocol.ai/",
+    "html": "‘Tis the season for🎁🎁🎁and we have one of our own: We're happy to announce the launch of the new Protocol Labs Research site! <a href=\"https://research.protocol.ai/\">https://research.protocol.ai/</a>"
+  },
+  "published": "2019-12-23T14:43:30.000Z",
+  "post-type": "note"
+}

@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/SaraSoueidan/status/1093781826815119360",
+  "author": {
+    "type": "card",
+    "nickname": "SaraSoueidan",
+    "location": "Lebanon ✈️🌎",
+    "bio": "Freelance inclusive front-end UI developer • Speaker/Trainer • team @codrops @superfriendlyco • writer #CSS #a11y #RWD #SVG •👇🏻 my site for project inquiries. 💌",
+    "name": "Sara Soueidan",
+    "url": "https://twitter.com/SaraSoueidan",
+    "photo": "https://pbs.twimg.com/profile_images/1010126354078208001/MpkO7-qK_normal.jpg"
+  },
+  "content": {
+    "text": "- My first #CSS Grid implementation was on my own site\n- My first service worker implementation was on my own site\n- My first real-world CSS Variables implementation was/is on my own site (WIP)\n- My first Variable Fonts implementation will be on my own site\n- ...",
+    "html": "- My first #CSS Grid implementation was on my own site<br>\n- My first service worker implementation was on my own site<br>\n- My first real-world CSS Variables implementation was/is on my own site (WIP)<br>\n- My first Variable Fonts implementation will be on my own site<br>\n- ..."
+  },
+  "published": "2019-02-08T08:01:23.000Z",
+  "category": [
+    "CSS"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/SaraSoueidan/status/1093781448505651201"
+  ],
+  "post-type": "reply"
+}

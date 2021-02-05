@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2019-08-04T15:10:00.000Z",
+  "url": "https://jlelse.blog/dev/distro-tools/",
+  "category": [
+    "Linux",
+    "distro.tools",
+    "Open Source",
+    "Scripts"
+  ],
+  "name": "distro.tools: Scripts for lazy Linux users",
+  "content": {
+    "text": "Today I want to share one of my own projects: distro.tools.distro.tools is a small but growing collection of scripts to manage your Linux distribution. Currently most of the scripts are made to install the latest versions of specific software on your computer, but it’s planned to include scripts for all different kind of needs.Some time ago (actually many months ago), I found myself trying to automate the setup of my laptop, in case I need to reinstall everything. Back then, I mainly used Ubuntu, so I created scripts to setup a Ubuntu installation exactly the way I want it. But a lot of those scripts, I thought, might be also useful for other people too. Scripts, that find and install the latest version of Golang, Docker Compose, etc. Sharing is caring. Especially because I took some inspiration myself from scripts I found all over the internet (and GitHub).Like some people do, I also started this project by buying a new domain name. That was some kind of commitment and I actually started to make my custom scripts more generic and share them with others.To just give an example, with just this line pasted to your terminal, you can install the latest version of go:sudo sh -c 'wget -qO- distro.tools/install/golang | sh'\nIf you are scared about piping things from wget to shell with sudo, you are free to just clone the git repository and execute the appropriate file locally.I try to make as many scripts as possible to be independent from a specific distribution, so that they work on most machines and they are still useful after a distro hop. But of course distro.tools can also be used for distro specific scripts. 😄The selection is still very small, but if you also want to share some scripts, feel free to create a Pull Request. I’m happy to accept new submissions. I’m not that good at creating scripts myself, but with your help, distro.tools can become something useful!",
+    "html": "<p>Today I want to share one of my own projects: <a href=\"https://distro.tools\">distro.tools</a>.</p><p><a href=\"https://distro.tools\">distro.tools</a> is a small but growing collection of scripts to manage your Linux distribution. Currently most of the scripts are made to install the latest versions of specific software on your computer, but it’s planned to include scripts for all different kind of needs.</p><p>Some time ago (actually many months ago), I found myself trying to automate the setup of my laptop, in case I need to reinstall everything. Back then, I mainly used Ubuntu, so I created scripts to setup a Ubuntu installation exactly the way I want it. But a lot of those scripts, I thought, might be also useful for other people too. Scripts, that find and install the latest version of Golang, Docker Compose, etc. Sharing is caring. Especially because I took some inspiration myself from scripts I found all over the internet (and GitHub).</p><p>Like some people do, I also started this project by buying a new domain name. That was some kind of commitment and I actually started to make my custom scripts more generic and share them with others.</p><p>To just give an example, with just this line pasted to your terminal, you can install the latest version of go:</p><pre style=\"color:#f8f8f2;background-color:#272822;\"><code>sudo sh -c <span style=\"color:#e6db74;\">'wget -qO- distro.tools/install/golang | sh'</span>\n</code></pre><p>If you are scared about piping things from wget to shell with sudo, you are free to just clone <a href=\"https://github.com/jlelse/distro.tools\">the git repository</a> and execute the appropriate file locally.</p><p>I try to make as many scripts as possible to be independent from a specific distribution, so that they work on most machines and they are still useful after a distro hop. But of course distro.tools can also be used for distro specific scripts. 😄</p><p>The selection is still very small, but if you also want to share some scripts, feel free to <a href=\"https://github.com/jlelse/distro.tools/pulls\">create a Pull Request</a>. I’m happy to accept new submissions. I’m not that good at creating scripts myself, but with your help, <a href=\"https://distro.tools\">distro.tools</a> can become something useful!</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/dev/distro-tools/"
+  }
+}

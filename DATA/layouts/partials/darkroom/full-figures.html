@@ -1,0 +1,11 @@
+{{- with .Params.pictures }}
+{{- range . }}
+<figure>
+  <picture>
+    <source srcset="https://cdn.hacdias.com/photos/t/{{ .slug }}-1000x.webp 1x, https://cdn.hacdias.com/photos/t/{{ .slug }}-2000x.webp 2x" type="image/webp">
+    <source srcset="https://cdn.hacdias.com/photos/t/{{ .slug }}-1000x.jpeg 1x, https://cdn.hacdias.com/photos/t/{{ .slug }}-2000x.jpeg 2x">
+    <img class='u-photo' src="https://cdn.hacdias.com/photos/t/{{ .slug }}-2000x.jpeg" alt="{{ .title }}" title="{{ .title }}">
+  </picture>
+</figure>
+{{- end }}
+{{- end }}

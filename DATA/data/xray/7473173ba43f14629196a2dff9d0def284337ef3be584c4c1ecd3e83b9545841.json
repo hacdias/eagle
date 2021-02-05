@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Kurz_Gesagt/status/973966381766111234",
+  "author": {
+    "type": "card",
+    "nickname": "Kurz_Gesagt",
+    "location": "munich",
+    "bio": "Sciency videos made with love, a lot of time and after effects.",
+    "name": "Kurzgesagt",
+    "url": "https://twitter.com/Kurz_Gesagt",
+    "photo": "https://pbs.twimg.com/profile_images/1103318962874527750/zd5IxIyt_normal.png"
+  },
+  "content": {
+    "text": "In honor of Stephen Hawking. One of the greatest minds of our time.\n#StephenHawking",
+    "html": "In honor of Stephen Hawking. One of the greatest minds of our time.<br>\n#StephenHawking"
+  },
+  "published": "2018-03-14T16:57:35.000Z",
+  "category": [
+    "StephenHawking"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/973966023891316743/pu/img/Tn555IzFsXDVWTIW.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/973966023891316743/pu/vid/1280x720/o9Nk4WYoYtmZBkDb.mp4"
+  ],
+  "post-type": "video"
+}

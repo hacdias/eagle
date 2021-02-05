@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "published": "2017-07-24T18:57:45.000Z",
+  "url": "https://hacdias.com/replies/2017/07/24/3/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/889560250831052800"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/WHY_CHANNEL/status/889559730884050944"
+  ],
+  "content": {
+    "text": "Oh god 😂😂😂😂😂😂 This one made me laugh so much!",
+    "html": "<p>Oh god 😂😂😂😂😂😂 This one made me laugh so much!</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://twitter.com/WHY_CHANNEL/status/889559730884050944": {
+      "type": "entry",
+      "url": "https://twitter.com/WHY_CHANNEL/status/889559730884050944",
+      "content": {
+        "text": "It looks android 😂"
+      },
+      "author": {
+        "type": "card",
+        "name": "WHY",
+        "url": "https://twitter.com/WHY_CHANNEL",
+        "photo": null
+      },
+      "post-type": "note"
+    }
+  },
+  "rels": {
+    "canonical": "https://hacdias.com/replies/2017/07/24/3/"
+  }
+}

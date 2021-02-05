@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/satazor/status/1023637414638743552",
+  "author": {
+    "type": "card",
+    "nickname": "satazor",
+    "location": "Porto, Portugal",
+    "bio": "https://MOXY.studio CTO. Helping decentralize the web with IPFS. Author of @npms_io & twitter's @bower and founder of @indigounited. I love open-source!",
+    "name": "André Cruz",
+    "url": "https://twitter.com/satazor",
+    "photo": "https://pbs.twimg.com/profile_images/819576925530288128/Fa3Du4eF_normal.jpg"
+  },
+  "content": {
+    "text": "Ahah will do. What section do you think it’s best? I don’t think it fits any. Perhaps a new “Frameworks integrations”?"
+  },
+  "published": "2018-07-29T18:32:32.000Z",
+  "in-reply-to": [
+    "https://twitter.com/daviddias/status/1023507086792187904"
+  ],
+  "post-type": "reply"
+}

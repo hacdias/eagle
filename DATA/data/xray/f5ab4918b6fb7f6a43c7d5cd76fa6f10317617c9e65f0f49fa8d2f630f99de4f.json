@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IPFSbot/status/984393242123780099",
+  "author": {
+    "type": "card",
+    "nickname": "IPFSbot",
+    "location": "Earth",
+    "bio": "A peer-to-peer hypermedia protocol to make the web faster, safer, and more open.",
+    "name": "IPFS",
+    "url": "https://twitter.com/IPFSbot",
+    "photo": "https://pbs.twimg.com/profile_images/570059057197625344/h4Bvj_8p_normal.png"
+  },
+  "content": {
+    "text": "A new version of our browser extension has been released! Say hello to IPFS Companion 2.2.0 👋🏽https://ipfs.io/blog/35-ipfs-companion-2-2-0/",
+    "html": "A new version of our browser extension has been released! Say hello to IPFS Companion 2.2.0 👋🏽<a href=\"https://ipfs.io/blog/35-ipfs-companion-2-2-0/\">https://ipfs.io/blog/35-ipfs-companion-2-2-0/</a>"
+  },
+  "published": "2018-04-12T11:30:12.000Z",
+  "post-type": "note"
+}

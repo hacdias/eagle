@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2020-01-28T14:45:00.000Z",
+  "url": "https://jlelse.blog/links/2020/01/avast-sells-user-data/",
+  "category": [
+    "Privacy"
+  ],
+  "bookmark-of": [
+    "https://www.vice.com/en_us/article/qjdkq7/avast-antivirus-sells-user-browsing-data-investigation"
+  ],
+  "name": "Avast sells user's browsing data",
+  "content": {
+    "text": "Stories like this are a great reminder to not install any “freeware malware protection” software and unknowingly opt-in to data collection. If possible switch to Linux, or if you want to stay on Windows, use the integrated Windows Defender.The data obtained by Motherboard and PCMag includes Google searches, lookups of locations and GPS coordinates on Google Maps, people visiting companies’ LinkedIn pages, particular YouTube videos, and people visiting porn websites. It is possible to determine from the collected data what date and time the anonymized user visited YouPorn and PornHub, and in some cases what search term they entered into the porn site and which specific video they watched.https://www.vice.com/en_us/article/qjdkq7/avast-antivirus-sells-user-browsing-data-investigation",
+    "html": "<p>Stories like <a href=\"https://www.vice.com/en_us/article/qjdkq7/avast-antivirus-sells-user-browsing-data-investigation\">this</a> are a great reminder to not install any “freeware malware protection” software and unknowingly opt-in to data collection. If possible switch to Linux, or if you want to stay on Windows, use the integrated Windows Defender.</p><blockquote><p>The data obtained by Motherboard and PCMag includes Google searches, lookups of locations and GPS coordinates on Google Maps, people visiting companies’ LinkedIn pages, particular YouTube videos, and people visiting porn websites. It is possible to determine from the collected data what date and time the anonymized user visited YouPorn and PornHub, and in some cases what search term they entered into the porn site and which specific video they watched.</p></blockquote><p><a class=\"u-bookmark-of\" href=\"https://www.vice.com/en_us/article/qjdkq7/avast-antivirus-sells-user-browsing-data-investigation\">https://www.vice.com/en_us/article/qjdkq7/avast-antivirus-sells-user-browsing-data-investigation</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2020/01/avast-sells-user-data/"
+  }
+}

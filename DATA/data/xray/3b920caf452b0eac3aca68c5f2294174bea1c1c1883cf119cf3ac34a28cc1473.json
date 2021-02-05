@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2018-08-09T17:58:49.000Z",
+  "url": "https://hacdias.com/2018/08/09/07/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/1027615196112740354"
+  ],
+  "content": {
+    "text": "@travisci hello! I had a project on your .com (https://travis-ci.com/filebrowser/filebrowser/builds) and everything was building well until today. This morning the PRs stopped building and now it just says ‘This project hasn’t been migrated’.",
+    "html": "<p><a href=\"https://twitter.com/travisci\">@travisci</a> hello! I had a project on your .com (<a href=\"https://travis-ci.com/filebrowser/filebrowser/builds\">https://travis-ci.com/filebrowser/filebrowser/builds</a>) and everything was building well until today. This morning the PRs stopped building and now it just says ‘This project hasn’t been migrated’.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://hacdias.com/2018/08/09/07/"
+  }
+}

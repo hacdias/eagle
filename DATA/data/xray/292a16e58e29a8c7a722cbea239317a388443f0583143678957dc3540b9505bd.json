@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "published": "2020-06-01T18:11:18.000Z",
+  "url": "https://jlelse.blog/micro/2020/06/relative-links-hugo-rss/",
+  "category": [
+    "Hugo"
+  ],
+  "in-reply-to": [
+    "https://hacdias.com/micro/2020/06/janboddez-rss-relative-links/"
+  ],
+  "content": {
+    "text": "That’ll be hard to do with Hugo. There’s no way to tell it to use absolute URLs in the feeds only. I’ll need to set up an extra step of some kind. I’ll check it out.I use a partial in my Hugo theme to replace relative links with absolute links in the content in XML (RSS) and JSON (JSON Feed, ActivityStream) files. It has a regular expression to find and replace all relative links with their abolute version. It’s probably easy to modify to replace relative image sources too.",
+    "html": "<blockquote><p>That’ll be hard to do with Hugo. There’s no way to tell it to use absolute URLs in the feeds only. I’ll need to set up an extra step of some kind. I’ll check it out.</p></blockquote><p>I use a partial in my Hugo theme to replace relative links with absolute links in the content in <a href=\"https://git.jlel.se/jlelse/Indiego/src/commit/251b2317dcf97acf2e2dc668aa153e76833b0fe7/layouts/partials/cleanedContent.xml\">XML</a> (RSS) and <a href=\"https://git.jlel.se/jlelse/Indiego/src/commit/251b2317dcf97acf2e2dc668aa153e76833b0fe7/layouts/partials/cleanedContent.json\">JSON</a> (JSON Feed, ActivityStream) files. It has a regular expression to find and replace all relative links with their abolute version. It’s probably easy to modify to replace relative image sources too.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile.png"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/06/relative-links-hugo-rss/"
+  }
+}

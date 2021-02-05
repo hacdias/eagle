@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/secretgardennxx/status/1227646505080807430",
+  "author": {
+    "type": "card",
+    "nickname": "SecretGardennxx",
+    "location": "",
+    "bio": "Everything in your secret garden inside your mind.",
+    "name": "Secret Garden",
+    "url": "https://twitter.com/SecretGardennxx",
+    "photo": "https://pbs.twimg.com/profile_images/1213725277555240960/i-dRvPy2_normal.jpg"
+  },
+  "content": {
+    "text": "Caravaggio pictures on stage"
+  },
+  "published": "2020-02-12T17:31:50.000Z",
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1227646274918342657/pu/img/i5ItZc-hWECZDIzu.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1227646274918342657/pu/vid/640x640/yuP90di6_-Jz3nb9.mp4?tag=10"
+  ],
+  "post-type": "video"
+}

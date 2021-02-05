@@ -1,0 +1,10 @@
+{{ $type := .Get "type" }}
+{{ $watches := index .Site.Data.watches $type }}
+{{ $year := now.Format "2006" }}
+
+<ul>
+  {{ range $i, $movie := $watches }}
+    {{ $watchedYear := dateFormat "2006" $movie.watched }}
+    <li><a target="_blank" rel="noopener noreferrer" href="{{ $movie.url }}">{{ $movie.title }}</a> <small>last watched in {{ if eq $year $watchedYear }}{{ dateFormat "January" $movie.watched }}{{ else }}{{ dateFormat "2006" $movie.watched }}{{ end }}</small></li>
+  {{ end }}
+</ul>

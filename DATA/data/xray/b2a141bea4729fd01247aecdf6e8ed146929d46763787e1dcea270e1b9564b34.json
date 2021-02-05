@@ -1,0 +1,30 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/98MigRocha/status/1149284797560303618",
+  "author": {
+    "type": "card",
+    "nickname": "98MigRocha",
+    "location": "Lisboa, Portugal",
+    "bio": "21 || Entre Cucujães e Lisboa || Sobrevivendo ao Mestrado de Informática no Técnico || I appear missing now || Letterbox/AOTY: Rochinha98 || Insta: 98migrocha",
+    "name": "Miguel Rocha",
+    "url": "https://twitter.com/98MigRocha",
+    "photo": "https://pbs.twimg.com/profile_images/1170093304773586944/mVetYgks_normal.jpg"
+  },
+  "content": {
+    "text": "Isso e outro meme. A linha do Norte anda para ser atualizada ha anos e ainda nao foi feito nada quanto a isso"
+  },
+  "published": "2019-07-11T11:50:23.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1149284328901357568"
+  ],
+  "location": "https://api.twitter.com/1.1/geo/id/f096ee2126f773f3.json",
+  "refs": {
+    "https://api.twitter.com/1.1/geo/id/f096ee2126f773f3.json": {
+      "type": "adr",
+      "name": "Coimbra, Portugal",
+      "locality": "Coimbra",
+      "country-name": "Portugal"
+    }
+  },
+  "post-type": "reply"
+}

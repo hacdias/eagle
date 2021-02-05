@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2020-01-30T21:30:00.000Z",
+  "url": "https://jlelse.blog/thoughts/2020/01/telegram-features/",
+  "category": [
+    "Telegram"
+  ],
+  "in-reply-to": [
+    "https://hacdias.com/2020/01/30/4/"
+  ],
+  "name": "My favorite Telegram features",
+  "content": {
+    "text": "I think I’m in some kind of bubble, but most of the people I instant message with use Telegram, because either they are computer science students too or because I convinced (or persuaded) them.My top features (that can convince geeks) are: cross device cloud sync (with clients for almost any platform and perfect notification handling), bots and the bots API (I use that for two of my projects) and night mode.Features that can probably convince “normal” people: It’s fast, it looks pretty and is highly customizable, it doesn’t waste storage (because you can configure to just keep files cached for a specific time) and stickers (also animated stickers).And not to forget: You can message people and they won’t see your phone number unless you explicitly share it with them (at least when you configured a username)!But yeah, it’s still hard to change people’s routines. 😒",
+    "html": "<p>I think I’m in some kind of bubble, but most of the people I instant message with use Telegram, because either they are computer science students too or because I convinced (or persuaded) them.</p><p>My top features (that can convince geeks) are: cross device cloud sync (with clients for almost any platform and perfect notification handling), bots and the bots API (I use that for two of my projects) and night mode.</p><p>Features that can probably convince “normal” people: It’s fast, it looks pretty and is highly customizable, it doesn’t waste storage (because you can configure to just keep files cached for a specific time) and stickers (also animated stickers).</p><p><strong>And not to forget</strong>: You can message people and they won’t see your phone number unless you explicitly share it with them (at least when you configured a username)!</p><p>But yeah, it’s still hard to change people’s routines. 😒</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/01/telegram-features/"
+  }
+}

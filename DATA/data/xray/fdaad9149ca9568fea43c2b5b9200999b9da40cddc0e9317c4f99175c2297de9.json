@@ -1,0 +1,29 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/ibnesayeed/status/1174735040267210752",
+  "author": {
+    "type": "card",
+    "nickname": "ibnesayeed",
+    "location": "Norfolk VA",
+    "bio": "Web, Digital Library, Web Archiving, Machine Learning, AI, Ruby on Rails, PHP, Python, Go, HTML, CSS, JavaScript, Urdu, RTL, Docker, and Linux.",
+    "name": "Sawood Alam",
+    "url": "https://twitter.com/ibnesayeed",
+    "photo": "https://pbs.twimg.com/profile_images/1003713089160638464/XMT6GGVQ_normal.jpg"
+  },
+  "content": {
+    "text": "I can see an #AppImage file along with #deb, #rpm, and #snap, YAY!\n\n#Flatpak is missing though! ;-)",
+    "html": "I can see an #AppImage file along with #deb, #rpm, and #snap, YAY!<br>\n<br>\n#Flatpak is missing though! ;-)"
+  },
+  "published": "2019-09-19T17:20:33.000Z",
+  "category": [
+    "AppImage",
+    "deb",
+    "rpm",
+    "snap",
+    "Flatpak"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1174710214077112325"
+  ],
+  "post-type": "reply"
+}

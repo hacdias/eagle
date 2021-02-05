@@ -1,0 +1,27 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/1034055822270193670",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": "I upgraded the #IPLD explorer CLI tool to support all the exotic node types that IPLD can resolve! https://youtu.be/O0PbC2ElRPI https://www.npmjs.com/package/ipld-explorer-cli #IPFS #git",
+    "html": "I upgraded the #IPLD explorer CLI tool to support all the exotic node types that IPLD can resolve! <a href=\"https://youtu.be/O0PbC2ElRPI\">https://youtu.be/O0PbC2ElRPI</a> <a href=\"https://www.npmjs.com/package/ipld-explorer-cli\">https://www.npmjs.com/package/ipld-explorer-cli</a> #IPFS #git"
+  },
+  "published": "2018-08-27T12:31:34.000Z",
+  "category": [
+    "IPLD",
+    "IPFS",
+    "git"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/Dlm0E0JXoAEJh9Y.png"
+  ],
+  "post-type": "photo"
+}

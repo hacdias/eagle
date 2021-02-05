@@ -1,0 +1,18 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/victorbjelkholm/status/1214150403606138880",
+  "author": {
+    "type": "card",
+    "nickname": "VictorBjelkholm",
+    "location": "Barcelona, Catalunya",
+    "bio": "Swedish developer in Barcelona, hacking on @theopenregistry, Open-Services and @bravostudioapp\n\nFormer dev at @vreasy, @typeform and @protocollabs/@ipfsbot",
+    "name": "ᴠɪᴄᴛᴏʀ ʙ‏ᴊᴇʟᴋʜᴏʟᴍ",
+    "url": "https://twitter.com/VictorBjelkholm",
+    "photo": "https://pbs.twimg.com/profile_images/822084603796213761/GplJ5WWH_normal.jpg"
+  },
+  "content": {
+    "text": "Doing some yearly cleaning and running `find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +` (deleting all node_modules dirs recursively from current dir) freed up 62GB. Not sure how this is even possible..."
+  },
+  "published": "2020-01-06T11:43:08.000Z",
+  "post-type": "note"
+}

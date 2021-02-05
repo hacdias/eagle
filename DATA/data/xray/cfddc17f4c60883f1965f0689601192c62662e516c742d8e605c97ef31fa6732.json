@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/tomayac/status/1159208551094599684",
+  "author": {
+    "type": "card",
+    "nickname": "tomayac",
+    "location": "Hamburg, Germany",
+    "bio": "🇪🇺 Dad-of-3. Developer Advocate at @Google (🇩🇪), PhD from @la_UPC (🇪🇸), Postdoc at @UniversiteLyon (🇫🇷). #PWA #JavaScript #NodeJS #Fugu 🐡 #SemanticWeb",
+    "name": "Thomas Steiner",
+    "url": "https://twitter.com/tomayac",
+    "photo": "https://pbs.twimg.com/profile_images/758412790029750280/fHw8Dxah_normal.jpg"
+  },
+  "content": {
+    "text": "Wow, that’s an amazingly fast turn-around time :-) One more thing to try could be \nhttps://github.com/googlechromelabs/dark-mode-toggle#readme, which allows people to override their system setting, maybe because they like their OS dark, but their websites light. Play with the demo to see what it does.",
+    "html": "Wow, that’s an amazingly fast turn-around time :-) One more thing to try could be <br>\n<a href=\"https://github.com/googlechromelabs/dark-mode-toggle#readme\">https://github.com/googlechromelabs/dark-mode-toggle#readme</a>, which allows people to override their system setting, maybe because they like their OS dark, but their websites light. Play with the demo to see what it does."
+  },
+  "published": "2019-08-07T21:03:50.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1159206384778514432"
+  ],
+  "post-type": "reply"
+}

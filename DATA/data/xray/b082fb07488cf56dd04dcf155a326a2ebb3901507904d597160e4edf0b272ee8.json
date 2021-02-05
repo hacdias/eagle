@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/b0rk/status/1217890878674624513",
+  "author": {
+    "type": "card",
+    "nickname": "b0rk",
+    "location": "Montreal",
+    "bio": "programming and exclamation marks. she/her. zines at http://wizardzines.com.",
+    "name": "🔎Julia Evans🔍",
+    "url": "https://twitter.com/b0rk",
+    "photo": "https://pbs.twimg.com/profile_images/846106819391115264/iZAxk4qr_normal.jpg"
+  },
+  "content": {
+    "text": "libc"
+  },
+  "published": "2020-01-16T19:26:27.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EObRS-lWAAED9fw.jpg"
+  ],
+  "post-type": "photo"
+}

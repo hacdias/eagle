@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2020-02-10T18:36:00.000Z",
+  "url": "https://jlelse.blog/dev/activitystreams-hugo/",
+  "category": [
+    "Hugo",
+    "ActivityPub",
+    "ActivityStreams",
+    "Caddy"
+  ],
+  "name": "Adding ActivityStreams representations to Hugo",
+  "content": {
+    "text": "I promised and people already asked, so here is the first part of the documentation about how I enabled ActivityPub support on my Hugo-based blog:The first step to enable ActivityPub support, was to get Hugo to generate ActivityStreams representations for posts and the ActivityPub actor. I did this by adding a custom output format and published the code as a Hugo module on Codeberg. See the README file there to learn about how to use it.Those ActivityPub representations are used, whenever an ActivityPub implementation tries to re-fetch the article (for example when you search for the article URL in Mastodon) and also when my custom ActivityPub middleware (post about that is coming soon…) detects a new article on my blog (using a JSON Feed) and then sends it to the followers.After configuring the custom output format, there’s now a generated index.ajson file next to every index.html file of pages and the homepage. Because I use Caddy (version 1) as a webserver, serving the static files from disc, I needed to configure Caddy to serve the index.ajson file with the correct MIME-type and instead of the HTML file whenever a request contains application/activity+json or application/ld+json in the Accept header.The correct MIME-type can be configured like this in the Caddyfile:mime {\n    .json application/json\n    .ajson application/activity+json\n}\nTo serve the .ajson file instead of the default .html file, I used the following rewrite rule:rewrite {\n    if {>Accept} has application/activity+json\n    if {>Accept} has application/ld+json\n    if_op or\n    to {path}index.ajson {path}/index.ajson {path}\n}",
+    "html": "<p><a href=\"https://jlelse.blog/micro/2020/02/2020-02-07-jvwap/\">I promised</a> and <a href=\"https://hacdias.com/2020/02/10/1/\">people already asked</a>, so here is the first part of the documentation about how I enabled <a href=\"https://www.w3.org/TR/activitypub/\">ActivityPub</a> support on my <a href=\"https://gohugo.io/\">Hugo</a>-based blog:</p><p>The first step to enable ActivityPub support, was to get Hugo to generate <a href=\"https://www.w3.org/ns/activitystreams\">ActivityStreams</a> representations for posts and the ActivityPub actor. I did this by adding a custom output format and published the code as a <a href=\"https://codeberg.org/jlelse/hugo-activitystreams\">Hugo module on Codeberg</a>. See the README file there to learn about how to use it.</p><p>Those ActivityPub representations are used, whenever an ActivityPub implementation tries to re-fetch the article (for example when you search for the article URL in Mastodon) and also when my custom ActivityPub middleware (post about that is coming soon…) detects a new article on my blog (<a href=\"https://jlelse.blog/thoughts/2019/10/jsonfeed/\">using a JSON Feed</a>) and then sends it to the followers.</p><p>After configuring the custom output format, there’s now a generated <code>index.ajson</code> file next to every <code>index.html</code> file of pages and the homepage. Because I use <a href=\"https://caddyserver.com/v1/\">Caddy (version 1)</a> as a webserver, serving the static files from disc, I needed to configure Caddy to serve the <code>index.ajson</code> file with the correct MIME-type and instead of the HTML file whenever a request contains <code>application/activity+json</code> or <code>application/ld+json</code> in the <code>Accept</code> header.</p><p>The correct MIME-type can be configured like this in the Caddyfile:</p><pre><code>mime {\n    .json application/json\n    .ajson application/activity+json\n}\n</code></pre><p>To serve the <code>.ajson</code> file instead of the default <code>.html</code> file, I used the following rewrite rule:</p><pre><code>rewrite {\n    if {&gt;Accept} has application/activity+json\n    if {&gt;Accept} has application/ld+json\n    if_op or\n    to {path}index.ajson {path}/index.ajson {path}\n}\n</code></pre>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/dev/activitystreams-hugo/"
+  }
+}

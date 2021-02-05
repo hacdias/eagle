@@ -1,0 +1,35 @@
+{
+  "type": "entry",
+  "published": "2019-12-29T16:17:55.000Z",
+  "url": "https://aaronparecki.com/2019/12/29/5/",
+  "in-reply-to": [
+    "https://hacdias.com/2019/12/29/06/"
+  ],
+  "content": {
+    "text": "Cool! You can also test with https://webmention.rocks",
+    "html": "Cool! You can also test with <a href=\"https://webmention.rocks\"><span>https://</span>webmention.rocks</a>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Aaron Parecki",
+    "url": "https://aaronparecki.com/",
+    "photo": "https://aaronparecki.com/images/profile.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://hacdias.com/2019/12/29/06/": {
+      "type": "entry",
+      "url": "https://hacdias.com/2019/12/29/06/",
+      "content": {
+        "text": "Not my first webmention, but trying them out to make sure they work!"
+      },
+      "author": {
+        "type": "card",
+        "name": "Henrique Dias",
+        "url": "https://hacdias.com/",
+        "photo": "https://pkcdn.xyz/hacdias.com/6cc1ed2bbaedaa80116524ef8fe89556c057b5c4cf116875bf979dd5390f5b33.jpg"
+      },
+      "post-type": "note"
+    }
+  }
+}

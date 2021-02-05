@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/1024282226891022336",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "Ah! Very important, you can help us make the list even more complete, simply submit a PR to http://github.com/ipfs/awesome-ipfs ✨",
+    "html": "Ah! Very important, you can help us make the list even more complete, simply submit a PR to <a href=\"http://github.com/ipfs/awesome-ipfs\">http://github.com/ipfs/awesome-ipfs</a> ✨"
+  },
+  "published": "2018-07-31T13:14:47.000Z",
+  "in-reply-to": [
+    "https://twitter.com/daviddias/status/1024281949416771584"
+  ],
+  "post-type": "reply"
+}

@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-01-22T10:28:00.000Z",
+  "url": "https://jlelse.blog/micro/2020/01/2020-01-22-fryan/",
+  "in-reply-to": [
+    "https://hacdias.com/2020/01/22/1/"
+  ],
+  "content": {
+    "text": "I don’t show webmention content at all. 😅 Instead I just show a link to the “interaction”. That removes a lot of complexity with parsing, storing etc. but probably isn’t as intuitive: it requires opening the “interactions” section below the post and visiting the link.",
+    "html": "<p>I don’t show webmention content at all. 😅 Instead I just show a link to the “interaction”. That removes a lot of complexity with parsing, storing etc. but probably isn’t as intuitive: it requires opening the “interactions” section below the post and visiting the link.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/01/2020-01-22-fryan/"
+  }
+}

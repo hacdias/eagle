@@ -1,0 +1,39 @@
+<figure {{ with .Get "class" }}class="{{ . }}"{{ end }} {{ with .Get "style" }}style="{{ . | safeCSS }}"{{ end }}>
+  {{- if .Get "link" -}}
+    <a href="{{ .Get "link" }}"{{ with .Get "target" }} target="{{ . }}"{{ end }}{{ with .Get "rel" }} rel="{{ . }}"{{ end }}>
+  {{- end }}
+
+  {{ $media := $.Page.Resources.GetMatch (.Get "src") }}
+  {{ if $media }}
+    {{ if in $media.MediaType.Suffixes "svg" }}
+      {{ $media.Content | safeHTML }}
+    {{ else }}
+      <picture>
+        {{ if not (in $media.MediaType.Suffixes "gif") }}
+          {{ $1000 := $media.Resize "1000x" }}
+          {{ $2000 := $media.Resize "2000x" }}
+          <source srcset="{{ $1000.RelPermalink }} 1000w, {{ $2000.RelPermalink }} 2000w">
+        {{ end }}
+        <img src="{{ $media.RelPermalink }}"
+          {{- if or (.Get "alt") (.Get "caption") }}
+          alt="{{ with .Get "alt" }}{{ . }}{{ else }}{{ .Get "caption" | markdownify| plainify }}{{ end }}"
+          {{- end -}}
+          {{- with .Get "width" }} width="{{ . }}"{{ end -}}
+          {{- with .Get "height" }} height="{{ . }}"{{ end -}} >
+      </picture>
+    {{ end }}
+  {{ else }}
+  <picture>
+    <img src="{{ .Get "src" }}"
+      {{- if or (.Get "alt") (.Get "caption") }}
+      alt="{{ with .Get "alt" }}{{ . }}{{ else }}{{ .Get "caption" | markdownify| plainify }}{{ end }}"
+      {{- end -}}
+      {{- with .Get "width" }} width="{{ . }}"{{ end -}}
+      {{- with .Get "height" }} height="{{ . }}"{{ end -}} >
+  </picture>
+  {{ end }}
+
+  {{- if .Get "link" }}</a>{{ end -}}
+
+  {{ partial "figcaption" . }}
+</figure>

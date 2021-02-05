@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2017-08-02T20:53:19.000Z",
+  "url": "https://hacdias.com/notes/2017/08/02/1/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/892850825864724480"
+  ],
+  "content": {
+    "text": "Years ago, I mislead an English Lady: I told her a pumpkin compote was a peach compote. I’m sorry. I still feel guilty… 😢",
+    "html": "<p>Years ago, I mislead an English Lady: I told her a pumpkin compote was a peach compote. I’m sorry. I still feel guilty… 😢</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://hacdias.com/notes/2017/08/02/1/"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/MineFilecoin/status/1097640148559253504",
+  "author": {
+    "type": "card",
+    "nickname": "MineFilecoin",
+    "location": "The Internet",
+    "bio": "Filecoin is a data storage network backed by an application token. The Filecoin token sale ended in September 2017. Sites purporting to sell Filecoin are SCAMS.",
+    "name": "Filecoin",
+    "url": "https://twitter.com/MineFilecoin",
+    "photo": "https://pbs.twimg.com/profile_images/489720503892856832/XZt8MkUk_normal.png"
+  },
+  "content": {
+    "text": "Want to help us build the future? Check out our getting started guide to learn how to contribute to the Filecoin Project! http://filecoin.io/blog/getting-started-with-filecoin-repos-and-devnets/ #community #opensource",
+    "html": "Want to help us build the future? Check out our getting started guide to learn how to contribute to the Filecoin Project! <a href=\"http://filecoin.io/blog/getting-started-with-filecoin-repos-and-devnets/\">http://filecoin.io/blog/getting-started-with-filecoin-repos-and-devnets/</a> #community #opensource"
+  },
+  "published": "2019-02-18T23:32:59.000Z",
+  "category": [
+    "community",
+    "opensource"
+  ],
+  "post-type": "note"
+}

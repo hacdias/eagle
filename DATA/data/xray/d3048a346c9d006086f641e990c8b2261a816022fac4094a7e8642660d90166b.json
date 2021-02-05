@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/JulianXhokaxhiu/status/894154287647002624",
+  "author": {
+    "type": "card",
+    "nickname": "JulianXhokaxhiu",
+    "location": "Parma, Italy",
+    "bio": "Solution Architect/Engineer - Open Source Enthusiast",
+    "name": "Julian Xhokaxhiu",
+    "url": "https://twitter.com/JulianXhokaxhiu",
+    "photo": "https://pbs.twimg.com/profile_images/950474556212432901/hPHcD4LH_normal.jpg"
+  },
+  "content": {
+    "text": "filemanager provides a file managing interface written in Go and VueJS https://github.com/hacdias/filemanager via @hacdias",
+    "html": "filemanager provides a file managing interface written in Go and VueJS <a href=\"https://github.com/hacdias/filemanager\">https://github.com/hacdias/filemanager</a> via <a href=\"https://twitter.com/hacdias\">@hacdias</a>"
+  },
+  "published": "2017-08-06T11:12:49.000Z",
+  "post-type": "note"
+}

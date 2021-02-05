@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/nickfost_/status/1098614226673909760",
+  "author": {
+    "type": "card",
+    "nickname": "nickfost_",
+    "location": "Phoenix, AZ",
+    "bio": "⛏ 🍊 💰",
+    "name": "Nick Foster",
+    "url": "https://twitter.com/nickfost_",
+    "photo": "https://pbs.twimg.com/profile_images/1147470471232966656/nMB8QtNQ_normal.jpg"
+  },
+  "content": {
+    "text": "Nope. Not on my primary older system, maybe you could give me a hand telling me what might trip it up. Maybe I need to delete a group of files from a different version or some dependency isn’t installed."
+  },
+  "published": "2019-02-21T16:03:37.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1098161926666928128"
+  ],
+  "post-type": "reply"
+}

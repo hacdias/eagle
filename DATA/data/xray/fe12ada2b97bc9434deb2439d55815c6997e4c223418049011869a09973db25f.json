@@ -1,0 +1,29 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/CamaraLisboa/status/1223227685901684736",
+  "author": {
+    "type": "card",
+    "nickname": "CamaraLisboa",
+    "location": "Lisboa, Portugal",
+    "bio": "Câmara Municipal de Lisboa",
+    "name": "Lisboa",
+    "url": "https://twitter.com/CamaraLisboa",
+    "photo": "https://pbs.twimg.com/profile_images/1216665549595381762/3NU6j7DD_normal.png"
+  },
+  "content": {
+    "text": "#Lisboa é feita de escolhas. A nossa é menos carros, prioridade às pessoas e ao transporte público, e melhor qualidade do ar. Descubra a nova Zona de Emissões Reduzidas.\n#EGCA2020",
+    "html": "#Lisboa é feita de escolhas. A nossa é menos carros, prioridade às pessoas e ao transporte público, e melhor qualidade do ar. Descubra a nova Zona de Emissões Reduzidas.<br>\n#EGCA2020"
+  },
+  "published": "2020-01-31T12:53:01.000Z",
+  "category": [
+    "Lisboa",
+    "EGCA2020"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1223227340953718784/pu/img/YmOBZ7k_A9oIkegf.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1223227340953718784/pu/vid/1274x720/L6mAmPL2FEzyrM5F.mp4?tag=10"
+  ],
+  "post-type": "video"
+}

@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/nickfost_/status/1097871079496998912",
+  "author": {
+    "type": "card",
+    "nickname": "nickfost_",
+    "location": "Phoenix, AZ",
+    "bio": "⛏ 🍊 💰",
+    "name": "Nick Foster",
+    "url": "https://twitter.com/nickfost_",
+    "photo": "https://pbs.twimg.com/profile_images/1147470471232966656/nMB8QtNQ_normal.jpg"
+  },
+  "content": {
+    "text": "Pretty certain I once had an install from someone else before a project existed like this officially."
+  },
+  "published": "2019-02-19T14:50:37.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1097769527453077504"
+  ],
+  "post-type": "reply"
+}

@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/engadget/status/889556530135269376",
+  "author": {
+    "type": "card",
+    "nickname": "engadget",
+    "location": "Global",
+    "bio": "Engadget is the original home for technology news and reviews. http://youtube.com/engadget",
+    "name": "Engadget",
+    "url": "https://twitter.com/engadget",
+    "photo": "https://pbs.twimg.com/profile_images/655059892022022144/Pq3Q_1oU_normal.png"
+  },
+  "content": {
+    "text": "Google ships final Android O beta before official launch http://engt.co/2uQecDg",
+    "html": "Google ships final Android O beta before official launch <a href=\"http://engt.co/2uQecDg\">http://engt.co/2uQecDg</a>"
+  },
+  "published": "2017-07-24T18:42:58.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DFhW8qlXUAAHWkQ.jpg"
+  ],
+  "post-type": "photo"
+}

@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/SlackAPI/status/889622715711315970",
+  "author": {
+    "type": "card",
+    "nickname": "SlackAPI",
+    "location": "San Francisco, CA",
+    "bio": "Helping you build for your team or millions of @SlackHQ users. Discover what the platform makes possible & recent API changes. Status updates @SlackStatus. 🐢",
+    "name": "Slack Platform",
+    "url": "https://twitter.com/SlackAPI",
+    "photo": "https://pbs.twimg.com/profile_images/997630604345659392/6Zewf0gJ_normal.jpg"
+  },
+  "content": {
+    "text": "Maybe someday! 🤞"
+  },
+  "published": "2017-07-24T23:05:58.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/889523129365745664"
+  ],
+  "post-type": "reply"
+}

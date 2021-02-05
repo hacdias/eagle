@@ -1,0 +1,18 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/CodeWisdom/status/952979074221305859",
+  "author": {
+    "type": "card",
+    "nickname": "CodeWisdom",
+    "location": "In the ALU on an 80186",
+    "bio": "Computer programming wisdom and quotes from throughout the years. Curated by @Zae_Johnson and @peterc.",
+    "name": "Programming Wisdom",
+    "url": "https://twitter.com/CodeWisdom",
+    "photo": "https://pbs.twimg.com/profile_images/705003311083229184/qTBCIxpk_normal.jpg"
+  },
+  "content": {
+    "text": "\"Documentation is a love letter that you write to your future self.\" - Damian Conway 💌"
+  },
+  "published": "2018-01-15T19:01:31.000Z",
+  "post-type": "note"
+}

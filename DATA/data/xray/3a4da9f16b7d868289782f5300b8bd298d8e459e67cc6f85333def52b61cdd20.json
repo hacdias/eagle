@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "published": "2020-03-25T13:45:04.000Z",
+  "url": "https://jlelse.blog/micro/2020/03/my-desk/",
+  "category": [
+    "Corona",
+    "Desk",
+    "Work from home"
+  ],
+  "name": "My desk",
+  "content": {
+    "text": "I just had to share a picture of my workplace in the company internal wiki. That’s why I share the same picture again on my blog, so everyone can see how my desk looks like. My dream workplace would look like the one from David Heinemeir Hansson, but unfortunately the reality only looks like this:How does your desk look like?",
+    "html": "<p>I just had to share a picture of my workplace in the company internal wiki. That’s why I share the same picture again on my blog, so everyone can see how my desk looks like. My dream workplace would look like <a href=\"https://m.signalvnoise.com/remote-working-the-home-office-desks-of-basecamp/\">the one from David Heinemeir Hansson</a>, but unfortunately the reality only looks like this:</p><p><a href=\"https://jlelse.blog/micro/2020/03/my-desk/#f7a453b171b37815652bdd401d0e6e77-lightbox\"><img src=\"https://media.jlelse.blog/a13b2584ddc72229075c5d92bb0c34b2022b549f1ea6d5e9f30f0710369977e4.jpg\" alt=\"My desk\" title=\"My desk\" /></a></p><p>How does your desk look like?</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/03/my-desk/"
+  }
+}

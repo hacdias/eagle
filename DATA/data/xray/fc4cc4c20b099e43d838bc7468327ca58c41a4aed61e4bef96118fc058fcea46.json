@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/sindresorhus/status/887991944613433344",
+  "author": {
+    "type": "card",
+    "nickname": "sindresorhus",
+    "location": "",
+    "bio": "Full-time open-sourcerer. I make macOS apps, CLI tools, npm packages. Currently into Swift & Node.js. Started @AVA__js & @awesome__re. Follow: @sindre_gh_repos",
+    "name": "Sindre Sorhus",
+    "url": "https://twitter.com/sindresorhus",
+    "photo": "https://pbs.twimg.com/profile_images/1131626244745834497/0SzJoz_J_normal.png"
+  },
+  "content": {
+    "text": "Which one? (The coffee cup)"
+  },
+  "published": "2017-07-20T11:05:52.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DFLHy2NXcAA_R-T.jpg",
+    "https://pbs.twimg.com/media/DFLHy2EW0AAhHHT.jpg"
+  ],
+  "post-type": "photo"
+}

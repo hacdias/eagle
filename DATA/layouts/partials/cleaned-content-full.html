@@ -1,0 +1,9 @@
+{{ $html := partialCached "cleaned-content.html" . .Permalink }}
+
+{{ if eq .Section "darkroom"}}
+  {{ $pics := htmlUnescape (partial "darkroom/full-figures" .) | safeHTML }}
+  {{ $html = printf "%s %s" $html $pics }}
+{{ end }}
+
+{{ $html = (trim $html " ") }}
+{{ return (chomp $html) }}

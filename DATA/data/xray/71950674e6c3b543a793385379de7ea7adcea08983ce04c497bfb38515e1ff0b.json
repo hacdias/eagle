@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2020-06-30T20:48:44.000Z",
+  "url": "https://jlelse.blog/thoughts/2020/06/blogging-german/",
+  "category": [
+    "Blog"
+  ],
+  "name": "Blogging in German",
+  "content": {
+    "text": "For those who haven’t noticed, I’m blogging more regularly in German again 🇩🇪, the last days even more often in German than in English. And this although there will be much less people reading these articles. Somehow it is much easier for me to write texts in my mother tongue. The words flow much better and it is much easier for me to express my thoughts. I will probably write more about my life and stuff like that on my German blog, while my English blog will be more about technical topics. Some things, like my monthly reviews (the next one will be this week) I will also publish in both languages.Maybe it’s also just a little alternation again. We’ll see. I just do it the way I enjoy it, after all blogging is my hobby.",
+    "html": "<p>For those who haven’t noticed, <a href=\"https://jlelse.blog/de/\">I’m blogging more regularly in German again</a> 🇩🇪, the last days even more often in German than in English. And this although there will be much less people reading these articles. Somehow it is much easier for me to write texts in my mother tongue. The words flow much better and it is much easier for me to express my thoughts. I will probably write more about my life and stuff like that on my German blog, while my English blog will be more about technical topics. Some things, like <a href=\"https://jlelse.blog/series/monthly-review/\">my monthly reviews</a> (the next one will be this week) I will also publish in both languages.</p><p>Maybe it’s also just a little alternation again. We’ll see. I just do it the way I enjoy it, after all blogging is my hobby.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile.png"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/06/blogging-german/"
+  }
+}

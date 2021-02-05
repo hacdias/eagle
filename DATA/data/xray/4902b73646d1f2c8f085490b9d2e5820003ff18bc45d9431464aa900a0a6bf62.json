@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/DTNConf/status/1059928926800080896",
+  "author": {
+    "type": "card",
+    "nickname": "DTNConf",
+    "location": "Berlin, Germany",
+    "bio": "A boring computer science event with a focus on distributed systems. Curated by @heapwolf",
+    "name": "DTN",
+    "url": "https://twitter.com/DTNConf",
+    "photo": "https://pbs.twimg.com/profile_images/1055529182732664833/t9XDjzKv_normal.jpg"
+  },
+  "content": {
+    "text": "Announcing the first speaker for our May 2019 event, @juanbenet from @protocollabs.",
+    "html": "Announcing the first speaker for our May 2019 event, <a href=\"https://twitter.com/juanbenet\">@juanbenet</a> from <a href=\"https://twitter.com/protocollabs\">@protocollabs</a>."
+  },
+  "published": "2018-11-06T22:02:03.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DrWfvPAVAAYBHVd.jpg"
+  ],
+  "post-type": "photo"
+}

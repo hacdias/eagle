@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Kurz_Gesagt/status/889538455306473473",
+  "author": {
+    "type": "card",
+    "nickname": "Kurz_Gesagt",
+    "location": "munich",
+    "bio": "Sciency videos made with love, a lot of time and after effects.",
+    "name": "Kurzgesagt",
+    "url": "https://twitter.com/Kurz_Gesagt",
+    "photo": "https://pbs.twimg.com/profile_images/1103318962874527750/zd5IxIyt_normal.png"
+  },
+  "content": {
+    "text": "Special preview. The music of the next video. If nothing goes wrong, release in two days. https://soundcloud.com/epicmountain/on-1",
+    "html": "Special preview. The music of the next video. If nothing goes wrong, release in two days. <a href=\"https://soundcloud.com/epicmountain/on-1\">https://soundcloud.com/epicmountain/on-1</a>"
+  },
+  "published": "2017-07-24T17:31:09.000Z",
+  "post-type": "note"
+}

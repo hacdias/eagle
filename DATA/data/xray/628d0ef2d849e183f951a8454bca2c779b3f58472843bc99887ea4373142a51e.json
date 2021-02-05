@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dzesika/status/1214584503269675010",
+  "author": {
+    "type": "card",
+    "nickname": "dzesika",
+    "location": "Boulder, CO + the dweb",
+    "bio": "Builder of open internets by day, player of DJ musics by night. I don't tweet much since the US elections, but I still lurk a lot 😊",
+    "name": "Jessica Schilling",
+    "url": "https://twitter.com/dzesika",
+    "photo": "https://pbs.twimg.com/profile_images/929392653225156610/HzHOFPGF_normal.jpg"
+  },
+  "content": {
+    "text": "The new IPFS Docs beta is live! 🎉🎉 It’s fully redesigned with search, reorganized content, and more. https://docs-beta.ipfs.io/ #ipfs #dweb #documentation",
+    "html": "The new IPFS Docs beta is live! 🎉🎉 It’s fully redesigned with search, reorganized content, and more. <a href=\"https://docs-beta.ipfs.io/\">https://docs-beta.ipfs.io/</a> #ipfs #dweb #documentation"
+  },
+  "published": "2020-01-07T16:28:06.000Z",
+  "category": [
+    "ipfs",
+    "dweb",
+    "documentation"
+  ],
+  "post-type": "note"
+}

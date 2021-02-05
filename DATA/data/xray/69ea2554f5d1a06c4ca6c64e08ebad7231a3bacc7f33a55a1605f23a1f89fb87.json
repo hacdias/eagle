@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/perborgen/status/889536894861799424",
+  "author": {
+    "type": "card",
+    "nickname": "perborgen",
+    "location": "Oslo",
+    "bio": "Co-founder of @scrimba. We make it easier for developers to grow their coding skills.",
+    "name": "Per Harald Borgen",
+    "url": "https://twitter.com/perborgen",
+    "photo": "https://pbs.twimg.com/profile_images/2418393335/image_normal.jpg"
+  },
+  "content": {
+    "text": "I just published “JavaScript Closures Explained in 3 Minutes” https://medium.com/learning-new-stuff/javascript-closures-explained-in-3-minutes-5aae8dce2014",
+    "html": "I just published “JavaScript Closures Explained in 3 Minutes” <a href=\"https://medium.com/learning-new-stuff/javascript-closures-explained-in-3-minutes-5aae8dce2014\">https://medium.com/learning-new-stuff/javascript-closures-explained-in-3-minutes-5aae8dce2014</a>"
+  },
+  "published": "2017-07-24T17:24:57.000Z",
+  "post-type": "note"
+}

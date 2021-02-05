@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/ulissesvf/status/970275064980615168",
+  "author": {
+    "type": "card",
+    "nickname": "ulissesvf",
+    "location": "Lisboa, Portugal",
+    "bio": "Full Stack Developer - @upframed\n\nIntern - @unbabel",
+    "name": "Ulisses Ferreira",
+    "url": "https://twitter.com/ulissesvf",
+    "photo": "https://pbs.twimg.com/profile_images/1084917079457828869/p5AG_EN3_normal.jpg"
+  },
+  "content": {
+    "text": "Gotta implement SSL on a website too, if I'm not successful can I bug you 😅?"
+  },
+  "published": "2018-03-04T12:29:36.000Z",
+  "in-reply-to": [
+    "https://twitter.com/_alanshaw/status/969554134369173504"
+  ],
+  "post-type": "reply"
+}

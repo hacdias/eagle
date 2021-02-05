@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/PascalPrecht/status/1037717571154468867",
+  "author": {
+    "type": "card",
+    "nickname": "PascalPrecht",
+    "location": "Amsterdam, The Netherlands",
+    "bio": "Creator of @thoughtram. Software engineer at @ethstatus. Writing 📚 http://rebase-book.com \n\nLearning @rustlang for fun.",
+    "name": "Pascal Precht",
+    "url": "https://twitter.com/PascalPrecht",
+    "photo": "https://pbs.twimg.com/profile_images/993785060733194241/p3oAIMDP_normal.jpg"
+  },
+  "content": {
+    "text": "Happy to see \"Content Identifiers in @IPFSbot\" made it into https://awesome.ipfs.io/  !  🎉 🙏 \n\n Go and checkout all the other great contents on there as well! \n\nhttps://pascalprecht.github.io/posts/content-identifiers-in-ipfs/",
+    "html": "Happy to see \"Content Identifiers in <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>\" made it into <a href=\"https://awesome.ipfs.io/\">https://awesome.ipfs.io/</a>  !  🎉 🙏 <br>\n<br>\n Go and checkout all the other great contents on there as well! <br>\n<br>\n<a href=\"https://pascalprecht.github.io/posts/content-identifiers-in-ipfs/\">https://pascalprecht.github.io/posts/content-identifiers-in-ipfs/</a>"
+  },
+  "published": "2018-09-06T15:02:03.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/Dma2lofWsAAWRby.png"
+  ],
+  "post-type": "photo"
+}

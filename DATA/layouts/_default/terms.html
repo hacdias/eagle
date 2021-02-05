@@ -1,0 +1,43 @@
+{{ define "main" }}
+
+<style>
+  .terms {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .terms li {
+    display: inline-block;
+  }
+
+  .terms a,
+  .terms a:visited {
+    text-decoration: none;
+    margin: .25rem;
+    font-size: .875rem;
+    padding: .5rem;
+    background-color: var(--near-white);
+    color: var(--gray);
+    display: inline-block;
+  }
+</style>
+
+<main role='main'>
+  <h1>{{ .Title }}</h1>
+
+  {{ with .Content }}
+    <div>{{ . }}</div>
+  {{ end }}
+
+  <ul class='terms'>
+    {{ range $i, $p := .Pages }}
+    {{ $date := $p.Date.Format "2006-01-02" }}
+      <li>
+        <a href="{{ .RelPermalink }}">{{ $p.Title }}</a>
+      </li>
+    {{ end }}
+  </ul>
+</main>
+
+{{ end }}

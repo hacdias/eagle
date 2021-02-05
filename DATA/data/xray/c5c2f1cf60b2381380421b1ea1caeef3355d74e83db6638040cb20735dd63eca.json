@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/equim_chan/status/952540315553968129",
+  "author": {
+    "type": "card",
+    "nickname": "equim_chan",
+    "location": "",
+    "bio": "novice cryptographer | bug bounty hunter | @Tails_live user | $XMR advocator | デレステ: 871007808 | 天鳳: 二宮蘭子",
+    "name": "Equim",
+    "url": "https://twitter.com/equim_chan",
+    "photo": "https://pbs.twimg.com/profile_images/1154080534273728512/w3RZ35VO_normal.jpg"
+  },
+  "content": {
+    "text": "I also tried HyperJS once, but found it has poor support for CJK characters on windows."
+  },
+  "published": "2018-01-14T13:58:03.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/952489124434448384"
+  ],
+  "post-type": "reply"
+}

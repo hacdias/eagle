@@ -1,0 +1,51 @@
+:root {
+  --max-width: 100%;
+  --dark-gray: white;
+  --white: black;
+  --black: white;
+  --space: 2.5rem;
+}
+
+.container {
+  padding: 0;
+}
+
+a:hover {
+  background: gray;
+}
+
+#header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--space);
+}
+
+#header ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--f6);
+  text-align: right;
+  padding-right: 0.5rem;
+  border-right: 1px solid white;
+  margin-right: 0.5rem;
+}
+
+#header a {
+  justify-content: center;
+}
+
+#header img {
+  filter: invert(1);
+}
+
+body {
+  background: var(--white);
+}
+
+.glitch:before,
+.glitch:after {
+  content: '';
+  animation: none;
+}

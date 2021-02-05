@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/jamierelay/status/923941622282366977",
+  "author": {
+    "type": "card",
+    "nickname": "jamierelay",
+    "location": "Brooklyn, NY",
+    "bio": "",
+    "name": "Jamie McClelland",
+    "url": "https://twitter.com/jamierelay",
+    "photo": "https://pbs.twimg.com/profile_images/915748556178325505/qjRCmg15_normal.jpg"
+  },
+  "content": {
+    "text": "Filemanager with hugo support https://github.com/hacdias/filemanager, @hacdias, where have you been all my life?",
+    "html": "Filemanager with hugo support <a href=\"https://github.com/hacdias/filemanager\">https://github.com/hacdias/filemanager</a>, <a href=\"https://twitter.com/hacdias\">@hacdias</a>, where have you been all my life?"
+  },
+  "published": "2017-10-27T15:57:03.000Z",
+  "post-type": "note"
+}

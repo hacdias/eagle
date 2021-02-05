@@ -1,0 +1,48 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/joehudsonsmall/status/1218661423175344129",
+  "author": {
+    "type": "card",
+    "nickname": "joehudsonsmall",
+    "location": "London, UK",
+    "bio": "CompSci graduate, developer, photographer, and remoaner. @natehiggins ❤️",
+    "name": "Joe Hudson-Small",
+    "url": "https://twitter.com/joehudsonsmall",
+    "photo": "https://pbs.twimg.com/profile_images/980441128838328320/2bG_bb_U_normal.jpg"
+  },
+  "content": {
+    "text": "I am deeply disappointed to see that official royal communications use Calibri."
+  },
+  "published": "2020-01-18T22:28:19.000Z",
+  "quotation-of": "https://twitter.com/chrisshipitv/status/1218603595513389057",
+  "refs": {
+    "https://twitter.com/chrisshipitv/status/1218603595513389057": {
+      "type": "entry",
+      "url": "https://twitter.com/chrisshipitv/status/1218603595513389057",
+      "author": {
+        "type": "card",
+        "nickname": "chrisshipitv",
+        "location": "Westminster, London",
+        "bio": "ITV NEWS Royal Editor. Tweeting the newsworthy (and the occasional non-newsworthy) from the British Royal households http://www.instagram.com/chris.ship.royal/",
+        "name": "Chris Ship",
+        "url": "https://twitter.com/chrisshipitv",
+        "photo": "https://pbs.twimg.com/profile_images/1126265262200762376/E5QiuPN8_normal.jpg"
+      },
+      "content": {
+        "text": "READ: The full statement from The Queen and from #HarryandMeghan on their split from the Royal Family 👑"
+      },
+      "published": "2020-01-18T18:38:32+00:00",
+      "category": [
+        "HarryandMeghan"
+      ],
+      "in-reply-to": [
+        "https://twitter.com/chrisshipitv/status/1218602011731595267"
+      ],
+      "photo": [
+        "https://pbs.twimg.com/media/EOlZgZsU8AAuAU5.jpg"
+      ],
+      "post-type": "reply"
+    }
+  },
+  "post-type": "note"
+}

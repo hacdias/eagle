@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/raulvk/status/1258106221179088898",
+  "author": {
+    "type": "card",
+    "nickname": "raulvk",
+    "location": "Tenerife, Spain",
+    "bio": "tech leading @libp2p & @run_testground at @protocollabs | engineer: fixer of some things; breaker of many | PMC @TheASF | biohacker, stoic, hiker, dogs",
+    "name": "Raúl Kripalani",
+    "url": "https://twitter.com/raulvk",
+    "photo": "https://pbs.twimg.com/profile_images/1225355403942416384/CRgfUTwR_normal.jpg"
+  },
+  "content": {
+    "text": "My team here at @protocollabs is phenomenal. Always up to the challenge, inquisitive, energetic, insightful.\n\nKudos to @nonsens3, Cory, Rob, @daviddias, @hacdias, @momack28, @jimpick, Stebalien, Dirk, Yusef, Vyzo, Adin.\n\nYour work, dedication, and perseverance made this possible!",
+    "html": "My team here at <a href=\"https://twitter.com/protocollabs\">@protocollabs</a> is phenomenal. Always up to the challenge, inquisitive, energetic, insightful.<br>\n<br>\nKudos to <a href=\"https://twitter.com/nonsens3\">@nonsens3</a>, Cory, Rob, <a href=\"https://twitter.com/daviddias\">@daviddias</a>, <a href=\"https://twitter.com/hacdias\">@hacdias</a>, <a href=\"https://twitter.com/momack28\">@momack28</a>, <a href=\"https://twitter.com/jimpick\">@jimpick</a>, Stebalien, Dirk, Yusef, Vyzo, Adin.<br>\n<br>\nYour work, dedication, and perseverance made this possible!"
+  },
+  "published": "2020-05-06T18:47:52.000Z",
+  "in-reply-to": [
+    "https://twitter.com/raulvk/status/1258106219828596737"
+  ],
+  "post-type": "reply"
+}

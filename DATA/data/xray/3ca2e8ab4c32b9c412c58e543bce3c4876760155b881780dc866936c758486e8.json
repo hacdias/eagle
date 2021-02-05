@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/tobowers/status/1213080001169547269",
+  "author": {
+    "type": "card",
+    "nickname": "tobowers",
+    "location": "Berlin, Germany",
+    "bio": "Building Tupelo as CEO of Quorum Control, Berliner",
+    "name": "Topper Bowers",
+    "url": "https://twitter.com/tobowers",
+    "photo": "https://pbs.twimg.com/profile_images/1197535745608757248/ROYSTvG0_normal.jpg"
+  },
+  "content": {
+    "text": "oh wow. Thanks @agentofuser ! https://github.com/ipfs-shipyard/ipfs-deploy is awesome.",
+    "html": "oh wow. Thanks <a href=\"https://twitter.com/agentofuser\">@agentofuser</a> ! <a href=\"https://github.com/ipfs-shipyard/ipfs-deploy\">https://github.com/ipfs-shipyard/ipfs-deploy</a> is awesome."
+  },
+  "published": "2020-01-03T12:49:44.000Z",
+  "post-type": "note"
+}

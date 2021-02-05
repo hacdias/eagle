@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/josepostiga/status/890143099393118208",
+  "author": {
+    "type": "card",
+    "nickname": "josepostiga",
+    "location": "Portugal",
+    "bio": "Senior Backend Developer @infraspeak, co-host on @LaravelPortugal Podcast, volunteer member @VOSTPT, Open Source Software contributor.",
+    "name": "José Postiga",
+    "url": "https://twitter.com/josepostiga",
+    "photo": "https://pbs.twimg.com/profile_images/1177905035650445312/g2JxJgtY_normal.jpg"
+  },
+  "content": {
+    "text": "Sim, eu sei, só que nunca consegui obter feedback sobre se suportar serviço e-mail é algo \"pacífico\" ou se é melhor usar serviço externo..."
+  },
+  "published": "2017-07-26T09:33:47.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/890141117609631745"
+  ],
+  "post-type": "reply"
+}

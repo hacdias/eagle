@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/spf13/status/889851947284664320",
+  "author": {
+    "type": "card",
+    "nickname": "spf13",
+    "location": "New York, USA",
+    "bio": "@golang Product Lead @Google • Previously VP @Docker & @MongoDB, @Drupal board • creator of @gohugoio, Cobra, Viper & spf13-vim • Father of 4",
+    "name": "Steve Francia",
+    "url": "https://twitter.com/spf13",
+    "photo": "https://pbs.twimg.com/profile_images/977006508557914112/HramKr-v_normal.jpg"
+  },
+  "content": {
+    "text": "Today is my 1 year Google-versary 🎆🍰🤘What a year! I knew I was joining a great project but didn't realize I was joining a family. #golang 🤗"
+  },
+  "published": "2017-07-25T14:16:51.000Z",
+  "category": [
+    "golang"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/DFlisKAWAAEmNHa.jpg",
+    "https://pbs.twimg.com/media/DFlisriXYAAyo5R.jpg"
+  ],
+  "post-type": "photo"
+}

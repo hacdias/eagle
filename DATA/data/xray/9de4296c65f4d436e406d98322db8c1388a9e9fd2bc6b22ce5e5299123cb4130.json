@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/iAWriter/status/953902581453021184",
+  "author": {
+    "type": "card",
+    "nickname": "iAWriter",
+    "location": "On iOS, Mac, Windows and Android.",
+    "bio": "News, tips and support. We answer weekdays, 9-5, Japan time. You can reach us directly via dm or mail (support@ia.net).",
+    "name": "iA Writer: The Writing Experience.",
+    "url": "https://twitter.com/iAWriter",
+    "photo": "https://pbs.twimg.com/profile_images/612990293747625984/hkpbsGz6_normal.jpg"
+  },
+  "content": {
+    "text": "We're on our way to Windows now! https://www.kickstarter.com/projects/reichenstein/a-focused-writing-app-for-windows",
+    "html": "We're on our way to Windows now! <a href=\"https://www.kickstarter.com/projects/reichenstein/a-focused-writing-app-for-windows\">https://www.kickstarter.com/projects/reichenstein/a-focused-writing-app-for-windows</a>"
+  },
+  "published": "2018-01-18T08:11:12.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/891949373189484545"
+  ],
+  "post-type": "reply"
+}

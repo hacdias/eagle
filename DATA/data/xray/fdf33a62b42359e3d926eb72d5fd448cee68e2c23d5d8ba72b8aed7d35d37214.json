@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "published": "2019-12-12T22:49:00.000Z",
+  "url": "https://jlelse.blog/thoughts/2019/12/go-java/",
+  "category": [
+    "Go",
+    "Java",
+    "Programming"
+  ],
+  "name": "Go and Java",
+  "content": {
+    "text": "While I need to use Java for university projects (currently that are one Spring and one Java EE project) and work, I use Go on some personal projects (Hugo backend and KISSS). While I’m getting more familiar with Go (I do Java for many years), I also experience cases where I actually miss language features from Java. Oh and it’s not generics, I’m currently (still) fine without generics.I miss streams. In Java I can easily use streams to filter collections, while in Go that needs to be done differently and with a lot more (and more complex) code. While Go’s syntax is easy and the whole Go documentation is lecture for just one evening, this simplicity has it’s pros and cons.Update: It’s very hard to make streams without generics, so I want generics, right? 🤔 Or is it possible without generics, too? I need to do some research…",
+    "html": "<p>While I need to use Java for university projects (currently that are one Spring and one Java EE project) and work, I use Go on some personal projects (<a href=\"https://codeberg.org/jlelse/hugo-micropub/\">Hugo backend</a> and <a href=\"https://kis3.dev/\">KISSS</a>). While I’m getting more familiar with Go (I do Java for many years), I also experience cases where I actually miss language features from Java. Oh and it’s not generics, I’m currently (still) fine without generics.</p><p>I miss streams. In Java I can easily use streams to filter collections, while in Go that needs to be done differently and with a lot more (and more complex) code. While Go’s syntax is easy and the whole Go documentation is lecture for just one evening, this simplicity has it’s pros and cons.</p><p><strong>Update</strong>: <a href=\"https://mastodon.technology/@alexcleac/103297078991241770\">It’s very hard to make streams without generics, so I want generics</a>, right? 🤔 Or is it possible without generics, too? I need to do some research…</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2019/12/go-java/"
+  }
+}

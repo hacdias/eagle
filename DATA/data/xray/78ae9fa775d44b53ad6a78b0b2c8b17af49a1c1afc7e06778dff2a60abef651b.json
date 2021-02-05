@@ -1,0 +1,29 @@
+{
+  "type": "entry",
+  "published": "2019-01-28T16:14:00.000Z",
+  "url": "https://hacdias.com/notes/2019/01/28/1/",
+  "category": [
+    "ipfs",
+    "ipfsdesktop"
+  ],
+  "video": [
+    "https://hacdias.com/notes/2019/01/28/1/DyAr-xAW0AAIhJJ.mp4"
+  ],
+  "syndication": [
+    "https://twitter.com/hacdias/status/1089919531932364802"
+  ],
+  "content": {
+    "text": "You’ll be able to add stuff to #IPFS via a context menu option on Windows! All of this through #IPFSDesktop! https://github.com/ipfs-shipyard/ipfs-desktop",
+    "html": "<p>You’ll be able to add stuff to #IPFS via a context menu option on Windows! All of this through #IPFSDesktop! <a href=\"https://github.com/ipfs-shipyard/ipfs-desktop\">https://github.com/ipfs-shipyard/ipfs-desktop</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "video",
+  "rels": {
+    "canonical": "https://hacdias.com/notes/2019/01/28/1/"
+  }
+}

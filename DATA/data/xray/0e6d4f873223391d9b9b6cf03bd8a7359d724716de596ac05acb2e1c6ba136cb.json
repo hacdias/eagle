@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/iamdevloper/status/1027137529072549888",
+  "author": {
+    "type": "card",
+    "nickname": "iamdevloper",
+    "location": "Localhost",
+    "bio": "just your friendly neighbourhood printer fixer\n\n💰 in tweet = ad",
+    "name": "I Am Devloper",
+    "url": "https://twitter.com/iamdevloper",
+    "photo": "https://pbs.twimg.com/profile_images/1178631635606151168/yIlrcg4o_normal.jpg"
+  },
+  "content": {
+    "text": "programmer: \"does x exist?\"\njavascript: \"???\"\nprogrammer: \"...does x not... not exist?\"\njavascript: \"yeah it exists!\"",
+    "html": "programmer: \"does x exist?\"<br>\njavascript: \"???\"<br>\nprogrammer: \"...does x not... not exist?\"<br>\njavascript: \"yeah it exists!\""
+  },
+  "published": "2018-08-08T10:20:44.000Z",
+  "post-type": "note"
+}

@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1181796318504607745",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "San Francisco, CA",
+    "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "We're making significant progress on a distributed web...\n\nPutting you in control of your online experience by integrating IPFS into web browsers.\n\nhttps://blog.ipfs.io/2019-10-08-ipfs-browsers-update/",
+    "html": "We're making significant progress on a distributed web...<br>\n<br>\nPutting you in control of your online experience by integrating IPFS into web browsers.<br>\n<br>\n<a href=\"https://blog.ipfs.io/2019-10-08-ipfs-browsers-update/\">https://blog.ipfs.io/2019-10-08-ipfs-browsers-update/</a>"
+  },
+  "published": "2019-10-09T04:59:33.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EGaR_KVUYAEt4Jb.jpg"
+  ],
+  "post-type": "photo"
+}

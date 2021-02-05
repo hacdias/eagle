@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-06-01T05:43:52.000Z",
+  "url": "https://jlelse.blog/micro/2020/06/90s-web/",
+  "in-reply-to": [
+    "https://hacdias.com/articles/2020/05/back-90s/"
+  ],
+  "content": {
+    "text": "That’s an awesome approach to combine the 90s web with the IndieWeb, Henrique. I really like your new 90s web-inspired website style, well done!",
+    "html": "<p>That’s an awesome approach to <a href=\"https://hacdias.com/articles/2020/05/back-90s/\">combine the 90s web with the IndieWeb</a>, Henrique. I really like your new 90s web-inspired website style, well done!</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile.png"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/06/90s-web/"
+  }
+}

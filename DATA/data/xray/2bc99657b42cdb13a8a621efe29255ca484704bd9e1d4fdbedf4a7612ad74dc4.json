@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/raulvk/status/1146708717246787584",
+  "author": {
+    "type": "card",
+    "nickname": "raulvk",
+    "location": "Tenerife, Spain",
+    "bio": "tech leading #libp2p at @protocollabs | engineer: fixer of some things; breaker of many | PMC @TheASF | biohacker, stoic, hiker, dogs",
+    "name": "Raúl Kripalani",
+    "url": "https://twitter.com/raulvk",
+    "photo": "https://pbs.twimg.com/profile_images/1212461280042405891/Q7VM_P8y_normal.jpg"
+  },
+  "content": {
+    "text": "I’m looking for a team or set of individual contributors _with protocol dexterity_, to help the @libp2p community design, build and ship a suite of conformance tests for libp2p implementations.\n\nGo or Rust devs.\n\nKnow anybody? RT please.",
+    "html": "I’m looking for a team or set of individual contributors _with protocol dexterity_, to help the <a href=\"https://twitter.com/libp2p\">@libp2p</a> community design, build and ship a suite of conformance tests for libp2p implementations.<br>\n<br>\nGo or Rust devs.<br>\n<br>\nKnow anybody? RT please."
+  },
+  "published": "2019-07-04T09:13:57.000Z",
+  "post-type": "note"
+}

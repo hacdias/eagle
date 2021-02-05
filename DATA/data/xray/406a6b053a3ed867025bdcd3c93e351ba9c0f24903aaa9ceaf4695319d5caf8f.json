@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/hyliancoder/status/889318261195776001",
+  "author": {
+    "type": "card",
+    "nickname": "hyliancoder",
+    "location": "Frisco, Texas",
+    "bio": "alabama blood, texas heart. progressive. coder. gamer. music lover. foodie. 🖤 zelda & penguins 🖤",
+    "name": "ΔNDRΞW",
+    "url": "https://twitter.com/hyliancoder",
+    "photo": "https://pbs.twimg.com/profile_images/1217212501299027970/UmIv5wXh_normal.jpg"
+  },
+  "content": {
+    "text": "decided to mess around in @gatsbyjs real quick https://thatandrew.com/\n#gatsbyjs #gatsby #React #reactjs #ssg #javascript #ES6",
+    "html": "decided to mess around in <a href=\"https://twitter.com/gatsbyjs\">@gatsbyjs</a> real quick <a href=\"https://thatandrew.com/\">https://thatandrew.com/</a><br>\n#gatsbyjs #gatsby #React #reactjs #ssg #javascript #ES6"
+  },
+  "published": "2017-07-24T02:56:10.000Z",
+  "category": [
+    "gatsbyjs",
+    "gatsby",
+    "React",
+    "reactjs",
+    "ssg",
+    "javascript",
+    "ES6"
+  ],
+  "post-type": "note"
+}

@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/brianleroux/status/971187824333537280",
+  "author": {
+    "type": "card",
+    "nickname": "brianleroux",
+    "location": "SF and Vancouver",
+    "bio": "cofounder @begin; hacking on http://arc.codes; aws serverless heros",
+    "name": "xnoɹǝʃ uɐıɹq",
+    "url": "https://twitter.com/brianleroux",
+    "photo": "https://pbs.twimg.com/profile_images/1039923377186787328/7Q0UIR8Q_normal.jpg"
+  },
+  "content": {
+    "text": "when the frontend dev spots a bug and opens the browser devtools 🎨🖌️"
+  },
+  "published": "2018-03-07T00:56:35.000Z",
+  "photo": [
+    "https://pbs.twimg.com/tweet_video_thumb/DXpaKhrVwAE-5PC.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/tweet_video/DXpaKhrVwAE-5PC.mp4"
+  ],
+  "post-type": "video"
+}

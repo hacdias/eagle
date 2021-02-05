@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/1249624558627422208",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "My lab at @protocollabs (Resilient Networks Lab) has two open RFPs for building next gen DHTs and P2P PubSub. Interested? Apply and and work with us in solving some of the Open Problems to scaling DWeb to billions of users!\n\nRFPs at https://protocollabs.smapply.io\n#IPFS #libp2p",
+    "html": "My lab at <a href=\"https://twitter.com/protocollabs\">@protocollabs</a> (Resilient Networks Lab) has two open RFPs for building next gen DHTs and P2P PubSub. Interested? Apply and and work with us in solving some of the Open Problems to scaling DWeb to billions of users!<br>\n<br>\nRFPs at <a href=\"https://protocollabs.smapply.io\">https://protocollabs.smapply.io</a><br>\n#IPFS #libp2p"
+  },
+  "published": "2020-04-13T09:04:46.000Z",
+  "category": [
+    "IPFS",
+    "libp2p"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/EVeO6CgXkAApR95.jpg"
+  ],
+  "post-type": "photo"
+}

@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/954025844552351744",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "3rd talk from the @IPFSbot  Lisbon Meetup is ⬆️ https://youtu.be/wldudAZTM4E @vmx with NOISE https://noisesearch.org/",
+    "html": "3rd talk from the <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>  Lisbon Meetup is ⬆️ <a href=\"https://youtu.be/wldudAZTM4E\">https://youtu.be/wldudAZTM4E</a> <a href=\"https://twitter.com/vmx\">@vmx</a> with NOISE <a href=\"https://noisesearch.org/\">https://noisesearch.org/</a>"
+  },
+  "published": "2018-01-18T16:21:00.000Z",
+  "post-type": "note"
+}

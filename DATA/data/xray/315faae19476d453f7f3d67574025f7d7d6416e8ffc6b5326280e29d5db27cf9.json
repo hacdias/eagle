@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/958344208443559937",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "M.S. CompSci. @caddyserver & @relicabackup. Member of the restored Church of Jesus Christ. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🧗‍♂️ Matt Holt",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1220393540364013569/tMngABRf_normal.jpg"
+  },
+  "content": {
+    "text": "Did you know: You can write ANY kind of server as a @caddyserver plugin with #golang and it will get free, automatic, on-by-default TLS with all certificates fully managed for you. Please take advantage of this! https://github.com/mholt/caddy/wiki/Writing-a-Plugin:-Server-Type",
+    "html": "Did you know: You can write ANY kind of server as a <a href=\"https://twitter.com/caddyserver\">@caddyserver</a> plugin with #golang and it will get free, automatic, on-by-default TLS with all certificates fully managed for you. Please take advantage of this! <a href=\"https://github.com/mholt/caddy/wiki/Writing-a-Plugin:-Server-Type\">https://github.com/mholt/caddy/wiki/Writing-a-Plugin:-Server-Type</a>"
+  },
+  "published": "2018-01-30T14:20:39.000Z",
+  "category": [
+    "golang"
+  ],
+  "post-type": "note"
+}

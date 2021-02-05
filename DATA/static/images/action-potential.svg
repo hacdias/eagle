@@ -1,0 +1,38 @@
+<svg width="491" height="485" version="1.0" xmlns="http://www.w3.org/2000/svg">
+<g fill="none" stroke="#000">
+<path d="M56.38 288.79H194.96" stroke="#898989"/>
+<g stroke="red" stroke-width="3">
+<path d="M224.17 323.48c83.52 0 167.05 0 250.57 0"/>
+<path d="M56.38 323.48h418.36" stroke="#898989" stroke-dasharray="6,3"/>
+<path d="M56.38 323.48H184.93c3.31-10.84 6.85-22.29 10.41-33.81 12.31-39.84 24.87-80.58 28.75-100.01 29.02-145.56 39.12-136.86 47.59 3.16 4.1 67.6 22.1 144.99 39.01 173.88 26.48 45.25 40.98 60.66 75.55 7.83 31.63-48.35 43.28-50.45 88.5-51.05"/>
+<path d="M184.93 323.48c15.12-34.92 38.55-10.32 53.4 0M184.93 323.48c9.65-8.85 24.05-12.3 41.19 0" stroke-width="2"/>
+</g>
+<path d="M185.67 348.34V331.86" stroke-width="1.14"/>
+<path d="M56.38 19.28V433.13H477" stroke-width="2"/>
+</g>
+<path d="M185.67 326.22l1.85 4.54 1.86 4.55h-3.71-3.72l1.86-4.55 1.86-4.54Z"/>
+<g font-family="Verdana" font-size="16">
+<text x="-243" y="20" transform="rotate(-90)">Voltage (mV)</text>
+<text x="-203" y="258" transform="rotate(-75.14)">Depolarization</text>
+<text x="199" y="-253" transform="rotate(82.35)">Repolarization</text>
+<text x="59.9" y="286.28">Threshold</text>
+<text x="111.43" y="346.74">Stimulus</text>
+<g text-anchor="middle">
+<text x="256.2" y="53.3">Action<tspan x="256.2" y="73.3">potential</tspan></text>
+<text x="243.4" y="279">Failed<tspan x="243.4" y="299">initiations</tspan></text>
+<text x="351.6" y="357.4">Refractory<tspan x="351.6" y="377.4">period</tspan></text>
+</g>
+<text x="375.8" y="317">Resting state</text>
+<text x="17.9" y="91.9">+40</text>
+<text x="41.1" y="190.1">0</text>
+<text x="23.8" y="295.1">-55</text>
+<text x="23.7" y="328.4">-70</text>
+<text x="96.6" y="450.2">0</text>
+<text x="166.1" y="450.2">1</text>
+<text x="232.8" y="450.2">2</text>
+<text x="302.9" y="450.2">3</text>
+<text x="374.4" y="450.2">4</text>
+<text x="441" y="450">5</text>
+<text x="232.5" y="473.4">Time (ms)</text>
+</g>
+</svg>

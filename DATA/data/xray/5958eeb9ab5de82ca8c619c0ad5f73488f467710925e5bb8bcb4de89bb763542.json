@@ -1,0 +1,39 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/VitalikButerin/status/1211976926308364289",
+  "author": {
+    "type": "card",
+    "nickname": "VitalikButerin",
+    "location": "Earth",
+    "bio": "See http://about.me/vitalik_buterin",
+    "name": "vitalik.eth",
+    "url": "https://twitter.com/VitalikButerin",
+    "photo": "https://pbs.twimg.com/profile_images/977496875887558661/L86xyLF4_normal.jpg"
+  },
+  "content": {
+    "text": "A reminder that tomorrow is, in fact, the start of the next decade."
+  },
+  "published": "2019-12-31T11:46:31.000Z",
+  "quotation-of": "https://twitter.com/VitalikButerin/status/1197637832304668672",
+  "refs": {
+    "https://twitter.com/VitalikButerin/status/1197637832304668672": {
+      "type": "entry",
+      "url": "https://twitter.com/VitalikButerin/status/1197637832304668672",
+      "author": {
+        "type": "card",
+        "nickname": "VitalikButerin",
+        "location": "Earth",
+        "bio": "See http://about.me/vitalik_buterin",
+        "name": "vitalik.eth",
+        "url": "https://twitter.com/VitalikButerin",
+        "photo": "https://pbs.twimg.com/profile_images/977496875887558661/L86xyLF4_normal.jpg"
+      },
+      "content": {
+        "text": "The next decade starts in"
+      },
+      "published": "2019-11-21T22:08:04+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

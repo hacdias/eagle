@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2020-04-08T13:27:49.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/study-emails/",
+  "category": [
+    "Study",
+    "Thoughts"
+  ],
+  "content": {
+    "text": "I think I have never written so many emails during my entire studies as in the last few weeks. But hey, I like to write emails and I’m really glad that my studies are continuing despite Corona (and therefore without any attendance events). Especially the flexibility that I can schedule most things freely is really good. I have not yet quite decided how I will proceed after my studies, but the idea of correspondence courses (possibly alongside work) sounds quite tempting.",
+    "html": "<p>I think I have never written so many emails during my entire studies as in the last few weeks. But hey, I like to write emails and I’m really glad that my studies are continuing despite Corona (and therefore without any attendance events). Especially the flexibility that I can schedule most things freely is really good. I have not yet quite decided how I will proceed after my studies, but the idea of correspondence courses (possibly alongside work) sounds quite tempting.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/study-emails/"
+  }
+}

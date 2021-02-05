@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/953641880096407552",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "2nd Lisbon IPFS Lisbon Talk published🌟 This time we have @pgte with #CRDT in @IPFSbot  https://www.youtube.com/watch?v=2VOF-Z-nLnQ",
+    "html": "2nd Lisbon IPFS Lisbon Talk published🌟 This time we have <a href=\"https://twitter.com/pgte\">@pgte</a> with #CRDT in <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>  <a href=\"https://www.youtube.com/watch?v=2VOF-Z-nLnQ\">https://www.youtube.com/watch?v=2VOF-Z-nLnQ</a>"
+  },
+  "published": "2018-01-17T14:55:16.000Z",
+  "category": [
+    "CRDT"
+  ],
+  "post-type": "note"
+}

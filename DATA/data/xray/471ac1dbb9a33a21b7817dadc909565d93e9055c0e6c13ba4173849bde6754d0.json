@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/engadget/status/889839162685370368",
+  "author": {
+    "type": "card",
+    "nickname": "engadget",
+    "location": "Global",
+    "bio": "Engadget is the original home for technology news and reviews. http://youtube.com/engadget",
+    "name": "Engadget",
+    "url": "https://twitter.com/engadget",
+    "photo": "https://pbs.twimg.com/profile_images/655059892022022144/Pq3Q_1oU_normal.png"
+  },
+  "content": {
+    "text": "Musk and Zuckerberg bicker over the future of AI http://engt.co/2uTCJrc",
+    "html": "Musk and Zuckerberg bicker over the future of AI <a href=\"http://engt.co/2uTCJrc\">http://engt.co/2uTCJrc</a>"
+  },
+  "published": "2017-07-25T13:26:03.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DFlYAI9UAAA4gvQ.jpg"
+  ],
+  "post-type": "photo"
+}

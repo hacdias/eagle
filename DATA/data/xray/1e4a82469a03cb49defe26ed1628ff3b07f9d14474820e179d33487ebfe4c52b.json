@@ -1,0 +1,27 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/GameOfThrones/status/1084631184804433921",
+  "author": {
+    "type": "card",
+    "nickname": "GameOfThrones",
+    "location": "HBO",
+    "bio": "The entire series is now available on @HBO. #GameofThrones",
+    "name": "Game of Thrones",
+    "url": "https://twitter.com/GameOfThrones",
+    "photo": "https://pbs.twimg.com/profile_images/1108745277941387264/SYLsEwkd_normal.png"
+  },
+  "content": {
+    "text": "April 14. #ForTheThrone"
+  },
+  "published": "2019-01-14T02:00:00.000Z",
+  "category": [
+    "ForTheThrone"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/Dw046QjWsAI8-zq.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/amplify_video/1084584823509975043/vid/1280x720/6-KF_BQ394stcqvP.mp4?tag=9"
+  ],
+  "post-type": "video"
+}

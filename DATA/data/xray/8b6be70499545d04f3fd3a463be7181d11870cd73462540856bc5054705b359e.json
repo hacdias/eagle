@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/jplur_/status/891358168688754688",
+  "author": {
+    "type": "card",
+    "nickname": "jplur_",
+    "location": "Delray Beach, FL",
+    "bio": "computers were a mistake \nhe/him",
+    "name": "Joseph Parker",
+    "url": "https://twitter.com/jplur_",
+    "photo": "https://pbs.twimg.com/profile_images/580845996055388160/w_uqw2ah_normal.png"
+  },
+  "content": {
+    "text": "javascript is wild"
+  },
+  "published": "2017-07-29T18:02:02.000Z",
+  "photo": [
+    "https://pbs.twimg.com/tweet_video_thumb/DF69VXBXcAAAGAF.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/tweet_video/DF69VXBXcAAAGAF.mp4"
+  ],
+  "post-type": "video"
+}

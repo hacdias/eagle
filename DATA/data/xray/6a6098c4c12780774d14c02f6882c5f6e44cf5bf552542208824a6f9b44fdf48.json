@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Spotify/status/889107847648333826",
+  "author": {
+    "type": "card",
+    "nickname": "Spotify",
+    "location": "",
+    "bio": "Music for every mood. Play, discover, and share for free. Need support? We're happy to help at @SpotifyCares",
+    "name": "Spotify",
+    "url": "https://twitter.com/Spotify",
+    "photo": "https://pbs.twimg.com/profile_images/1013614110171250688/vrPUCDn2_normal.jpg"
+  },
+  "content": {
+    "text": "The only playlist you need to survive this winter. @GameOfThrones #WinterIsHere http://spoti.fi/2uwn68o",
+    "html": "The only playlist you need to survive this winter. <a href=\"https://twitter.com/GameOfThrones\">@GameOfThrones</a> #WinterIsHere <a href=\"http://spoti.fi/2uwn68o\">http://spoti.fi/2uwn68o</a>"
+  },
+  "published": "2017-07-23T13:00:04.000Z",
+  "category": [
+    "WinterIsHere"
+  ],
+  "post-type": "note"
+}

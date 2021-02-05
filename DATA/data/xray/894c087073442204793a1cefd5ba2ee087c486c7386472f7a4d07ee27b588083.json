@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/1240557909957804033",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "The @stephen_wolfram language just launched support for @IPFSbot as a storage system! This is absolutely phenomenal and makes manipulation over distributed datasets super convenient for everyone 🌟\n\nThere is a lot more in the 12.1 release, check out https://writings.stephenwolfram.com/2020/03/in-less-than-a-year-so-much-new-launching-version-12-1-of-wolfram-language-mathematica\n#IPFS",
+    "html": "The <a href=\"https://twitter.com/stephen_wolfram\">@stephen_wolfram</a> language just launched support for <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a> as a storage system! This is absolutely phenomenal and makes manipulation over distributed datasets super convenient for everyone 🌟<br>\n<br>\nThere is a lot more in the 12.1 release, check out <a href=\"https://writings.stephenwolfram.com/2020/03/in-less-than-a-year-so-much-new-launching-version-12-1-of-wolfram-language-mathematica\">https://writings.stephenwolfram.com/2020/03/in-less-than-a-year-so-much-new-launching-version-12-1-of-wolfram-language-mathematica</a><br>\n#IPFS"
+  },
+  "published": "2020-03-19T08:37:08.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/ETdYajvXQAI0frd.jpg"
+  ],
+  "post-type": "photo"
+}

@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/lidelOrg/status/1090622266948374529",
+  "author": {
+    "type": "card",
+    "nickname": "lidelOrg",
+    "location": "Europe, Earth",
+    "bio": "now y'all can @lidelOrg 🙃",
+    "name": "lidel",
+    "url": "https://twitter.com/lidelOrg",
+    "photo": "https://pbs.twimg.com/profile_images/1047593705073508352/nPrZZslz_normal.jpg"
+  },
+  "content": {
+    "text": "Q: How can I contribute translation for my language?\nA: See #IPFS Translation Project: https://github.com/ipfs/i18n and contribute via https://www.transifex.com/ipfs/public/",
+    "html": "Q: How can I contribute translation for my language?<br>\nA: See #IPFS Translation Project: <a href=\"https://github.com/ipfs/i18n\">https://github.com/ipfs/i18n</a> and contribute via <a href=\"https://www.transifex.com/ipfs/public/\">https://www.transifex.com/ipfs/public/</a>"
+  },
+  "published": "2019-01-30T14:46:25.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/daviddias/status/1090609531418275840"
+  ],
+  "post-type": "reply"
+}

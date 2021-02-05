@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/1309633018475155456",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "Imperfect member of the restored Church of Jesus Christ. M.S. CS. @caddyserver & @relicabackup. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🧗‍♂️ Matt Holt",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1305316187069317121/Pd9LKuPw_normal.jpg"
+  },
+  "content": {
+    "text": "A wild /usr/lib/go-1.13 appeared! Seriously, where did it come from? Why is it here, and only in @code's Terminal? Ubuntu 20.04... first thing I did was install #golang 1.15 manually, why did it need Go 1.13??\n\n(Never had this problem on Mac. ... but had lots of other problems)",
+    "html": "A wild /usr/lib/go-1.13 appeared! Seriously, where did it come from? Why is it here, and only in <a href=\"https://twitter.com/code\">@code</a>'s Terminal? Ubuntu 20.04... first thing I did was install #golang 1.15 manually, why did it need Go 1.13??<br>\n<br>\n(Never had this problem on Mac. ... but had lots of other problems)"
+  },
+  "published": "2020-09-25T23:16:58.000Z",
+  "category": [
+    "golang"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/Eiy_7jzUYAAV5oB.jpg",
+    "https://pbs.twimg.com/media/EizAAPUVkAIARlZ.png"
+  ],
+  "post-type": "photo"
+}

@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/969253866016591872",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": ".@olizilla and I are building `chrome.protocol.registerStreamProtocol` in @brave and it actually now streams files **directly** from our #IPFS node via the #ipfsCompanion web extension. THIS IS A BIG EXCITEMENT FOR ME :D",
+    "html": ".<a href=\"https://twitter.com/olizilla\">@olizilla</a> and I are building `chrome.protocol.registerStreamProtocol` in <a href=\"https://twitter.com/brave\">@brave</a> and it actually now streams files **directly** from our #IPFS node via the #ipfsCompanion web extension. THIS IS A BIG EXCITEMENT FOR ME :D"
+  },
+  "published": "2018-03-01T16:51:44.000Z",
+  "category": [
+    "IPFS",
+    "ipfsCompanion"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/DXN6wM2WAAIAnlQ.jpg"
+  ],
+  "post-type": "photo"
+}

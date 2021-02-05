@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/1117987225910648832",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "M.S. CompSci. @caddyserver & @relicabackup. Member of the restored Church of Jesus Christ. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🧗‍♂️ Matt Holt",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1220393540364013569/tMngABRf_normal.jpg"
+  },
+  "content": {
+    "text": "📘 Here it is... \"After HTTPS: Indicating Risk Instead of Security\" is my masters thesis.  🔖 PDF: https://matt.life/papers/after_https_thesis.pdf",
+    "html": "📘 Here it is... \"After HTTPS: Indicating Risk Instead of Security\" is my masters thesis.  🔖 PDF: <a href=\"https://matt.life/papers/after_https_thesis.pdf\">https://matt.life/papers/after_https_thesis.pdf</a>"
+  },
+  "published": "2019-04-16T03:05:00.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/D4PhoonU4AALuln.jpg",
+    "https://pbs.twimg.com/media/D4PifiBU0AEvwXQ.jpg",
+    "https://pbs.twimg.com/media/D4PihusU8AAYsJv.jpg"
+  ],
+  "post-type": "photo"
+}

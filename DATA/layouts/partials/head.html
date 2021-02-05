@@ -1,0 +1,97 @@
+{{- $description := or .Description .Site.Params.Description }}
+{{- $img := or (.Page.Resources.GetMatch "*social*") (.Page.Resources.GetMatch "*cover*") (.Page.Resources.GetMatch "*thumb*") }}
+{{- $shortTitle := or .Title .Site.Title -}}
+{{- $longTitle := (printf "%s - %s" $shortTitle .Site.Title) -}}
+{{- if .IsHome -}}{{ $longTitle = .Site.Title }}{{- end -}}
+{{- if not .Title -}}{{ $longTitle = $shortTitle }}{{- end -}}
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ $longTitle }}</title>
+<meta name="description" content="{{ $description }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<link rel="icon" href="{{ relURL "/favicon.ico" }}" type=image/x-icon>
+{{ if .Params.noindex }}
+ <meta name="robots" content="noindex">
+{{ end }}
+
+{{ range .AlternativeOutputFormats -}}
+  <link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink | safeURL }}">
+{{ end -}}
+
+<!-- Social Media -->
+<meta name="twitter:site" content="@{{ .Site.Social.twitter }}"/>
+<meta name="twitter:creator" content="@{{ .Site.Social.twitter }}"/>
+<meta property="og:locale" content="{{ .Site.LanguageCode }}" />
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}" />
+<meta property="og:title" content="{{ $shortTitle }}" />
+<meta property="og:description" content="{{ $description }}" />
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta property="og:site_name" content="{{ .Site.Title }}" />
+{{- with $img }}
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta property="og:image" content="{{ .Permalink }}" />
+{{ else }}
+  {{ if .IsHome -}}
+    <meta name="twitter:card" content="summary"/>
+    <meta property="og:image" content="https://hacdias.com/me-512.jpg" />
+  {{ end }}
+{{ end }}
+
+{{ if and .IsPage (not .Date.IsZero) }}
+  {{ $date := .Date.Format "2006-01-02T15:04:05-07:00" }}
+  {{ $lastmod := .Lastmod.Format "2006-01-02T15:04:05-07:00" }}
+  <meta property="article:published_time" content="{{ $date }}" />
+  <meta property="article:modified_time" content="{{ $lastmod }}" />
+  <meta property="og:updated_time" content="{{ $lastmod }}" />
+{{ end }}
+
+<!-- Styles -->
+{{- if not (eq .Type "html") -}}
+  {{- $normalize := resources.Get "css/vendor/normalize.css" }}
+  {{- $glitch := resources.Get "css/glitch.css" }}
+  {{- $styles := resources.Get "css/styles.css" }}
+  {{- $css := slice $normalize $glitch $styles | resources.Concat "css/styles.css" | resources.Minify }}
+  <style>{{ $css.Content | safeCSS }}</style>
+{{ end }}
+
+{{ if .IsHome }}
+  <link rel="feed" href="https://hacdias.com/all" />
+  <link rel="authorization_endpoint" href="https://indieauth.com/auth" />
+  <link rel="token_endpoint" href="https://tokens.indieauth.com/token" />
+  <link rel="micropub" href="https://hacdias.com/micropub" />
+  <link rel="microsub" href="https://aperture.p3k.io/microsub/455" />
+{{ end }}
+
+{{ if .Params.mermaid }}
+  {{- $mermaid := resources.Get "js/vendor/mermaid.min.js" }}
+  <script defer src="{{ $mermaid.RelPermalink }}?hash={{ md5 $mermaid.Content }}"></script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () =>{
+    mermaid.initialize({ theme: 'forest' })
+    mermaid.init('.language-mermaid')
+  })
+  </script>
+{{ end }}
+
+<!-- OpenID delegation -->
+<link rel="openid.delegate" href="https://hacdias.com/" />
+<link rel="openid.server" href="https://openid.indieauth.com/openid" />
+
+<!-- IndieAuth.me Methods -->
+<link rel="me" href="https://twitter.com/hacdias" />
+<link rel="me" href="https://github.com/hacdias" />
+<link rel="me" href="https://facebook.com/hacdias" />
+<link rel="me" href="https://instagram.com/hacdias" />
+<link rel="me" href="https://keybase.io/hacdias" />
+<link rel="me" href="https://linkedin.com/in/hacdias" />
+<link rel="me" href="mailto:mail@hacdias.com" />
+<link rel="me" href="https://micro.blog/hacdias" />
+<link rel="me" href="https://news.ycombinator.com/user?id=hacdias" />
+<link rel="me" href="https://lobste.rs/u/hacdias" />
+<link rel="me" href="https://hacdias.com/pubkey.txt" rel="pgpkey" />
+
+<link rel="webmention" href="https://webmention.io/hacdias.com/webmention" />
+<link rel="pingback" href="https://webmention.io/hacdias.com/xmlrpc" />

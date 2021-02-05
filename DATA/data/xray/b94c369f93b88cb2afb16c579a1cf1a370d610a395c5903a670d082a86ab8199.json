@@ -1,0 +1,39 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/DARA3G_/status/1212537881312595973",
+  "author": {
+    "type": "card",
+    "nickname": "DARA3G_",
+    "location": "",
+    "bio": "Don't give a fuck about what I write here pls my hormones are still think I am 15 years old and my brain reacts to it easily.",
+    "name": "duki?",
+    "url": "https://twitter.com/DARA3G_",
+    "photo": "https://pbs.twimg.com/profile_images/1217597052181458947/MADQXEEl_normal.jpg"
+  },
+  "content": {
+    "text": "Henrique sendo a pessoa mais aleatória de sempre part 1"
+  },
+  "published": "2020-01-02T00:55:33.000Z",
+  "quotation-of": "https://twitter.com/hacdias/status/1212115638002556929",
+  "refs": {
+    "https://twitter.com/hacdias/status/1212115638002556929": {
+      "type": "entry",
+      "url": "https://twitter.com/hacdias/status/1212115638002556929",
+      "author": {
+        "type": "card",
+        "nickname": "hacdias",
+        "location": "Portugal",
+        "bio": "Studying Computer Engineering at @istecnico. Digging into the decentralized web at @ProtocolLabs. #opensource advocate.",
+        "name": "Henrique Dias",
+        "url": "https://twitter.com/hacdias",
+        "photo": "https://pbs.twimg.com/profile_images/1133325379970711552/nA18D3Fg_normal.jpg"
+      },
+      "content": {
+        "text": "This is an experiment..."
+      },
+      "published": "2019-12-31T20:57:42+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

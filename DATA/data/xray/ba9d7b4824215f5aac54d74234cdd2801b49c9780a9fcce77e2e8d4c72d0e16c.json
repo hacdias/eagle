@@ -1,0 +1,46 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/anarlguerra/status/890887652320448512",
+  "author": {
+    "type": "card",
+    "nickname": "anarlguerra",
+    "location": "Lisbon, Portugal",
+    "bio": "Twitch Streamer, Esports Communications @Braver_pt and music addicted person living the fandom life.",
+    "name": "Ana Guerra",
+    "url": "https://twitter.com/anarlguerra",
+    "photo": "https://pbs.twimg.com/profile_images/1221201117821820928/JpmCCynE_normal.jpg"
+  },
+  "content": {
+    "text": "This is too funny 🤣"
+  },
+  "published": "2017-07-28T10:52:22.000Z",
+  "quotation-of": "https://twitter.com/anchor/status/890685833925283841",
+  "refs": {
+    "https://twitter.com/anchor/status/890685833925283841": {
+      "type": "entry",
+      "url": "https://twitter.com/anchor/status/890685833925283841",
+      "author": {
+        "type": "card",
+        "nickname": "anchor",
+        "location": "New York City",
+        "bio": "The easiest way to make a podcast. Create & host unlimited episodes, distribute everywhere, and make money. Free for iOS, Android, & web. A @Spotify company. ✨",
+        "name": "Anchor",
+        "url": "https://twitter.com/anchor",
+        "photo": "https://pbs.twimg.com/profile_images/966666153929125888/pwVzLi75_normal.jpg"
+      },
+      "content": {
+        "text": "After just a few hours with the crown, Jeff Bezos is no longer the wealthiest person on Earth. 💸\n\nhttps://anchor.fm/internet",
+        "html": "After just a few hours with the crown, Jeff Bezos is no longer the wealthiest person on Earth. 💸<br>\n<br>\n<a href=\"https://anchor.fm/internet\">https://anchor.fm/internet</a>"
+      },
+      "published": "2017-07-27T21:30:25+00:00",
+      "photo": [
+        "https://pbs.twimg.com/ext_tw_video_thumb/890685656661450752/pu/img/SCCmVlXSzcbhlgU0.jpg"
+      ],
+      "video": [
+        "https://video.twimg.com/ext_tw_video/890685656661450752/pu/vid/640x360/-a53fH3OQOMbDn5L.mp4"
+      ],
+      "post-type": "video"
+    }
+  },
+  "post-type": "note"
+}

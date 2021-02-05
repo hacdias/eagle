@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "published": "2019-09-02T17:51:51.000Z",
+  "url": "https://hacdias.com/replies/2019/09/02/4/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/1168582321102086144"
+  ],
+  "in-reply-to": [
+    "https://hacdias.com/2019/09/02/04/"
+  ],
+  "content": {
+    "text": "Acabo de publicar isto e ele parte de Faro! Yey, vamos ver quanto atrasa até chegar à Funcheira…",
+    "html": "<p>Acabo de publicar isto e ele parte de Faro! Yey, vamos ver quanto atrasa até chegar à Funcheira…</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://hacdias.com/2019/09/02/04/": {
+      "type": "entry",
+      "url": "https://hacdias.com/2019/09/02/04/",
+      "content": {
+        "text": "Tenho o comboio às 19.55 na Funcheira. Era para ter saído de Faro às 18.15. Mas… que serviço é este? Ainda nem saiu e já tem 35 minutos de atraso… and counting!"
+      },
+      "author": {
+        "type": "card",
+        "name": "Henrique Dias",
+        "url": "https://hacdias.com/",
+        "photo": null
+      },
+      "post-type": "note"
+    }
+  },
+  "rels": {
+    "canonical": "https://hacdias.com/replies/2019/09/02/4/"
+  }
+}

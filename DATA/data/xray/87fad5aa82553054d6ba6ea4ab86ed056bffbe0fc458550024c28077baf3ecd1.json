@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "published": "2020-02-24T08:49:00.000Z",
+  "url": "https://jlelse.blog/thoughts/2020/02/twitter-brands/",
+  "category": [
+    "Blogs",
+    "Fediverse",
+    "Opinion",
+    "Twitter"
+  ],
+  "name": "It feels great without Twitter",
+  "content": {
+    "text": "I left Twitter one month ago and didn’t miss it a single time. Reading stories about “Brand Blockers” (Medium paywall) just gives me the feeling that this was the right decision.Regarding the “Brand Blockers”: Instead of trying to block hundreds of thousands brands, maybe just block Twitter? Twitter is full of brands. That’s why I first unfollowed everyone and created a list with all the people I followed previously, which had the benefit of a chronological timeline and no promoted tweets in between. And then I left Twitter altogether.In addition to the brand problem there are also politics, scandals, trolls and the attitude of people in general. All reasons why I did not want to use this platform anymore.Meanwhile I only use Miniflux to follow a selection of blogs, news sites and Fediverse accounts. To express my opinion I use my blog. No algorithms that think they know what interests me. No promoted tweets.",
+    "html": "<p><a href=\"https://jlelse.blog/posts/deleted-twitter/\">I left Twitter</a> one month ago and didn’t miss it a single time. Reading stories about <a href=\"https://onezero.medium.com/brand-blockers-are-trying-to-scrub-their-feeds-clean-of-every-advertiser-on-twitter-d9c7298f5e6d\">“Brand Blockers”</a> (Medium paywall) just gives me the feeling that this was the right decision.</p><p>Regarding the “Brand Blockers”: Instead of trying to block hundreds of thousands brands, maybe just block Twitter? Twitter is full of brands. That’s why I first unfollowed everyone and created a list with all the people I followed previously, which had the benefit of a chronological timeline and no promoted tweets in between. And then I left Twitter altogether.</p><p>In addition to the brand problem there are also politics, scandals, trolls and the attitude of people in general. All reasons why I did not want to use this platform anymore.</p><p>Meanwhile I only use <a href=\"https://jlelse.blog/posts/miniflux/\">Miniflux</a> to follow <a href=\"https://jlelse.blog/blogroll/\">a selection of blogs</a>, news sites and <a href=\"https://fediverse.party/en/fediverse\">Fediverse</a> accounts. To express my opinion I use my blog. No algorithms that think they know what interests me. No promoted tweets.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/02/twitter-brands/"
+  }
+}

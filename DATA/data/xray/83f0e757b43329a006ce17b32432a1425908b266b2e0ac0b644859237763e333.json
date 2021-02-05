@@ -1,0 +1,19 @@
+{
+  "author": {
+    "name": "Jan Boddez",
+    "photo": "https://jan.boddez.net/uploads/avatars/mastodon-social-janboddez.jpg",
+    "type": "card",
+    "url": "https://jan.boddez.net/"
+  },
+  "content": {
+    "html": "\u003cp\u003e\u003ci\u003eIn reply to \u003ca class=\"u-in-reply-to\" href=\"https://hacdias.com/micro/2020/10/trying-activitypub/\"\u003ehttps://hacdias.com/micro/2020/10/trying-activitypub/\u003c/a\u003e.\u003c/i\u003e\u003c/p\u003e\n\u003cp\u003eI remember looking at \u003ca href=\"https://github.com/aaronpk/Nautilus/blob/master/app/ActivityPub/HTTPSignature.php\"\u003ehttps://github.com/aaronpk/Nautilus/blob/master/app/ActivityPub/HTTPSignature.php\u003c/a\u003e a whole lot to finally get signatures—and Accepts—to work. (Could never get Deletes to actually work, though.) 😟\u003c/p\u003e",
+    "text": "In reply to https://hacdias.com/micro/2020/10/trying-activitypub/.\nI remember looking at https://github.com/aaronpk/Nautilus/blob/master/app/ActivityPub/HTTPSignature.php a whole lot to finally get signatures—and Accepts—to work. (Could never get Deletes to actually work, though.) 😟"
+  },
+  "in-reply-to": [
+    "https://hacdias.com/micro/2020/10/trying-activitypub/"
+  ],
+  "post-type": "reply",
+  "published": "2020-10-14T12:00:00+02:00",
+  "type": "entry",
+  "url": "https://jan.boddez.net/notes/046185c328"
+}

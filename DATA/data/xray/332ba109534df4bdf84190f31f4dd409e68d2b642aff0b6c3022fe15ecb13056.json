@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/markdalgleish/status/1164760351914618880",
+  "author": {
+    "type": "card",
+    "nickname": "markdalgleish",
+    "location": "Melbourne, Australia",
+    "bio": "🦄 CSS Modules co-creator, @MelbJS organiser. ECMAScript addict, UI design enthusiast, meme dad x3 ☕ OSS / UI / design / tooling at @seekjobs 🍦🇦🇺✌🏻",
+    "name": "Mark Dalgleish",
+    "url": "https://twitter.com/markdalgleish",
+    "photo": "https://pbs.twimg.com/profile_images/754886061872979968/BzaOWhs1_normal.jpg"
+  },
+  "content": {
+    "text": "\"There's something wrong with the website.\"\n\n\"What do you mean?\"\n\n\"It's got a fixed width of 320px on mobile, and 1024px on desktop. It doesn't scale to fit the screen at all.\"\n\n\"Yeah—that's what the spec looked like.\"",
+    "html": "\"There's something wrong with the website.\"<br>\n<br>\n\"What do you mean?\"<br>\n<br>\n\"It's got a fixed width of 320px on mobile, and 1024px on desktop. It doesn't scale to fit the screen at all.\"<br>\n<br>\n\"Yeah—that's what the spec looked like.\""
+  },
+  "published": "2019-08-23T04:44:42.000Z",
+  "post-type": "note"
+}

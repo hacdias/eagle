@@ -1,0 +1,17 @@
+{
+  "type": "entry",
+  "url": "https://hacdias.com/micro/2019/02/n3/",
+  "published": "2019-02-24T14:20:25.000Z",
+  "content": {
+    "text": "@Cloudflare how does your cache work with your IPFS gateway? My website updated everywhere, except when I access with the main domain.",
+    "html": "<p><a href=\"https://twitter.com/Cloudflare\">@Cloudflare</a> how does your cache work with your IPFS gateway? My website updated everywhere, except when I access with the main domain.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": null,
+    "photo": "https://hacdias.com/me-256.jpg",
+    "nickname": "hacdias"
+  },
+  "post-type": "note"
+}

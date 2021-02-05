@@ -1,0 +1,49 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/agata_krych/status/1026759048820150272",
+  "author": {
+    "type": "card",
+    "nickname": "agata_krych",
+    "location": "",
+    "bio": "Visual Designer in Protocol Labs",
+    "name": "Agata Krych",
+    "url": "https://twitter.com/agata_krych",
+    "photo": "https://pbs.twimg.com/profile_images/979060095093911552/lXkgcJTx_normal.jpg"
+  },
+  "content": {
+    "text": "Interplanetary coffee stand #labday @protocollabs @IPFSbot",
+    "html": "Interplanetary coffee stand #labday <a href=\"https://twitter.com/protocollabs\">@protocollabs</a> <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>"
+  },
+  "published": "2018-08-07T09:16:48.000Z",
+  "category": [
+    "labday"
+  ],
+  "quotation-of": "https://twitter.com/Felipether/status/1026743656064200704",
+  "refs": {
+    "https://twitter.com/Felipether/status/1026743656064200704": {
+      "type": "entry",
+      "url": "https://twitter.com/Felipether/status/1026743656064200704",
+      "author": {
+        "type": "card",
+        "nickname": "Felipether",
+        "location": "Brazil",
+        "bio": "Collecting cybercoins & mental models.",
+        "name": "Felipe Sant Ana",
+        "url": "https://twitter.com/Felipether",
+        "photo": "https://pbs.twimg.com/profile_images/1043182774738472960/k18r6BI-_normal.jpg"
+      },
+      "content": {
+        "text": "Never saw an interplanetary coffee stand before 👀☕️ Thanks for showing us how one should look like. Awesome work as usual 🤟"
+      },
+      "published": "2018-08-07T08:15:38+00:00",
+      "in-reply-to": [
+        "https://twitter.com/agata_krych/status/1026728237374820352"
+      ],
+      "photo": [
+        "https://pbs.twimg.com/media/Dj-558ZW0AAF9ne.jpg"
+      ],
+      "post-type": "reply"
+    }
+  },
+  "post-type": "note"
+}

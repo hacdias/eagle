@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/953388140785418240",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "Distributed Verifiable Claims project presentation by @itsjoaosantos @istecnico using @IPFSbot & @ethereumproject https://youtu.be/4oIvWldzT4o",
+    "html": "Distributed Verifiable Claims project presentation by <a href=\"https://twitter.com/itsjoaosantos\">@itsjoaosantos</a> <a href=\"https://twitter.com/istecnico\">@istecnico</a> using <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a> & @ethereumproject <a href=\"https://youtu.be/4oIvWldzT4o\">https://youtu.be/4oIvWldzT4o</a>"
+  },
+  "published": "2018-01-16T22:07:00.000Z",
+  "post-type": "note"
+}

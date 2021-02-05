@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/1262684702865076224",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "We've just published a post about our participation at the NDN Seminar (Named Data Networking). \n\nIt packs 24 very inquisitive questions and answers about #IPFS & #libp2p\nhttps://research.protocol.ai/blog/2020/ndn-seminar-a-high-level-overview-of-the-interplanetary-file-system/\nWe hope you enjoy it and that helps you build your understanding of IPFS & libp2p:)",
+    "html": "We've just published a post about our participation at the NDN Seminar (Named Data Networking). <br>\n<br>\nIt packs 24 very inquisitive questions and answers about #IPFS & #libp2p<br>\n<a href=\"https://research.protocol.ai/blog/2020/ndn-seminar-a-high-level-overview-of-the-interplanetary-file-system/\">https://research.protocol.ai/blog/2020/ndn-seminar-a-high-level-overview-of-the-interplanetary-file-system/</a><br>\nWe hope you enjoy it and that helps you build your understanding of IPFS & libp2p:)"
+  },
+  "published": "2020-05-19T10:01:07.000Z",
+  "category": [
+    "IPFS",
+    "libp2p"
+  ],
+  "post-type": "note"
+}

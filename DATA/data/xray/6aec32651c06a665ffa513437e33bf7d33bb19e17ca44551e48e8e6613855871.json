@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/949311278962573312",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "I'm pumped for the #IPFS Lisbon Meetup that me @pgte, @vmx and @VictorBjelkholm are putting up next week https://www.meetup.com/ipfs-lisbon-meetup/events/246513999",
+    "html": "I'm pumped for the #IPFS Lisbon Meetup that me <a href=\"https://twitter.com/pgte\">@pgte</a>, <a href=\"https://twitter.com/vmx\">@vmx</a> and <a href=\"https://twitter.com/VictorBjelkholm\">@VictorBjelkholm</a> are putting up next week <a href=\"https://www.meetup.com/ipfs-lisbon-meetup/events/246513999\">https://www.meetup.com/ipfs-lisbon-meetup/events/246513999</a>"
+  },
+  "published": "2018-01-05T16:07:00.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "post-type": "note"
+}

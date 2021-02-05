@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/andr3/status/689418927835770880",
+  "author": {
+    "type": "card",
+    "nickname": "andr3",
+    "location": "Lisbon, Portugal",
+    "bio": "Web nerd. Frontend Engineering Manager at GitLab. 🏂 🚁 📷 § me@andr3.net § #frontend #ux #qa #a11y #semantics",
+    "name": "André Luís",
+    "url": "https://twitter.com/andr3",
+    "photo": "https://pbs.twimg.com/profile_images/677163777448681473/6cAipFWm_normal.png"
+  },
+  "content": {
+    "text": "📄From Fixed to Responsive https://medium.com/making-of-seedrs/from-fixed-to-responsive-751b98951f75 Thoughts?\n\n/cc @RWD #webdesign #rwd  #frontend #seedrs https://t.co/nUXn4gw9bu",
+    "html": "📄From Fixed to Responsive <a href=\"https://medium.com/making-of-seedrs/from-fixed-to-responsive-751b98951f75\">https://medium.com/making-of-seedrs/from-fixed-to-responsive-751b98951f75</a> Thoughts?<br>\n<br>\n/cc <a href=\"https://twitter.com/RWD\">@RWD</a> #webdesign #rwd  #frontend #seedrs https://t.co/nUXn4gw9bu"
+  },
+  "published": "2016-01-19T12:07:35.000Z",
+  "category": [
+    "webdesign",
+    "rwd",
+    "frontend",
+    "seedrs"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/CZFO3GjVIAUav9K.png"
+  ],
+  "post-type": "photo"
+}

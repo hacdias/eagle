@@ -1,0 +1,27 @@
+{
+  "type": "entry",
+  "published": "2020-01-22T08:43:00.000Z",
+  "url": "https://jlelse.blog/thoughts/2020/01/security-risk-embedding/",
+  "category": [
+    "IndieWeb",
+    "Security"
+  ],
+  "syndication": [
+    "https://news.indieweb.org/en"
+  ],
+  "name": "The security risk of embedding images from external sites",
+  "content": {
+    "text": "On a lot of IndieWeb sites, I noticed that profile images of webmentions get directly embedded from their original source. For example, Twitter profile images are loaded directly from Twitter servers (pbs.twimg.com) or even my profile image is directly embedded from my site.However you should consider enabling Content Security Policy (CSP) headers and only allow embedded content from trusted sites (your own domains). It could always happen that a site gets hacked and malware injected or a domain expires and some spammers register it again, that will also affect your website’s visitors. You won’t even notice it.To solve this, you basically have two options:don’t display them at all,\nor download those images and serve the downloaded copy.\nAnd don’t forget to enable CSP headers on your site!Update: Sebastiaan Andeweg wrote a reply and linked his article, about how he hacked his own website! If you use PHP for your IndieWeb site, make sure to read it!",
+    "html": "<p>On a lot of <a href=\"https://indieweb.org/\">IndieWeb</a> sites, I noticed that profile images of webmentions get directly embedded from their original source. For example, Twitter profile images are loaded directly from Twitter servers (pbs.twimg.com) or even my profile image is directly embedded from my site.</p><p>However you should consider enabling <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP\">Content Security Policy (CSP)</a> headers and only allow embedded content from trusted sites (your own domains). It could always happen that a site gets hacked and malware injected or a domain expires and some spammers register it again, that will also affect your website’s visitors. You won’t even notice it.</p><p>To solve this, you basically have two options:</p><ol><li>don’t display them at all,</li>\n<li>or download those images and serve the downloaded copy.</li>\n</ol><p>And don’t forget to enable CSP headers on your site!</p><p><strong>Update</strong>: <a href=\"https://seblog.nl/2020/01/25/3/dont-forget\">Sebastiaan Andeweg wrote a reply</a> and linked his article, about <a href=\"https://seblog.nl/2017/02/13/3/how-i-hacked-my-own-site\">how he hacked his own website</a>! If you use PHP for your IndieWeb site, make sure to read it!</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "article",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/01/security-risk-embedding/"
+  }
+}

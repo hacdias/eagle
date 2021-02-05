@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/cassidoo/status/1216871876192088065",
+  "author": {
+    "type": "card",
+    "nickname": "cassidoo",
+    "location": "Seattle, WA",
+    "bio": "Teaching and coding @ReactTraining! Glamour Mag's 35 Under 35 in tech. Married to @ijoosong. I like jokes, karaoke, and mechanical keyboards! ✝️",
+    "name": "Cassidy Williams",
+    "url": "https://twitter.com/cassidoo",
+    "photo": "https://pbs.twimg.com/profile_images/718548236580098048/OgV0pPQY_normal.jpg"
+  },
+  "content": {
+    "text": "When non-tech people ask me to describe my job"
+  },
+  "published": "2020-01-13T23:57:18.000Z",
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1216871799901900801/pu/img/GZWxWvUe3uChlCzJ.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1216871799901900801/pu/vid/540x790/CT6UA97TpC7tQ3Vc.mp4?tag=10"
+  ],
+  "post-type": "video"
+}

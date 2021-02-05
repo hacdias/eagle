@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/golang/status/964585179745529861",
+  "author": {
+    "type": "card",
+    "nickname": "golang",
+    "location": "",
+    "bio": "Go will make you love programming again. We promise.",
+    "name": "Go",
+    "url": "https://twitter.com/golang",
+    "photo": "https://pbs.twimg.com/profile_images/1142154201444823041/O6AczwfV_normal.png"
+  },
+  "content": {
+    "text": "🎉 Go 1.10 is released!\n\n🗣 https://blog.golang.org/go1.10\n\n#BestReleaseEver #golang",
+    "html": "🎉 Go 1.10 is released!<br>\n<br>\n🗣 <a href=\"https://blog.golang.org/go1.10\">https://blog.golang.org/go1.10</a><br>\n<br>\n#BestReleaseEver #golang"
+  },
+  "published": "2018-02-16T19:40:02.000Z",
+  "category": [
+    "BestReleaseEver",
+    "golang"
+  ],
+  "post-type": "note"
+}

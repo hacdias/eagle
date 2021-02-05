@@ -1,0 +1,13 @@
+{{ $pages := .RegularPages }}
+{{ $regularPages := .Site.RegularPages  }}
+{{ $isAll := eq .Title "All" }}
+
+{{ if $isAll }}
+  {{ $articles :=  where $regularPages ".Section" "=" "articles" }}
+  {{ $micro :=  where $regularPages ".Section" "=" "micro" }}
+  {{ $darkroom :=  where $regularPages ".Section" "=" "darkroom" }}
+  {{ $pages = union (union $articles $micro) $darkroom }}
+  {{ $pages = sort $pages "Date" "desc" }}
+{{ end }}
+
+{{ return $pages }}

@@ -1,0 +1,46 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/agata_krych/status/1025456984609501189",
+  "author": {
+    "type": "card",
+    "nickname": "agata_krych",
+    "location": "",
+    "bio": "Visual Designer in Protocol Labs",
+    "name": "Agata Krych",
+    "url": "https://twitter.com/agata_krych",
+    "photo": "https://pbs.twimg.com/profile_images/979060095093911552/lXkgcJTx_normal.jpg"
+  },
+  "content": {
+    "text": "I am proud of our team, everything looks soooooo damn good ;D"
+  },
+  "published": "2018-08-03T19:02:51.000Z",
+  "quotation-of": "https://twitter.com/pgte/status/1025426412642205697",
+  "refs": {
+    "https://twitter.com/pgte/status/1025426412642205697": {
+      "type": "entry",
+      "url": "https://twitter.com/pgte/status/1025426412642205697",
+      "author": {
+        "type": "card",
+        "nickname": "pgte",
+        "location": "Funchal, Portugal",
+        "bio": "Author of some open-source, the @nodetuts screencast show and the @nodepatterns book series. Founder of the @lxjs conference.",
+        "name": "Pedro Teixeira",
+        "url": "https://twitter.com/pgte",
+        "photo": "https://pbs.twimg.com/profile_images/1212072193959616512/jRHQM12l_normal.jpg"
+      },
+      "content": {
+        "text": "Juan is kicking off #LabDay in this beautiful venue! Congratulations @jesseclayburgh and team, the place looks amazing!",
+        "html": "Juan is kicking off #LabDay in this beautiful venue! Congratulations <a href=\"https://twitter.com/jesseclayburgh\">@jesseclayburgh</a> and team, the place looks amazing!"
+      },
+      "published": "2018-08-03T17:01:22+00:00",
+      "category": [
+        "LabDay"
+      ],
+      "photo": [
+        "https://pbs.twimg.com/media/DjsL0_3XsAAAwm2.jpg"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

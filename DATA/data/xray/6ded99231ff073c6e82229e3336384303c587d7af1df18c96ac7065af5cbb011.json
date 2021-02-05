@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/daviddias/status/1022824309537026048",
+  "author": {
+    "type": "card",
+    "nickname": "daviddias",
+    "location": "Portugal",
+    "bio": "#IPFS Core Dev. Peer-2-Peer Engineer and Researcher @protocollabs: @mineFilecoin @libp2p @ipld | P2P http://M.Sc. Lecturer at @istecnico. Made @lxjs & @startupscholars",
+    "name": "David Dias",
+    "url": "https://twitter.com/daviddias",
+    "photo": "https://pbs.twimg.com/profile_images/1171760461395779584/9thqWNW2_normal.jpg"
+  },
+  "content": {
+    "text": "js-libp2p just got its first _official_ release #libp2p #JS v0.23.0 🚀 \n\n✔ Test \n✔ Build dist version \n✔ Update Contributors list \n✔ v0.22.0 -> v0.23.0 \n✔ Gen Changelog \n✔ Publish to npm 🌟\n\nThis is a info release, check all the highlights here:\nhttps://github.com/libp2p/js-libp2p/issues/226",
+    "html": "js-libp2p just got its first _official_ release #libp2p #JS v0.23.0 🚀 <br>\n<br>\n✔ Test <br>\n✔ Build dist version <br>\n✔ Update Contributors list <br>\n✔ v0.22.0 -> v0.23.0 <br>\n✔ Gen Changelog <br>\n✔ Publish to npm 🌟<br>\n<br>\nThis is a info release, check all the highlights here:<br>\n<a href=\"https://github.com/libp2p/js-libp2p/issues/226\">https://github.com/libp2p/js-libp2p/issues/226</a>"
+  },
+  "published": "2018-07-27T12:41:33.000Z",
+  "category": [
+    "libp2p",
+    "JS"
+  ],
+  "post-type": "note"
+}

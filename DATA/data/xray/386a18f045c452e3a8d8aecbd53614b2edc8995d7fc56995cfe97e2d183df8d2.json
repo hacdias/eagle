@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2020-07-20T09:25:47.000Z",
+  "url": "https://hacdias.com/micro/2020/07/too-many-notes-apps/",
+  "category": [
+    "notes",
+    "apps"
+  ],
+  "content": {
+    "text": "Taking notes is a process… that’s true. Yesterday I found a post on HackerNews talking about how tired people are of new notes apps. I agree: there’s so many different note-taking apps that it becomes unbearable to find whatever fits you. I have a giang repository of markdown files with images and a lot of notes, all interconnected. And I still couldn’t find a good app for me. That’s why I’m considering building one simple system for myself, initially private to avoid possible noise, and then open source. My requirements for a system are these:Must-have:Self hosted and open source\nNotes stored in plain text files\nBacklinking feature\nSupports LaTeX math\nSupports Mermaid diagrams\nClean layout and possible to easily edit on mobile\nWeb editor (maybe WYSIWYG)\nSimple and humanly readble markup language (markdown or other)\nSearch\nGood to have:Full-text search\nMind map visualization\nPublic/private stuff\nDo you know any application that accomplishes all of this cumulatively? I liked this visually and there’s also this being built but I have no clue about when’s it going to be available or how the storage will work.If I would create this, it would be just yet another note-taking app, but with a small difference in mind: this would be directed to be self-hosted for just one person. No services, for myself, as I wanted it to work.",
+    "html": "<p>Taking notes is a process… that’s true. Yesterday I found a post on <a href=\"https://news.ycombinator.com/item?id=23888799\">HackerNews</a> talking about how tired people are of new notes apps. I agree: there’s so many different note-taking apps that it becomes unbearable to find whatever fits you. I have a giang repository of markdown files with images and a lot of notes, all interconnected. And I still couldn’t find a good app for me. That’s why I’m considering building one simple system for myself, initially private to avoid possible noise, and then open source. My requirements for a system are these:</p><p><strong>Must-have</strong>:</p><ul><li>Self hosted and open source</li>\n<li>Notes stored in plain text files</li>\n<li>Backlinking feature</li>\n<li>Supports LaTeX math</li>\n<li>Supports Mermaid diagrams</li>\n<li>Clean layout and possible to easily edit on mobile</li>\n<li>Web editor (maybe WYSIWYG)</li>\n<li>Simple and humanly readble markup language (markdown or other)</li>\n<li>Search</li>\n</ul><p><strong>Good to have</strong>:</p><ul><li>Full-text search</li>\n<li>Mind map visualization</li>\n<li>Public/private stuff</li>\n</ul><p>Do you know any application that accomplishes all of this cumulatively? I liked <a href=\"https://notes.andymatuschak.org/About_these_notes\">this</a> visually and there’s also <a href=\"https://github.com/athensresearch/athens\">this</a> being built but I have no clue about when’s it going to be available or how the storage will work.</p><p>If I would create this, it would be just yet another note-taking app, but with a small difference in mind: this would be directed to be self-hosted for just one person. No services, for myself, as I wanted it to work.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://hacdias.com/micro/2020/07/too-many-notes-apps/"
+  }
+}

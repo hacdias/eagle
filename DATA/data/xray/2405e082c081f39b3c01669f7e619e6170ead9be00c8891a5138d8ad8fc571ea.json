@@ -1,0 +1,17 @@
+{
+  "type": "entry",
+  "url": "https://hacdias.com/micro/2019/09/r18/",
+  "published": "2019-09-19T16:13:24.000Z",
+  "content": {
+    "text": "Yes! We went away from a costum UI on the menubar/tray app to a native menubar look + a window for Web UI to be shown. It feels much simpler now",
+    "html": "<p>Yes! We went away from a costum UI on the menubar/tray app to a native menubar look + a window for Web UI to be shown. It feels much simpler now</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": null,
+    "photo": "https://hacdias.com/me-256.jpg",
+    "nickname": "hacdias"
+  },
+  "post-type": "note"
+}

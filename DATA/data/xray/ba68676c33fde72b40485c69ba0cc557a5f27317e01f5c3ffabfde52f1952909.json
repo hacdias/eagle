@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1215325001294856192",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "San Francisco, CA",
+    "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "I want interop between both, and also the Android app. SSB spec seems a bit fluxy."
+  },
+  "published": "2020-01-09T17:30:34.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1215294494511452169"
+  ],
+  "post-type": "reply"
+}

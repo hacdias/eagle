@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "published": "2020-04-06T09:32:40.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/regex101/",
+  "category": [
+    "Programming"
+  ],
+  "in-reply-to": [
+    "https://beko.famkos.net/2020/04/06/82435/"
+  ],
+  "content": {
+    "text": "regex101.com is my favorite tool for testing and debugging regular expressions too. It can even generate code. 🤓 Very nice tool! 👍",
+    "html": "<p><a href=\"https://regex101.com/\">regex101.com</a> is my favorite tool for testing and debugging regular expressions too. It can even generate code. 🤓 Very nice tool! 👍</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/regex101/"
+  }
+}

@@ -1,0 +1,8 @@
+{{ $cat := .Get "category" }}
+{{ $blogs := index .Site.Data.blogroll $cat }}
+
+<ul>
+  {{ range $i, $blog := $blogs }}
+    <li><a target="_blank" rel="noopener noreferrer" href="{{ .site }}">{{ .title }}</a></li>
+  {{ end }}
+</ul>

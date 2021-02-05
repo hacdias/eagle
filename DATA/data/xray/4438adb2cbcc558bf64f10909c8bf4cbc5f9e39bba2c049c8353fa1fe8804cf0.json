@@ -1,0 +1,43 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/joaopedrotl/status/1242915085577838592",
+  "author": {
+    "type": "card",
+    "nickname": "JoaoPedroTL",
+    "location": "Portugal",
+    "bio": "'Jessica, only child, Illinois, Chicago'. \nPortista. Séries. Filmes. Ténis.\n📌 Porto",
+    "name": "João Pedro",
+    "url": "https://twitter.com/JoaoPedroTL",
+    "photo": "https://pbs.twimg.com/profile_images/1220113887695163393/7cNqRZlg_normal.jpg"
+  },
+  "content": {
+    "text": "Leiam e comecem a ver The Magicians."
+  },
+  "published": "2020-03-25T20:43:43.000Z",
+  "quotation-of": "https://twitter.com/OnePerfectShot/status/1242913147176005633",
+  "refs": {
+    "https://twitter.com/OnePerfectShot/status/1242913147176005633": {
+      "type": "entry",
+      "url": "https://twitter.com/OnePerfectShot/status/1242913147176005633",
+      "author": {
+        "type": "card",
+        "nickname": "OnePerfectShot",
+        "location": "Austin, TX",
+        "bio": "We love posting Shots, talking to Film Twitter, and telling stories about favorite movies and shows. It's that simple. Inquiries: hello@filmschoolrejects.com",
+        "name": "One Perfect Shot",
+        "url": "https://twitter.com/OnePerfectShot",
+        "photo": "https://pbs.twimg.com/profile_images/1057875437584445441/LUSyRlO7_normal.jpg"
+      },
+      "content": {
+        "text": "#TheMagicians spent five spellbinding seasons telling deeply human stories about deeply human characters that just so happen to live in a world that has magic. https://ops.fyi/2UgAQ3B",
+        "html": "#TheMagicians spent five spellbinding seasons telling deeply human stories about deeply human characters that just so happen to live in a world that has magic. <a href=\"https://ops.fyi/2UgAQ3B\">https://ops.fyi/2UgAQ3B</a>"
+      },
+      "published": "2020-03-25T20:36:01+00:00",
+      "category": [
+        "TheMagicians"
+      ],
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

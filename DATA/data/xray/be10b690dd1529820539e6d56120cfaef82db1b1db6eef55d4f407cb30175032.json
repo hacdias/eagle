@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/sh1bumi/status/1213895773970214912",
+  "author": {
+    "type": "card",
+    "nickname": "Sh1bumi",
+    "location": "Germany",
+    "bio": "Security Team Member and Trusted User @Archlinux. Mostly interested In DevOps, Site Reliability Engineering and Security. Tweets in DE and EN.",
+    "name": "shibumi",
+    "url": "https://twitter.com/Sh1bumi",
+    "photo": "https://pbs.twimg.com/profile_images/1110975065305370624/0rT49OWT_normal.png"
+  },
+  "content": {
+    "text": "Well, I am slightly impressed. I've been able to migrate my whole nginx configuration (80 lines) to just 20 lines of Caddy2 configuration.  Thanks a lot @caddyserver",
+    "html": "Well, I am slightly impressed. I've been able to migrate my whole nginx configuration (80 lines) to just 20 lines of Caddy2 configuration.  Thanks a lot <a href=\"https://twitter.com/caddyserver\">@caddyserver</a>"
+  },
+  "published": "2020-01-05T18:51:20.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/ENifxWZW4AAPIy0.png"
+  ],
+  "post-type": "photo"
+}

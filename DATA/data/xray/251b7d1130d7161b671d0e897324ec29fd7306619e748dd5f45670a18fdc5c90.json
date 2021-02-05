@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/1131145571408986112",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": "A wild and excitable JS #IPFS 0.36 just darted across the street and into the npm module store 🏇💨. It's got 🧬 Base32 encoded v1 CIDs, 👉 refs and refs local commands, 🗄 support for adding DOM File objects and loads more! https://github.com/ipfs/js-ipfs/issues/2024",
+    "html": "A wild and excitable JS #IPFS 0.36 just darted across the street and into the npm module store 🏇💨. It's got 🧬 Base32 encoded v1 CIDs, 👉 refs and refs local commands, 🗄 support for adding DOM File objects and loads more! <a href=\"https://github.com/ipfs/js-ipfs/issues/2024\">https://github.com/ipfs/js-ipfs/issues/2024</a>"
+  },
+  "published": "2019-05-22T10:31:34.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "post-type": "note"
+}

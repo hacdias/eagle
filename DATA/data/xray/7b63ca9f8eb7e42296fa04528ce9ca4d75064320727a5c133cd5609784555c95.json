@@ -1,0 +1,45 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/abiosoft/status/889110057673269248",
+  "author": {
+    "type": "card",
+    "nickname": "abiosoft",
+    "location": "Abuja, Nigeria",
+    "bio": "software craftsman, father & husband. helping businesses maximise their productivity @teamwork.",
+    "name": "Abíọ́lá إبراهيم 🇳🇬",
+    "url": "https://twitter.com/abiosoft",
+    "photo": "https://pbs.twimg.com/profile_images/982684777231847424/RB5m6pZ1_normal.jpg"
+  },
+  "content": {
+    "text": "Interesting how so much noise is made about iPhone's user experience and 99% of users can't find the features."
+  },
+  "published": "2017-07-23T13:08:51.000Z",
+  "quotation-of": "https://twitter.com/CNET/status/888790924641402880",
+  "refs": {
+    "https://twitter.com/CNET/status/888790924641402880": {
+      "type": "entry",
+      "url": "https://twitter.com/CNET/status/888790924641402880",
+      "author": {
+        "type": "card",
+        "nickname": "CNET",
+        "location": "San Francisco",
+        "bio": "CNET is the place to find out what's happening in tech and why it matters.",
+        "name": "CNET",
+        "url": "https://twitter.com/CNET",
+        "photo": "https://pbs.twimg.com/profile_images/1177662916901789696/ZYz9LBoo_normal.png"
+      },
+      "content": {
+        "text": "The secret to revealing your iPhone's hidden mouse cursor 🐭"
+      },
+      "published": "2017-07-22T16:00:44+00:00",
+      "photo": [
+        "https://pbs.twimg.com/amplify_video_thumb/888790759083720704/img/xplHMW0DXeKdyeqs.jpg"
+      ],
+      "video": [
+        "https://video.twimg.com/amplify_video/888790759083720704/vid/720x720/noEaMy81iRveacxG.mp4"
+      ],
+      "post-type": "video"
+    }
+  },
+  "post-type": "note"
+}

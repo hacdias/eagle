@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IPFSbot/status/1076260321373896704",
+  "author": {
+    "type": "card",
+    "nickname": "IPFSbot",
+    "location": "Earth",
+    "bio": "A peer-to-peer hypermedia protocol to make the web faster, safer, and more open.",
+    "name": "IPFS",
+    "url": "https://twitter.com/IPFSbot",
+    "photo": "https://pbs.twimg.com/profile_images/570059057197625344/h4Bvj_8p_normal.png"
+  },
+  "content": {
+    "text": "Happy Friday, would you like an upgraded IPFS desktop client? We're actively seeking feedback on this 0.6.0 pre-release! https://github.com/ipfs-shipyard/ipfs-desktop/releases/tag/v0.6.0",
+    "html": "Happy Friday, would you like an upgraded IPFS desktop client? We're actively seeking feedback on this 0.6.0 pre-release! <a href=\"https://github.com/ipfs-shipyard/ipfs-desktop/releases/tag/v0.6.0\">https://github.com/ipfs-shipyard/ipfs-desktop/releases/tag/v0.6.0</a>"
+  },
+  "published": "2018-12-21T23:37:11.000Z",
+  "post-type": "note"
+}

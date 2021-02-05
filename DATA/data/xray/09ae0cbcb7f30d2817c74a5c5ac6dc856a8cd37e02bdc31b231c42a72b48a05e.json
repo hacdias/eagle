@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/DanielHoffmann_/status/1091255668999446528",
+  "author": {
+    "type": "card",
+    "nickname": "DanielHoffmann_",
+    "location": "Stockholm, Sweden",
+    "bio": "Brazilian web developer living in Stockholm\nWorking at Sandvik SMS developing SaaS solutions for the Machining industry",
+    "name": "Daniel HB",
+    "url": "https://twitter.com/DanielHoffmann_",
+    "photo": "https://pbs.twimg.com/profile_images/973504818806427648/0UK_52BU_normal.jpg"
+  },
+  "content": {
+    "text": "they missed the opportunity of calling it `elf`, imagine saying \"Look at all these elfs in this code!\""
+  },
+  "published": "2019-02-01T08:43:20.000Z",
+  "in-reply-to": [
+    "https://twitter.com/mathias/status/1091186421971378176"
+  ],
+  "post-type": "reply"
+}

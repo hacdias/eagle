@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/achingbrain/status/1228297168093622272",
+  "author": {
+    "type": "card",
+    "nickname": "achingbrain",
+    "location": "London",
+    "bio": "Likes things that bring people together, dislikes things that drive people apart\n\nWorking on #IPFS and the distributed web",
+    "name": "Alex Potsides",
+    "url": "https://twitter.com/achingbrain",
+    "photo": "https://pbs.twimg.com/profile_images/517065414954979328/SZh_rfqR_normal.jpeg"
+  },
+  "content": {
+    "text": "Existential crisis"
+  },
+  "published": "2020-02-14T12:37:20.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EQvJw28W4AA-kez.jpg"
+  ],
+  "post-type": "photo"
+}

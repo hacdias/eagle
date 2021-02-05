@@ -1,0 +1,83 @@
+[
+  {
+    "type": "like",
+    "url": "https://jlelse.blog/micro/2020/03/lifethroughlenses/",
+    "date": "2020-03-23T13:46:08.000Z",
+    "wm-id": 774004,
+    "content": {
+      "html": "<p>I like to look at <a href=\"https://hacdias.com/notes/2020/03/21/lifethroughlenses/\">nice</a> <a href=\"https://hacdias.com/notes/2020/03/22/lifethroughlenses/\">photos</a>. And if the photographer publishes them on his own site (in <a href=\"https://indieweb.org/\">IndieWeb</a> style), I like it even more. I am looking forward to see more photos in your series “<a href=\"https://hacdias.com/tags/lifethroughlenses/\">#LifeThroughLenses</a>\", Henrique! 😍👍</p>",
+      "text": "I like to look at nice photos. And if the photographer publishes them on his own site (in IndieWeb style), I like it even more. I am looking forward to see more photos in your series “#LifeThroughLenses\", Henrique! 😍👍"
+    },
+    "author": {
+      "name": "Jan-Lukas Else",
+      "photo": "https://cdn.hacdias.com/webmentions/c524b32caba1aa95c59ae7ff81b417cd1b1cfb631833cb6a64583c69eb1b4d06.jpg",
+      "url": "https://jlelse.dev/"
+    }
+  },
+  {
+    "type": "reply",
+    "url": "https://webmention.rocks/receive/1",
+    "date": "2020-01-01T11:54:54.000Z",
+    "wm-id": 739562,
+    "content": {
+      "html": "<p>This test verifies that you accept a Webmention request that contains a valid source and target URL. To pass this test, your Webmention endpoint must return either HTTP 200, 201 or 202 along with the <a href=\"https://www.w3.org/TR/webmention/#receiving-webmentions\">appropriate headers</a>.</p>\n        <p>If your endpoint returns HTTP 201, then it MUST also return a <code>Location</code> header. If it returns HTTP 200 or 202, then it MUST NOT include a <code>Location</code> header.</p>",
+      "text": "This test verifies that you accept a Webmention request that contains a valid source and target URL. To pass this test, your Webmention endpoint must return either HTTP 200, 201 or 202 along with the appropriate headers.\n        If your endpoint returns HTTP 201, then it MUST also return a Location header. If it returns HTTP 200 or 202, then it MUST NOT include a Location header."
+    },
+    "author": {
+      "name": "Webmention Rocks!",
+      "photo": "https://cdn.hacdias.com/webmentions/753468e7a57e7c7bd962172c4b589c8121bb2f95bfa07d943dc550b6439ae2d0.png",
+      "url": ""
+    }
+  },
+  {
+    "type": "reply",
+    "url": "https://twitter.com/mholt6/status/1263598864600195072",
+    "date": "2020-05-21T22:33:40.000Z",
+    "wm-id": 800118,
+    "content": {
+      "html": "Very nice!\n<a class=\"u-mention\" href=\"https://hacdias.com/\"></a>\n<a class=\"u-mention\" href=\"https://twitter.com/hacdias\"></a>",
+      "text": "Very nice!"
+    },
+    "author": {
+      "name": "🏡 Matt Holt @ home",
+      "photo": "https://cdn.hacdias.com/webmentions/cfa6946f2368cd64f4118f6dcbe7f06c1fd5ae4ecad57bc14a98df1d46b3ede5.jpg",
+      "url": "https://twitter.com/mholt6"
+    }
+  },
+  {
+    "type": "like",
+    "url": "https://twitter.com/hacdias/status/1308666709239377920#favorited-by-1028353082206367744",
+    "date": "2020-09-23T09:04:45.000Z",
+    "wm-id": 854971,
+    "author": {
+      "name": "Malik",
+      "photo": "https://cdn.hacdias.com/webmentions/fe9282b6657255201309c7fc06115ebf64a3cb514d077f8d673c56a827b6161a.jpg",
+      "url": "https://twitter.com/likpiara"
+    }
+  },
+  {
+    "type": "repost",
+    "url": "https://twitter.com/likpiara/status/1308692394670465027",
+    "date": "2020-09-23T08:59:15.000Z",
+    "wm-id": 854974,
+    "content": {
+      "text": "I'm soon starting a weekly newsletter on Mondays. Are you interested? Come on board!\n\nhacdias.com/#-newsletter"
+    },
+    "author": {
+      "name": "Malik",
+      "photo": "https://cdn.hacdias.com/webmentions/fe9282b6657255201309c7fc06115ebf64a3cb514d077f8d673c56a827b6161a.jpg",
+      "url": "https://twitter.com/likpiara"
+    }
+  },
+  {
+    "type": "like",
+    "url": "https://twitter.com/hacdias/status/1308666709239377920#favorited-by-952396703147200513",
+    "date": "2020-09-23T21:50:29.000Z",
+    "wm-id": 855181,
+    "author": {
+      "name": "Ulisses Ferreira",
+      "photo": "https://cdn.hacdias.com/webmentions/85496c49a65f64cf5e29e2a7ea1f56eee7a95a76144be3dbaa556ca0560128fc.jpg",
+      "url": "https://twitter.com/ulissesvf"
+    }
+  }
+]

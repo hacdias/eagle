@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/newscientist/status/1210915046492196865",
+  "author": {
+    "type": "card",
+    "nickname": "newscientist",
+    "location": "Worldwide",
+    "bio": "The best place to find out what’s new in science – and why it matters. Tweets by @SamWong1. Subscribe here: http://bit.ly/2IcXlBM",
+    "name": "New Scientist",
+    "url": "https://twitter.com/newscientist",
+    "photo": "https://pbs.twimg.com/profile_images/960860144329469953/Tc-GOIGJ_normal.jpg"
+  },
+  "content": {
+    "text": "Martin Rees: We will become a new species by expanding beyond Earth http://bit.ly/2PGdNgt",
+    "html": "Martin Rees: We will become a new species by expanding beyond Earth <a href=\"http://bit.ly/2PGdNgt\">http://bit.ly/2PGdNgt</a>"
+  },
+  "published": "2019-12-28T13:26:59.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EM4I0RgX0AApqRc.jpg"
+  ],
+  "post-type": "photo"
+}

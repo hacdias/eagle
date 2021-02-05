@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2020-01-19T12:53:00.000Z",
+  "url": "https://jlelse.blog/thoughts/2020/01/optimizing-software/",
+  "category": [
+    "time",
+    "software",
+    "thoughts"
+  ],
+  "like-of": [
+    "https://hacdias.com/2020/01/19/1/"
+  ],
+  "name": "Optimizing software",
+  "content": {
+    "text": "After talking to @jlelse, I finally decided not to trouble myself with writing my own static website generator and just improve what I have right now.Optimizing software to run faster is a good thing in itself. If you have to wait less for the software to run, you have more time for other things. But if you invest hours or days to save a few seconds in the end, then I question if this is a good idea. Wouldn’t it be better to start where minutes or even hours are regularly wasted?When I invest time in my own software projects, I use most of it to create new features that allow me to do new things. This morning, I invested a few hours in a feature that allows me to create posts with photos on my blog via an app from my smartphone.But what I haven’t done yet, and what I will do only when there is a more important reason to do so, is rewriting the software, which allows me to receive HTML forms via email, from NodeJS to Go.",
+    "html": "<blockquote><p>After talking to @jlelse, I finally decided not to trouble myself with writing my own static website generator and just improve what I have right now.</p></blockquote><p>Optimizing software to run faster is a good thing in itself. If you have to wait less for the software to run, you have more time for other things. But if you invest hours or days to save a few seconds in the end, then I question if this is a good idea. Wouldn’t it be better to start where minutes or even hours are regularly wasted?</p><p>When I invest time in my own software projects, I use most of it to create new features that allow me to do new things. This morning, I invested a few hours in a feature that allows me to create posts with photos on my blog via an app from my smartphone.</p><p>But what I haven’t done yet, and what I will do only when there is a more important reason to do so, is rewriting the software, <a href=\"https://github.com/maily-form/Maily-Form\">which allows me to receive HTML forms via email</a>, from NodeJS to Go.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "like",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/01/optimizing-software/"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/momack28/status/1174789513731698689",
+  "author": {
+    "type": "card",
+    "nickname": "momack28",
+    "location": "",
+    "bio": "@IPFSbot Project Lead and PM @ProtocolLabs. Building #Web3 to be #p2p & #OfflineFirst. Former (A)PM @Google on #GoogleSearch, #GoogleClassroom, #GoogleForms.",
+    "name": "Molly",
+    "url": "https://twitter.com/momack28",
+    "photo": "https://pbs.twimg.com/profile_images/1051243625022152704/5PMaGVsr_normal.jpg"
+  },
+  "content": {
+    "text": "Want a lightweight way to power all your ipfs website browsing (AND manage your pins on ipfs?) check out ipfs-desktop which is looking GREAT after all @hacdias‘s hard work! Used in conjunction with the ipfs-companion extension it’s 👌",
+    "html": "Want a lightweight way to power all your ipfs website browsing (AND manage your pins on ipfs?) check out ipfs-desktop which is looking GREAT after all <a href=\"https://twitter.com/hacdias\">@hacdias</a>‘s hard work! Used in conjunction with the ipfs-companion extension it’s 👌"
+  },
+  "published": "2019-09-19T20:57:01.000Z",
+  "quotation-of": "https://twitter.com/hacdias/status/1174710214077112325",
+  "refs": {
+    "https://twitter.com/hacdias/status/1174710214077112325": {
+      "type": "entry",
+      "url": "https://twitter.com/hacdias/status/1174710214077112325",
+      "author": {
+        "type": "card",
+        "nickname": "hacdias",
+        "location": "Portugal",
+        "bio": "Studying Computer Engineering at @istecnico. Digging into the decentralized web at @ProtocolLabs. #opensource advocate.",
+        "name": "Henrique Dias",
+        "url": "https://twitter.com/hacdias",
+        "photo": "https://pbs.twimg.com/profile_images/1133325379970711552/nA18D3Fg_normal.jpg"
+      },
+      "content": {
+        "text": "Here's a blog post telling you everything about what's new on IPFS Desktop 0.9! Have any ideas for the future of it? We're open to any feedback! @IPFSbot https://blog.ipfs.io/2019-09-19-ipfs-desktop-0-9/",
+        "html": "Here's a blog post telling you everything about what's new on IPFS Desktop 0.9! Have any ideas for the future of it? We're open to any feedback! <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a> <a href=\"https://blog.ipfs.io/2019-09-19-ipfs-desktop-0-9/\">https://blog.ipfs.io/2019-09-19-ipfs-desktop-0-9/</a>"
+      },
+      "published": "2019-09-19T15:41:54+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

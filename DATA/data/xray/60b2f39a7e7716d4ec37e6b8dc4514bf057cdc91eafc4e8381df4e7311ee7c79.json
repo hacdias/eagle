@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2020-04-02T11:01:19.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/new-wifi-card/",
+  "category": [
+    "Desktop",
+    "Hardware"
+  ],
+  "content": {
+    "text": "I just upgraded my PC with a WiFi M.2 card with an Intel AX200 chipset (and two antennas), which supports Wi-Fi 6 and Bluetooth 5. No more adapters for Bluetooth! Now I’m just waiting for my “Microsoft Designer Bluetooth Desktop” mouse and keyboard and I have a few cables less on my desktop. 😄",
+    "html": "<p>I just upgraded <a href=\"https://jlelse.blog/posts/new-amd-pc/\">my PC</a> with <a href=\"https://www.amazon.de/gp/product/B07VL55BNT/\">a WiFi M.2 card with an Intel AX200 chipset</a> (and <a href=\"https://www.amazon.de/gp/product/B07PG8RWDQ/\">two antennas</a>), which supports Wi-Fi 6 and Bluetooth 5. No more adapters for Bluetooth! Now I’m just waiting for my “Microsoft Designer Bluetooth Desktop” mouse and keyboard and I have a few cables less on my desktop. 😄</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/new-wifi-card/"
+  }
+}

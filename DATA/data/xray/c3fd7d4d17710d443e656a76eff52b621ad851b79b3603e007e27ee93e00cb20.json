@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1177149574714134528",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "San Francisco, CA",
+    "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "\"We made adding and getting files in IPFS in the browser almost 50% faster!\"\n\n\"Are you sure?\"",
+    "html": "\"We made adding and getting files in IPFS in the browser almost 50% faster!\"<br>\n<br>\n\"Are you sure?\""
+  },
+  "published": "2019-09-26T09:15:03.000Z",
+  "photo": [
+    "https://pbs.twimg.com/tweet_video_thumb/EFYSxV3XUAE1M1P.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/tweet_video/EFYSxV3XUAE1M1P.mp4"
+  ],
+  "post-type": "video"
+}

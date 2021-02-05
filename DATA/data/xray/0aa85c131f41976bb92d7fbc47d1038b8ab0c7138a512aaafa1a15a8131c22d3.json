@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/TrailMarks/status/1174776551818313728",
+  "author": {
+    "type": "card",
+    "nickname": "TrailMarks",
+    "location": "Hathersage, England",
+    "bio": "Weaving a Decentralized Semantic Web of (Personal) Knowledge",
+    "name": "Trail Marks",
+    "url": "https://twitter.com/TrailMarks",
+    "photo": "https://pbs.twimg.com/profile_images/805882344766865408/DHg76fTh_normal.jpg"
+  },
+  "content": {
+    "text": "I am downloading it from https://github.com/ipfs-shipyard/ipfs-desktop/releases/tag/v0.9.2\nIt stills says 52 mins to go\nPerhaps it would be better on IPFS?",
+    "html": "I am downloading it from <a href=\"https://github.com/ipfs-shipyard/ipfs-desktop/releases/tag/v0.9.2\">https://github.com/ipfs-shipyard/ipfs-desktop/releases/tag/v0.9.2</a><br>\nIt stills says 52 mins to go<br>\nPerhaps it would be better on IPFS?"
+  },
+  "published": "2019-09-19T20:05:30.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1174710214077112325"
+  ],
+  "post-type": "reply"
+}

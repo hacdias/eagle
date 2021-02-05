@@ -1,0 +1,40 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/caddyserver/status/900426870520291328",
+  "author": {
+    "type": "card",
+    "nickname": "caddyserver",
+    "location": "User Space",
+    "bio": "Serving your sites over HTTPS+HTTP/2 automatically. On a mission to put every site on HTTPS! Visit our forum for help: http://caddy.community",
+    "name": "Caddy Web Server",
+    "url": "https://twitter.com/caddyserver",
+    "photo": "https://pbs.twimg.com/profile_images/855149118049497090/Kh8BmlCZ_normal.jpg"
+  },
+  "content": {
+    "text": "What are you all doing 😱"
+  },
+  "published": "2017-08-23T18:37:49.000Z",
+  "quotation-of": "https://twitter.com/bagder/status/900250166829228033",
+  "refs": {
+    "https://twitter.com/bagder/status/900250166829228033": {
+      "type": "entry",
+      "url": "https://twitter.com/bagder/status/900250166829228033",
+      "author": {
+        "type": "card",
+        "nickname": "bagder",
+        "location": "Stockholm Sweden",
+        "bio": "Internet protocol geek. I write curl. I play with HTTP and QUIC within IETF. On team @wolfSSL. HTTP/3 is coming. I don't know anything.",
+        "name": "Daniel Stenberg",
+        "url": "https://twitter.com/bagder",
+        "photo": "https://pbs.twimg.com/profile_images/680754292500860929/k1dDFfEl_normal.jpg"
+      },
+      "content": {
+        "text": "\"curl --insecure\" (switches off SSL certificate verification) is found 117,000 times in github hosted code: https://github.com/search?q=curl+--insecure&type=Code&utf8=%E2%9C%93",
+        "html": "\"curl --insecure\" (switches off SSL certificate verification) is found 117,000 times in github hosted code: <a href=\"https://github.com/search?q=curl+--insecure&type=Code&utf8=%E2%9C%93\">https://github.com/search?q=curl+--insecure&type=Code&utf8=%E2%9C%93</a>"
+      },
+      "published": "2017-08-23T06:55:40+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

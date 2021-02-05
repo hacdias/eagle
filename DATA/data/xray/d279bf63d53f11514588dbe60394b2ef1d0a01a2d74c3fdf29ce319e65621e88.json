@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/golang/status/956640171050586113",
+  "author": {
+    "type": "card",
+    "nickname": "golang",
+    "location": "",
+    "bio": "Go will make you love programming again. We promise.",
+    "name": "Go",
+    "url": "https://twitter.com/golang",
+    "photo": "https://pbs.twimg.com/profile_images/1142154201444823041/O6AczwfV_normal.png"
+  },
+  "content": {
+    "text": "🎉 Go 1.10 RC1 is released!\n\n🏃‍♀️ Run it in dev. Run it in prod. File bugs.\n\n🗣 Announcement: https://groups.google.com/d/msg/golang-nuts/XlnXSk1r6Sw/5Q6UlVrZCAAJ\n\n#golang",
+    "html": "🎉 Go 1.10 RC1 is released!<br>\n<br>\n🏃‍♀️ Run it in dev. Run it in prod. File bugs.<br>\n<br>\n🗣 Announcement: <a href=\"https://groups.google.com/d/msg/golang-nuts/XlnXSk1r6Sw/5Q6UlVrZCAAJ\">https://groups.google.com/d/msg/golang-nuts/XlnXSk1r6Sw/5Q6UlVrZCAAJ</a><br>\n<br>\n#golang"
+  },
+  "published": "2018-01-25T21:29:24.000Z",
+  "category": [
+    "golang"
+  ],
+  "post-type": "note"
+}

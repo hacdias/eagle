@@ -1,0 +1,26 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/BarcampLx/status/1195408705862406144",
+  "author": {
+    "type": "card",
+    "nickname": "BarcampLx",
+    "location": "Lisboa, Portugal",
+    "bio": "Talk tech and chill in Lisbon. Join our Barcamp for varying short tech presentations. Want to speak? Show up and tell us about it! Stage's open!",
+    "name": "BarcampLx",
+    "url": "https://twitter.com/BarcampLx",
+    "photo": "https://pbs.twimg.com/profile_images/976262599879942151/N_95kKKh_normal.jpg"
+  },
+  "content": {
+    "text": "Who? @hacdias \nWhat? A quick dive into the dWeb with IPFS\nWhen? 30th of November\nWhere? @IDEIAhub\n\nSign up now, it's free! 👉 https://meetup.com/BarcampLx/events/265593046/ \n\n#BarcampLx #Meetup @YLDio @diconium",
+    "html": "Who? <a href=\"https://twitter.com/hacdias\">@hacdias</a> <br>\nWhat? A quick dive into the dWeb with IPFS<br>\nWhen? 30th of November<br>\nWhere? <a href=\"https://twitter.com/IDEIAhub\">@IDEIAhub</a><br>\n<br>\nSign up now, it's free! 👉 <a href=\"https://meetup.com/BarcampLx/events/265593046/\">https://meetup.com/BarcampLx/events/265593046/</a> <br>\n<br>\n#BarcampLx #Meetup <a href=\"https://twitter.com/YLDio\">@YLDio</a> <a href=\"https://twitter.com/diconium\">@diconium</a>"
+  },
+  "published": "2019-11-15T18:30:19.000Z",
+  "category": [
+    "BarcampLx",
+    "Meetup"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/EJbx4I8XYAA2lhb.jpg"
+  ],
+  "post-type": "photo"
+}

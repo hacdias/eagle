@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/w3c/status/1179909748147343361",
+  "author": {
+    "type": "card",
+    "nickname": "w3c",
+    "location": "MIT | ERCIM | Keio | Beihang",
+    "bio": "The World Wide Web Consortium (W3C) develops interoperable technologies (specifications, guidelines, software, and tools) to lead the Web to its full potential.",
+    "name": "W3C",
+    "url": "https://twitter.com/w3c",
+    "photo": "https://pbs.twimg.com/profile_images/1069553420854591489/stZUQMcC_normal.jpg"
+  },
+  "content": {
+    "text": "Did you know? \n# of Web Servers\n1991: 1\n1992: 10\n1993: 50\n1994: 623\n1995: 10,022\n1996: 100,000\n1997: 603,367\n1998: ~1.6 million\n1999: ~3.7 million\n2000: ~9.5 million\n2001: ~26 million\n2002: ~36 million\n2003: ~35 million\n2004: more than ~46 million\n\n2019: more than 1,717,077,725",
+    "html": "Did you know? <br>\n# of Web Servers<br>\n1991: 1<br>\n1992: 10<br>\n1993: 50<br>\n1994: 623<br>\n1995: 10,022<br>\n1996: 100,000<br>\n1997: 603,367<br>\n1998: ~1.6 million<br>\n1999: ~3.7 million<br>\n2000: ~9.5 million<br>\n2001: ~26 million<br>\n2002: ~36 million<br>\n2003: ~35 million<br>\n2004: more than ~46 million<br>\n<br>\n2019: more than 1,717,077,725"
+  },
+  "published": "2019-10-04T00:03:00.000Z",
+  "post-type": "note"
+}

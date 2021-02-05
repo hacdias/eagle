@@ -1,0 +1,45 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/abredabread/status/1222252719689338880",
+  "author": {
+    "type": "card",
+    "nickname": "abredabread",
+    "location": "",
+    "bio": "Uncaught TypeError: Cannot read property 'description' of undefined",
+    "name": "André Breda 🍞",
+    "url": "https://twitter.com/abredabread",
+    "photo": "https://pbs.twimg.com/profile_images/1200786166934638604/gIB1iB7t_normal.jpg"
+  },
+  "content": {
+    "text": "FINALMENTE"
+  },
+  "published": "2020-01-28T20:18:51.000Z",
+  "quotation-of": "https://twitter.com/jfelixcardoso/status/1222082554922225664",
+  "refs": {
+    "https://twitter.com/jfelixcardoso/status/1222082554922225664": {
+      "type": "entry",
+      "url": "https://twitter.com/jfelixcardoso/status/1222082554922225664",
+      "author": {
+        "type": "card",
+        "nickname": "jfelixcardoso",
+        "location": "European from Portugal",
+        "bio": "@cafeeuropaobs | EU affairs consultant | MP, Health Parliament Portugal | MA in Political Philosophy | @forumdiplosaude | Health, tech and politics, pref. mixed",
+        "name": "Jorge Félix Cardoso",
+        "url": "https://twitter.com/jfelixcardoso",
+        "photo": "https://pbs.twimg.com/profile_images/1204508364446846976/924uVFDe_normal.jpg"
+      },
+      "content": {
+        "text": "A Comissão Europeia está a estudar acabar com as moedas de 1 e 2 cêntimos e todos os preços serem arredondados para o múltiplo de 5 cêntimos mais próximo"
+      },
+      "published": "2020-01-28T09:02:40+00:00",
+      "photo": [
+        "https://pbs.twimg.com/tweet_video_thumb/EPW1mdZWAAEN9vH.jpg"
+      ],
+      "video": [
+        "https://video.twimg.com/tweet_video/EPW1mdZWAAEN9vH.mp4"
+      ],
+      "post-type": "video"
+    }
+  },
+  "post-type": "note"
+}

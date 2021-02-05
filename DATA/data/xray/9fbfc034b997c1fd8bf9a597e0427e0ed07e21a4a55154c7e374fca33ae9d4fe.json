@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "published": "2020-04-25T10:34:03.000Z",
+  "url": "https://jlelse.blog/micro/2020/04/blog-microservices/",
+  "content": {
+    "text": "While in the beginning I integrated almost everything directly into my hugo-micropub tool, I now build separate tools for new features that can be used independently (like this one or this). Most of them simply use the JSON Feed as a kind of API to get information about published articles. Not real microservices, but it goes in that direction.",
+    "html": "<p>While in the beginning I integrated almost everything directly into my <a href=\"https://jlel.se/hugomp\">hugo-micropub</a> tool, I now build separate tools for new features that can be used independently (<a href=\"https://jlel.se/wmhelper\">like this one</a> or <a href=\"https://jlel.se/jftg\">this</a>). Most of them simply use the JSON Feed as a kind of API to get information about published articles. Not real microservices, but it goes in that direction.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/04/blog-microservices/"
+  }
+}

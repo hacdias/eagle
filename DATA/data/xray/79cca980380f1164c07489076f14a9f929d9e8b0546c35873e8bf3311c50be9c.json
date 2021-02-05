@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/mholt6/status/1252071777829679105",
+  "author": {
+    "type": "card",
+    "nickname": "mholt6",
+    "location": "USA",
+    "bio": "M.S. CompSci. @caddyserver & @relicabackup. Imperfect member of the restored Church of Jesus Christ. Downvoted for opinions. Comes in second place, every time.",
+    "name": "🏡 Matt Holt @ home",
+    "url": "https://twitter.com/mholt6",
+    "photo": "https://pbs.twimg.com/profile_images/1220393540364013569/tMngABRf_normal.jpg"
+  },
+  "content": {
+    "text": "#golang top tip: Want to quickly see what in the world is calling that function??\n\nlog.Println(string(debug.Stack()))",
+    "html": "#golang top tip: Want to quickly see what in the world is calling that function??<br>\n<br>\nlog.Println(string(debug.Stack()))"
+  },
+  "published": "2020-04-20T03:09:08.000Z",
+  "category": [
+    "golang"
+  ],
+  "post-type": "note"
+}

@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/darylginn/status/1053646859686809600",
+  "author": {
+    "type": "card",
+    "nickname": "darylginn",
+    "location": "UK",
+    "bio": "Designer and developer of sorts.",
+    "name": "10x designer",
+    "url": "https://twitter.com/darylginn",
+    "photo": "https://pbs.twimg.com/profile_images/1107099224699740160/hvMb9LQF_normal.jpg"
+  },
+  "content": {
+    "text": "Every website in 2018"
+  },
+  "published": "2018-10-20T13:59:21.000Z",
+  "photo": [
+    "https://pbs.twimg.com/ext_tw_video_thumb/1053646784864702464/pu/img/C1N39ozx5ATQXqH3.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/ext_tw_video/1053646784864702464/pu/vid/960x720/RrBNECefhNvm3u9j.mp4?tag=5"
+  ],
+  "post-type": "video"
+}

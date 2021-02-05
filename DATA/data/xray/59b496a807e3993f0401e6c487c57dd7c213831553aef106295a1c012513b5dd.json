@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/BarcampLx/status/1200837433178427393",
+  "author": {
+    "type": "card",
+    "nickname": "BarcampLx",
+    "location": "Lisboa, Portugal",
+    "bio": "Talk tech and chill in Lisbon. Join our Barcamp for varying short tech presentations. Want to speak? Show up and tell us about it! Stage's open!",
+    "name": "BarcampLx",
+    "url": "https://twitter.com/BarcampLx",
+    "photo": "https://pbs.twimg.com/profile_images/976262599879942151/N_95kKKh_normal.jpg"
+  },
+  "content": {
+    "text": "#decentralized #web? Let's dive into it with @hacdias 🏊‍♂️ #BarcampLx #meetup",
+    "html": "#decentralized #web? Let's dive into it with <a href=\"https://twitter.com/hacdias\">@hacdias</a> 🏊‍♂️ #BarcampLx #meetup"
+  },
+  "published": "2019-11-30T18:02:09.000Z",
+  "category": [
+    "decentralized",
+    "web",
+    "BarcampLx",
+    "meetup"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/EKo7RePX0AEGGca.jpg"
+  ],
+  "post-type": "photo"
+}

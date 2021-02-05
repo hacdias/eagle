@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/agentofuser/status/1158889352954621953",
+  "author": {
+    "type": "card",
+    "nickname": "agentofuser",
+    "location": "UTC-4",
+    "bio": "Maximum Human Output Bandwidth",
+    "name": "Helder S Ribeiro",
+    "url": "https://twitter.com/agentofuser",
+    "photo": "https://pbs.twimg.com/profile_images/1191307027475312642/cUn9GcPn_normal.jpg"
+  },
+  "content": {
+    "text": "It's graduation time for ipfs-deploy 🎓🎉\n\n3 months after releasing my first npm package, it has gone farther than I'd ever expect:\n\n- 🏆 Show HN stayed on front page for 15h and peaked at #5\n- ⭐ 493 github stars\n- ☁️ Recommended by Cloudflare's official docs\n\nLast & best tho⋮",
+    "html": "It's graduation time for ipfs-deploy 🎓🎉<br>\n<br>\n3 months after releasing my first npm package, it has gone farther than I'd ever expect:<br>\n<br>\n- 🏆 Show HN stayed on front page for 15h and peaked at #5<br>\n- ⭐ 493 github stars<br>\n- ☁️ Recommended by Cloudflare's official docs<br>\n<br>\nLast & best tho⋮"
+  },
+  "published": "2019-08-06T23:55:27.000Z",
+  "post-type": "note"
+}

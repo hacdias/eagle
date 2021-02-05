@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IDavim/status/891353335260905472",
+  "author": {
+    "type": "card",
+    "nickname": "IDavim",
+    "location": "Lisbon",
+    "bio": "I'm a specialist in stuff. Mining engineer on stand-by | Training specialist @pipedrive | Chief Super Mom @HackerSchoolIST",
+    "name": "Inês Davim",
+    "url": "https://twitter.com/IDavim",
+    "photo": "https://pbs.twimg.com/profile_images/785535093293084672/K1ySZZF6_normal.jpg"
+  },
+  "content": {
+    "text": "I'd say @ETH_en is one of the best schools you can find",
+    "html": "I'd say <a href=\"https://twitter.com/ETH_en\">@ETH_en</a> is one of the best schools you can find"
+  },
+  "published": "2017-07-29T17:42:50.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/891347897698136064"
+  ],
+  "post-type": "reply"
+}

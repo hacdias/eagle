@@ -1,0 +1,23 @@
+{
+  "type": "entry",
+  "published": "2020-01-29T11:21:00.000Z",
+  "url": "https://jlelse.blog/micro/2020/01/fachinformatiker/",
+  "category": [
+    "Personal",
+    "Career"
+  ],
+  "content": {
+    "text": "I just want to briefly announce on my blog that I have successfully completed the apprenticeship part of my dual study and can now call myself “Fachinformatiker für Anwendungsentwicklung” (IT specialist for application development)!",
+    "html": "<p>I just want to briefly announce on my blog that I have successfully completed the apprenticeship part of my dual study and can now call myself “Fachinformatiker für Anwendungsentwicklung” (IT specialist for application development)!</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/01/fachinformatiker/"
+  }
+}

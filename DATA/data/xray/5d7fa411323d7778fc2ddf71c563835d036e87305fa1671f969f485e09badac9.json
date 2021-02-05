@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-01-31T20:51:00.000Z",
+  "url": "https://jlelse.blog/micro/2020/01/2020-01-31-hqryk/",
+  "category": [
+    "Pizza"
+  ],
+  "content": {
+    "text": "We needed to wait an hour, but this pizza was delicious 👌🍕",
+    "html": "<p>We needed to wait an hour, but this pizza was delicious 👌🍕</p><p></p><img src=\"https://media.jlelse.blog/859cc09c411061c76e17b5eb8680e779f9a35bbcd1abcf75a6fce582d44d931a.jpg\" alt=\"\" />"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/01/2020-01-31-hqryk/"
+  }
+}

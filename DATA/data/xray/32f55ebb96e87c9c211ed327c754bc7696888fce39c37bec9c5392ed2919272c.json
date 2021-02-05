@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Lilobase/status/952504781515509761",
+  "author": {
+    "type": "card",
+    "nickname": "Lilobase",
+    "location": "Bordeaux, Aquitaine",
+    "bio": "Software Craftsman, XP practitioner, DDD lover, Code designer, Software developer, Speaker & Mentor. Currently at @LGOGroup_ (my tweets are my own)",
+    "name": "Arnaud LEMAIRE",
+    "url": "https://twitter.com/Lilobase",
+    "photo": "https://pbs.twimg.com/profile_images/462286295687901185/T3cBjRVK_normal.jpeg"
+  },
+  "content": {
+    "text": "When part of your code doesn’t have tests\n\nhttps://t.co/M23wnlLb7s",
+    "html": "When part of your code doesn’t have tests<br>\n<br>\nhttps://t.co/M23wnlLb7s"
+  },
+  "published": "2018-01-14T11:36:51.000Z",
+  "photo": [
+    "https://pbs.twimg.com/tweet_video_thumb/DS7UiLbX4AAYvFO.jpg"
+  ],
+  "video": [
+    "https://video.twimg.com/tweet_video/DS7UiLbX4AAYvFO.mp4"
+  ],
+  "post-type": "video"
+}

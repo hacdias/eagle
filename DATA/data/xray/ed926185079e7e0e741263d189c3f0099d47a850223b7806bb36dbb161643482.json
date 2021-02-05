@@ -1,0 +1,17 @@
+{
+  "type": "entry",
+  "url": "https://commentpara.de/comment/558.htm",
+  "in-reply-to": [
+    "https://hacdias.com/notes/2020/04/08/1/pixelart/"
+  ],
+  "content": {
+    "text": "olá :like:"
+  },
+  "author": {
+    "type": "card",
+    "name": "Anonymous",
+    "url": false,
+    "photo": "https://commentpara.de/img/anonymous.svg"
+  },
+  "post-type": "reply"
+}

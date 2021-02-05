@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "published": "2019-09-19T16:13:24.000Z",
+  "url": "https://hacdias.com/2019/09/19/23/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/1174718142087667714"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/machawk1/status/1174716220773257222"
+  ],
+  "content": {
+    "text": "Yes! We went away from a costum UI on the menubar/tray app to a native menubar look + a window for Web UI to be shown. It feels much simpler now",
+    "html": "<p>Yes! We went away from a costum UI on the menubar/tray app to a native menubar look + a window for Web UI to be shown. It feels much simpler now</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://twitter.com/machawk1/status/1174716220773257222": {
+      "type": "entry",
+      "url": "https://twitter.com/machawk1/status/1174716220773257222",
+      "content": {
+        "text": "Time to try @IPFSbot Desktop again, as it's been since the \"Station\" naming that I've given it a spin. Glad to see the move away from the UI with breathable whitespace to a more native UI approach, at least in the Finder/Explorer."
+      },
+      "author": {
+        "type": "card",
+        "name": "Mat Kelly",
+        "url": "https://twitter.com/machawk1",
+        "photo": null
+      },
+      "post-type": "note"
+    }
+  },
+  "rels": {
+    "canonical": "https://hacdias.com/2019/09/19/23/"
+  }
+}

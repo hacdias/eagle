@@ -1,0 +1,18 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/iamdevloper/status/1078774188868071424",
+  "author": {
+    "type": "card",
+    "nickname": "iamdevloper",
+    "location": "Localhost",
+    "bio": "just your friendly neighbourhood printer fixer\n\n💰 in tweet = ad",
+    "name": "I Am Devloper",
+    "url": "https://twitter.com/iamdevloper",
+    "photo": "https://pbs.twimg.com/profile_images/1178631635606151168/yIlrcg4o_normal.jpg"
+  },
+  "content": {
+    "text": "Programming is like a CHOOSE YOUR OWN ADVENTURE GAME except every path leads to you lying in bed at 2am thinking about a bug you couldn’t fix that day."
+  },
+  "published": "2018-12-28T22:06:23.000Z",
+  "post-type": "note"
+}

@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/samantha_ming/status/964977650375696384",
+  "author": {
+    "type": "card",
+    "nickname": "samantha_ming",
+    "location": "Canada",
+    "bio": "⭐️New JS, HTML, CSS tidbit Every Week ⭐️ · 👩🏻‍💻 Frontend Engineer @gitlab · @GoogleDevExpert · http://Instagram.com/samanthaming · 🚀 Check out my NEW site!",
+    "name": "Samantha Ming",
+    "url": "https://twitter.com/samantha_ming",
+    "photo": "https://pbs.twimg.com/profile_images/1049185001877565443/LkA_I5cs_normal.jpg"
+  },
+  "content": {
+    "text": "Arrow functions are terrific, but not suitable for all situations. Avoid them in objects because 'this' is always scoped to the parent -- which is the 'window' in this case. 👩‍💻 Just a few things I'm learning from @wesbos ES6 course YAY 💪",
+    "html": "Arrow functions are terrific, but not suitable for all situations. Avoid them in objects because 'this' is always scoped to the parent -- which is the 'window' in this case. 👩‍💻 Just a few things I'm learning from <a href=\"https://twitter.com/wesbos\">@wesbos</a> ES6 course YAY 💪"
+  },
+  "published": "2018-02-17T21:39:34.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/DWRKAa2VoAAswCj.png"
+  ],
+  "post-type": "photo"
+}

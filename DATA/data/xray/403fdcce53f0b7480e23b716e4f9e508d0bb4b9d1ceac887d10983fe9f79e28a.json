@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/iamdevloper/status/1244603784657014784",
+  "author": {
+    "type": "card",
+    "nickname": "iamdevloper",
+    "location": "Localhost",
+    "bio": "just your friendly neighbourhood printer fixer\n\n💰 in tweet = ad",
+    "name": "I Am Devloper",
+    "url": "https://twitter.com/iamdevloper",
+    "photo": "https://pbs.twimg.com/profile_images/1178631635606151168/yIlrcg4o_normal.jpg"
+  },
+  "content": {
+    "text": "Shower thought:\n\nDo vegan programmers squash bugs?",
+    "html": "Shower thought:<br>\n<br>\nDo vegan programmers squash bugs?"
+  },
+  "published": "2020-03-30T12:34:00.000Z",
+  "post-type": "note"
+}

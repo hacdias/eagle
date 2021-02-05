@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/MSF_Jarvis/status/933244069521666049",
+  "author": {
+    "type": "card",
+    "nickname": "MSF_Jarvis",
+    "location": "Ghaziabad, India",
+    "bio": "20 | M |  Android and Kotlin developer | Work-in-progress Rustacean",
+    "name": "Harsh Shandilya",
+    "url": "https://twitter.com/MSF_Jarvis",
+    "photo": "https://pbs.twimg.com/profile_images/1157639561574408192/ptm6goEn_normal.jpg"
+  },
+  "content": {
+    "text": "Discovered yesterday that @hacdias's http.filemanager plugin for @caddyserver has an instant app for Android. My life has a new meaning now.",
+    "html": "Discovered yesterday that <a href=\"https://twitter.com/hacdias\">@hacdias</a>'s http.filemanager plugin for <a href=\"https://twitter.com/caddyserver\">@caddyserver</a> has an instant app for Android. My life has a new meaning now."
+  },
+  "published": "2017-11-22T08:01:39.000Z",
+  "post-type": "note"
+}

@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/sindresorhus/status/890290097261817857",
+  "author": {
+    "type": "card",
+    "nickname": "sindresorhus",
+    "location": "",
+    "bio": "Full-time open-sourcerer. I make macOS apps, CLI tools, npm packages. Currently into Swift & Node.js. Started @AVA__js & @awesome__re. Follow: @sindre_gh_repos",
+    "name": "Sindre Sorhus",
+    "url": "https://twitter.com/sindresorhus",
+    "photo": "https://pbs.twimg.com/profile_images/1131626244745834497/0SzJoz_J_normal.png"
+  },
+  "content": {
+    "text": "It does in the system Energy preferences, but this app makes it easier."
+  },
+  "published": "2017-07-26T19:17:54.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/890289283164250112"
+  ],
+  "post-type": "reply"
+}

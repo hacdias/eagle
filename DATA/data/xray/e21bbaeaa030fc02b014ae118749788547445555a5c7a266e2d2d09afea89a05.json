@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/tauntz/status/992407866538708992",
+  "author": {
+    "type": "card",
+    "nickname": "tauntz",
+    "location": "Tartu, Estonia",
+    "bio": "Techie, app developer, self proclaimed foodie and 🥓 enthusiast. \n(Co-organizing @GDGTartu, founder, ex CEO & CTO @ Greenhouse CI, ex Skype for Android dev.)",
+    "name": "Tauno Talimaa",
+    "url": "https://twitter.com/tauntz",
+    "photo": "https://pbs.twimg.com/profile_images/658340655/tauno_v_ike_ruut_normal.jpg"
+  },
+  "content": {
+    "text": "I sit in a dark room and project code straight to my face while solving complicated problems. This helps me to immerse myself in it and \"feel\" the code. #BadStockPhotosOfMyJob"
+  },
+  "published": "2018-05-04T14:17:28.000Z",
+  "category": [
+    "BadStockPhotosOfMyJob"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/DcW864dW4AEif1i.jpg"
+  ],
+  "post-type": "photo"
+}

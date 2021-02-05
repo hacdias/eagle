@@ -1,0 +1,15 @@
+{
+  "links": [
+    {
+      "href": "https://hacdias.com/",
+      "rel": "self",
+      "type": "application/activity+json"
+    },
+    {
+      "href": "https://hacdias.com/",
+      "rel": "http://webfinger.net/rel/profile-page",
+      "type": "text/html"
+    }
+  ],
+  "subject": "acct:hacdias@hacdias.com"
+}

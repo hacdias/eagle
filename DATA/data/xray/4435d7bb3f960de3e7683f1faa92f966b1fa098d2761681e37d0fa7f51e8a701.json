@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/yangWao/status/1222090134692278281",
+  "author": {
+    "type": "card",
+    "nickname": "yangWao",
+    "location": "Bratislava, 🌍 Earth ",
+    "bio": "🐙 http://vue-polkadot.js.org  🛰🌍 PoC @StarMesh1 🪐🔭 @progressbarsk 🧙‍♂️Cypherpunk ,, Solarpunk ∆ 🏄🌊 kitesurfer/⚡️🚵‍♂️⚧ They/Them",
+    "name": "Matej Nemček 孔子 💫🎋",
+    "url": "https://twitter.com/yangWao",
+    "photo": "https://pbs.twimg.com/profile_images/1196732608404738049/94r2d4ij_normal.jpg"
+  },
+  "content": {
+    "text": "🤔Doing re-evidence for myself how the IPFS network performs on bigger datasets. \n\n📥 IPFS desktop from https://github.com/ipfs-shipyard/ipfs-desktop\n\n📌 Project Apollo Archives (57G) \n\n👀It goes smoothly, peer count is around 200.\n\n👌UX improved quite a lot over years\n\n👏 Great work @hacdias🤗\n\n#ipfs",
+    "html": "🤔Doing re-evidence for myself how the IPFS network performs on bigger datasets. <br>\n<br>\n📥 IPFS desktop from <a href=\"https://github.com/ipfs-shipyard/ipfs-desktop\">https://github.com/ipfs-shipyard/ipfs-desktop</a><br>\n<br>\n📌 Project Apollo Archives (57G) <br>\n<br>\n👀It goes smoothly, peer count is around 200.<br>\n<br>\n👌UX improved quite a lot over years<br>\n<br>\n👏 Great work <a href=\"https://twitter.com/hacdias\">@hacdias</a>🤗<br>\n<br>\n#ipfs"
+  },
+  "published": "2020-01-28T09:32:48.000Z",
+  "category": [
+    "ipfs"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/EPW8fBuX4AImgiB.jpg"
+  ],
+  "post-type": "photo"
+}

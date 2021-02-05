@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/josepostiga/status/895256490386313216",
+  "author": {
+    "type": "card",
+    "nickname": "josepostiga",
+    "location": "Portugal",
+    "bio": "Senior Backend Developer @infraspeak, co-host on @LaravelPortugal Podcast, volunteer member @VOSTPT, Open Source Software contributor.",
+    "name": "José Postiga",
+    "url": "https://twitter.com/josepostiga",
+    "photo": "https://pbs.twimg.com/profile_images/1177905035650445312/g2JxJgtY_normal.jpg"
+  },
+  "content": {
+    "text": "Smoke signals ;)"
+  },
+  "published": "2017-08-09T12:12:35.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/895243053941882880"
+  ],
+  "post-type": "reply"
+}

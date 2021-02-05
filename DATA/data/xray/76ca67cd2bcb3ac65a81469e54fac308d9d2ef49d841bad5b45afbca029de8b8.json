@@ -1,0 +1,42 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/hankgreen/status/1167259959593013248",
+  "author": {
+    "type": "card",
+    "nickname": "hankgreen",
+    "location": "Missoula, MT",
+    "bio": "Book Writer, Video Maker, Science Communicator, Small Business Lover. Co-creator of Crash Course, SciShow, Vlogbrothers, VidCon, http://DFTBA.com, and ot",
+    "name": "Hank Green",
+    "url": "https://twitter.com/hankgreen",
+    "photo": "https://pbs.twimg.com/profile_images/1223287456092438528/60o8J8Ve_normal.jpg"
+  },
+  "content": {
+    "text": "I'm marrying an email 😔"
+  },
+  "published": "2019-08-30T02:17:15.000Z",
+  "quotation-of": "https://twitter.com/rearviewlive/status/1163126154297008128",
+  "refs": {
+    "https://twitter.com/rearviewlive/status/1163126154297008128": {
+      "type": "entry",
+      "url": "https://twitter.com/rearviewlive/status/1163126154297008128",
+      "author": {
+        "type": "card",
+        "nickname": "rearviewlive",
+        "location": " ♡mari♡",
+        "bio": "",
+        "name": "moved to zweeteners",
+        "url": "https://twitter.com/rearviewlive",
+        "photo": "https://pbs.twimg.com/profile_images/1216970566797791232/6QfbbaqZ_normal.jpg"
+      },
+      "content": {
+        "text": "im marrying an old woman"
+      },
+      "published": "2019-08-18T16:30:59+00:00",
+      "photo": [
+        "https://pbs.twimg.com/media/ECRBEYFXUAAUldN.jpg"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

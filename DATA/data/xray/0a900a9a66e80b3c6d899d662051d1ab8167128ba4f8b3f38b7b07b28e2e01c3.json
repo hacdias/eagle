@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/tomayac/status/1159203126966136839",
+  "author": {
+    "type": "card",
+    "nickname": "tomayac",
+    "location": "Hamburg, Germany",
+    "bio": "🇪🇺 Dad-of-3. Developer Advocate at @Google (🇩🇪), PhD from @la_UPC (🇪🇸), Postdoc at @UniversiteLyon (🇫🇷). #PWA #JavaScript #NodeJS #Fugu 🐡 #SemanticWeb",
+    "name": "Thomas Steiner",
+    "url": "https://twitter.com/tomayac",
+    "photo": "https://pbs.twimg.com/profile_images/758412790029750280/fHw8Dxah_normal.jpg"
+  },
+  "content": {
+    "text": "Nice job on the dark mode implementation! One more tip for the images: https://web.dev/prefers-color-scheme/#re-colorize-and-darken-photographic-images.\n\nAnother #a11y idea for the header font effect: I love it, but it can be distracting to some: https://developers.google.com/web/updates/2019/03/prefers-reduced-motion.",
+    "html": "Nice job on the dark mode implementation! One more tip for the images: <a href=\"https://web.dev/prefers-color-scheme/#re-colorize-and-darken-photographic-images\">https://web.dev/prefers-color-scheme/#re-colorize-and-darken-photographic-images</a>.<br>\n<br>\nAnother #a11y idea for the header font effect: I love it, but it can be distracting to some: <a href=\"https://developers.google.com/web/updates/2019/03/prefers-reduced-motion\">https://developers.google.com/web/updates/2019/03/prefers-reduced-motion</a>."
+  },
+  "published": "2019-08-07T20:42:17.000Z",
+  "category": [
+    "a11y"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1159156378990272514"
+  ],
+  "post-type": "reply"
+}

@@ -1,0 +1,28 @@
+{
+  "type": "entry",
+  "published": "2020-02-26T10:44:00.000Z",
+  "url": "https://jlelse.blog/links/2020/02/photopea/",
+  "category": [
+    "Gimp",
+    "Photoshop",
+    "Tools"
+  ],
+  "bookmark-of": [
+    "https://www.photopea.com/"
+  ],
+  "name": "Photopea: Photoshop in the browser",
+  "content": {
+    "text": "By chance in a Hacker News thread about “MSPaint in JavaScript” I discovered the tool Photopea. Photopea seems to be a free JavaScript-based Photoshop alternative that runs in any browser. What surprises me the most: Photopea is developed by a single person. I don’t use tools like Photoshop or Gimp very often, but I will try Photopea the next time I need to edit photos and images.https://www.photopea.com/",
+    "html": "<p>By chance in a Hacker News thread about <a href=\"https://news.ycombinator.com/item?id=22415735\">“MSPaint in JavaScript”</a> I discovered the tool <a href=\"https://www.photopea.com/\">Photopea</a>. Photopea seems to be a free JavaScript-based Photoshop alternative that runs in any browser. What surprises me the most: <a href=\"https://www.reddit.com/r/IAmA/comments/c8ru2y/i_made_a_free_alternative_to_photoshop_that_is/\">Photopea is developed by a single person</a>. I don’t use tools like Photoshop or Gimp very often, but I will try Photopea the next time I need to edit photos and images.</p><p><a class=\"u-bookmark-of\" href=\"https://www.photopea.com/\">https://www.photopea.com/</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2020/02/photopea/"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-02-03T16:01:00.000Z",
+  "url": "https://jlelse.blog/micro/2020/02/2020-02-03-ndagm/",
+  "category": [
+    "ActivityPub"
+  ],
+  "content": {
+    "text": "I started developing my ActivityPub implementation. It will be a little Go application, which sends out every new item in a JSON Feed to the followers. It will be possible to configure multiple feeds and ActivityPub actors, so that I can use it for my blog with one actor for the English blog and one for the German blog. I’ll probably later add some possibility to use it to follow others too. I started by using the code from activityserve and now rewrite most parts.",
+    "html": "<p>I started developing my <a href=\"https://www.w3.org/TR/activitypub/\">ActivityPub</a> implementation. It will be a little Go application, which sends out every new item in a <a href=\"https://jsonfeed.org/\">JSON Feed</a> to the followers. It will be possible to configure multiple feeds and ActivityPub actors, so that I can use it for my blog with one actor for the English blog and one for the German blog. I’ll probably later add some possibility to use it to follow others too. I started by using the code from <a href=\"https://github.com/writeas/activityserve\">activityserve</a> and now rewrite most parts.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-128.jpg"
+  },
+  "post-type": "note",
+  "rels": {
+    "canonical": "https://jlelse.blog/micro/2020/02/2020-02-03-ndagm/"
+  }
+}

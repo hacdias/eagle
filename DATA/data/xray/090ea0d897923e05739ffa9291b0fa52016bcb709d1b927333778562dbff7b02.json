@@ -1,0 +1,47 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/machawk1/status/1181929288569950211",
+  "author": {
+    "type": "card",
+    "nickname": "machawk1",
+    "location": "Media, PA",
+    "bio": "Assistant Professor at @DrexelCCI 🐉, @WebSciDL + @oducs alum.\n\nCreator of #webarchiving software: WARCreate WAIL Mink ipwb\n\n👑🦁 🄾🄳🅄 ◆ 𝕌𝔽  🐊🐊",
+    "name": "Mat Kelly",
+    "url": "https://twitter.com/machawk1",
+    "photo": "https://pbs.twimg.com/profile_images/1187461597377089539/8RtYQShf_normal.jpg"
+  },
+  "content": {
+    "text": "A toggle built into @brave enables IPFS, which previously required installation of a browser extension.\n\nThis seems like it would be a good path for @Mementoweb to pursue to attain native support for Memento in a web browser.\n\n#webarchiving\n\nhttps://twitter.com/dietrich/status/1181796318504607745",
+    "html": "A toggle built into <a href=\"https://twitter.com/brave\">@brave</a> enables IPFS, which previously required installation of a browser extension.<br>\n<br>\nThis seems like it would be a good path for <a href=\"https://twitter.com/Mementoweb\">@Mementoweb</a> to pursue to attain native support for Memento in a web browser.<br>\n<br>\n#webarchiving<br>\n<br>\n<a href=\"https://twitter.com/dietrich/status/1181796318504607745\">https://twitter.com/dietrich/status/1181796318504607745</a>"
+  },
+  "published": "2019-10-09T13:47:56.000Z",
+  "category": [
+    "webarchiving"
+  ],
+  "quotation-of": "https://twitter.com/dietrich/status/1181796318504607745",
+  "refs": {
+    "https://twitter.com/dietrich/status/1181796318504607745": {
+      "type": "entry",
+      "url": "https://twitter.com/dietrich/status/1181796318504607745",
+      "author": {
+        "type": "card",
+        "nickname": "dietrich",
+        "location": "San Francisco, CA",
+        "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+        "name": "dietrich",
+        "url": "https://twitter.com/dietrich",
+        "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+      },
+      "content": {
+        "text": "We're making significant progress on a distributed web...\n\nPutting you in control of your online experience by integrating IPFS into web browsers.\n\nhttps://blog.ipfs.io/2019-10-08-ipfs-browsers-update/",
+        "html": "We're making significant progress on a distributed web...<br>\n<br>\nPutting you in control of your online experience by integrating IPFS into web browsers.<br>\n<br>\n<a href=\"https://blog.ipfs.io/2019-10-08-ipfs-browsers-update/\">https://blog.ipfs.io/2019-10-08-ipfs-browsers-update/</a>"
+      },
+      "published": "2019-10-09T04:59:33+00:00",
+      "photo": [
+        "https://pbs.twimg.com/media/EGaR_KVUYAEt4Jb.jpg"
+      ],
+      "post-type": "photo"
+    }
+  },
+  "post-type": "note"
+}

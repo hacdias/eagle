@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/ThePracticalDev/status/1016356325926883332",
+  "author": {
+    "type": "card",
+    "nickname": "ThePracticalDev",
+    "location": "",
+    "bio": "Great posts from the amazing https://dev.to community, with some opinion and humor mixed in. Created by @bendhalpern. Join https://dev.to!",
+    "name": "DEV Community 👩‍💻👨‍💻",
+    "url": "https://twitter.com/ThePracticalDev",
+    "photo": "https://pbs.twimg.com/profile_images/1190245521539108864/k9iew6Wh_normal.jpg"
+  },
+  "content": {
+    "text": "Why I hate Infinite Scrolling:\n\n1. I can't find your menubar\n2. I can't find contact details and other key info\n3. I can't navigate between different pages\n4. I don't know when it will end\n https://dev.to/maheshkay/why-i-hate-infinite-scrolling-52e6",
+    "html": "Why I hate Infinite Scrolling:<br>\n<br>\n1. I can't find your menubar<br>\n2. I can't find contact details and other key info<br>\n3. I can't navigate between different pages<br>\n4. I don't know when it will end<br>\n <a href=\"https://dev.to/maheshkay/why-i-hate-infinite-scrolling-52e6\">https://dev.to/maheshkay/why-i-hate-infinite-scrolling-52e6</a>"
+  },
+  "published": "2018-07-09T16:20:05.000Z",
+  "post-type": "note"
+}

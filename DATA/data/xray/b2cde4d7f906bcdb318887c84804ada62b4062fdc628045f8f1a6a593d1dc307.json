@@ -1,0 +1,27 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/_alanshaw/status/1030059189534633985",
+  "author": {
+    "type": "card",
+    "nickname": "_alanshaw",
+    "location": "London",
+    "bio": "#IPFS Core Dev, creator David DM http://david-dm.org, co-creator & organiser @NodeBotsUK & @MeteorLondon meetups. Owner TABLEFLIP https://tableflip.io",
+    "name": "Alan Shaw",
+    "url": "https://twitter.com/_alanshaw",
+    "photo": "https://pbs.twimg.com/profile_images/1037772816098226177/6f_ZX-4Q_normal.jpg"
+  },
+  "content": {
+    "text": "#libdweb enables experimental p2p APIs for web extensions in #Firefox.  This video demonstrates how #JS #IPFS can take advantage of them to  discover and talk to other IPFS nodes on the local network! https://youtu.be/LDHFqwC8Syg #MDNS #TCP",
+    "html": "#libdweb enables experimental p2p APIs for web extensions in #Firefox.  This video demonstrates how #JS #IPFS can take advantage of them to  discover and talk to other IPFS nodes on the local network! <a href=\"https://youtu.be/LDHFqwC8Syg\">https://youtu.be/LDHFqwC8Syg</a> #MDNS #TCP"
+  },
+  "published": "2018-08-16T11:50:23.000Z",
+  "category": [
+    "libdweb",
+    "Firefox",
+    "JS",
+    "IPFS",
+    "MDNS",
+    "TCP"
+  ],
+  "post-type": "note"
+}

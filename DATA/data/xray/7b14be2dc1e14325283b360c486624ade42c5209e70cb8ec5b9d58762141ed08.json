@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/stphndrt/status/1190586109979443210",
+  "author": {
+    "type": "card",
+    "nickname": "stphndrt",
+    "location": "Leiria, Lisboa ou por aí",
+    "bio": "23. Software Engineer 👨‍💻",
+    "name": "STPHN",
+    "url": "https://twitter.com/stphndrt",
+    "photo": "https://pbs.twimg.com/profile_images/1058048706023485440/Qb_XxJ6d_normal.jpg"
+  },
+  "content": {
+    "text": "Juro que não entendo como é que a #WebSummit tem uma app tão horrível"
+  },
+  "published": "2019-11-02T11:07:03.000Z",
+  "category": [
+    "WebSummit"
+  ],
+  "post-type": "note"
+}

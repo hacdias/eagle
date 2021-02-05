@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/clerigo/status/1096345995019984896",
+  "author": {
+    "type": "card",
+    "nickname": "clerigo",
+    "location": "Leiria",
+    "bio": "iOS Mobile Developer 📱⌚️ | http://pplware.com",
+    "name": "Edgar Clérigo",
+    "url": "https://twitter.com/clerigo",
+    "photo": "https://pbs.twimg.com/profile_images/1092101637303422976/sPt_qRZ4_normal.jpg"
+  },
+  "content": {
+    "text": "@hacdias Isto é o futuro. Daqui a uns tempos, já ninguém ouve falar dos bancos tradicionais, se estes não conseguirem acompanhar estas novas soluções como o Revolut, n26, and so on !",
+    "html": "<a href=\"https://twitter.com/hacdias\">@hacdias</a> Isto é o futuro. Daqui a uns tempos, já ninguém ouve falar dos bancos tradicionais, se estes não conseguirem acompanhar estas novas soluções como o Revolut, n26, and so on !"
+  },
+  "published": "2019-02-15T09:50:28.000Z",
+  "in-reply-to": [
+    "https://twitter.com/clerigo/status/1096345696716972032"
+  ],
+  "post-type": "reply"
+}

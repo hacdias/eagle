@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IPFSbot/status/1103978064764121088",
+  "author": {
+    "type": "card",
+    "nickname": "IPFSbot",
+    "location": "Earth",
+    "bio": "A peer-to-peer hypermedia protocol to make the web faster, safer, and more open.",
+    "name": "IPFS",
+    "url": "https://twitter.com/IPFSbot",
+    "photo": "https://pbs.twimg.com/profile_images/570059057197625344/h4Bvj_8p_normal.png"
+  },
+  "content": {
+    "text": "Applications are now open for the first ever #IPFS Camp. Join us in Barcelona on June 27-30 for an action-packed hacker retreat designed for builders of the Distributed Web https://camp.ipfs.io/ #libp2p #DWeb",
+    "html": "Applications are now open for the first ever #IPFS Camp. Join us in Barcelona on June 27-30 for an action-packed hacker retreat designed for builders of the Distributed Web <a href=\"https://camp.ipfs.io/\">https://camp.ipfs.io/</a> #libp2p #DWeb"
+  },
+  "published": "2019-03-08T11:17:36.000Z",
+  "category": [
+    "IPFS",
+    "libp2p",
+    "DWeb"
+  ],
+  "post-type": "note"
+}

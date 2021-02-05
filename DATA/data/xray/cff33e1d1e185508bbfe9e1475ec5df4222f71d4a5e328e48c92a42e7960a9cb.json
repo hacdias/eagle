@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2019-07-07T12:00:00.000Z",
+  "url": "https://jlelse.blog/links/2019/07/07/personalsites/",
+  "bookmark-of": [
+    "https://personalsit.es/"
+  ],
+  "content": {
+    "text": "Personalsit.es is a really nice idea featuring personal sites. Sites listed there have information about whether they have an RSS feed and what categories the site fits into.If you have personal site too, you might want to submit it. I have submitted my own site, but I also like exploring new sites and maybe discover new people to follow because they share similar interests.https://personalsit.es/",
+    "html": "<p><a href=\"https://personalsit.es/\">Personalsit.es</a> is a really nice idea featuring personal sites. Sites listed there have information about whether they have an RSS feed and what categories the site fits into.</p><p>If you have <em>personal site</em> too, you might want to submit it. I have submitted my own site, but I also like exploring new sites and maybe discover new people to follow because they share similar interests.</p><p><a class=\"u-bookmark-of\" href=\"https://personalsit.es/\">https://personalsit.es/</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Jan-Lukas Else",
+    "url": "https://jlelse.dev/",
+    "photo": "https://jlelse.dev/profile-512.jpg"
+  },
+  "post-type": "bookmark",
+  "rels": {
+    "canonical": "https://jlelse.blog/links/2019/07/07/personalsites/"
+  }
+}

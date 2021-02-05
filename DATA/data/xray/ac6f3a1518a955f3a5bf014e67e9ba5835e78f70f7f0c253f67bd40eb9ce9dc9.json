@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/ProductHunt/status/904228744210006016",
+  "author": {
+    "type": "card",
+    "nickname": "ProductHunt",
+    "location": "",
+    "bio": "The place to discover your next favorite thing. Emoji spirit of @AngelList ✌️ Follow @yourstacks for pancakes 🥞",
+    "name": "Product Hunt",
+    "url": "https://twitter.com/ProductHunt",
+    "photo": "https://pbs.twimg.com/profile_images/1218145268006187008/SoXh4651_normal.jpg"
+  },
+  "content": {
+    "text": "Best 404 Page: http://Bloomberg.com/404",
+    "html": "Best 404 Page: <a href=\"http://Bloomberg.com/404\">http://Bloomberg.com/404</a>"
+  },
+  "published": "2017-09-03T06:25:07.000Z",
+  "post-type": "note"
+}

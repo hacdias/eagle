@@ -1,0 +1,16 @@
+<div id='header'>
+  {{ if eq .Section "darkroom" }}
+  <ul>
+    <li><a class='no-link' href='{{ relURL .Site.BaseURL }}'>home</a></li>
+    <li><a class='no-link' href='{{ relURL "/darkroom" }}'>darkroom</a></li>
+    <li><a class='no-link' href='{{ relURL "/darkroom/archive" }}'>archive</a></li>
+  </ul>
+  {{ end }}
+  <a class='no-link' href='{{ relURL .Site.BaseURL }}'>
+    <img src="{{ relURL "logo.svg" }}">
+    <div>
+      <p class='name glitch' data-text="Henrique Dias">Henrique Dias</p>
+      <p class='aka'>aka <span class='glitch' data-text='@hacdias'>@hacdias</span></p>
+    </div>
+  </a>
+</div>

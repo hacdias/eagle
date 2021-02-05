@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/feross/status/1118743408695074817",
+  "author": {
+    "type": "card",
+    "nickname": "feross",
+    "location": "Stanford, CA",
+    "bio": "Mad science • Open source • @Stanford lecturer • @BitMidi (http://bitmidi.com) • @WebTorrentApp (http://webtorrent.io) • @StandardJS (http://standardjs.com)",
+    "name": "Feross 🧙🏼‍♂️✨",
+    "url": "https://twitter.com/feross",
+    "photo": "https://pbs.twimg.com/profile_images/458911857466560513/uKX6-c4z_normal.jpeg"
+  },
+  "content": {
+    "text": "I'm marrying an office\n\n😱 😱 😱",
+    "html": "I'm marrying an office<br>\n<br>\n😱 😱 😱"
+  },
+  "published": "2019-04-18T05:09:48.000Z",
+  "quotation-of": "https://twitter.com/ReBeccaOrg/status/1118741271785250821",
+  "refs": {
+    "https://twitter.com/ReBeccaOrg/status/1118741271785250821": {
+      "type": "entry",
+      "url": "https://twitter.com/ReBeccaOrg/status/1118741271785250821",
+      "author": {
+        "type": "card",
+        "nickname": "ReBeccaOrg",
+        "location": "v8.💖.💥 in Oakland",
+        "bio": "consummate generalist—ageless entity—aka iarna—adopted by the 'net as a teen—amateur fanfic archivist––polyam—queer—trans—running eng at a startup—formerly npm",
+        "name": "iäiäiarna",
+        "url": "https://twitter.com/ReBeccaOrg",
+        "photo": "https://pbs.twimg.com/profile_images/902637152592216064/NIMvtiZ9_normal.jpg"
+      },
+      "content": {
+        "text": "I'm marrying an email\n\n😱",
+        "html": "I'm marrying an email<br>\n<br>\n😱"
+      },
+      "published": "2019-04-18T05:01:19+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

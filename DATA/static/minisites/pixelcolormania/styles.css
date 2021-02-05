@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+canvas {
+  width: 100vw;
+  height: 100vh;
+}
+
+body > div {
+  position: fixed;
+  bottom: 1em;
+  right: 1em;
+  background: white;
+  padding: 1em;
+  font-family: sans-serif;
+}
+
+body > div > div {
+  display: flex;
+  align-items: center;
+  margin: 0.5em 0;
+}
+
+body > div > div:first-of-type {
+  margin-top: 0;
+}
+
+button {
+  display: block;
+  width: 100%;
+}
+
+input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+input[type="range"] {
+  margin-left: 0.5em;
+}
+
+button {
+  padding: 1em;
+  background: #0044ff;
+  border: 0;
+  cursor: pointer;
+  color: white;
+  outline: 0;
+  margin: 1em 0;
+}
+
+button:active,
+button:hover {
+  outline: 0;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.5);
+}
+
+button:last-of-type {
+  margin-bottom: 0;
+}

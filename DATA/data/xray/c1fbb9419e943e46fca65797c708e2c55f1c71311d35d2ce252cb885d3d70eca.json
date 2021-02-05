@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/hecturchi/status/1033074533551538176",
+  "author": {
+    "type": "card",
+    "nickname": "hecturchi",
+    "location": "Madrid, Spain",
+    "bio": "Helping decentralize the web @ProtocolLabs. #ipfs",
+    "name": "Hector",
+    "url": "https://twitter.com/hecturchi",
+    "photo": "https://pbs.twimg.com/profile_images/664057018647453696/Q8G-RCCO_normal.png"
+  },
+  "content": {
+    "text": "Here it is: #IPFS Cluster 0.5.0 is out! https://cluster.ipfs.io/news/20180824_0.5.0_release/\n\ncc @IPFSbot",
+    "html": "Here it is: #IPFS Cluster 0.5.0 is out! <a href=\"https://cluster.ipfs.io/news/20180824_0.5.0_release/\">https://cluster.ipfs.io/news/20180824_0.5.0_release/</a><br>\n<br>\ncc <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>"
+  },
+  "published": "2018-08-24T19:32:17.000Z",
+  "category": [
+    "IPFS"
+  ],
+  "post-type": "note"
+}

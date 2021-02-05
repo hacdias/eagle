@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/andrestaltz/status/1220303066743832577",
+  "author": {
+    "type": "card",
+    "nickname": "andrestaltz",
+    "location": "Helsinki, Finland",
+    "bio": "Creator of @manyver_se. Open source freelancer and #scuttlebutt solarpunk",
+    "name": "André Staltz",
+    "url": "https://twitter.com/andrestaltz",
+    "photo": "https://pbs.twimg.com/profile_images/1124999950155304960/tSd7FMbi_normal.jpg"
+  },
+  "content": {
+    "text": "I love Prettier, but the one thing I don't like is the ordering for ternary operators.\n\nThis is a question:\n\"What's your name ?\"\n\nThis is Prettier:\n\"What's your name\n?\"",
+    "html": "I love Prettier, but the one thing I don't like is the ordering for ternary operators.<br>\n<br>\nThis is a question:<br>\n\"What's your name ?\"<br>\n<br>\nThis is Prettier:<br>\n\"What's your name<br>\n?\""
+  },
+  "published": "2020-01-23T11:11:37.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EO9ivTKX0AAbhIb.jpg"
+  ],
+  "post-type": "photo"
+}

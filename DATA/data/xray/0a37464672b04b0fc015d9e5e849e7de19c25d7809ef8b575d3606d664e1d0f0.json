@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/IPFSbot/status/968885979455963136",
+  "author": {
+    "type": "card",
+    "nickname": "IPFSbot",
+    "location": "Earth",
+    "bio": "A peer-to-peer hypermedia protocol to make the web faster, safer, and more open.",
+    "name": "IPFS",
+    "url": "https://twitter.com/IPFSbot",
+    "photo": "https://pbs.twimg.com/profile_images/570059057197625344/h4Bvj_8p_normal.png"
+  },
+  "content": {
+    "text": "Looking for an IPFS meetup in Beijing, Delhi, London, Boston or more? Find and chat with neighbors all around the world: https://github.com/ipfs/community/issues?q=is%3Aissue+is%3Aopen+label%3Ameetup",
+    "html": "Looking for an IPFS meetup in Beijing, Delhi, London, Boston or more? Find and chat with neighbors all around the world: <a href=\"https://github.com/ipfs/community/issues?q=is%3Aissue+is%3Aopen+label%3Ameetup\">https://github.com/ipfs/community/issues?q=is%3Aissue+is%3Aopen+label%3Ameetup</a>"
+  },
+  "published": "2018-02-28T16:29:53.000Z",
+  "post-type": "note"
+}

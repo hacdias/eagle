@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Fardokbk/status/892066108987109381",
+  "author": {
+    "type": "card",
+    "nickname": "Fardokbk",
+    "location": "Wien, Österreich",
+    "bio": "#ico #blockchain #golang #ai #flutter",
+    "name": "topCoder",
+    "url": "https://twitter.com/Fardokbk",
+    "photo": "https://pbs.twimg.com/profile_images/1036339368385032192/UEDSnl-e_normal.jpg"
+  },
+  "content": {
+    "text": "Ye. Json is enough    Or a rest api:   host:port/adduser?name=john&pass=xxx&path=dir"
+  },
+  "published": "2017-07-31T16:55:08.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/891570940877975552"
+  ],
+  "post-type": "reply"
+}

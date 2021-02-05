@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/travisci/status/1027971845851684864",
+  "author": {
+    "type": "card",
+    "nickname": "travisci",
+    "location": "Berlin, Germany",
+    "bio": "Hi! We're Travis CI, the continuous integration and delivery service for your GitHub projects • Status: @traviscistatus • Travis Foundation: @travis_fnd",
+    "name": "Travis CI",
+    "url": "https://twitter.com/travisci",
+    "photo": "https://pbs.twimg.com/profile_images/1143532163499008000/Lu6cGu0z_normal.png"
+  },
+  "content": {
+    "text": "Hey there! 👋 Sorry to hear about the migration woes - I'd suggest emailing in to support@travis-ci.com and we can take a look and see what's going on. Thanks and happy building!"
+  },
+  "published": "2018-08-10T17:36:01.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1027615197823942663"
+  ],
+  "post-type": "reply"
+}

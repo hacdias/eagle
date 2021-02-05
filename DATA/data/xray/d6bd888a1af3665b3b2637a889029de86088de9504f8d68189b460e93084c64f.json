@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/raulvk/status/1258106216137592841",
+  "author": {
+    "type": "card",
+    "nickname": "raulvk",
+    "location": "Tenerife, Spain",
+    "bio": "tech leading @libp2p & @run_testground at @protocollabs | engineer: fixer of some things; breaker of many | PMC @TheASF | biohacker, stoic, hiker, dogs",
+    "name": "Raúl Kripalani",
+    "url": "https://twitter.com/raulvk",
+    "photo": "https://pbs.twimg.com/profile_images/1225355403942416384/CRgfUTwR_normal.jpg"
+  },
+  "content": {
+    "text": "It's been hard and rewarding to design and implement a platform to test distributed systems that actually makes testing fun.\n\nWe used @run_testground to scale the DHT and Bitswap in @IPFSbot, secure Gossipsub @libp2p, and experiment with @Filecoin.\n\nRead https://blog.ipfs.io/2020-05-06-launching-testground/",
+    "html": "It's been hard and rewarding to design and implement a platform to test distributed systems that actually makes testing fun.<br>\n<br>\nWe used <a href=\"https://twitter.com/run_testground\">@run_testground</a> to scale the DHT and Bitswap in <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>, secure Gossipsub <a href=\"https://twitter.com/libp2p\">@libp2p</a>, and experiment with <a href=\"https://twitter.com/Filecoin\">@Filecoin</a>.<br>\n<br>\nRead <a href=\"https://blog.ipfs.io/2020-05-06-launching-testground/\">https://blog.ipfs.io/2020-05-06-launching-testground/</a>"
+  },
+  "published": "2020-05-06T18:47:51.000Z",
+  "photo": [
+    "https://pbs.twimg.com/media/EXWtMhKUMAU_nvw.jpg"
+  ],
+  "post-type": "photo"
+}

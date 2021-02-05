@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "published": "2019-09-08T12:25:42.000Z",
+  "url": "https://hacdias.com/replies/2019/09/08/3/",
+  "syndication": [
+    "https://twitter.com/hacdias/status/1170674569834876929"
+  ],
+  "in-reply-to": [
+    "https://twitter.com/romeu/status/1170485454971580421"
+  ],
+  "content": {
+    "text": "1/ Não sou contra o aumento de vagas, mas relembro que o governo atual está a tentar reduzir as vagas em Lx e Porto, além do Técnico não ter propriamente as melhores instalações de sempre.",
+    "html": "<p>1/ Não sou contra o aumento de vagas, mas relembro que o governo atual está a tentar reduzir as vagas em Lx e Porto, além do Técnico não ter propriamente as melhores instalações de sempre.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": "https://hacdias.com/",
+    "photo": "https://hacdias.com/me-256.jpg"
+  },
+  "post-type": "reply",
+  "refs": {
+    "https://twitter.com/romeu/status/1170485454971580421": {
+      "type": "entry",
+      "url": "https://twitter.com/romeu/status/1170485454971580421",
+      "content": {
+        "text": "É preciso abrir mais vagas. Estas notas de acesso não fazem sentido. É quase equivalente a proibir o acesso a estes cursos. https://expresso.pt/sociedade/2019-09-07-Em-quatro-cursos-do-Tecnico-ninguem-entrou-com-menos-de-18-valores"
+      },
+      "author": {
+        "type": "card",
+        "name": "Romeu Monteiro 🇵🇹🏳️‍🌈🇮🇱",
+        "url": "https://twitter.com/romeu",
+        "photo": null
+      },
+      "post-type": "note"
+    }
+  },
+  "rels": {
+    "canonical": "https://hacdias.com/replies/2019/09/08/3/"
+  }
+}

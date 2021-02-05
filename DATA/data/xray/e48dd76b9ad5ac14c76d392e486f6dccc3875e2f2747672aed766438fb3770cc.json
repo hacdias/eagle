@@ -1,0 +1,17 @@
+{
+  "type": "entry",
+  "url": "https://hacdias.com/micro/2018/10/n2/",
+  "published": "2018-10-03T20:53:16.000Z",
+  "content": {
+    "text": "What about a new #IPFS Desktop? More connected to Web UI than ever with support to different connections and prettier! /cc @olizilla @_fsdiogo @daviddias",
+    "html": "<p>What about a new #IPFS Desktop? More connected to Web UI than ever with support to different connections and prettier! /cc <a href=\"https://twitter.com/olizilla\">@olizilla</a> <a href=\"https://twitter.com/_fsdiogo\">@_fsdiogo</a> <a href=\"https://twitter.com/daviddias\">@daviddias</a></p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Henrique Dias",
+    "url": null,
+    "photo": "https://hacdias.com/me-256.jpg",
+    "nickname": "hacdias"
+  },
+  "post-type": "note"
+}

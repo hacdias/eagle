@@ -1,0 +1,24 @@
+{
+  "author": {
+    "name": "Jan-Lukas Else",
+    "photo": "https://jlelse.dev/profile.png",
+    "type": "card",
+    "url": "https://jlelse.dev/"
+  },
+  "category": [
+    "Blockchain",
+    "Cryptocurrencies"
+  ],
+  "content": {
+    "html": "\u003cp\u003eOne keeps hearing about some cryptocurrency projects and how people got rich with Bitcoin. But somehow I don’t understand the whole purpose behind it and I’m beginning to suspect that it’s just a pyramid scheme.\u003c/p\u003e\u003cp\u003eWouldn’t there be much better ways to exchange money anonymously and uncensored? In order to generate any kind of coins, a lot of electricity is used (also from fossil fuels or atomic energy), but until today no project based on cryptocurrencies or the blockchain principle has really caught on. Or am I wrong?\u003c/p\u003e",
+    "text": "One keeps hearing about some cryptocurrency projects and how people got rich with Bitcoin. But somehow I don’t understand the whole purpose behind it and I’m beginning to suspect that it’s just a pyramid scheme.Wouldn’t there be much better ways to exchange money anonymously and uncensored? In order to generate any kind of coins, a lot of electricity is used (also from fossil fuels or atomic energy), but until today no project based on cryptocurrencies or the blockchain principle has really caught on. Or am I wrong?"
+  },
+  "name": "Crypto is just bullshit, right?",
+  "post-type": "article",
+  "published": "2020-12-09T19:37:13Z",
+  "rels": {
+    "canonical": "https://jlelse.blog/thoughts/2020/12/crypto-bs"
+  },
+  "type": "entry",
+  "url": "https://jlelse.blog/thoughts/2020/12/crypto-bs"
+}

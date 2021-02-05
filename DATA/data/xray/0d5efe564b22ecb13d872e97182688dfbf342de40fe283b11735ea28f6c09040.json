@@ -1,0 +1,25 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/digitalocean/status/893540169558708228",
+  "author": {
+    "type": "card",
+    "nickname": "digitalocean",
+    "location": "NYC",
+    "bio": "The easiest ☁️ platform to deploy, manage & scale applications of any size. Status: @DOstatus Support: http://do.co/contact Careers: http://grnh.se/ny2fkm1",
+    "name": "DigitalOcean",
+    "url": "https://twitter.com/digitalocean",
+    "photo": "https://pbs.twimg.com/profile_images/1148306008437153793/Onjxs6Lw_normal.jpg"
+  },
+  "content": {
+    "text": "Here's a simple guide to serve your @Wordpress site with @caddyserver for auto HTTPS encryption #httpsEverywhere http://do.co/2hvhAOz",
+    "html": "Here's a simple guide to serve your @Wordpress site with <a href=\"https://twitter.com/caddyserver\">@caddyserver</a> for auto HTTPS encryption #httpsEverywhere <a href=\"http://do.co/2hvhAOz\">http://do.co/2hvhAOz</a>"
+  },
+  "published": "2017-08-04T18:32:32.000Z",
+  "category": [
+    "httpsEverywhere"
+  ],
+  "photo": [
+    "https://pbs.twimg.com/media/DGZ-DD-XYAEzs5D.png"
+  ],
+  "post-type": "photo"
+}

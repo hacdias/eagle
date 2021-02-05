@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/NotionHQ/status/1004807789238050816",
+  "author": {
+    "type": "card",
+    "nickname": "NotionHQ",
+    "location": "San Francisco, CA",
+    "bio": "The all-in-one workspace — for notes, tasks, wikis, and databases.",
+    "name": "Notion",
+    "url": "https://twitter.com/NotionHQ",
+    "photo": "https://pbs.twimg.com/profile_images/875782063818809345/cbCR7w5R_normal.jpg"
+  },
+  "content": {
+    "text": "How would you like to use it?"
+  },
+  "published": "2018-06-07T19:30:20.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1004680167699173377"
+  ],
+  "post-type": "reply"
+}

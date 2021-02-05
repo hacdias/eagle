@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "published": "2020-04-09T07:07:16.000Z",
+  "url": "https://seblog.nl/2020/04/09/2/reply",
+  "in-reply-to": [
+    "https://hacdias.com/notes/2020/04/08/3/context-boxes/"
+  ],
+  "content": {
+    "text": "As you can see on my site: at the time of writing I don't have them. I do show a line with a summary of the post. It shows the author's name, the post's title or just 'a post' if nothing is available. I have been planning for a long time to add context to it, but I would only do that on the detail-pages: on feeds I would keep it as is. I think that might work very nicely for your design too! But: as long as you show any preview at all, you're not cutting the complexity of the Mf2-fetching.\nAddition: I like to save the context for my own archive too. My site even saves a copy of the image if I like a photo-post, even though it does not display. So: I myself would not want to loose the complexity of the Mf2-fetching, for it has other benefits.",
+    "html": "<p>As you can see on my site: at the time of writing I don't have them. I do show a line with a summary of the post. It shows the author's name, the post's title or just 'a post' if nothing is available. I have been planning for a long time to add context to it, but I would only do that on the detail-pages: on feeds I would keep it as is. I think that might work very nicely for your design too! But: as long as you show any preview at all, you're not cutting the complexity of the Mf2-fetching.</p>\n<p>Addition: I like to save the context for my own archive too. My site even saves a copy of the image if I like a photo-post, even though it does not display. So: I myself would not want to loose the complexity of the Mf2-fetching, for it has other benefits.</p>"
+  },
+  "author": {
+    "type": "card",
+    "name": "Sebastiaan Andeweg",
+    "url": "https://seblog.nl/",
+    "photo": "https://seblog.nl/photo.jpg"
+  },
+  "post-type": "reply",
+  "rels": {
+    "canonical": "https://seblog.nl/2020/100/2"
+  }
+}

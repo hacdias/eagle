@@ -1,0 +1,41 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/dietrich/status/1192605360588128257",
+  "author": {
+    "type": "card",
+    "nickname": "dietrich",
+    "location": "San Francisco, CA",
+    "bio": "A lifestyle brand offering timeless products of unique modernity.\n\n@ipfsbot at @protocollabs",
+    "name": "dietrich",
+    "url": "https://twitter.com/dietrich",
+    "photo": "https://pbs.twimg.com/profile_images/914112948443811841/hI7jwlf2_normal.jpg"
+  },
+  "content": {
+    "text": "🛋 Sit down in your favorite place...\n\n🍵☕️🍺🍷🚰 with whatever favorite comforting beverage you prefer...\n\nand let us know what you think the most important thing 2020 needs from a decentralized p2p file storage and publishing toolkit like IPFS.",
+    "html": "🛋 Sit down in your favorite place...<br>\n<br>\n🍵☕️🍺🍷🚰 with whatever favorite comforting beverage you prefer...<br>\n<br>\nand let us know what you think the most important thing 2020 needs from a decentralized p2p file storage and publishing toolkit like IPFS."
+  },
+  "published": "2019-11-08T00:50:50.000Z",
+  "quotation-of": "https://twitter.com/momack28/status/1187906946935840768",
+  "refs": {
+    "https://twitter.com/momack28/status/1187906946935840768": {
+      "type": "entry",
+      "url": "https://twitter.com/momack28/status/1187906946935840768",
+      "author": {
+        "type": "card",
+        "nickname": "momack28",
+        "location": "",
+        "bio": "@IPFSbot Project Lead and PM @ProtocolLabs. Building #Web3 to be #p2p & #OfflineFirst. Former (A)PM @Google on #GoogleSearch, #GoogleClassroom, #GoogleForms.",
+        "name": "Molly",
+        "url": "https://twitter.com/momack28",
+        "photo": "https://pbs.twimg.com/profile_images/1051243625022152704/5PMaGVsr_normal.jpg"
+      },
+      "content": {
+        "text": "Excited about using/improving @IPFSbot? We’re looking for next year's theme suggestions (https://github.com/ipfs/roadmap/blob/master/2020-IPFS-Project-Planning.md) & would love to hear your thoughts on where the core implementations / IPFS working groups should be investing more energy in 2020! Share your ideas before Nov 8!👂🚀",
+        "html": "Excited about using/improving <a href=\"https://twitter.com/IPFSbot\">@IPFSbot</a>? We’re looking for next year's theme suggestions (<a href=\"https://github.com/ipfs/roadmap/blob/master/2020-IPFS-Project-Planning.md\">https://github.com/ipfs/roadmap/blob/master/2020-IPFS-Project-Planning.md</a>) & would love to hear your thoughts on where the core implementations / IPFS working groups should be investing more energy in 2020! Share your ideas before Nov 8!👂🚀"
+      },
+      "published": "2019-10-26T01:41:01+00:00",
+      "post-type": "note"
+    }
+  },
+  "post-type": "note"
+}

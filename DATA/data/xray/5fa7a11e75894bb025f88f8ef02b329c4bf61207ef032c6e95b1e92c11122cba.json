@@ -1,0 +1,21 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/stphndrt/status/1190606819040866304",
+  "author": {
+    "type": "card",
+    "nickname": "stphndrt",
+    "location": "Leiria, Lisboa ou por aí",
+    "bio": "23. Software Engineer 👨‍💻",
+    "name": "STPHN",
+    "url": "https://twitter.com/stphndrt",
+    "photo": "https://pbs.twimg.com/profile_images/1058048706023485440/Qb_XxJ6d_normal.jpg"
+  },
+  "content": {
+    "text": "Eu carrego nos eventos para ver detalhes e a app apaga-os... wtf"
+  },
+  "published": "2019-11-02T12:29:20.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/1190594040158412800"
+  ],
+  "post-type": "reply"
+}

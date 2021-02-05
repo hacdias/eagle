@@ -1,0 +1,19 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/nixcraft/status/1224322888334884865",
+  "author": {
+    "type": "card",
+    "nickname": "nixcraft",
+    "location": "Rootland",
+    "bio": "Enjoy Linux & Unix-like systems? Open source software and programming? Sysadmin & DevOps work? Follow us to make the most of sysadmin-hood.",
+    "name": "The Best Linux Blog In the Unixverse",
+    "url": "https://twitter.com/nixcraft",
+    "photo": "https://pbs.twimg.com/profile_images/1209802752819261440/jvir-xNm_normal.jpg"
+  },
+  "content": {
+    "text": "I saw a developer today.\n\nNo company swag hoodie.\nNo stickers on their laptop.\nNo mechanical keyboard.\nNo Windows or macOS.\n\nHe just sat there.\nTyping away in vim IDE running on Arch Linux and older ThinkPad.\nLike a psychopath.",
+    "html": "I saw a developer today.<br>\n<br>\nNo company swag hoodie.<br>\nNo stickers on their laptop.<br>\nNo mechanical keyboard.<br>\nNo Windows or macOS.<br>\n<br>\nHe just sat there.<br>\nTyping away in vim IDE running on Arch Linux and older ThinkPad.<br>\nLike a psychopath."
+  },
+  "published": "2020-02-03T13:24:58.000Z",
+  "post-type": "note"
+}

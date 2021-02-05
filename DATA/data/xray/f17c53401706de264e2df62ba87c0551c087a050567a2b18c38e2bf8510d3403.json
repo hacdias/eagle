@@ -1,0 +1,22 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/Windows/status/890720420823019522",
+  "author": {
+    "type": "card",
+    "nickname": "Windows",
+    "location": "Redmond, Washington",
+    "bio": "Windows news, product info & global stories of people using Windows technology to #DoGreatThings. For support tweet @MicrosoftHelps",
+    "name": "Windows",
+    "url": "https://twitter.com/Windows",
+    "photo": "https://pbs.twimg.com/profile_images/1151167148338733058/LLutc2sh_normal.png"
+  },
+  "content": {
+    "text": "We're open to suggestions! Make sure to share your thoughts with us here: http://msft.social/zVThn3",
+    "html": "We're open to suggestions! Make sure to share your thoughts with us here: <a href=\"http://msft.social/zVThn3\">http://msft.social/zVThn3</a>"
+  },
+  "published": "2017-07-27T23:47:51.000Z",
+  "in-reply-to": [
+    "https://twitter.com/hacdias/status/890639504197005313"
+  ],
+  "post-type": "reply"
+}

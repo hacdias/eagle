@@ -1,0 +1,24 @@
+{
+  "type": "entry",
+  "url": "https://twitter.com/vmx/status/1244921297500594178",
+  "author": {
+    "type": "card",
+    "nickname": "vmx",
+    "location": "Augsburg, Germany",
+    "bio": "Working at @protocollabs. Making Noise https://try.noisesearch.org/.",
+    "name": "Volker Mische",
+    "url": "https://twitter.com/vmx",
+    "photo": "https://pbs.twimg.com/profile_images/886369436/favicon007_73x73_normal.png"
+  },
+  "content": {
+    "text": "You'd like to make the distributed Web possible with upcoming OGC standards (OGC API Features fka WFS3)? Please chime in at https://github.com/opengeospatial/ogcapi-features/issues/354 #osgeo #geo #dweb",
+    "html": "You'd like to make the distributed Web possible with upcoming OGC standards (OGC API Features fka WFS3)? Please chime in at <a href=\"https://github.com/opengeospatial/ogcapi-features/issues/354\">https://github.com/opengeospatial/ogcapi-features/issues/354</a> #osgeo #geo #dweb"
+  },
+  "published": "2020-03-31T09:35:41.000Z",
+  "category": [
+    "osgeo",
+    "geo",
+    "dweb"
+  ],
+  "post-type": "note"
+}
