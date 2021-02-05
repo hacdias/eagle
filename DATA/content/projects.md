@@ -4,7 +4,6 @@ description: |
 emoji: "\U0001F4E6"
 noMentions: true
 title: Projects
-type: page
 ---
 
 This is a non-exhaustive show case of some of the most important and impactful projects I have worked on so far. If you're curious about everything else I have done, I am pretty active on my [GitHub](https://github.com/hacdias).

@@ -2,7 +2,6 @@
 emoji: "\U0001F6E0"
 publishDate: "2020-01-21T15:39:00.000Z"
 title: Uses
-type: page
 updateDate: "2020-10-11T12:11:00.000Z"
 ---
 

@@ -1,5 +1,4 @@
 ---
-home: true
 publishDate: "2020-04-08T08:15:00.000Z"
 syndication:
 - https://twitter.com/hacdias/status/1247801115342540800

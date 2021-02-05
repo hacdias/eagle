@@ -1,5 +1,4 @@
 ---
-home: true
 pictures:
 - slug: 2020-03-28-camden-mirror
   title: Camden Mirror

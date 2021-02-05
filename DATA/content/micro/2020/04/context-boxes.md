@@ -1,5 +1,4 @@
 ---
-home: true
 publishDate: "2020-04-08T18:35:01.951Z"
 tags:
 - meta

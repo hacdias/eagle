@@ -1,5 +1,4 @@
 ---
-home: true
 publishDate: "2020-05-14T21:36:29.879Z"
 tags:
 - automation

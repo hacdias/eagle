@@ -1,7 +1,6 @@
 ---
 publishDate: "2020-05-30"
 title: Experiments
-type: page
 updateDate: "2020-05-30"
 ---
 

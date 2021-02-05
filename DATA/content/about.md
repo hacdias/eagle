@@ -5,7 +5,6 @@ menu:
     weight: 1
 noMentions: true
 title: About
-type: page
 ---
 
 <style>

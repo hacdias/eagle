@@ -6,7 +6,6 @@ menu:
 noMentions: true
 publishDate: "2020-01-30"
 title: Follow
-type: page
 updateDate: "2020-10-15"
 ---
 

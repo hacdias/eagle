@@ -1,5 +1,4 @@
 ---
-home: true
 publishDate: "2020-03-25T19:24:40.529Z"
 tags:
 - remote
