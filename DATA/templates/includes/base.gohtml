@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{ template "head" . }}
+</head>
+<body>
+  <div class='container'>
+    {{ template "header" . }}   
+
+    {{- if not (eq .Section "darkroom") }}
+      {{ template "navbar" . }}
+    {{- end }}
+
+    {{ template "main" . }}
+
+    {{ if not (eq .Section "darkroom") }}
+      {{ template "footer" . }}
+    {{ end }}
+  </div>
+</body>
+</html>

@@ -1,20 +1,15 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-	"path"
-	"path/filepath"
 	"strconv"
 
-	"github.com/go-chi/chi"
-	"github.com/hacdias/eagle/eagle"
+	"github.com/gorilla/mux"
 )
 
 func (s *Server) StartHTTP() error {
-	r := chi.NewRouter()
-	r.Use(s.recoverer)
+	r := mux.NewRouter()
+	// r.Use(s.recoverer)
 
 	// r.Post("/webhook", s.webhookHandler)
 	// r.Post("/webmention", s.webmentionHandler)
@@ -42,13 +37,7 @@ func (s *Server) StartHTTP() error {
 	//	- Should I handle /now dynamicall?
 	//	- Should I handle all redirects dynamically?
 
-	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		urlPath := path.Clean(r.URL.Path)
-		if r.URL.Path != urlPath {
-			http.Redirect(w, r, urlPath, http.StatusTemporaryRedirect)
-			return
-		}
-
+	/* r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		filePath := filepath.Join(s.c.Source, "content", urlPath+".md")
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			w.WriteHeader(http.StatusNotFound)
@@ -60,29 +49,16 @@ func (s *Server) StartHTTP() error {
 
 		fmt.Println(entry.Metadata)
 
-		err := s.RenderHTML(entry, w)
+		err := s.HTML(entry, w)
 		if err != nil {
 			s.Error(err)
 		}
-	})
+	}) */
+
+	r.Use(s.cleanPath)
+
+	r.PathPrefix("/").HandlerFunc(s.serveAll)
 
 	s.Infof("Listening on http://localhost:%d", s.c.Port)
 	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), r)
-}
-
-func (s *Server) recoverer(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Middlware is working??")
-		defer func() {
-			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				s.Errorf("panic while serving: %s", rvr)
-				s.Notify.Error(fmt.Errorf(fmt.Sprint(rvr)))
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-		}()
-
-		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
 }

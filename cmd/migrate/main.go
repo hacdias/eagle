@@ -9,8 +9,8 @@ import (
 	"path"
 	"reflect"
 
+	services "github.com/hacdias/eagle/_services"
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/services"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/karlseguin/typed"
 )
@@ -85,9 +85,9 @@ func migrate(c *config.Config) {
 
 		delete(entry.Metadata, "home")
 		delete(entry.Metadata, "type")
+		delete(entry.Metadata, "menu")
 		moveKey(entry.Metadata, "date", "publishDate")
 		moveKey(entry.Metadata, "lastmod", "updateDate")
-		moveKey(entry.Metadata, "layout", "template")
 		moveKey(entry.Metadata, "hideMentions", "noMentions")
 
 		if alias, ok := entry.Metadata.StringsIf("aliases"); ok {

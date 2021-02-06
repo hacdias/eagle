@@ -1,5 +1,5 @@
 ---
-template: guestbook
+layout: guestbook
 title: Guestbook
 ---
 

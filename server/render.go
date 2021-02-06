@@ -2,10 +2,16 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"html/template"
-	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle"
+	"github.com/hacdias/eagle/config"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -28,23 +34,137 @@ var md = goldmark.New(
 	),
 )
 
-func (s *Server) RenderHTML(entry *eagle.Entry, w io.Writer) error {
-	tpl := template.Must(s.tpl.Clone())
+type page struct {
+	*eagle.EntryMetadata
+	Site      *config.Site
+	Content   template.HTML
+	Permalink string
+	Section   string
+	IsHome    bool
+}
+
+func (s *Server) serveHTML(w http.ResponseWriter, entry *eagle.Entry) {
+	// Only for testing purposes, remove
+	layouts, err := getTemplates(s.c.Source)
+	if err != nil {
+		panic(err)
+	}
+	s.layouts = layouts
 
 	var buf bytes.Buffer
-	err := md.Convert([]byte(entry.Content), &buf)
+	err = md.Convert([]byte(entry.Content), &buf)
 	if err != nil {
-		return err
+		s.serveHTMLError(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	if entry.Metadata.Template == "" {
-		entry.Metadata.Template = "page.tmpl"
+	if entry.Metadata.Layout == "" {
+		entry.Metadata.Layout = "single"
 	}
 
 	// TODO: add context specific functions
-
-	return tpl.ExecuteTemplate(w, entry.Metadata.Template, map[string]interface{}{
-		"Content": template.HTML(buf.Bytes()),
-		"Page":    entry.Metadata,
+	tpl := template.Must(s.layouts[entry.Metadata.Layout].Clone())
+	err = tpl.ExecuteTemplate(w, entry.Metadata.Layout, &page{
+		EntryMetadata: &entry.Metadata,
+		Site:          &s.c.Site,
+		Content:       template.HTML(buf.Bytes()),
+		Permalink:     s.c.Site.Domain + entry.ID,
+		IsHome:        entry.ID == "/",
+		Section:       strings.Split(strings.TrimLeft(entry.ID, "/"), "/")[0],
 	})
+
+	if err != nil {
+		// TODO: this causes superfluous call if tpl fails in the middle
+		s.serveHTMLError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
+func (s *Server) serveHTMLError(w http.ResponseWriter, code int, err error) {
+	// TODO
+	w.WriteHeader(code)
+	w.Write([]byte(err.Error()))
+}
+
+func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		s.Errorf("error while serving json: %s", err)
+	}
+}
+
+func (s *Server) serveJSONError(w http.ResponseWriter, code int, err error) {
+	s.serveJSON(w, code, map[string]interface{}{
+		"error":             http.StatusText(code),
+		"error_description": err.Error(),
+	})
+}
+
+func getTemplates(source string) (map[string]*template.Template, error) {
+	var includes *template.Template
+
+	includesDir := filepath.Join(source, "templates", "includes")
+	err := filepath.Walk(includesDir, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		basename := filepath.Base(info.Name())
+		ext := filepath.Ext(basename)
+		id := strings.TrimSuffix(basename, ext)
+
+		raw, err := ioutil.ReadFile(p)
+		if err != nil {
+			return err
+		}
+
+		if includes == nil {
+			includes = template.Must(template.New(id).Funcs(funcMap).Parse(string(raw)))
+		} else {
+			includes = template.Must(includes.New(id).Parse(string(raw)))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	layouts := map[string]*template.Template{}
+	layoutsDir := filepath.Join(source, "templates", "layouts")
+	err = filepath.Walk(layoutsDir, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		basename := filepath.Base(info.Name())
+		ext := filepath.Ext(basename)
+		id := strings.TrimSuffix(basename, ext)
+
+		raw, err := ioutil.ReadFile(p)
+		if err != nil {
+			return err
+		}
+
+		layouts[id] = template.Must(template.Must(includes.Clone()).New(id).Parse(string(raw)))
+		return nil
+	})
+
+	return layouts, err
+}
+
+var funcMap = template.FuncMap{
+	"relURL": func(page *page, url string) string {
+		return url
+	},
 }

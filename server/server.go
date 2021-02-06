@@ -1,59 +1,145 @@
 package server
 
 import (
-	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
+	"os"
+	"path"
 	"path/filepath"
-	"sync"
+	"strconv"
+	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/services"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
+const activityContentType = "application/activity+json"
+const activityExt = ".as2"
+
 type Server struct {
-	sync.Mutex
 	*zap.SugaredLogger
 	*services.Services
-	c *config.Config
-
-	tpl *template.Template
-
-	dir     string
-	fs      afero.Fs
-	httpdir http.Handler
+	c          *config.Config
+	router     *mux.Router
+	staticHTTP http.Handler
+	layouts    map[string]*template.Template
 }
 
 func NewServer(c *config.Config, s *services.Services) (*Server, error) {
-	tpl, err := template.ParseGlob(filepath.Join(c.Source, "templates", "*.tmpl"))
+	layouts, err := getTemplates(c.Source)
 	if err != nil {
 		return nil, err
 	}
+
+	staticDir := filepath.Join(c.Source, "static")
+	staticFs := afero.NewBasePathFs(afero.NewOsFs(), staticDir)
+	staticHTTP := http.FileServer(neuteredFs{afero.NewHttpFs(staticFs).Dir("/")})
 
 	server := &Server{
 		SugaredLogger: c.S().Named("server"),
 		Services:      s,
 		c:             c,
-		tpl:           tpl,
+		staticHTTP:    staticHTTP,
+		layouts:       layouts,
 	}
 
+	fmt.Println(layouts)
+
+	r := mux.NewRouter()
+
+	//r.Use(server.recoverer)
+	// r.Use(server.cleanPath)
+
+	r.PathPrefix("/").HandlerFunc(server.mainHandler).Methods("GET", "HEAD")
+
+	server.router = r
 	return server, nil
 }
 
-func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	err := json.NewEncoder(w).Encode(data)
+func (s *Server) StartHTTP() error {
+	s.Infof("Listening on http://localhost:%d", s.c.Port)
+	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), s.router)
+}
+
+func (s *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
+	ext := path.Ext(r.URL.Path)
+	id := path.Clean(strings.TrimSuffix(r.URL.Path, ext))
+	path := id
+
+	accept := r.Header.Get("Accept")
+	acceptsHTML := strings.Contains(accept, "text/html")
+	acceptsActivity := strings.Contains(accept, activityContentType)
+	serveActivity := ext == activityExt || (!acceptsHTML && acceptsActivity)
+
+	if serveActivity {
+		path += activityExt
+	}
+
+	entry, err := s.GetEntry(id)
+	if os.IsNotExist(err) {
+		s.staticHandler(w, r)
+		return
+	}
+
 	if err != nil {
-		s.Errorf("error while serving json: %s", err)
+		s.serveHTMLError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if r.URL.Path != path {
+		http.Redirect(w, r, path, http.StatusTemporaryRedirect)
+		return
+	}
+
+	if serveActivity {
+		// TODO: serve actual activity
+		s.serveJSON(w, http.StatusOK, entry.Metadata)
+	} else {
+		s.serveHTML(w, entry)
 	}
 }
 
-func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
-	s.serveJSON(w, code, map[string]interface{}{
-		"error":             http.StatusText(code),
-		"error_description": err.Error(),
-	})
+func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	// TOOD: use template
+	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("Page Not Found"))
+}
+
+type notFoundRedirectRespWr struct {
+	http.ResponseWriter // We embed http.ResponseWriter
+	status              int
+}
+
+func (w *notFoundRedirectRespWr) WriteHeader(status int) {
+	w.status = status // Store the status for our own use
+	if status != http.StatusNotFound {
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+
+func (w *notFoundRedirectRespWr) Write(p []byte) (int, error) {
+	if w.status != http.StatusNotFound {
+		return w.ResponseWriter.Write(p)
+	}
+	return len(p), nil // Lie that we successfully written it
+}
+
+func (s *Server) recoverer(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
+				s.Errorf("panic while serving: %s", rvr)
+				// TODO s.Notify.Error(fmt.Errorf(fmt.Sprint(rvr)))
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
 }

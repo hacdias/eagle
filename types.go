@@ -17,7 +17,7 @@ type EntryMetadata struct {
 	ExpiryDate  time.Time `yaml:"expiryDate,omitempty"`
 	Syndication []string  `yaml:"syndication,omitempty"`
 	Emoji       string    `yaml:"emoji,omitempty"`
-	Template    string    `yaml:"template,omitempty"`
+	Layout      string    `yaml:"layout,omitempty"`
 
 	NoIndex    bool `yaml:"noIndex,omitempty"`
 	NoMentions bool `yaml:"noMentions,omitempty"`

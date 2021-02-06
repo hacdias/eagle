@@ -6,8 +6,9 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/dghubble/oauth1 v0.6.0
-	github.com/go-chi/chi v1.5.1
+	github.com/go-chi/chi v1.5.2-0.20210206012856-423901dfd545
 	github.com/go-fed/httpsig v1.0.1-0.20200711113112-812070f75b67
+	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/karlseguin/expect v1.0.7 // indirect
 	github.com/karlseguin/typed v1.1.7

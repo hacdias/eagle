@@ -23,6 +23,8 @@ func Get() (*Config, error) {
 		return nil, err
 	}
 
+	// TODO: validate config
+
 	conf.setupLogger()
 	return conf, nil
 }

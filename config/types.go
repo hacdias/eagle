@@ -7,6 +7,7 @@ type Config struct {
 	Port   int
 	Domain string // MUST NOT CONTAIN END SLASH
 	Source string
+	Site   Site
 
 	Development  bool
 	Telegraph    Telegraph
@@ -28,6 +29,27 @@ func (c *Config) S() *zap.SugaredLogger {
 
 func (c *Config) L() *zap.Logger {
 	return c.logger
+}
+
+type Site struct {
+	Domain      string
+	Title       string
+	Menu        []MenuItem
+	Author      Author
+	Description string
+}
+
+type Author struct {
+	Username string
+	Name     string
+	Avatar   string
+	Cover    string
+	Homepage string
+}
+
+type MenuItem struct {
+	Name string
+	URL  string
 }
 
 type Twitter struct {
