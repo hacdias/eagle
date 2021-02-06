@@ -17,5 +17,29 @@
       {{ template "footer" . }}
     {{ end }}
   </div>
+
+  {{/* $js := resources.Get "js/vendor/twemoji.min.js" */}}
+  {{/* $secureJS := $js | resources.Fingerprint "sha512" */}}
+  {{/* <script type="text/javascript" src="{{ $secureJS.RelPermalink }}" integrity="{{ $secureJS.Data.Integrity }}"></script> */}}
+  <script src="{{ relURL . "/js/vendor/twemoji.min.js" }}"></script>
+  <script>
+    twemoji.parse(document.body, {
+      base: 'https://cdn.hacdias.com/emojis/13.0.0/',
+      folder: 'svg',
+      ext: '.svg'
+    });
+
+    {{ if .Math }}
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+    {{ end }}
+  </script>
+
+  {{ if .Math }}
+    <script async src="https://cdn.hacdias.com/mathjax/3.1.2/tex-chtml.js"></script>
+  {{ end }}
 </body>
 </html>

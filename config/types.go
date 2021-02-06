@@ -9,6 +9,7 @@ type Config struct {
 	Domain      string // MUST NOT CONTAIN END SLASH
 	Source      string
 	Site        Site
+	Sections    []string
 
 	// OLD
 	Hugo Hugo

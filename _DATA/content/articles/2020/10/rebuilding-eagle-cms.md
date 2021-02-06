@@ -32,11 +32,11 @@ With this change, I managed to implement [search](/search/)! I am using a search
 
 In the future, I want to fully support ActivityPub though. I still need to implement my Inbox to make it fully work! Well... I know this was a different post than the other days, but I hope you enjoyed it!
 
-[apub1]: https://hacdias.com/micro/2020/03/n1/
-[apub2]: https://hacdias.com/micro/2020/03/i-now-have-activitypub/
+[apub1]: /micro/2020/03/n1/
+[apub2]: /micro/2020/03/i-now-have-activitypub/
 [goblog]: https://git.jlel.se/jlelse/GoBlog
 [arewewebrust]: https://www.arewewebyet.org/
-[cms1]: https://hacdias.com/micro/2020/01/on-building-my/
-[cms2]: https://hacdias.com/micro/2020/07/how-to-publish-notes/
-[cms3]: https://hacdias.com/micro/2020/01/n1/  
-[dynamic]: https://hacdias.com/articles/2020/01/dynamic-static/
+[cms1]: /micro/2020/01/on-building-my/
+[cms2]: /micro/2020/07/how-to-publish-notes/
+[cms3]: /micro/2020/01/n1/  
+[dynamic]: /articles/2020/01/dynamic-static/
