@@ -14,7 +14,7 @@ import (
 	"github.com/karlseguin/typed"
 )
 
-const DST = "./DATA/content" // trailing!
+const DST = "./_DATA/content" // trailing!
 
 func main() {
 	c, err := config.Get()
