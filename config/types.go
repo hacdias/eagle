@@ -3,24 +3,15 @@ package config
 import "go.uber.org/zap"
 
 type Config struct {
-	logger *zap.Logger `mapstructure:"-"`
-	Port   int
-	Domain string // MUST NOT CONTAIN END SLASH
-	Source string
-	Site   Site
+	logger      *zap.Logger `mapstructure:"-"`
+	Port        int
+	Development bool
+	Domain      string // MUST NOT CONTAIN END SLASH
+	Source      string
+	Site        Site
 
-	Development  bool
-	Telegraph    Telegraph
-	XRay         XRay
-	Hugo         Hugo
-	Twitter      Twitter
-	Telegram     Telegram
-	BunnyCDN     BunnyCDN
-	WebmentionIO WebmentionIO
-	Webhook      Webhook
-	IndieAuth    IndieAuth
-	ActivityPub  ActivityPub
-	MeiliSearch  *MeiliSearch
+	// OLD
+	Hugo Hugo
 }
 
 func (c *Config) S() *zap.SugaredLogger {
@@ -52,66 +43,7 @@ type MenuItem struct {
 	URL  string
 }
 
-type Twitter struct {
-	User        string
-	Key         string
-	Secret      string
-	Token       string
-	TokenSecret string `mapstructure:"token_secret"`
-}
-
-type Telegram struct {
-	Token  string
-	ChatID int64 `mapstructure:"chat_id"`
-}
-
-type BunnyCDN struct {
-	Zone string
-	Key  string
-	Base string
-}
-
-type WebmentionIO struct {
-	Secret string
-}
-
-type Webhook struct {
-	Secret string
-}
-
-type IndieAuth struct {
-	Me       string
-	Endpoint string
-}
-
-func (i *IndieAuth) Authorized() []string {
-	return []string{i.Me}
-}
-
-func (i *IndieAuth) TokenEndpoint() string {
-	return i.Endpoint
-}
-
 type Hugo struct {
 	Source      string
 	Destination string
-}
-
-type Telegraph struct {
-	Token string
-}
-
-type XRay struct {
-	Endpoint string
-}
-
-type MeiliSearch struct {
-	Endpoint string
-	Key      string
-}
-
-type ActivityPub struct {
-	IRI      string
-	PubKeyId string `mapstructure:"pub_key_id"`
-	PrivKey  string `mapstructure:"priv_key"`
 }

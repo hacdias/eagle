@@ -9,13 +9,12 @@ import (
 	"path"
 	"reflect"
 
-	services "github.com/hacdias/eagle/_services"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/karlseguin/typed"
 )
 
-const dst = "./DATA/content" // trailing!
+const DST = "./DATA/content" // trailing!
 
 func main() {
 	c, err := config.Get()
@@ -31,14 +30,14 @@ func main() {
 }
 
 func migrate(c *config.Config) {
-	hugo := &services.Hugo{
+	hugo := &Hugo{
 		SugaredLogger: c.S().Named("hugo"),
 		Hugo:          c.Hugo,
 		Domain:        c.Domain,
 	}
 
-	os.RemoveAll(dst)
-	os.MkdirAll(dst, 0777)
+	os.RemoveAll(DST)
+	os.MkdirAll(DST, 0777)
 
 	entries, err := hugo.GetAll()
 	if err != nil {
@@ -50,7 +49,10 @@ func migrate(c *config.Config) {
 
 	for _, entry := range entries {
 		//src := path.Join(c.Hugo.Source, "content", entry.ID, "index.md")
-		dst := dst + entry.ID + ".md"
+		dst := DST + entry.ID + ".md"
+		if entry.Listing {
+			dst = DST + entry.ID + "/_index.md"
+		}
 
 		if props, ok := entry.Metadata["properties"].(map[string][]interface{}); ok {
 			if len(reflect.ValueOf(props).MapKeys()) > 0 {
@@ -112,7 +114,7 @@ func migrate(c *config.Config) {
 		}
 	}
 
-	err = ioutil.WriteFile(path.Join(dst, "../redirects"), []byte(aliases), 0644)
+	err = ioutil.WriteFile(path.Join(DST, "../redirects"), []byte(aliases), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -121,7 +123,7 @@ func migrate(c *config.Config) {
 	fmt.Printf("Keys: %v\n", reflect.ValueOf(keys).MapKeys())
 }
 
-func saveEntry(e *services.HugoEntry, dst string) error {
+func saveEntry(e *HugoEntry, dst string) error {
 	val, err := yaml.Marshal(&e.Metadata)
 	if err != nil {
 		return err

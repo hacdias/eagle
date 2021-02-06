@@ -1,8 +1,5 @@
 ---
 emoji: ⚡️
-menu:
-  main:
-    weight: 6
 noMentions: true
 publishDate: "2020-01-30"
 title: Follow

@@ -1,8 +1,5 @@
 ---
 emoji: "\U0001F9D4"
-menu:
-  main:
-    weight: 1
 noMentions: true
 title: About
 ---

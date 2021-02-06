@@ -1,8 +1,5 @@
 ---
 emoji: ✉️
-menu:
-  main:
-    weight: 5
 noMentions: true
 title: Contact
 ---

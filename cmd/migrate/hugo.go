@@ -1,4 +1,4 @@
-package services
+package main
 
 import (
 	"encoding/hex"
@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -29,6 +30,7 @@ type HugoEntry struct {
 	RawContent string
 	Content    string
 	Metadata   typed.Typed
+	Listing    bool
 }
 
 type Hugo struct {
@@ -37,7 +39,6 @@ type Hugo struct {
 	Domain        string
 	DirChanges    chan string
 	currentSubDir string
-	Twitter       *Twitter
 }
 
 func generateHash() string {
@@ -117,41 +118,6 @@ func (h *Hugo) makeURL(id string) (string, error) {
 	return u.String(), nil
 }
 
-func (h *Hugo) SaveEntry(e *HugoEntry) error {
-	e.ID = h.cleanID(e.ID)
-	if prop, ok := e.Metadata["properties"]; ok {
-		e.Metadata["properties"] = mf2ToInternal(prop)
-	}
-
-	filePath := filepath.Join(h.Source, "content", e.ID)
-	err := os.MkdirAll(filePath, 0777)
-	if err != nil {
-		return err
-	}
-
-	index := filePath
-
-	if _, err := os.Stat(filepath.Join(index, "_index.md")); os.IsNotExist(err) {
-		index = filepath.Join(index, "index.md")
-	} else if err != nil {
-		return err
-	} else {
-		index = filepath.Join(index, "_index.md")
-	}
-
-	val, err := yaml.Marshal(&e.Metadata)
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(index, []byte(fmt.Sprintf("---\n%s---\n\n%s", string(val), e.Content)), 0644)
-	if err != nil {
-		return fmt.Errorf("could not save entry: %s", err)
-	}
-
-	return nil
-}
-
 func (h *Hugo) cleanID(id string) string {
 	id = path.Clean(id)
 	id = strings.TrimSuffix(id, "/")
@@ -162,12 +128,14 @@ func (h *Hugo) cleanID(id string) string {
 func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 	id = h.cleanID(id)
 	index := filepath.Join(h.Source, "content", id)
+	list := false
 
 	if _, err := os.Stat(filepath.Join(index, "_index.md")); os.IsNotExist(err) {
 		index = filepath.Join(index, "index.md")
 	} else if err != nil {
 		return nil, err
 	} else {
+		list = true
 		index = filepath.Join(index, "_index.md")
 	}
 
@@ -191,6 +159,7 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 		Permalink: permalink,
 		Metadata:  map[string]interface{}{},
 		Content:   strings.TrimSpace(splits[1]),
+		Listing:   list,
 	}
 
 	entry.RawContent = entry.Content
@@ -221,7 +190,7 @@ func (h *Hugo) GetAll() ([]*HugoEntry, error) {
 		if err != nil {
 			return err
 		}
-		if info.Name() != "index.md" {
+		if info.Name() != "index.md" && info.Name() != "_index.md" {
 			return nil
 		}
 
@@ -236,4 +205,75 @@ func (h *Hugo) GetAll() ([]*HugoEntry, error) {
 	})
 
 	return entries, err
+}
+
+func mf2ToInternal(data interface{}) interface{} {
+	value := reflect.ValueOf(data)
+	kind := value.Kind()
+
+	if kind == reflect.Slice {
+		if value.Len() == 1 {
+			return mf2ToInternal(value.Index(0).Interface())
+		}
+
+		parsed := make([]interface{}, value.Len())
+
+		for i := 0; i < value.Len(); i++ {
+			parsed[i] = mf2ToInternal(value.Index(i).Interface())
+		}
+
+		return parsed
+	}
+
+	if kind == reflect.Map {
+		parsed := map[string]interface{}{}
+
+		for _, k := range value.MapKeys() {
+			v := value.MapIndex(k)
+			parsed[fmt.Sprint(k.Interface())] = mf2ToInternal(v.Interface())
+		}
+
+		return parsed
+	}
+
+	return data
+}
+
+func internalToMf2(data interface{}) interface{} {
+	if data == nil {
+		return []interface{}{nil}
+	}
+
+	value := reflect.ValueOf(data)
+	kind := value.Kind()
+
+	if kind == reflect.Slice {
+		parsed := make([]interface{}, value.Len())
+
+		for i := 0; i < value.Len(); i++ {
+			parsed[i] = internalToMf2(value.Index(i).Interface())
+		}
+
+		return parsed
+	}
+
+	if kind == reflect.Map {
+		parsed := map[string][]interface{}{}
+
+		for _, k := range value.MapKeys() {
+			v := value.MapIndex(k)
+			key := fmt.Sprint(k.Interface())
+			vk := reflect.TypeOf(v.Interface()).Kind()
+
+			if key == "properties" || key == "value" || vk == reflect.Slice || vk == reflect.Array {
+				parsed[key] = internalToMf2(v.Interface()).([]interface{})
+			} else {
+				parsed[key] = []interface{}{internalToMf2(v.Interface())}
+			}
+		}
+
+		return parsed
+	}
+
+	return data
 }
