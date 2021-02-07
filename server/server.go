@@ -51,14 +51,32 @@ func NewServer(c *config.Config, s *services.Services) (*Server, error) {
 	r.Use(server.recoverer)
 	// r.Use(server.cleanPath)
 
-	// articles, darkroom, micro, notes, watches
+	// TODO: do not forget to setup redirects for feeds and update the links
+	// in the /follow page.
 
+	// This are the pages that have pagination.
+	// TODO: consider removing the /all page altogether and moving the feed
+	// to the root of the domain.
+	for _, listing := range []string{"micro", "all"} {
+		r.HandleFunc(fmt.Sprintf("/%s", listing), server.todoHandler)
+		r.HandleFunc(fmt.Sprintf("/%s/page/{page:[0-9]+}", listing), server.todoHandler)
+		r.HandleFunc(fmt.Sprintf("/%s/page/{page:[0-9]+}.rss", listing), server.todoHandler)
+		r.HandleFunc(fmt.Sprintf("/%s/page/{page:[0-9]+}.json", listing), server.todoHandler)
+	}
+
+	for _, listing := range []string{"articles", "watches", "darkroom", "notes"} {
+		r.HandleFunc(fmt.Sprintf("/%s", listing), server.todoHandler)
+	}
+
+	// Tags pages!
 	r.HandleFunc("/tags/{tag}", server.todoHandler)
 	r.HandleFunc("/tags/{tag}/page/{page:[0-9]+}", server.todoHandler)
 
-	r.HandleFunc("/{section}/page/{page:[0-9]+}", server.todoHandler)
-
+	// All other pages (check on the fly!)
 	r.PathPrefix("/").HandlerFunc(server.mainHandler).Methods("GET", "HEAD")
+
+	// r.NotFoundHandler =
+	// r.MethodNotAllowedHandler =
 
 	server.router = r
 	return server, nil
