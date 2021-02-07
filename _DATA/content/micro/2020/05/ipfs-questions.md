@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-05-19T10:19:48.523Z"
+replyTo: https://twitter.com/daviddias/status/1262684702865076224
 syndication:
 - https://twitter.com/hacdias/status/1262689444219535361
 tags:

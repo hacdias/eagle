@@ -1,0 +1,87 @@
+{{ $useSummary := false }}
+<article class='h-entry'>
+  {{/* if not (in (slice "micro" "darkroom") .Section) */}}
+    {{/* $useSummary = .IsList */}}
+  {{/* end */}}
+
+  {{ if .Title }}
+  <header>
+    <h1 class='p-name'>
+      {{ if .IsList }}<a href="{{ .Permalink }}" class='no-link'>{{ end }} <!-- TODO: should be relative permalink -->
+      {{- .Title -}}
+      {{ if .IsList }}</a>{{ end }}
+    </h1>
+  </header>
+  {{ end }}
+
+  {{ if .ReplyTo }}
+    {{/* $url := index .Params.properties "in-reply-to" */}}
+    {{/* $dataToShow := index .Site.Data.xray (sha256 $url) */}}
+    {{/* if eq $dataToShow.type "entry" */}}
+      {{/* partial "embedded-entry"  (dict "Wm" $dataToShow "Class" "u-in-reply-to") */}}
+    {{/* else */}}
+      {{/* <p class='copy content e-entry bar'>*/}}
+      {{/*   <a href="{{ $url }}" rel='noopener noreferrer' target='_blank' class="u-in-reply-to">*/}}
+      {{/*     {{- with .Title }}{{ . }}{{ else }}{{ $url}}{{ end -*/}}
+      {{/*   </a>*/}}
+      {{/* </p>*/}}
+    {{/* end*/}}
+  {{ end }}
+
+  {{/* partial "darkroom/full-figures" . */}}
+
+  {{ if $useSummary}}
+    <div class='content copy p-summary'><p>{{/* .Summary */}}</p></div>
+  {{ else }}
+    {{ with .Content }}
+      <div class='content copy e-content {{ if not $.Title }}p-name{{ end }}'>{{ . }}</div>
+    {{ end }}
+  {{ end }}
+
+  <footer class='footer'>
+    <span>
+      {{- if .UpdateDate.After .PublishDate -}}
+        <time class='dt-updated' datetime='{{ .UpdateDate.Format "2006-01-02T15:04:05Z07:00" }}'>
+          <a href="{{/* .RelPermalink */}}" class="u-url no-link">{{ .UpdateDate.Format "2 Jan 2006" }}</a>
+        </time>
+        <time class='dt-published dn' datetime='{{ .PublishDate.Format "2006-01-02T15:04:05Z07:00" }}'>{{ .PublishDate.Format "2 Jan 2006" }}</time>
+      {{- else if not .PublishDate.IsZero -}}
+        <time class='dt-published' datetime='{{ .PublishDate.Format "2006-01-02T15:04:05Z07:00" }}'>
+          <a href="{{/* .RelPermalink */}}" class="u-url no-link">{{ .PublishDate.Format "2 Jan 2006" }}</a>
+        </time>
+      {{- end -}}
+      {{- with .Section -}}
+        {{/*- with $.Glob.Site.GetPage (printf "/%s" .) -*/}}
+           {{/*-in <a href="{{ .RelPermalink }}">{{ with .Params.emoji }}{{ . }}{{ end }} {{ .Title }}</a></span>-*/}}
+        {{/*- end -*/}}
+      {{- end -}}
+    </span>
+
+    {{ if .IsList }}
+      <a class="more" href="{{/* .RelPermalink */}}">{{ if $useSummary }}Read more{{ else }}Comment{{ end }} →</a>
+    {{ else if .Tags }}
+      <ul>
+        {{ range $i, $tag := .Tags -}}
+          {{ $url := (printf "/tags/%s" $tag) -}}
+          <li><a class="p-category" href="{{ relURL $ $url }}">#{{ $tag }}</a></li>
+        {{ end -}}
+      </ul>
+    {{ end }}
+
+    {{ with .Syndication -}}
+      {{ range . -}}
+        <a class='dn u-syndication' rel="noopener noreferrer" target="_blank" href="{{ . }}">{{ . }}</a>
+      {{ end -}}
+    {{ end -}}
+
+    <!-- Author metadata -->
+    <div class="h-card u-author dn">
+      <data class='u-photo' value="{{ .Site.Author.Avatar }}">Picture</data>
+      <a href="{{ .Site.Author.Homepage }}" class="u-url p-name">{{ .Site.Author.Name }}</a>
+    </div>
+  </footer>
+
+  {{ if not (or .IsList .NoMentions) -}}
+    {{/* partial "webmention" . -*/}}
+  {{ end }}
+</article>

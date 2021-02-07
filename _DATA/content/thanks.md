@@ -1,6 +1,6 @@
 ---
+noIndex: true
 noMentions: true
-noindex: true
 title: Thanks for joining
 url: /newsletter/thanks
 ---

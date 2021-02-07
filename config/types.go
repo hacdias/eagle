@@ -6,7 +6,6 @@ type Config struct {
 	logger      *zap.Logger `mapstructure:"-"`
 	Port        int
 	Development bool
-	Domain      string // MUST NOT CONTAIN END SLASH
 	Source      string
 	Site        Site
 	Sections    []string

@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-05-11T14:21:45.769Z"
+replyTo: https://jlelse.blog/thoughts/2020/05/git-is-great/
 tags:
 - cvs
 - git

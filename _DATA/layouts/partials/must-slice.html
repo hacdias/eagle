@@ -1,7 +1,0 @@
-{{ $ret := . }}
-
-{{ if not (reflect.IsSlice .) }}
-  {{ $ret = (slice .) }}
-{{ end }}
-
-{{ return $ret }}

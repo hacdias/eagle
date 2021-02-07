@@ -33,7 +33,7 @@ func migrate(c *config.Config) {
 	hugo := &Hugo{
 		SugaredLogger: c.S().Named("hugo"),
 		Hugo:          c.Hugo,
-		Domain:        c.Domain,
+		Domain:        c.Site.Domain,
 	}
 
 	os.RemoveAll(DST)
@@ -59,12 +59,16 @@ func migrate(c *config.Config) {
 				// Reply
 				reply := props["in-reply-to"]
 				if len(reply) > 0 {
+					if len(reply) > 1 {
+						log.Panic(fmt.Errorf("post repllies to more than one thing %s", reply))
+					}
+
 					rp := reply[0].(string)
 					mfile := fmt.Sprintf("%x.json", sha256.Sum256([]byte(rp)))
 					mfilep := path.Join(c.Hugo.Source, "data", "xray", mfile)
 
 					if _, err := os.Stat(mfilep); err == nil || os.IsExist(err) {
-						// TODO
+						entry.Metadata["replyTo"] = rp
 					} else {
 						log.Fatal(err)
 					}
@@ -91,6 +95,7 @@ func migrate(c *config.Config) {
 		moveKey(entry.Metadata, "date", "publishDate")
 		moveKey(entry.Metadata, "lastmod", "updateDate")
 		moveKey(entry.Metadata, "hideMentions", "noMentions")
+		moveKey(entry.Metadata, "noindex", "noIndex")
 
 		if alias, ok := entry.Metadata.StringsIf("aliases"); ok {
 			for _, a := range alias {

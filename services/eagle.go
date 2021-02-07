@@ -3,7 +3,9 @@ package services
 import (
 	"bytes"
 	"errors"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/hacdias/eagle"
 	"github.com/hacdias/eagle/config"
@@ -30,9 +32,18 @@ func NewEntryManager(c *config.Config) (*EntryManager, error) {
 
 func (e *EntryManager) GetEntry(id string) (*eagle.Entry, error) {
 	file := id + ".md"
+	isList := false
 	raw, err := e.afs.ReadFile(file)
 	if err != nil {
-		return nil, err
+		if os.IsNotExist(err) {
+			file = id + "/_index.md"
+			raw, err = e.afs.ReadFile(file)
+			isList = true
+		}
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	splits := bytes.SplitN(raw, []byte("\n---"), 2)
@@ -40,10 +51,16 @@ func (e *EntryManager) GetEntry(id string) (*eagle.Entry, error) {
 		return nil, errors.New("could not parse file: splits !== 2")
 	}
 
+	content := bytes.TrimSpace(splits[1])
+
 	entry := &eagle.Entry{
-		ID:       id,
-		Metadata: eagle.EntryMetadata{},
-		Content:  bytes.TrimSpace(splits[1]),
+		ID:         id,
+		Metadata:   eagle.EntryMetadata{},
+		RawContent: content,
+		Content:    content, // TODO
+		Permalink:  "http://hacdias.com" + id,
+		Section:    strings.Split(strings.TrimLeft(id, "/"), "/")[0], // TODO: check
+		IsList:     isList,
 	}
 
 	err = yaml.Unmarshal(splits[0], &entry.Metadata)

@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-07-01T06:36:39.609Z"
+replyTo: https://jlelse.blog/thoughts/2020/06/blogging-german/
 tags:
 - meta
 - languages

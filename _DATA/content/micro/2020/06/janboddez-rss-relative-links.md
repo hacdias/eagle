@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-06-01T13:51:07.720Z"
+replyTo: https://janboddez.tech/notes/b6b59a1630
 tags:
 - meta
 - thanks

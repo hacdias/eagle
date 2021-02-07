@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-05-13T07:27:49.847Z"
+replyTo: https://jlelse.blog/links/2020/05/ton-cancelled/
 syndication:
 - https://twitter.com/hacdias/status/1260471841107345408
 tags:

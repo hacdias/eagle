@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-03-25T19:24:40.529Z"
+replyTo: https://jlelse.blog/micro/2020/03/my-desk/
 tags:
 - remote
 ---

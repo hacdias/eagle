@@ -17,9 +17,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const activityContentType = "application/activity+json"
-const activityExt = ".as2"
-
 type Server struct {
 	*zap.SugaredLogger
 	*services.Services
@@ -51,8 +48,15 @@ func NewServer(c *config.Config, s *services.Services) (*Server, error) {
 
 	r := mux.NewRouter()
 
-	//r.Use(server.recoverer)
+	r.Use(server.recoverer)
 	// r.Use(server.cleanPath)
+
+	// articles, darkroom, micro, notes, watches
+
+	r.HandleFunc("/tags/{tag}", server.todoHandler)
+	r.HandleFunc("/tags/{tag}/page/{page:[0-9]+}", server.todoHandler)
+
+	r.HandleFunc("/{section}/page/{page:[0-9]+}", server.todoHandler)
 
 	r.PathPrefix("/").HandlerFunc(server.mainHandler).Methods("GET", "HEAD")
 
@@ -63,6 +67,10 @@ func NewServer(c *config.Config, s *services.Services) (*Server, error) {
 func (s *Server) StartHTTP() error {
 	s.Infof("Listening on http://localhost:%d", s.c.Port)
 	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), s.router)
+}
+
+func (s *Server) todoHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("TODO"))
 }
 
 func (s *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +140,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				s.Errorf("panic while serving: %s", rvr)
+				s.Errorw("panic while serving", "path", r.URL.Path, "error", rvr)
 				// TODO s.Notify.Error(fmt.Errorf(fmt.Sprint(rvr)))
 				w.WriteHeader(http.StatusInternalServerError)
 			}

@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-07-21T07:34:33.271Z"
+replyTo: https://hacdias.com/micro/2020/07/too-many-notes-apps/
 tags:
 - notes
 - meta

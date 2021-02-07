@@ -31,13 +31,15 @@
   {{ end }}
 
   <ul class='terms'>
-    {{ range $i, $p := .Pages }}
-    {{ $date := $p.Date.Format "2006-01-02" }}
-      <li>
-        <a href="{{ .RelPermalink }}">{{ $p.Title }}</a>
-      </li>
-    {{ end }}
+    {{/* range $i, $p := .Pages */}}
+    {{/* $date := $p.Date.Format "2006-01-02" */}}
+      {{/* <li> */}}
+      {{/*   <a href="{{ .RelPermalink }}">{{ $p.Title }}</a> */}}
+      {{/* </li> */}}
+    {{/* end */}}
   </ul>
 </main>
 
 {{ end }}
+
+{{ template "base" . }}

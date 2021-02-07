@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-10-14T10:09:25Z"
+replyTo: https://jan.boddez.net/notes/046185c328
 tags:
 - meta
 - activitypub

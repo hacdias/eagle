@@ -1,6 +1,6 @@
 ---
+noIndex: true
 noMentions: true
-noindex: true
 title: Sad to see you go
 url: /newsletter/goodbye
 ---

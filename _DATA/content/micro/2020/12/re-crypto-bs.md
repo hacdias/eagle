@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-12-10T07:13:00Z"
+replyTo: https://jlelse.blog/thoughts/2020/12/crypto-bs
 tags:
 - blockchain
 - cryptocurrencies

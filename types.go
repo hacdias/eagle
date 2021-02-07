@@ -3,9 +3,13 @@ package eagle
 import "time"
 
 type Entry struct {
-	ID       string
-	Content  []byte
-	Metadata EntryMetadata
+	ID         string
+	Permalink  string
+	Section    string
+	RawContent []byte
+	Content    []byte
+	Metadata   EntryMetadata
+	IsList     bool
 }
 
 type EntryMetadata struct {
@@ -16,8 +20,10 @@ type EntryMetadata struct {
 	UpdateDate  time.Time `yaml:"updateDate,omitempty"`
 	ExpiryDate  time.Time `yaml:"expiryDate,omitempty"`
 	Syndication []string  `yaml:"syndication,omitempty"`
-	Emoji       string    `yaml:"emoji,omitempty"`
-	Layout      string    `yaml:"layout,omitempty"`
+	ReplyTo     string    `yaml:"replyTo,omitempty"`
+
+	Emoji  string `yaml:"emoji,omitempty"`
+	Layout string `yaml:"layout,omitempty"`
 
 	NoIndex    bool `yaml:"noIndex,omitempty"`
 	NoMentions bool `yaml:"noMentions,omitempty"`

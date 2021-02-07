@@ -10,9 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	fhtml "github.com/alecthomas/chroma/formatters/html"
 	"github.com/hacdias/eagle"
 	"github.com/hacdias/eagle/config"
 	"github.com/yuin/goldmark"
+	highlighting "github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
@@ -31,16 +33,21 @@ var md = goldmark.New(
 		extension.Footnote,
 		extension.Typographer,
 		extension.Linkify,
+		highlighting.NewHighlighting(
+			highlighting.WithStyle("dracula"),
+			highlighting.WithFormatOptions(
+				fhtml.WithAllClasses(true),
+			),
+		),
 	),
 )
 
 type page struct {
+	*eagle.Entry
 	*eagle.EntryMetadata
-	Site      *config.Site
-	Content   template.HTML
-	Permalink string
-	Section   string
-	IsHome    bool
+	Site    *config.Site
+	IsHome  bool
+	Content template.HTML
 }
 
 func (s *Server) serveHTML(w http.ResponseWriter, entry *eagle.Entry) {
@@ -65,12 +72,11 @@ func (s *Server) serveHTML(w http.ResponseWriter, entry *eagle.Entry) {
 	// TODO: add context specific functions
 	tpl := template.Must(s.layouts[entry.Metadata.Layout].Clone())
 	err = tpl.ExecuteTemplate(w, entry.Metadata.Layout, &page{
+		Entry:         entry,
 		EntryMetadata: &entry.Metadata,
 		Site:          &s.c.Site,
 		Content:       template.HTML(buf.Bytes()),
-		Permalink:     s.c.Site.Domain + entry.ID,
 		IsHome:        entry.ID == "/",
-		Section:       strings.Split(strings.TrimLeft(entry.ID, "/"), "/")[0],
 	})
 
 	if err != nil {

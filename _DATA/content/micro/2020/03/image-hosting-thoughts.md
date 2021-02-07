@@ -1,5 +1,6 @@
 ---
 publishDate: "2020-03-06T11:57:08.634Z"
+replyTo: https://jlelse.blog/micro/2020/03/photos-workflow/
 ---
 
 That's a great way to put it. Thanks for sharing how you're doing it. I'm using the HTML [`picture`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture) element to serve pictures in different formats and sizes. Right now, besides the original, Hugo's generating two more that are compressed and resized.

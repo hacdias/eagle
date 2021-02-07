@@ -44,9 +44,9 @@
 {{- end -}}
 
 {{- if not .UpdateDate.IsZero -}}
-  {{ $UpdateDate := .Date.Format "2006-01-02T15:04:05-07:00" }}
-  <meta property="article:modified_time" content="{{ $UpdateDate }}" />
-  <meta property="og:updated_time" content="{{ $UpdateDate }}" />
+  {{ $data := .UpdateDate.Format "2006-01-02T15:04:05-07:00" }}
+  <meta property="article:modified_time" content="{{ $data }}" />
+  <meta property="og:updated_time" content="{{ $data }}" />
 {{- end -}}
 
 <!-- Styles -->

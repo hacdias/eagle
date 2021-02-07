@@ -1,7 +1,10 @@
 {{ define "main" }}
 
 <main role='main' class='copy'>
-  {{ .Content }}
+  {{ template "post" . }}
+
+  {{/* $data := (dict "Glob" . "Mode" "single") */}}
+  {{/*  partial "post" $data */}}
 </main>
 
 {{ end }}
