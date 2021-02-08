@@ -10,7 +10,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				s.Errorf("panic while serving: %s", rvr)
-				s.Notify.Error(fmt.Errorf(fmt.Sprint(rvr)))
+				s.NotifyError(fmt.Errorf(fmt.Sprint(rvr)))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()

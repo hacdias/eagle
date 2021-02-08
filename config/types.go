@@ -15,7 +15,6 @@ type Config struct {
 	BunnyCDN     BunnyCDN
 	WebmentionIO WebmentionIO
 	Webhook      Webhook
-	IndieAuth    IndieAuth
 	ActivityPub  ActivityPub
 	MeiliSearch  *MeiliSearch
 }
@@ -53,19 +52,6 @@ type WebmentionIO struct {
 
 type Webhook struct {
 	Secret string
-}
-
-type IndieAuth struct {
-	Me       string
-	Endpoint string
-}
-
-func (i *IndieAuth) Authorized() []string {
-	return []string{i.Me}
-}
-
-func (i *IndieAuth) TokenEndpoint() string {
-	return i.Endpoint
 }
 
 type Hugo struct {

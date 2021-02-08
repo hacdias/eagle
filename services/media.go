@@ -15,7 +15,7 @@ type Media struct {
 	config.BunnyCDN
 }
 
-func (m *Media) Upload(filename string, data io.Reader) (string, error) {
+func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 	if !strings.HasPrefix(filename, "/") {
 		filename = "/" + filename
 	}

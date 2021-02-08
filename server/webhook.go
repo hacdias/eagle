@@ -46,14 +46,14 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 		err := s.Store.Sync()
 		if err != nil {
 			s.Errorf("webhook: error git pull: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 			return
 		}
 
 		err = s.Hugo.Build(false)
 		if err != nil {
 			s.Errorf("webhook: error hugo build: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 			return
 		}
 	}()

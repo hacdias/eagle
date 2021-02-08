@@ -1,12 +1,16 @@
 package services
 
+/*
 import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/hacdias/eagle/middleware/micropub"
 )
 
 var handles = regexp.MustCompile(`(?m)@([^\s]*)`)
@@ -126,3 +130,34 @@ func (h *Hugo) isTwitterUser(user string) bool {
 
 	return exists
 }
+
+var typesWithLinks = map[micropub.Type]string{
+	micropub.TypeRepost:   "repost-of",
+	micropub.TypeLike:     "like-of",
+	micropub.TypeReply:    "in-reply-to",
+	micropub.TypeBookmark: "bookmark-of",
+}
+
+func cleanRelated(urls []string) ([]string, error) {
+	clean := make([]string, len(urls))
+
+	for i, u := range urls {
+		if strings.HasPrefix(u, "https://twitter.com") && strings.Contains(u, "/status/") {
+			u, err := url.Parse(u)
+			if err != nil {
+				return nil, err
+			}
+
+			for k := range u.Query() {
+				u.Query().Del(k)
+			}
+
+			clean[i] = u.String()
+		} else {
+			clean[i] = u
+		}
+	}
+
+	return clean, nil
+}
+*/

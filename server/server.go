@@ -18,6 +18,7 @@ type Server struct {
 	sync.Mutex
 	*zap.SugaredLogger
 	*services.Services
+	*services.Eagle
 	c *config.Config
 
 	dir     string
@@ -32,10 +33,12 @@ func NewServer(c *config.Config, s *services.Services) *Server {
 		c:             c,
 	}
 
-	_, err := services.NewEagle(c)
+	eagle, err := services.NewEagle(c)
 	if err != nil {
 		panic(err)
 	}
+
+	server.Eagle = eagle
 
 	go func() {
 		server.Info("waiting for new directories")
@@ -51,7 +54,7 @@ func NewServer(c *config.Config, s *services.Services) *Server {
 			err := os.RemoveAll(oldDir)
 			if err != nil {
 				server.Warnf("could not delete old directory: %s", err)
-				s.Notify.Error(err)
+				server.NotifyError(err)
 			}
 		}
 		server.Info("stopped waiting for new directories, channel closed")
@@ -64,7 +67,9 @@ func (s *Server) StartHTTP() error {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 
-	// r.Get("/editor")
+	// /editor/type - and use archetype
+	// r.Get("/editor?path=")
+	// r.Get("/editor?reply=") / auto populate with xra, check if template is good
 	// r.Delete("/editor")
 	// r.Post("/editor") // update
 	// r.Put("/editor") // new

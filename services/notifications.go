@@ -6,14 +6,14 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-type Notify struct {
+type Notifications struct {
 	*zap.SugaredLogger
 	*config.Telegram
 	b *tb.Bot
 }
 
-func NewNotify(c *config.Telegram, log *zap.SugaredLogger) (*Notify, error) {
-	n := &Notify{
+func NewNotifications(c *config.Telegram, log *zap.SugaredLogger) (*Notifications, error) {
+	n := &Notifications{
 		Telegram:      c,
 		SugaredLogger: log,
 	}
@@ -26,7 +26,7 @@ func NewNotify(c *config.Telegram, log *zap.SugaredLogger) (*Notify, error) {
 	return n, nil
 }
 
-func (n *Notify) Info(msg string) {
+func (n *Notifications) Notify(msg string) {
 	_, err := n.b.Send(&tb.Chat{ID: n.ChatID}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
@@ -37,7 +37,7 @@ func (n *Notify) Info(msg string) {
 	}
 }
 
-func (n *Notify) Error(err error) {
+func (n *Notifications) NotifyError(err error) {
 	_, err2 := n.b.Send(&tb.Chat{ID: n.ChatID}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,

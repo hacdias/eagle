@@ -51,18 +51,18 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.Errorf("activity inbox: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 		return
 	}
 
 	if msg != "" {
-		s.Notify.Info(msg)
+		s.Notify(msg)
 	}
 
 	err = s.Store.Persist("activitypub")
 	if err != nil {
 		s.Errorf("activitypub: error git commit: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 	}
 
 	w.WriteHeader(http.StatusCreated)

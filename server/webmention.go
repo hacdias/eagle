@@ -62,12 +62,12 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		err := s.Hugo.Build(false)
 		if err != nil {
 			s.Errorf("webmention: error hugo build: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		} else {
 			if wm.Deleted {
-				s.Notify.Info("💬 Deleted webmention at " + wm.Target)
+				s.Notify("💬 Deleted webmention at " + wm.Target)
 			} else {
-				s.Notify.Info("💬 Received webmention at " + wm.Target)
+				s.Notify("💬 Received webmention at " + wm.Target)
 			}
 		}
 	}()

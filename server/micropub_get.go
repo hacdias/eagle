@@ -1,37 +1,6 @@
 package server
 
-import (
-	"fmt"
-	"net/http"
-	"os"
-)
-
-func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Query().Get("q") {
-	case "source":
-		s.Lock()
-		defer s.Unlock()
-
-		s.micropubSource(w, r)
-	case "config", "syndicate-to":
-		syndications := []map[string]string{}
-		for id, service := range s.Syndicator {
-			syndications = append(syndications, map[string]string{
-				"uid":  id,
-				"name": service.Name(),
-			})
-		}
-
-		config := map[string]interface{}{
-			"syndicate-to": syndications,
-		}
-
-		s.serveJSON(w, http.StatusOK, config)
-	default:
-		w.WriteHeader(http.StatusNotFound)
-	}
-}
-
+/*
 func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 	s.Debug("micropub: source request received")
 	id, err := s.micropubParseURL(r.URL.Query().Get("url"))
@@ -84,3 +53,4 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, entry)
 	s.Debug("micropub: source request ok")
 }
+*/

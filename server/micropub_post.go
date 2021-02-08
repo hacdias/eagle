@@ -1,18 +1,6 @@
 package server
 
-import (
-	"errors"
-	"fmt"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
-
-	"github.com/PuerkitoBio/goquery"
-	"github.com/hacdias/eagle/middleware/micropub"
-	"github.com/hacdias/eagle/services"
-)
-
+/*
 func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
 	s.Lock()
 	defer s.Unlock()
@@ -54,7 +42,7 @@ func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
 	err = s.Hugo.Build(mr.Action == micropub.ActionDelete)
 	if err != nil {
 		s.Errorf("micropub: error hugo build: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 	}
 }
 
@@ -75,20 +63,20 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		err = s.XRay.RequestAndSave(rel)
 		if err != nil {
 			s.Warnf("could not xray %s: %s", rel, err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		}
 	}
 
 	err = s.Store.Persist("add " + entry.ID)
 	if err != nil {
 		s.Errorf("micropub: error git commit: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 	}
 
 	err = s.Hugo.Build(false)
 	if err != nil {
 		s.Errorf("micropub: error hugo build: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 	}
 
 	url := s.c.Domain + entry.ID
@@ -101,7 +89,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		err := s.MeiliSearch.Add(entry)
 		if err != nil {
 			s.Warnf("could not add to meilisearch: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		}
 	}()
 
@@ -139,7 +127,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	err = s.Hugo.Build(false)
 	if err != nil {
 		s.Errorf("micropub: error hugo build: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 	}
 
 	http.Redirect(w, r, mr.URL, http.StatusOK)
@@ -151,7 +139,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		err := s.MeiliSearch.Add(entry)
 		if err != nil {
 			s.Warnf("could not update meilisearch: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		}
 	}()
 
@@ -186,7 +174,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		err := s.MeiliSearch.Add(entry)
 		if err != nil {
 			s.Warnf("could not add to meilisearch: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		}
 	}()
 
@@ -222,7 +210,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		err := s.MeiliSearch.Delete(entry)
 		if err != nil {
 			s.Warnf("could not remove from meilisearch: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		}
 	}()
 
@@ -251,7 +239,7 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 	syndication, err := s.Syndicator.Syndicate(entry, synd)
 	if err != nil {
 		s.Errorf("syndicate: failed to syndicate: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 		return
 	}
 
@@ -261,7 +249,7 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 		s.Unlock()
 		if err != nil {
 			s.Errorf("syndicate: %s", err)
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		}
 	}()
 
@@ -300,10 +288,10 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry, targets ...string) {
 	var err error
 	defer func() {
 		if err != nil {
-			s.Notify.Error(err)
+			s.NotifyError(err)
 			s.Warnf("webmentions: %s", err)
 		} else {
-			s.Notify.Info("Webmentions sent successfully for " + entry.ID)
+			s.Notify("Webmentions sent successfully for " + entry.ID)
 		}
 	}()
 
@@ -349,3 +337,4 @@ func (s *Server) sendWebmentions(entry *services.HugoEntry, targets ...string) {
 	s.Debugw("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
 	err = s.Webmentions.Send(entry.Permalink, targets...)
 }
+*/

@@ -207,7 +207,7 @@ func (w *Webmentions) uploadPhoto(url string) string {
 	}
 	defer resp.Body.Close()
 
-	newURL, err := w.Media.Upload("/webmentions/"+base+ext, resp.Body)
+	newURL, err := w.Media.UploadMedia("/webmentions/"+base+ext, resp.Body)
 	if err != nil {
 		w.Errorf("could not upload photo to cdn: %s", url)
 		return url

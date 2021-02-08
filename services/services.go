@@ -9,10 +9,6 @@ import (
 type Services struct {
 	PublicDirChanges chan string
 	cfg              *config.Config
-	Store            StorageService
-	Hugo             *Hugo
-	Media            *Media
-	Notify           *Notify
 	Webmentions      *Webmentions
 	XRay             *XRay
 	Syndicator       Syndicator
@@ -21,28 +17,8 @@ type Services struct {
 }
 
 func NewServices(c *config.Config) (*Services, error) {
-	notify, err := NewNotify(&c.Telegram, c.S().Named("telegram"))
-	if err != nil {
-		return nil, err
-	}
-
-	var store StorageService
-	if c.Development {
-		store = &PlaceboStorage{}
-	} else {
-		store = &GitStorage{
-			Directory: c.Hugo.Source,
-		}
-	}
 
 	dirChanges := make(chan string)
-
-	hugo := &Hugo{
-		SugaredLogger: c.S().Named("hugo"),
-		Hugo:          c.Hugo,
-		Domain:        c.Domain,
-		DirChanges:    dirChanges,
-	}
 
 	media := &Media{c.BunnyCDN}
 
@@ -65,16 +41,12 @@ func NewServices(c *config.Config) (*Services, error) {
 	if c.Twitter.User != "" {
 		twitter := NewTwitter(&c.Twitter)
 		syndicator["https://twitter.com/"+c.Twitter.User] = twitter
-		hugo.Twitter = twitter
+		// hugo.Twitter = twitter
 	}
 
 	services := &Services{
 		PublicDirChanges: dirChanges,
 		cfg:              c,
-		Store:            store,
-		Hugo:             hugo,
-		Media:            media,
-		Notify:           notify,
 		Webmentions:      webmentions,
 		XRay: &XRay{
 			SugaredLogger: c.S().Named("xray"),
