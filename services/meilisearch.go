@@ -13,7 +13,7 @@ const meiliSearchIndex = "posts"
 const meiliSearchKey = "id"
 
 type MeiliSearch struct {
-	*meilisearch.Client
+	meilisearch.ClientInterface
 }
 
 func NewMeiliSearch(c *config.MeiliSearch) (*MeiliSearch, error) {
@@ -23,7 +23,7 @@ func NewMeiliSearch(c *config.MeiliSearch) (*MeiliSearch, error) {
 	})
 
 	ms := &MeiliSearch{
-		Client: client,
+		ClientInterface: client,
 	}
 
 	indexes, err := ms.Indexes().List()
@@ -109,7 +109,7 @@ func (ms *MeiliSearch) Delete(entries ...*HugoEntry) error {
 }
 
 func (ms *MeiliSearch) Search(query string, filter string, page int) ([]interface{}, error) {
-	res, err := ms.Client.Search(meiliSearchIndex).Search(meilisearch.SearchRequest{
+	res, err := ms.ClientInterface.Search(meiliSearchIndex).Search(meilisearch.SearchRequest{
 		Query:            query,
 		Filters:          filter,
 		Offset:           int64(page * 20),

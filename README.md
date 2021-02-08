@@ -11,6 +11,8 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 
 ## Notes
 
+- https://hacdias.com/articles/2021/02/is-it-time-build-cms/
+
 ## GOAL: support ActivityPub
 
 - Make Inbox
