@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -123,4 +124,15 @@ func (x *XRay) RequestAndSave(url string) error {
 
 	x.Infof("%s x-rayed successfully", url)
 	return nil
+}
+
+func clean(data string) string {
+	space := regexp.MustCompile(`\s+`)
+	data = strings.TrimSpace(data)
+	// Collapse whitespaces
+	data = space.ReplaceAllString(data, " ")
+
+	// BUG> Remove quotes: https://github.com/gohugoio/hugo/issues/8219
+	data = strings.ReplaceAll(data, "\"", "")
+	return data
 }

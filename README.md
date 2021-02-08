@@ -11,20 +11,22 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 
 ## Update Plan
 
-1. New branch on website
-2. Migrate Hugo files to new streamlined format
-3. Remove Micropub service
-4. Create basic auth protected endpoints for:
+1. X
+2. X
+4. Remove Micropub service
+5. Create basic auth protected endpoints for:
    1. Creation (uses archetypes and allows to set URL as well as syndication)
    2. Edition
    3. Deletion
-5. Streamline webmentions into a new format. Store in data (?) folder, path based - call them interactions. Cleanup format.
-6. Improve current search functionality and endpoint
+6. Streamline webmentions into a new format. Store in data (?) folder, path based - call them interactions. Cleanup format.
+7. Improve current search functionality and endpoint
    1. Allow more personalization on the website
    2. Allow the URL to indicate what we are searching
-7. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
-8. Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
-9. CLI for local management.
+8. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
+9. Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
+10. CLI for local management.
+11. Solve newsletter/goodbye and thanks
+12. X
 
 ### Notes
 

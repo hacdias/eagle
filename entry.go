@@ -2,31 +2,49 @@ package eagle
 
 import "time"
 
+// [pictures emoji description syndication replyTo mentions aliases expiryDate tags math noIndex url layout date lastmod mermaid title noMentions]
 type Entry struct {
+	Path string // might be empty
+
 	ID        string
 	Permalink string
-	Content   []byte
+	Content   string
 	Metadata  EntryMetadata
 }
 
 type EntryMetadata struct {
-	Title       string    `yaml:"title,omitempty"`
-	Description string    `yaml:"description,omitempty"`
-	Tags        []string  `yaml:"tags,omitempty"`
-	Date        time.Time `yaml:"date,omitempty"`
-	Lastmod     time.Time `yaml:"lastmod,omitempty"`
-	ExpiryDate  time.Time `yaml:"expiryDate,omitempty"`
-	Syndication []string  `yaml:"syndication,omitempty"`
-	ReplyTo     string    `yaml:"replyTo,omitempty"`
+	Title       string        `yaml:"title,omitempty"`
+	Description string        `yaml:"description,omitempty"`
+	Tags        []string      `yaml:"tags,omitempty"`
+	Date        time.Time     `yaml:"date,omitempty"`
+	Lastmod     time.Time     `yaml:"lastmod,omitempty"`
+	ExpiryDate  time.Time     `yaml:"expiryDate,omitempty"`
+	Syndication []string      `yaml:"syndication,omitempty"`
+	ReplyTo     EmbeddedEntry `yaml:"replyTo,omitempty"`
+	URL         string        `yaml:"url,omitempty"`
+	Aliases     []string      `yaml:"aliases,omitempty"`
+	Emoji       string        `yaml:"emoji,omitempty"`
+	Layout      string        `yaml:"layout,omitempty"`
+	NoIndex     bool          `yaml:"noIndex,omitempty"`
+	NoMentions  bool          `yaml:"noMentions,omitempty"`
+	Math        bool          `yaml:"math,omitempty"`
+	Mermaid     bool          `yaml:"mermaid,omitempty"`
+}
 
-	Emoji  string `yaml:"emoji,omitempty"`
-	Layout string `yaml:"layout,omitempty"`
+type EmbeddedEntry struct {
+	WmID    uint      `yaml:"wm-id,omitempty"`
+	Type    string    `yaml:"type,omitempty"`
+	URL     string    `yaml:"url,omitempty"`
+	Name    string    `yaml:"name,omitempty"`
+	Content string    `yaml:"content,omitempty"`
+	Date    time.Time `yaml:"date,omitempty"`
+	Author  *Author   `yaml:"author,omitempty"`
+}
 
-	NoIndex    bool `yaml:"noIndex,omitempty"`
-	NoMentions bool `yaml:"noMentions,omitempty"`
-
-	Math    bool `yaml:"math,omitempty"`
-	Mermaid bool `yaml:"mermaid,omitempty"`
+type Author struct {
+	Name  string `yaml:"name,omitempty"`
+	URL   string `yaml:"url,omitempty"`
+	Photo string `yaml:"photo,omitempty"`
 }
 
 /*

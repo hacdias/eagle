@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -14,16 +13,16 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/hacdias/eagle"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/karlseguin/typed"
 	"go.uber.org/zap"
 )
-
-const DST = "./_DATA/content" // trailing!
 
 func main() {
 	c, err := config.Get()
@@ -45,105 +44,39 @@ func migrate(c *config.Config) {
 		Domain:        c.Domain,
 	}
 
-	os.RemoveAll(DST)
-	os.MkdirAll(DST, 0777)
-
 	entries, err := hugo.GetAll()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	keys := map[string]bool{}
-	aliases := ""
-
 	for _, entry := range entries {
-		//src := path.Join(c.Hugo.Source, "content", entry.ID, "index.md")
-		dst := DST + entry.ID + ".md"
-		if entry.Listing {
-			dst = DST + entry.ID + "/_index.md"
-		}
-
-		if props, ok := entry.Metadata["properties"].(map[string][]interface{}); ok {
-			if len(reflect.ValueOf(props).MapKeys()) > 0 {
-				// Reply
-				reply := props["in-reply-to"]
-				if len(reply) > 0 {
-					if len(reply) > 1 {
-						log.Panic(fmt.Errorf("post repllies to more than one thing %s", reply))
-					}
-
-					rp := reply[0].(string)
-					mfile := fmt.Sprintf("%x.json", sha256.Sum256([]byte(rp)))
-					mfilep := path.Join(c.Hugo.Source, "data", "xray", mfile)
-
-					if _, err := os.Stat(mfilep); err == nil || os.IsExist(err) {
-						entry.Metadata["replyTo"] = rp
-					} else {
-						log.Fatal(err)
-					}
-				}
-				delete(props, "in-reply-to")
-
-				syndication := props["syndication"]
-				if len(syndication) > 0 {
-					entry.Metadata["syndication"] = syndication
-				}
-				delete(props, "syndication")
-
-				if len(reflect.ValueOf(props).MapKeys()) > 0 {
-					log.Fatal(fmt.Errorf("prop not recognized: %v", reflect.ValueOf(props).MapKeys()))
-				}
-			}
-
-			delete(entry.Metadata, "properties")
-		}
-
-		delete(entry.Metadata, "home")
-		delete(entry.Metadata, "type")
-		delete(entry.Metadata, "menu")
-		// moveKey(entry.Metadata, "date", "publishDate")
-		// moveKey(entry.Metadata, "lastmod", "updateDate")
-		moveKey(entry.Metadata, "hideMentions", "noMentions")
-		moveKey(entry.Metadata, "noindex", "noIndex")
-
-		if alias, ok := entry.Metadata.StringsIf("aliases"); ok {
-			for _, a := range alias {
-				aliases += fmt.Sprintf("%s %s\n", a, entry.ID)
-			}
-			delete(entry.Metadata, "aliases")
-		}
-
-		for key := range entry.Metadata {
-			keys[key] = true
-		}
-
-		err = os.MkdirAll(path.Dir(dst), 0777)
+		err = saveEntry(entry)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		err = saveEntry(entry, dst)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	err = ioutil.WriteFile(path.Join(DST, "../redirects"), []byte(aliases), 0644)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	fmt.Printf("Parsed: %d\n", len(entries))
-	fmt.Printf("Keys: %v\n", reflect.ValueOf(keys).MapKeys())
 }
 
-func saveEntry(e *HugoEntry, dst string) error {
+func clean(data string) string {
+	space := regexp.MustCompile(`\s+`)
+	data = strings.TrimSpace(data)
+	// Collapse whitespaces
+	data = space.ReplaceAllString(data, " ")
+
+	// BUG> Remove quotes: https://github.com/gohugoio/hugo/issues/8219
+	data = strings.ReplaceAll(data, "\"", "")
+	return data
+}
+
+func saveEntry(e *eagle.Entry) error {
 	val, err := yaml.Marshal(&e.Metadata)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(dst, []byte(fmt.Sprintf("---\n%s---\n\n%s", string(val), e.Content)), 0644)
+	err = ioutil.WriteFile(e.Path, []byte(fmt.Sprintf("---\n%s---\n\n%s\n", string(val), e.Content)), 0644)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %s", err)
 	}
@@ -262,17 +195,16 @@ func (h *Hugo) cleanID(id string) string {
 	return "/" + id
 }
 
-func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
+func (h *Hugo) GetEntry(id string) (*eagle.Entry, error) {
 	id = h.cleanID(id)
 	index := filepath.Join(h.Source, "content", id)
-	list := false
 
 	if _, err := os.Stat(filepath.Join(index, "_index.md")); os.IsNotExist(err) {
 		index = filepath.Join(index, "index.md")
 	} else if err != nil {
 		return nil, err
 	} else {
-		list = true
+
 		index = filepath.Join(index, "_index.md")
 	}
 
@@ -291,36 +223,24 @@ func (h *Hugo) GetEntry(id string) (*HugoEntry, error) {
 		return nil, err
 	}
 
-	entry := &HugoEntry{
+	entry := &eagle.Entry{
 		ID:        id,
 		Permalink: permalink,
-		Metadata:  map[string]interface{}{},
+		Metadata:  eagle.EntryMetadata{},
 		Content:   strings.TrimSpace(splits[1]),
-		Listing:   list,
+		Path:      index,
 	}
 
-	entry.RawContent = entry.Content
-
-	var metadata map[string]interface{}
-
-	err = yaml.Unmarshal([]byte(splits[0]), &metadata)
+	err = yaml.Unmarshal([]byte(splits[0]), &entry.Metadata)
 	if err != nil {
 		return nil, err
-	}
-
-	entry.Metadata = metadata
-
-	if props, ok := entry.Metadata["properties"]; ok {
-		entry.Metadata["properties"] = internalToMf2(props)
-	} else {
-		entry.Metadata["properties"] = map[string][]interface{}{}
 	}
 
 	return entry, nil
 }
 
-func (h *Hugo) GetAll() ([]*HugoEntry, error) {
-	entries := []*HugoEntry{}
+func (h *Hugo) GetAll() ([]*eagle.Entry, error) {
+	entries := []*eagle.Entry{}
 	content := path.Join(h.Source, "content")
 
 	err := filepath.Walk(h.Source, func(p string, info os.FileInfo, err error) error {
