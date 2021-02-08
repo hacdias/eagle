@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 
+	"github.com/go-chi/chi"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/services"
 	"github.com/spf13/afero"
@@ -30,6 +32,11 @@ func NewServer(c *config.Config, s *services.Services) *Server {
 		c:             c,
 	}
 
+	_, err := services.NewEagle(c)
+	if err != nil {
+		panic(err)
+	}
+
 	go func() {
 		server.Info("waiting for new directories")
 		for dir := range s.PublicDirChanges {
@@ -51,6 +58,45 @@ func NewServer(c *config.Config, s *services.Services) *Server {
 	}()
 
 	return server
+}
+
+func (s *Server) StartHTTP() error {
+	r := chi.NewRouter()
+	r.Use(s.recoverer)
+
+	// r.Get("/editor")
+	// r.Delete("/editor")
+	// r.Post("/editor") // update
+	// r.Put("/editor") // new
+
+	r.Post("/webhook", s.webhookHandler)
+	r.Post("/webmention", s.webmentionHandler)
+	r.Post("/activitypub/inbox", s.activityPubPostInboxHandler)
+	r.Get("/search.json", s.searchHandler)
+
+	// Make sure we have a built version!
+	should, err := s.Hugo.ShouldBuild()
+	if err != nil {
+		return err
+	}
+	if should {
+		err = s.Hugo.Build(false)
+		if err != nil {
+			return err
+		}
+	}
+
+	static := s.staticHandler()
+
+	r.NotFound(static)
+	r.MethodNotAllowed(static)
+
+	// NOTE:
+	//	- Should I handle /now dynamicall?
+	//	- Should I handle all redirects dynamically?
+
+	s.Infof("Listening on http://localhost:%d", s.c.Port)
+	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), r)
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
