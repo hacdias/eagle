@@ -15,7 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 )
@@ -34,12 +36,6 @@ type WebmentionContent struct {
 	HTML string `json:"html"`
 }
 
-type WebmentionAuthor struct {
-	Name  string `json:"name"`
-	URL   string `json:"url"`
-	Photo string `json:"photo"`
-}
-
 type WebmentionPayload struct {
 	Secret  string `json:"secret"`
 	Source  string `json:"source"`
@@ -47,7 +43,7 @@ type WebmentionPayload struct {
 	Target  string `json:"target"`
 	Post    struct {
 		Type       string            `json:"type"`
-		Author     WebmentionAuthor  `json:"author"`
+		Author     EntryAuthor       `json:"author"`
 		URL        string            `json:"url"`
 		Published  string            `json:"published"`
 		WmReceived string            `json:"wm-received"`
@@ -66,14 +62,16 @@ type Webmentions struct {
 	hugoSource string
 	telegraph  config.Telegraph
 	media      *Media
+	notify     *Notifications
 }
 
-func NewWebmentions(conf *config.Config, media *Media) *Webmentions {
+func NewWebmentions(conf *config.Config, media *Media, notify *Notifications) *Webmentions {
 	return &Webmentions{
 		domain:     conf.Domain,
 		hugoSource: conf.Hugo.Source,
 		telegraph:  conf.Telegraph,
 		media:      media,
+		notify:     notify,
 	}
 }
 
@@ -113,16 +111,32 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 }
 
 func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
-	permalink := strings.Replace(payload.Target, w.domain, "", 1)
-	storeFile := path.Join(w.hugoSource, "content", permalink, "mentions.json")
+	w.Infow("received webmention", "webmention", payload)
 
-	if _, err := os.Stat(path.Join(w.hugoSource, "content", permalink)); os.IsNotExist(err) {
-		storeFile = path.Join(w.hugoSource, "data", "mentions", "orphans.json")
-	} else if payload.Post.WmPrivate {
-		storeFile = path.Join(w.hugoSource, "data", "mentions", "private.json")
+	if payload.Post.WmPrivate {
+		w.notify.Notify(
+			fmt.Sprintf(
+				"Received private webmention from %s at %s to %s: %s",
+				payload.Post.Author.Name,
+				payload.Post.URL,
+				payload.Target,
+				payload.Post.Content.Text,
+			),
+		)
+		return nil
 	}
 
-	mentions := []StoredWebmention{}
+	permalink := strings.Replace(payload.Target, w.domain, "", 1)
+
+	storeFile := strings.TrimSuffix(permalink, "/")
+	storeFile = strings.TrimPrefix(storeFile, "/")
+	storeFile = strings.ReplaceAll(storeFile, "/", "-")
+	if storeFile == "" {
+		storeFile = "index"
+	}
+
+	storeFile = path.Join(w.hugoSource, "data", "interactions", storeFile+".yaml")
+	mentions := []EmbeddedEntry{}
 
 	if fd, err := os.Open(storeFile); err == nil {
 		err := json.NewDecoder(fd).Decode(&mentions)
@@ -134,7 +148,7 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	}
 
 	if payload.Deleted {
-		newMentions := []StoredWebmention{}
+		newMentions := []EmbeddedEntry{}
 		for _, mention := range mentions {
 			if mention.URL != payload.Source {
 				newMentions = append(newMentions, mention)
@@ -145,16 +159,21 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	}
 
 	for _, mention := range mentions {
-		if mention.ID == payload.Post.WmID {
+		if mention.WmID == payload.Post.WmID {
 			w.Infof("duplicated webmention for %s: %d", permalink, payload.Post.WmID)
 			return ErrDuplicatedWebmention
 		}
 	}
 
-	wm := &StoredWebmention{
-		ID:      payload.Post.WmID,
-		Content: payload.Post.Content,
-		Author:  payload.Post.Author,
+	wm := &EmbeddedEntry{
+		WmID:   payload.Post.WmID,
+		Author: &payload.Post.Author,
+	}
+
+	if payload.Post.Content.Text != "" {
+		wm.Content = payload.Post.Content.Text
+	} else if payload.Post.Content.HTML != "" {
+		wm.Content = payload.Post.Content.HTML
 	}
 
 	if payload.Post.WmProperty != "" {
@@ -173,10 +192,14 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 		wm.URL = payload.Post.WmSource
 	}
 
+	var err error
 	if payload.Post.Published != "" {
-		wm.Date = payload.Post.Published
+		wm.Date, err = dateparse.ParseStrict(payload.Post.Published)
 	} else {
-		wm.Date = payload.Post.WmReceived
+		wm.Date, err = dateparse.ParseStrict(payload.Post.WmReceived)
+	}
+	if err != nil {
+		return err
 	}
 
 	if wm.Author.Photo != "" {
@@ -187,23 +210,13 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	return w.save(mentions, storeFile)
 }
 
-func (w *Webmentions) save(mentions []StoredWebmention, file string) error {
-	bytes, err := json.MarshalIndent(mentions, "", "  ")
+func (w *Webmentions) save(mentions []EmbeddedEntry, file string) error {
+	bytes, err := yaml.Marshal(mentions)
 	if err != nil {
 		return err
 	}
 
 	return ioutil.WriteFile(file, bytes, 0644)
-}
-
-// TODO: change this to EmbbededEntry format.
-type StoredWebmention struct {
-	Type    string            `json:"type"`
-	URL     string            `json:"url"`
-	Date    string            `json:"date"`
-	ID      int               `json:"wm-id"`
-	Content WebmentionContent `json:"content"`
-	Author  WebmentionAuthor  `json:"author"`
 }
 
 func (w *Webmentions) uploadPhoto(url string) string {

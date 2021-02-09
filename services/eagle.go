@@ -47,7 +47,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 	}
 
-	webmentions := NewWebmentions(conf, media)
+	webmentions := NewWebmentions(conf, media, notifications)
 	activitypub, err := NewActivityPub(conf, webmentions)
 	if err != nil {
 		return nil, err

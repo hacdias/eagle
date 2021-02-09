@@ -32,7 +32,7 @@ type EntryMetadata struct {
 }
 
 type EmbeddedEntry struct {
-	WmID    uint         `yaml:"wm-id,omitempty"`
+	WmID    int          `yaml:"wm-id,omitempty"`
 	Type    string       `yaml:"type,omitempty"`
 	URL     string       `yaml:"url,omitempty"`
 	Name    string       `yaml:"name,omitempty"`
@@ -53,9 +53,9 @@ type EntryMention struct {
 }
 
 type EntryAuthor struct {
-	Name  string `yaml:"name,omitempty"`
-	URL   string `yaml:"url,omitempty"`
-	Photo string `yaml:"photo,omitempty"`
+	Name  string `yaml:"name,omitempty" json:"name"`
+	URL   string `yaml:"url,omitempty" json:"url"`
+	Photo string `yaml:"photo,omitempty" json:"photo"`
 }
 
 /*
