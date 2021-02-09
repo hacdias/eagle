@@ -14,19 +14,19 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 1. X
 2. X
 4. Remove Micropub service
-5. Create basic auth protected endpoints for:
-   1. Creation (uses archetypes and allows to set URL as well as syndication)
-   2. Edition
-   3. Deletion
-6. Streamline webmentions into a new format. Store in data (?) folder, path based - call them interactions. Cleanup format.
-7. Improve current search functionality and endpoint
+5. Create endpoints for:
+   1. Creation / edition
+   2. Deletion
+6. Protect endpoints with basic auth
+7. Streamline webmentions into a new format. Store in data (?) folder, path based - call them interactions. Cleanup format.
+8. Improve current search functionality and endpoint
    1. Allow more personalization on the website
    2. Allow the URL to indicate what we are searching
-8. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
-9. Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
-10. CLI for local management.
-11. Solve newsletter/goodbye and thanks
-12. X
+9. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
+10. Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
+11. CLI for local management.
+12. Solve newsletter/goodbye and thanks
+13. X
 
 ### Notes
 

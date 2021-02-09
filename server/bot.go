@@ -1,6 +1,7 @@
 package server
 
 import (
+	"strings"
 	"time"
 
 	"github.com/prometheus/common/log"
@@ -49,13 +50,13 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 	}))
 
 	b.Handle("/build", checkUser(func(m *tb.Message) {
-		/* clean := strings.Contains(m.Text, "clean")
-		err := s.Hugo.Build(clean)
+		clean := strings.Contains(m.Text, "clean")
+		err := s.Build(clean)
 		if err != nil {
 			s.NotifyError(err)
 		} else {
 			s.Notify("Build was successfull! 💪")
-		} */
+		}
 	}))
 
 	b.Handle("/build_index", checkUser(func(m *tb.Message) {

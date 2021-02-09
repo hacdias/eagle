@@ -39,7 +39,7 @@ func (h *Hugo) ShouldBuild() (bool, error) {
 
 	content, err := ioutil.ReadFile(path.Join(h.Destination, "last"))
 	if err != nil {
-		if !os.IsNotExist(err) {
+		if os.IsNotExist(err) {
 			return true, nil
 		}
 

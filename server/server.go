@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/services"
 	"github.com/spf13/afero"
@@ -20,6 +21,8 @@ type Server struct {
 	*services.Eagle
 	c *config.Config
 
+	eagle *services.Eagle
+
 	dir     string
 	fs      afero.Fs
 	httpdir http.Handler
@@ -29,6 +32,7 @@ func NewServer(c *config.Config, e *services.Eagle) *Server {
 	server := &Server{
 		SugaredLogger: c.S().Named("server"),
 		Eagle:         e,
+		eagle:         e,
 		c:             c,
 	}
 
@@ -59,12 +63,16 @@ func (s *Server) StartHTTP() error {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 
-	// /editor/type - and use archetype
-	// r.Get("/editor?path=")
-	// r.Get("/editor?reply=") / auto populate with xra, check if template is good
-	// r.Delete("/editor")
-	// r.Post("/editor") // update
-	// r.Put("/editor") // new
+	r.With(middleware.BasicAuth(s.c.Domain, s.c.BasicAuth)).Route("/dashboard", func(r chi.Router) {
+		// Interface: r.Get("/")
+
+		r.Get("/editor", s.editorGetHandler)
+		r.Post("/editor", s.editorPostHandler)
+	})
+
+	r.Get("/editor", s.editorGetHandler)
+	r.Delete("/editor", s.editorDeleteHandler)
+	r.Post("/editor", s.editorPostHandler)
 
 	r.Post("/webhook", s.webhookHandler)
 	r.Post("/webmention", s.webmentionHandler)
@@ -72,12 +80,13 @@ func (s *Server) StartHTTP() error {
 	//r.Get("/search.json", s.searchHandler)
 
 	// Make sure we have a built version!
-	should, err := s.Hugo.ShouldBuild()
+	should, err := s.ShouldBuild()
 	if err != nil {
 		return err
 	}
+
 	if should {
-		err = s.Hugo.Build(false)
+		err = s.Build(false)
 		if err != nil {
 			return err
 		}
@@ -87,10 +96,6 @@ func (s *Server) StartHTTP() error {
 
 	r.NotFound(static)
 	r.MethodNotAllowed(static)
-
-	// NOTE:
-	//	- Should I handle /now dynamicall?
-	//	- Should I handle all redirects dynamically?
 
 	s.Infof("Listening on http://localhost:%d", s.c.Port)
 	return http.ListenAndServe(":"+strconv.Itoa(s.c.Port), r)

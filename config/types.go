@@ -17,6 +17,7 @@ type Config struct {
 	Webhook      Webhook
 	ActivityPub  ActivityPub
 	MeiliSearch  *MeiliSearch
+	BasicAuth    map[string]string
 }
 
 func (c *Config) S() *zap.SugaredLogger {
