@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/hacdias/eagle/services"
@@ -11,7 +12,7 @@ import (
 
 func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	_ = r.URL.Query().Get("reply")
+	_ = cleanReplyURL(r.URL.Query().Get("reply"))
 	_ = r.URL.Query().Get("template")
 
 	/* for reply
@@ -32,6 +33,23 @@ func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(entry.Content))
+}
+
+func cleanReplyURL(iu string) string {
+	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
+		u, err := url.Parse(iu)
+		if err != nil {
+			return iu
+		}
+
+		for k := range u.Query() {
+			u.Query().Del(k)
+		}
+
+		return u.String()
+	}
+
+	return iu
 }
 
 func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
