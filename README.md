@@ -11,32 +11,26 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 
 ## Update Plan
 
-1. X
-2. X
-4. Remove Micropub service
-5. Create endpoints for:
+1. Remove Micropub service
+2. Create endpoints for:
    1. Creation / edition
    2. Deletion
-6. Protect endpoints with basic auth
-7. Streamline webmentions into a new format. Store in data (?) folder, path based - call them interactions. Cleanup format.
-8. Improve current search functionality and endpoint
+3. Protect endpoints with basic auth
+4. Improve current search functionality and endpoint
    1. Allow more personalization on the website
    2. Allow the URL to indicate what we are searching
-9. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
-10. Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
-11. CLI for local management.
-12. Solve newsletter/goodbye and thanks
-13. X
+5. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
+6.  Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
+7.  CLI for local management.
+8.  Solve newsletter/goodbye and thanks
 
 ### Notes
 
 - Services must use local syncs. There must be some kind of global sync that allows to avoid calling hugo.Build while other operations are being some.
-- Always commit specific files.
-- Services must have all services in the same root. Like services.build (maybe move services to the root and call it Eagle!)
+- Always commit specific files. Services that change files should take the storae service.)
 - Detect file types via middleware.
 - Consider using .html instead of / with .html stripped in the end URL
 - Move all pictures to a different place and flatten content directory to simple markdown files.
-- private webmentions should be LOGGED and SENT by ntification service. Not stored on disk.
 - Find a different place to put my activitypub data.
 - Store must be called by services that use it
 

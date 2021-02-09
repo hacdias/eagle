@@ -5,7 +5,7 @@ import "go.uber.org/zap"
 type Config struct {
 	logger       *zap.Logger `mapstructure:"-"`
 	Port         int
-	Domain       string // MUST NOT CONTAIN END SLASH
+	Domain       string // MUST NOT CONTAIN END SLASH url.URL?
 	Development  bool
 	Telegraph    Telegraph
 	XRay         XRay

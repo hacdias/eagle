@@ -8,14 +8,14 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func (s *Server) StartBot() (*tb.Bot, error) {
+func (s *Server) buildBot() error {
 	b, err := tb.NewBot(tb.Settings{
 		Token:  s.c.Telegram.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	logIfErr := func(err error) {
@@ -122,6 +122,6 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 		s.activity(entry) */
 	}))
 
-	go b.Start()
-	return b, nil
+	s.bot = b
+	return nil
 }
