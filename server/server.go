@@ -24,23 +24,19 @@ type Server struct {
 	sync.Mutex
 	*zap.SugaredLogger
 	*services.Eagle
-	c *config.Config
 
-	eagle *services.Eagle
-
+	c       *config.Config
+	bot     *tb.Bot
 	dir     string
 	fs      afero.Fs
 	httpdir http.Handler
 	server  *http.Server
-
-	bot *tb.Bot
 }
 
 func NewServer(c *config.Config, e *services.Eagle) (*Server, error) {
 	s := &Server{
 		SugaredLogger: logging.S().Named("server"),
 		Eagle:         e,
-		eagle:         e,
 		c:             c,
 	}
 

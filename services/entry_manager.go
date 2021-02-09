@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/hacdias/eagle/yaml"
 )
@@ -27,12 +28,23 @@ func (m *EntryManager) GetEntry(id string) (*Entry, error) {
 		return nil, err
 	}
 
-	bytes, err := ioutil.ReadFile(filepath)
+	raw, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	splits := strings.SplitN(string(bytes), "\n---", 2)
+	entry, err := m.ParseEntry(id, string(raw))
+	if err != nil {
+		return nil, err
+	}
+
+	entry.Path = filepath
+	return entry, nil
+}
+
+func (m *EntryManager) ParseEntry(id, raw string) (*Entry, error) {
+	id = m.cleanID(id)
+	splits := strings.SplitN(raw, "\n---", 2)
 	if len(splits) != 2 {
 		return nil, errors.New("could not parse file: splits !== 2")
 	}
@@ -43,7 +55,6 @@ func (m *EntryManager) GetEntry(id string) (*Entry, error) {
 	}
 
 	entry := &Entry{
-		Path:      filepath,
 		ID:        id,
 		Permalink: permalink,
 		Content:   strings.TrimSpace(splits[1]),
@@ -89,6 +100,11 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 	}
 
 	return nil
+}
+
+func (m *EntryManager) DeleteEntry(entry *Entry) error {
+	entry.Metadata.ExpiryDate = time.Now()
+	return m.SaveEntry(entry)
 }
 
 func (m *EntryManager) GetAll() ([]*Entry, error) {
