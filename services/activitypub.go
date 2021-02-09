@@ -21,6 +21,7 @@ import (
 	"github.com/dchest/uniuri"
 	"github.com/go-fed/httpsig"
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/logging"
 	"go.uber.org/zap"
 )
 
@@ -64,7 +65,7 @@ func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub
 	}
 
 	return &ActivityPub{
-		SugaredLogger: conf.S().Named("activitypub"),
+		SugaredLogger: logging.S().Named("activitypub"),
 		Webmentions:   webmentions,
 		dir:           filepath.Join(conf.Hugo.Source, "data", "activity"),
 		iri:           conf.ActivityPub.IRI,

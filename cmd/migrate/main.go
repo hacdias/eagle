@@ -19,14 +19,10 @@ func main() {
 }
 
 func moveWebmentions() {
-	c, err := config.Get()
+	c, err := config.Parse()
 	if err != nil {
 		panic(err)
 	}
-
-	defer func() {
-		_ = c.L().Sync()
-	}()
 
 	eagle, err := services.NewEagle(c)
 	if err != nil {
@@ -138,14 +134,10 @@ func moveWebmentions() {
 }
 
 func testSave() {
-	c, err := config.Get()
+	c, err := config.Parse()
 	if err != nil {
 		panic(err)
 	}
-
-	defer func() {
-		_ = c.L().Sync()
-	}()
 
 	eagle, err := services.NewEagle(c)
 	if err != nil {

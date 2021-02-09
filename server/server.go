@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/logging"
 	"github.com/hacdias/eagle/services"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
@@ -37,7 +38,7 @@ type Server struct {
 
 func NewServer(c *config.Config, e *services.Eagle) (*Server, error) {
 	s := &Server{
-		SugaredLogger: c.S().Named("server"),
+		SugaredLogger: logging.S().Named("server"),
 		Eagle:         e,
 		eagle:         e,
 		c:             c,

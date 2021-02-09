@@ -6,18 +6,19 @@ import (
 	"os/signal"
 
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/logging"
 	"github.com/hacdias/eagle/server"
 	"github.com/hacdias/eagle/services"
 )
 
 func main() {
-	c, err := config.Get()
+	c, err := config.Parse()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer func() {
-		_ = c.L().Sync()
+		_ = logging.L().Sync()
 	}()
 
 	e, err := services.NewEagle(c)
@@ -31,11 +32,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log := logging.S()
+
 	go func() {
-		c.S().Info("starting server")
+		log.Info("starting server")
 		err := server.Start()
 		if err != nil {
-			c.S().Errorf("failed to start server: %s", err)
+			log.Errorf("failed to start server: %s", err)
 		}
 		quit <- os.Interrupt
 	}()
@@ -43,6 +46,6 @@ func main() {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	c.S().Info("stopping server")
+	log.Info("stopping server")
 	server.Stop()
 }

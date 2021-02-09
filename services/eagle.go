@@ -1,6 +1,9 @@
 package services
 
-import "github.com/hacdias/eagle/config"
+import (
+	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/logging"
+)
 
 type Eagle struct {
 	PublicDirCh chan string
@@ -22,7 +25,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	publicDirCh := make(chan string)
 
-	notifications, err := NewNotifications(&conf.Telegram, conf.S().Named("telegram"))
+	notifications, err := NewNotifications(&conf.Telegram, logging.S().Named("telegram"))
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +36,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	hugo := &Hugo{
-		SugaredLogger: conf.S().Named("hugo"),
+		SugaredLogger: logging.S().Named("hugo"),
 		Hugo:          conf.Hugo,
 		PublicDirCh:   publicDirCh,
 	}

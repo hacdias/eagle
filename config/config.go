@@ -1,10 +1,30 @@
 package config
 
 import (
+	"net/url"
+
 	"github.com/spf13/viper"
 )
 
-func Get() (*Config, error) {
+type Config struct {
+	Port         int
+	Domain       string
+	Development  bool
+	Telegraph    Telegraph
+	XRay         XRay
+	Hugo         Hugo
+	Twitter      Twitter
+	Telegram     Telegram
+	BunnyCDN     BunnyCDN
+	WebmentionIO WebmentionIO
+	Webhook      Webhook
+	ActivityPub  ActivityPub
+	MeiliSearch  *MeiliSearch
+	BasicAuth    map[string]string
+}
+
+// Parse parses the configuration from the default files and paths.
+func Parse() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
@@ -23,6 +43,63 @@ func Get() (*Config, error) {
 		return nil, err
 	}
 
-	conf.setupLogger()
+	domain, err := url.Parse(conf.Domain)
+	if err != nil {
+		return nil, err
+	}
+
+	domain.Path = ""
+	conf.Domain = domain.String()
 	return conf, nil
+}
+
+type Twitter struct {
+	User        string
+	Key         string
+	Secret      string
+	Token       string
+	TokenSecret string `mapstructure:"token_secret"`
+}
+
+type Telegram struct {
+	Token  string
+	ChatID int64 `mapstructure:"chat_id"`
+}
+
+type BunnyCDN struct {
+	Zone string
+	Key  string
+	Base string
+}
+
+type WebmentionIO struct {
+	Secret string
+}
+
+type Webhook struct {
+	Secret string
+}
+
+type Hugo struct {
+	Source      string
+	Destination string
+}
+
+type Telegraph struct {
+	Token string
+}
+
+type XRay struct {
+	Endpoint string
+}
+
+type MeiliSearch struct {
+	Endpoint string
+	Key      string
+}
+
+type ActivityPub struct {
+	IRI      string
+	PubKeyId string `mapstructure:"pub_key_id"`
+	PrivKey  string `mapstructure:"priv_key"`
 }

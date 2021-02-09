@@ -1,4 +1,4 @@
-package config
+package logging
 
 import (
 	"fmt"
@@ -10,7 +10,9 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func (c *Config) setupLogger() {
+var logger *zap.Logger
+
+func init() {
 	encConfig := zap.NewDevelopmentEncoderConfig()
 	encConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encConfig.EncodeCaller = nil
@@ -40,7 +42,7 @@ func (c *Config) setupLogger() {
 		debug = true
 	}
 
-	if c.Development || debug {
+	if debug {
 		level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
 	}
 
@@ -49,5 +51,15 @@ func (c *Config) setupLogger() {
 
 	ws := zapcore.NewMultiWriteSyncer(stdout)
 	core := zapcore.NewCore(encoder, ws, level)
-	c.logger = zap.New(core, zap.ErrorOutput(stderr))
+	logger = zap.New(core, zap.ErrorOutput(stderr))
+}
+
+// S returns a *zap.SugaredLogger
+func S() *zap.SugaredLogger {
+	return logger.Sugar()
+}
+
+// L returns a *zap.Logger
+func L() *zap.Logger {
+	return logger
 }
