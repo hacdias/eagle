@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hacdias/eagle/services"
+	"github.com/hacdias/eagle/eagle"
 )
 
 func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,15 +35,15 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	case "Undo":
 		msg, err = s.ActivityPub.Undo(activity)
 	default:
-		err = services.ErrNotHandled
+		err = eagle.ErrNotHandled
 	}
 
-	if err == services.ErrNoChanges {
+	if err == eagle.ErrNoChanges {
 		w.WriteHeader(http.StatusCreated)
 		return
 	}
 
-	if err == services.ErrNotHandled {
+	if err == eagle.ErrNotHandled {
 		msg = "Received unhandled Activity"
 		err = s.ActivityPub.Log(activity)
 	}

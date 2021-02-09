@@ -8,9 +8,9 @@ import (
 	"os/signal"
 
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
 	"github.com/hacdias/eagle/server"
-	"github.com/hacdias/eagle/services"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 		_ = logging.L().Sync()
 	}()
 
-	e, err := services.NewEagle(c)
+	e, err := eagle.NewEagle(c)
 	if err != nil {
 		log.Fatal(err)
 	}

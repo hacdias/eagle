@@ -1,4 +1,4 @@
-package services
+package eagle
 
 import (
 	"github.com/hacdias/eagle/config"

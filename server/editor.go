@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/hacdias/eagle/services"
+	"github.com/hacdias/eagle/eagle"
 )
 
 func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +212,7 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 
 */
 
-func (s *Server) activity(entry *services.Entry) {
+func (s *Server) activity(entry *eagle.Entry) {
 	activity, err := s.getAS2(entry.ID)
 	if err != nil {
 		s.Errorf("coult not fetch activity for %s: %s", entry.ID, err)
@@ -228,7 +228,7 @@ func (s *Server) activity(entry *services.Entry) {
 	s.Infof("activity %s scheduled for sending", entry.ID)
 }
 
-func (s *Server) sendWebmentions(entry *services.Entry) {
+func (s *Server) sendWebmentions(entry *eagle.Entry) {
 	var err error
 	defer func() {
 		if err != nil {

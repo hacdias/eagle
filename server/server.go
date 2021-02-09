@@ -13,8 +13,8 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
-	"github.com/hacdias/eagle/services"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -23,7 +23,7 @@ import (
 type Server struct {
 	sync.Mutex
 	*zap.SugaredLogger
-	*services.Eagle
+	*eagle.Eagle
 
 	c       *config.Config
 	bot     *tb.Bot
@@ -33,7 +33,7 @@ type Server struct {
 	server  *http.Server
 }
 
-func NewServer(c *config.Config, e *services.Eagle) (*Server, error) {
+func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	s := &Server{
 		SugaredLogger: logging.S().Named("server"),
 		Eagle:         e,
