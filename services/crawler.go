@@ -87,30 +87,43 @@ func (c *Crawler) crawl(u string) (*EmbeddedEntry, error) {
 		entry.Name = v
 	}
 
-	/*{
-	  "content": {
-	    "text": "Thanks to @hacdias, I just discovered this:curl wttr.in\nBut wttr.in can’t only show you your current weather and the forecast (based on your IP location) in your terminal, it also has a lot of extra options and is open source. Check out the GitHub repository.wttr.in is a console-oriented weather forecast service that supports various information representation methods like terminal-oriented ANSI-sequences for console HTTP clients (curl, httpie, or wget), HTML for web browsers, or PNG for graphical viewers.https://wttr.in/",
-	    "html": "<p>Thanks to <a href=\"https://hacdias.com/2020/01/20/4/weather-terminal/\">@hacdias</a>, I just discovered this:</p><pre><code>curl wttr.in\n</code></pre><p>But <a href=\"https://wttr.in/\">wttr.in</a> can’t only show you your current weather and the forecast (based on your IP location) in your terminal, it also has a lot of extra options and is open source. Check out the <a href=\"https://github.com/chubin/wttr.in\">GitHub repository</a>.</p><blockquote><p>wttr.in is a console-oriented weather forecast service that supports various information representation methods like terminal-oriented ANSI-sequences for console HTTP clients (curl, httpie, or wget), HTML for web browsers, or PNG for graphical viewers.</p></blockquote><p><a class=\"u-bookmark-of\" href=\"https://wttr.in/\">https://wttr.in/</a></p>"
-	  },
-	  "author": {
-	    "type": "card",
-	    "name": "Jan-Lukas Else",
-	    "url": "https://jlelse.dev/",
-	    "photo": "https://jlelse.dev/profile-512.jpg"
-	  },
-	}*/
+	if v, ok := xray.Data["content"].(map[string]interface{}); ok {
+		if t, ok := v["text"].(string); ok {
+			entry.Content = t
+		} else if h, ok := v["html"].(string); ok {
+			entry.Content = h
+		}
+	}
 
-	/*
-	  content: That’s an awesome approach to combine the 90s web with the IndieWeb, Henrique.
-	    I really like your new 90s web-inspired website style, well done!
-	  author:
-	    name: Jan-Lukas Else
-	    url: https://jlelse.dev/
-	    photo: https://jlelse.dev/profile.png
-	*/
+	if v, ok := xray.Data["content"].(string); ok {
+		entry.Content = v
+	}
+
+	if v, ok := xray.Data["summary"].(string); ok && entry.Content == "" {
+		entry.Content = v
+	}
+
+	if entry.Content != "" {
+		entry.Content = cleanContent(entry.Content)
+	}
+
+	if a, ok := xray.Data["author"].(map[string]interface{}); ok {
+		entry.Author = &EntryAuthor{}
+
+		if v, ok := a["name"].(string); ok {
+			entry.Author.Name = v
+		}
+
+		if v, ok := a["url"].(string); ok {
+			entry.Author.URL = v
+		}
+
+		if v, ok := a["photo"].(string); ok {
+			entry.Author.Photo = v
+		}
+	}
 
 	return entry, nil
-
 }
 
 type xrayResponse struct {
@@ -118,13 +131,10 @@ type xrayResponse struct {
 	Code int                    `json:"code"`
 }
 
-func clean(data string) string {
-	space := regexp.MustCompile(`\s+`)
-	data = strings.TrimSpace(data)
-	// Collapse whitespaces
-	data = space.ReplaceAllString(data, " ")
+var spaceCollapser = regexp.MustCompile(`\s+`)
 
-	// BUG> Remove quotes: https://github.com/gohugoio/hugo/issues/8219
-	data = strings.ReplaceAll(data, "\"", "")
+func cleanContent(data string) string {
+	data = strings.TrimSpace(data)
+	data = spaceCollapser.ReplaceAllString(data, " ") // Collapse whitespaces
 	return data
 }

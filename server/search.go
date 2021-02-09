@@ -1,10 +1,6 @@
 package server
 
-import (
-	"net/http"
-	"strconv"
-)
-
+/*
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 	if query == "" {
@@ -32,3 +28,4 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	s.serveJSON(w, http.StatusOK, res)
 }
+*/

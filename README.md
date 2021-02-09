@@ -38,6 +38,7 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 - Move all pictures to a different place and flatten content directory to simple markdown files.
 - private webmentions should be LOGGED and SENT by ntification service. Not stored on disk.
 - Find a different place to put my activitypub data.
+- Store must be called by services that use it
 
 ## GOAL: support ActivityPub
 

@@ -40,7 +40,7 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 	}))
 
 	b.Handle("/sync", checkUser(func(m *tb.Message) {
-		err := s.Store.Sync()
+		err := s.Sync()
 		if err != nil {
 			s.NotifyError(err)
 		} else {

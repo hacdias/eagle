@@ -43,7 +43,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 		s.Lock()
 		defer s.Unlock()
 
-		err := s.Store.Sync()
+		err := s.Sync()
 		if err != nil {
 			s.Errorf("webhook: error git pull: %s", err)
 			s.NotifyError(err)

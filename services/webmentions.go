@@ -1,6 +1,25 @@
 package services
 
-/*
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/hacdias/eagle/config"
+	"github.com/hashicorp/go-multierror"
+	"go.uber.org/zap"
+)
+
 var ErrDuplicatedWebmention = errors.New("duplicated webmention")
 
 var webmentionTypes = map[string]string{
@@ -43,19 +62,28 @@ type WebmentionPayload struct {
 
 type Webmentions struct {
 	*zap.SugaredLogger
-	Domain    string
-	Telegraph config.Telegraph
-	Media     *Media
-	Hugo      *Hugo
+	domain     string
+	hugoSource string
+	telegraph  config.Telegraph
+	media      *Media
 }
 
-func (w *Webmentions) Send(source string, targets ...string) error {
+func NewWebmentions(conf *config.Config, media *Media) *Webmentions {
+	return &Webmentions{
+		domain:     conf.Domain,
+		hugoSource: conf.Hugo.Source,
+		telegraph:  conf.Telegraph,
+		media:      media,
+	}
+}
+
+func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 	var errors *multierror.Error
 
 	for _, target := range targets {
 		func() {
 			data := url.Values{}
-			data.Set("token", w.Telegraph.Token)
+			data.Set("token", w.telegraph.Token)
 			data.Set("source", source)
 			data.Set("target", target)
 
@@ -84,14 +112,14 @@ func (w *Webmentions) Send(source string, targets ...string) error {
 	return errors.ErrorOrNil()
 }
 
-func (w *Webmentions) Receive(payload *WebmentionPayload) error {
-	permalink := strings.Replace(payload.Target, w.Domain, "", 1)
-	storeFile := path.Join(w.Hugo.Source, "content", permalink, "mentions.json")
+func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
+	permalink := strings.Replace(payload.Target, w.domain, "", 1)
+	storeFile := path.Join(w.hugoSource, "content", permalink, "mentions.json")
 
-	if _, err := os.Stat(path.Join(w.Hugo.Source, "content", permalink)); os.IsNotExist(err) {
-		storeFile = path.Join(w.Hugo.Source, "data", "mentions", "orphans.json")
+	if _, err := os.Stat(path.Join(w.hugoSource, "content", permalink)); os.IsNotExist(err) {
+		storeFile = path.Join(w.hugoSource, "data", "mentions", "orphans.json")
 	} else if payload.Post.WmPrivate {
-		storeFile = path.Join(w.Hugo.Source, "data", "mentions", "private.json")
+		storeFile = path.Join(w.hugoSource, "data", "mentions", "private.json")
 	}
 
 	mentions := []StoredWebmention{}
@@ -168,6 +196,7 @@ func (w *Webmentions) save(mentions []StoredWebmention, file string) error {
 	return ioutil.WriteFile(file, bytes, 0644)
 }
 
+// TODO: change this to EmbbededEntry format.
 type StoredWebmention struct {
 	Type    string            `json:"type"`
 	URL     string            `json:"url"`
@@ -188,11 +217,10 @@ func (w *Webmentions) uploadPhoto(url string) string {
 	}
 	defer resp.Body.Close()
 
-	newURL, err := w.Media.UploadMedia("/webmentions/"+base+ext, resp.Body)
+	newURL, err := w.media.UploadMedia("/webmentions/"+base+ext, resp.Body)
 	if err != nil {
 		w.Errorf("could not upload photo to cdn: %s", url)
 		return url
 	}
 	return newURL
 }
-*/

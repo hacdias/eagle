@@ -26,7 +26,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	defer s.Unlock()
 
 	wm.Secret = ""
-	err = s.Webmentions.Receive(wm)
+	err = s.ReceiveWebmentions(wm)
 	if err != nil {
 		if err == services.ErrDuplicatedWebmention {
 			w.WriteHeader(http.StatusOK)
@@ -45,7 +45,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		msg = "received webmention from " + wm.Source
 	}
 
-	err = s.Store.Persist(msg)
+	err = s.Persist(msg)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.Errorf("webmention: error parsing: %s", err)

@@ -1,6 +1,21 @@
 package services
 
-/*type Twitter struct {
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"reflect"
+	"strings"
+	"time"
+
+	"github.com/dghubble/oauth1"
+	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/middleware/micropub"
+)
+
+type Twitter struct {
 	*config.Twitter
 	client *http.Client
 }
@@ -17,7 +32,7 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	}
 }
 
-func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string) (string, error) {
+func (t *Twitter) Syndicate(entry *Entry, typ micropub.Type, related string) (string, error) {
 	switch typ {
 	case micropub.TypeReply, micropub.TypeNote, micropub.TypeArticle:
 		// ok
@@ -25,7 +40,7 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 		return "", fmt.Errorf("unsupported post type for twitter: %s", typ)
 	}
 
-	status := entry.RawContent
+	status := entry.Content
 	if len(status) > 280 {
 		status = strings.TrimSpace(status[0:230]) + "... " + entry.Permalink
 	}
@@ -109,4 +124,3 @@ func (t *Twitter) UserExists(user string) (bool, error) {
 func (t *Twitter) Name() string {
 	return "Twitter (@" + t.User + ")"
 }
-*/

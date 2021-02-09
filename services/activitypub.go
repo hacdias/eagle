@@ -1,29 +1,55 @@
 package services
 
-/*
+import (
+	"bytes"
+	"context"
+	"crypto"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/dchest/uniuri"
+	"github.com/go-fed/httpsig"
+	"github.com/hacdias/eagle/config"
+	"go.uber.org/zap"
+)
+
 var ErrNotHandled = errors.New("not handled")
 var ErrNoChanges = errors.New("no changes")
 
 type ActivityPub struct {
 	*zap.SugaredLogger
-	Dir         string
-	IRI         string
-	pubKeyId    string
-	privKey     crypto.PrivateKey
-	signer      httpsig.Signer
-	signerMu    sync.Mutex
-	Webmentions *Webmentions
+	*Webmentions
+
+	dir      string
+	iri      string
+	pubKeyId string
+	privKey  crypto.PrivateKey
+	signer   httpsig.Signer
+	signerMu sync.Mutex
 }
 
-func NewActivityPub(c *config.Config) (*ActivityPub, error) {
-	pkfile, err := ioutil.ReadFile(c.ActivityPub.PrivKey)
+func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub, error) {
+	pkfile, err := ioutil.ReadFile(conf.ActivityPub.PrivKey)
 	if err != nil {
 		return nil, err
 	}
+
 	privateKeyDecoded, _ := pem.Decode(pkfile)
 	if privateKeyDecoded == nil {
 		return nil, err
 	}
+
 	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyDecoded.Bytes)
 	if err != nil {
 		return nil, err
@@ -38,10 +64,11 @@ func NewActivityPub(c *config.Config) (*ActivityPub, error) {
 	}
 
 	return &ActivityPub{
-		SugaredLogger: c.S().Named("activitypub"),
-		Dir:           filepath.Join(c.Hugo.Source, "data", "activity"),
-		IRI:           c.ActivityPub.IRI,
-		pubKeyId:      c.ActivityPub.PubKeyId,
+		SugaredLogger: conf.S().Named("activitypub"),
+		Webmentions:   webmentions,
+		dir:           filepath.Join(conf.Hugo.Source, "data", "activity"),
+		iri:           conf.ActivityPub.IRI,
+		pubKeyId:      conf.ActivityPub.PubKeyId,
 		privKey:       privateKey,
 		signer:        signer,
 	}, nil
@@ -63,13 +90,13 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 		return errors.New("inReplyTo and id are required and need to be valid")
 	}
 
-	if !strings.Contains(reply, ap.IRI) {
+	if !strings.Contains(reply, ap.iri) {
 		ap.Warnf("create activity is destined to someone else: %s", reply)
 		return fmt.Errorf("reply is not for me: %s", reply)
 	}
 
 	ap.Debug("converting create activity into webmention")
-	err := ap.Webmentions.Send(id, reply)
+	err := ap.SendWebmention(id, reply)
 	if err != nil {
 		return err
 	}
@@ -154,7 +181,7 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 	accept := map[string]interface{}{}
 	accept["@context"] = "https://www.w3.org/ns/activitystreams"
 	accept["to"] = activity["actor"]
-	accept["actor"] = ap.IRI
+	accept["actor"] = ap.iri
 	accept["object"] = activity
 	accept["type"] = "Accept"
 	_, accept["id"] = ap.newID()
@@ -197,7 +224,7 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Followers() (map[string]string, error) {
-	fd, err := os.Open(filepath.Join(ap.Dir, "followers.json"))
+	fd, err := os.Open(filepath.Join(ap.dir, "followers.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = ap.storeFollowers(map[string]string{})
@@ -213,7 +240,7 @@ func (ap *ActivityPub) Followers() (map[string]string, error) {
 }
 
 func (ap *ActivityPub) Log(activity map[string]interface{}) error {
-	filename := filepath.Join(ap.Dir, "log.json")
+	filename := filepath.Join(ap.dir, "log.json")
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return err
@@ -236,7 +263,7 @@ func (ap *ActivityPub) storeFollowers(f map[string]string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(ap.Dir, "followers.json"), bytes, 0644)
+	return ioutil.WriteFile(filepath.Join(ap.dir, "followers.json"), bytes, 0644)
 }
 
 func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
@@ -352,6 +379,5 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 
 func (ap *ActivityPub) newID() (hash string, url string) {
 	hash = uniuri.New()
-	return hash, ap.IRI + hash
+	return hash, ap.iri + hash
 }
-*/

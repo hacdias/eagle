@@ -10,6 +10,11 @@ type Eagle struct {
 	*Media
 	*Notifications
 	*Hugo
+	*Crawler
+	*Webmentions
+	Syndicator
+
+	ActivityPub *ActivityPub
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
@@ -42,6 +47,20 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 	}
 
+	webmentions := NewWebmentions(conf, media)
+	activitypub, err := NewActivityPub(conf, webmentions)
+	if err != nil {
+		return nil, err
+	}
+
+	syndicator := Syndicator{}
+
+	if conf.Twitter.User != "" {
+		twitter := NewTwitter(&conf.Twitter)
+		syndicator["twitter"] = twitter
+		// hugo.Twitter = twitter
+	}
+
 	return &Eagle{
 		PublicDirCh:    publicDirCh,
 		EntryManager:   entryManager,
@@ -49,5 +68,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Notifications:  notifications,
 		Hugo:           hugo,
 		StorageService: store,
+		Crawler:        NewCrawler(conf),
+		Webmentions:    webmentions,
+		ActivityPub:    activitypub,
+		Syndicator:     syndicator,
 	}, nil
 }

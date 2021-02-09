@@ -17,7 +17,6 @@ import (
 type Server struct {
 	sync.Mutex
 	*zap.SugaredLogger
-	*services.Services
 	*services.Eagle
 	c *config.Config
 
@@ -26,23 +25,16 @@ type Server struct {
 	httpdir http.Handler
 }
 
-func NewServer(c *config.Config, s *services.Services) *Server {
+func NewServer(c *config.Config, e *services.Eagle) *Server {
 	server := &Server{
 		SugaredLogger: c.S().Named("server"),
-		Services:      s,
+		Eagle:         e,
 		c:             c,
 	}
 
-	eagle, err := services.NewEagle(c)
-	if err != nil {
-		panic(err)
-	}
-
-	server.Eagle = eagle
-
 	go func() {
 		server.Info("waiting for new directories")
-		for dir := range s.PublicDirChanges {
+		for dir := range e.PublicDirCh {
 			server.Infof("received new public directory: %s", dir)
 			oldDir := server.dir
 
@@ -77,7 +69,7 @@ func (s *Server) StartHTTP() error {
 	r.Post("/webhook", s.webhookHandler)
 	r.Post("/webmention", s.webmentionHandler)
 	r.Post("/activitypub/inbox", s.activityPubPostInboxHandler)
-	r.Get("/search.json", s.searchHandler)
+	//r.Get("/search.json", s.searchHandler)
 
 	// Make sure we have a built version!
 	should, err := s.Hugo.ShouldBuild()

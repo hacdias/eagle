@@ -1,9 +1,15 @@
 package services
 
-/*
+import (
+	"fmt"
+
+	"github.com/hacdias/eagle/middleware/micropub"
+	"github.com/hashicorp/go-multierror"
+)
+
 type SyndicationService interface {
 	Name() string
-	Syndicate(entry *HugoEntry, typ micropub.Type, related string) (string, error)
+	Syndicate(entry *Entry, typ micropub.Type, related string) (string, error)
 	IsRelated(url string) bool
 }
 
@@ -15,7 +21,7 @@ type Syndication struct {
 
 type Syndicator map[string]SyndicationService
 
-func (s Syndicator) Syndicate(entry *HugoEntry, synd *Syndication) ([]string, error) {
+func (s Syndicator) Syndicate(entry *Entry, synd *Syndication) ([]string, error) {
 	var errors *multierror.Error
 	var syndications []string
 
@@ -47,4 +53,3 @@ func (s Syndicator) Syndicate(entry *HugoEntry, synd *Syndication) ([]string, er
 
 	return syndications, errors.ErrorOrNil()
 }
-*/

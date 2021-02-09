@@ -59,7 +59,7 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		s.Notify(msg)
 	}
 
-	err = s.Store.Persist("activitypub")
+	err = s.Persist("activitypub")
 	if err != nil {
 		s.Errorf("activitypub: error git commit: %s", err)
 		s.NotifyError(err)

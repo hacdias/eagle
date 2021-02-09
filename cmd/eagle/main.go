@@ -20,13 +20,13 @@ func main() {
 		_ = c.L().Sync()
 	}()
 
-	s, err := services.NewServices(c)
+	e, err := services.NewEagle(c)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	quit := make(chan os.Signal, 1)
-	server := server.NewServer(c, s)
+	server := server.NewServer(c, e)
 
 	go func() {
 		c.S().Info("starting server")
