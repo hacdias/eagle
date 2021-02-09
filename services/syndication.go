@@ -1,12 +1,6 @@
 package services
 
-import (
-	"fmt"
-
-	"github.com/hacdias/eagle/middleware/micropub"
-	"github.com/hashicorp/go-multierror"
-)
-
+/*
 type SyndicationService interface {
 	Name() string
 	Syndicate(entry *HugoEntry, typ micropub.Type, related string) (string, error)
@@ -53,3 +47,4 @@ func (s Syndicator) Syndicate(entry *HugoEntry, synd *Syndication) ([]string, er
 
 	return syndications, errors.ErrorOrNil()
 }
+*/

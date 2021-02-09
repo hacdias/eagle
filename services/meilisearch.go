@@ -1,5 +1,6 @@
 package services
 
+/*
 import (
 	"encoding/hex"
 	"strings"
@@ -124,3 +125,4 @@ func (ms *MeiliSearch) Search(query string, filter string, page int) ([]interfac
 
 	return res.Hits, nil
 }
+*/

@@ -1,21 +1,6 @@
 package services
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"net/url"
-	"reflect"
-	"strings"
-	"time"
-
-	"github.com/dghubble/oauth1"
-	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/middleware/micropub"
-)
-
-type Twitter struct {
+/*type Twitter struct {
 	*config.Twitter
 	client *http.Client
 }
@@ -124,3 +109,4 @@ func (t *Twitter) UserExists(user string) (bool, error) {
 func (t *Twitter) Name() string {
 	return "Twitter (@" + t.User + ")"
 }
+*/

@@ -1,14 +1,6 @@
 package services
 
-import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"time"
-)
-
+/*
 type actor struct {
 	IRI   string
 	Inbox string
@@ -64,3 +56,4 @@ func isSuccess(code int) bool {
 		code == http.StatusAccepted ||
 		code == http.StatusNoContent
 }
+*/

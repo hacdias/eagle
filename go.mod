@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/PuerkitoBio/goquery v1.6.1
+	github.com/araddon/dateparse v0.0.0-20210207001429-0eec95c9db7e
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/go-chi/chi v4.1.2+incompatible

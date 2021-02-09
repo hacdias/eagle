@@ -1,11 +1,6 @@
 package services
 
-import (
-	"path"
-
-	"github.com/hacdias/eagle/config"
-)
-
+/*
 type Services struct {
 	PublicDirChanges chan string
 	cfg              *config.Config
@@ -67,3 +62,4 @@ func NewServices(c *config.Config) (*Services, error) {
 
 	return services, nil
 }
+*/

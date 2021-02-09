@@ -18,7 +18,7 @@ type EntryMetadata struct {
 	Lastmod     time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
 	Syndication []string       `yaml:"syndication,omitempty"`
-	ReplyTo     EmbeddedEntry  `yaml:"replyTo,omitempty"`
+	ReplyTo     *EmbeddedEntry `yaml:"replyTo,omitempty"`
 	URL         string         `yaml:"url,omitempty"`
 	Aliases     []string       `yaml:"aliases,omitempty"`
 	Emoji       string         `yaml:"emoji,omitempty"`

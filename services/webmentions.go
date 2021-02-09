@@ -1,25 +1,6 @@
 package services
 
-import (
-	"context"
-	"crypto/sha256"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
-	"path"
-	"strconv"
-	"strings"
-	"time"
-
-	"github.com/hacdias/eagle/config"
-	"github.com/hashicorp/go-multierror"
-	"go.uber.org/zap"
-)
-
+/*
 var ErrDuplicatedWebmention = errors.New("duplicated webmention")
 
 var webmentionTypes = map[string]string{
@@ -214,3 +195,4 @@ func (w *Webmentions) uploadPhoto(url string) string {
 	}
 	return newURL
 }
+*/

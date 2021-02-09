@@ -1,29 +1,6 @@
 package services
 
-import (
-	"bytes"
-	"context"
-	"crypto"
-	"crypto/x509"
-	"encoding/json"
-	"encoding/pem"
-	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
-	"sync"
-	"time"
-
-	"github.com/dchest/uniuri"
-	"github.com/go-fed/httpsig"
-	"github.com/hacdias/eagle/config"
-	"go.uber.org/zap"
-)
-
+/*
 var ErrNotHandled = errors.New("not handled")
 var ErrNoChanges = errors.New("no changes")
 
@@ -377,3 +354,4 @@ func (ap *ActivityPub) newID() (hash string, url string) {
 	hash = uniuri.New()
 	return hash, ap.IRI + hash
 }
+*/
