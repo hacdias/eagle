@@ -59,7 +59,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		s.Lock()
 		defer s.Unlock()
 
-		err := s.Hugo.Build(false)
+		err := s.Build(false)
 		if err != nil {
 			s.Errorf("webmention: error hugo build: %s", err)
 			s.NotifyError(err)

@@ -12,7 +12,6 @@ import (
 
 	"github.com/dghubble/oauth1"
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/middleware/micropub"
 )
 
 type Twitter struct {
@@ -23,7 +22,6 @@ type Twitter struct {
 func NewTwitter(opts *config.Twitter) *Twitter {
 	config := oauth1.NewConfig(opts.Key, opts.Secret)
 	token := oauth1.NewToken(opts.Token, opts.TokenSecret)
-
 	client := config.Client(oauth1.NoContext, token)
 
 	return &Twitter{
@@ -32,14 +30,7 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	}
 }
 
-func (t *Twitter) Syndicate(entry *Entry, typ micropub.Type, related string) (string, error) {
-	switch typ {
-	case micropub.TypeReply, micropub.TypeNote, micropub.TypeArticle:
-		// ok
-	default:
-		return "", fmt.Errorf("unsupported post type for twitter: %s", typ)
-	}
-
+func (t *Twitter) Syndicate(entry *Entry, related string) (string, error) {
 	status := entry.Content
 	if len(status) > 280 {
 		status = strings.TrimSpace(status[0:230]) + "... " + entry.Permalink
@@ -52,7 +43,7 @@ func (t *Twitter) Syndicate(entry *Entry, typ micropub.Type, related string) (st
 
 	q := u.Query()
 	q.Set("status", status)
-	if typ == micropub.TypeReply {
+	if entry.Metadata.ReplyTo != nil {
 		if strings.HasSuffix(related, "/") {
 			related = strings.TrimSuffix(related, "/")
 		}

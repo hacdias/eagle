@@ -9,30 +9,25 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/config"
-	"go.uber.org/zap"
 )
 
 type Hugo struct {
-	*zap.SugaredLogger
 	config.Hugo
-
-	PublicDirCh   chan string
+	sync.Mutex
+	publicDirCh   chan string
 	currentSubDir string
-}
-
-func generateHash() string {
-	h := fnv.New64a()
-	// the implementation does not return errors
-	_, _ = h.Write([]byte(time.Now().UTC().String()))
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 // ShouldBuild should only be called on startup to make sure there's
 // a built public directory to serve.
 func (h *Hugo) ShouldBuild() (bool, error) {
+	h.Lock()
+	defer h.Unlock()
+
 	if h.currentSubDir != "" {
 		return false, nil
 	}
@@ -47,7 +42,7 @@ func (h *Hugo) ShouldBuild() (bool, error) {
 	}
 
 	h.currentSubDir = string(content)
-	h.PublicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
+	h.publicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
 	return false, nil
 }
 
@@ -80,13 +75,24 @@ func (h *Hugo) Build(clean bool) error {
 	if new {
 		// We build to a different sub directory so we can change the directory
 		// we are serving seamlessly without users noticing. Check server/satic.go!
-		h.currentSubDir = dir
-		h.PublicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
 		err = ioutil.WriteFile(path.Join(h.Destination, "last"), []byte(dir), 0644)
 		if err != nil {
 			return fmt.Errorf("could not write last dir: %s", err)
 		}
+
+		h.Lock()
+		defer h.Unlock()
+
+		h.currentSubDir = dir
+		h.publicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
 	}
 
 	return nil
+}
+
+func generateHash() string {
+	h := fnv.New64a()
+	// the implementation does not return errors
+	_, _ = h.Write([]byte(time.Now().UTC().String()))
+	return hex.EncodeToString(h.Sum(nil))
 }

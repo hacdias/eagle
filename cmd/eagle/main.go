@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -37,7 +39,7 @@ func main() {
 	go func() {
 		log.Info("starting server")
 		err := server.Start()
-		if err != nil {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Errorf("failed to start server: %s", err)
 		}
 		quit <- os.Interrupt

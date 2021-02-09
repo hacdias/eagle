@@ -7,17 +7,17 @@ import (
 
 type Eagle struct {
 	PublicDirCh chan string
+	ActivityPub *ActivityPub
 
-	StorageService
-	*EntryManager
 	*Media
 	*Notifications
+	*Webmentions
+	*EntryManager
 	*Hugo
 	*Crawler
-	*Webmentions
-	Syndicator
 
-	ActivityPub *ActivityPub
+	StorageService
+	Syndicator
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
@@ -28,17 +28,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	notifications, err := NewNotifications(&conf.Telegram, logging.S().Named("telegram"))
 	if err != nil {
 		return nil, err
-	}
-
-	entryManager := &EntryManager{
-		domain: conf.Domain,
-		source: conf.Hugo.Source,
-	}
-
-	hugo := &Hugo{
-		SugaredLogger: logging.S().Named("hugo"),
-		Hugo:          conf.Hugo,
-		PublicDirCh:   publicDirCh,
 	}
 
 	var store StorageService
@@ -65,15 +54,24 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	return &Eagle{
-		PublicDirCh:    publicDirCh,
-		EntryManager:   entryManager,
-		Media:          media,
-		Notifications:  notifications,
-		Hugo:           hugo,
+		PublicDirCh: publicDirCh,
+		EntryManager: &EntryManager{
+			domain: conf.Domain,
+			source: conf.Hugo.Source,
+		},
+		Media:         media,
+		Notifications: notifications,
+		Hugo: &Hugo{
+			Hugo:        conf.Hugo,
+			publicDirCh: publicDirCh,
+		},
 		StorageService: store,
-		Crawler:        NewCrawler(conf),
-		Webmentions:    webmentions,
-		ActivityPub:    activitypub,
-		Syndicator:     syndicator,
+		Crawler: &Crawler{
+			xray:    conf.XRay,
+			twitter: conf.Twitter,
+		},
+		Webmentions: webmentions,
+		ActivityPub: activitypub,
+		Syndicator:  syndicator,
 	}, nil
 }

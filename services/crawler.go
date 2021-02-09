@@ -12,23 +12,11 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/logging"
-	"go.uber.org/zap"
 )
 
 type Crawler struct {
-	*zap.SugaredLogger
-
 	xray    config.XRay
 	twitter config.Twitter
-}
-
-func NewCrawler(conf *config.Config) *Crawler {
-	return &Crawler{
-		SugaredLogger: logging.S().Named("xray"),
-		xray:          conf.XRay,
-		twitter:       conf.Twitter,
-	}
 }
 
 func (c *Crawler) Crawl(url string) (*EmbeddedEntry, error) {

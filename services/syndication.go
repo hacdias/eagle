@@ -3,18 +3,16 @@ package services
 import (
 	"fmt"
 
-	"github.com/hacdias/eagle/middleware/micropub"
 	"github.com/hashicorp/go-multierror"
 )
 
 type SyndicationService interface {
 	Name() string
-	Syndicate(entry *Entry, typ micropub.Type, related string) (string, error)
+	Syndicate(entry *Entry, related string) (string, error)
 	IsRelated(url string) bool
 }
 
 type Syndication struct {
-	Type    micropub.Type
 	Related []string
 	Targets []string
 }
@@ -27,7 +25,7 @@ func (s Syndicator) Syndicate(entry *Entry, synd *Syndication) ([]string, error)
 
 	for _, target := range synd.Targets {
 		if service, ok := s[target]; ok {
-			url, err := service.Syndicate(entry, synd.Type, "")
+			url, err := service.Syndicate(entry, "")
 			if err != nil {
 				errors = multierror.Append(errors, err)
 			} else {
@@ -41,7 +39,7 @@ func (s Syndicator) Syndicate(entry *Entry, synd *Syndication) ([]string, error)
 	for _, url := range synd.Related {
 		for _, service := range s {
 			if service.IsRelated(url) {
-				url, err := service.Syndicate(entry, synd.Type, url)
+				url, err := service.Syndicate(entry, url)
 				if err != nil {
 					errors = multierror.Append(errors, err)
 				} else {

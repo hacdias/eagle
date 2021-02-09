@@ -50,7 +50,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = s.Hugo.Build(false)
+		err = s.Build(false)
 		if err != nil {
 			s.Errorf("webhook: error hugo build: %s", err)
 			s.NotifyError(err)
