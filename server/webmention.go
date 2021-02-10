@@ -38,20 +38,6 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var msg string
-	if wm.Deleted {
-		msg = "deleted webmention from " + wm.Source
-	} else {
-		msg = "received webmention from " + wm.Source
-	}
-
-	err = s.Persist(msg)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		s.Errorf("webmention: error parsing: %s", err)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 	s.Debug("webmention: request ok")
 

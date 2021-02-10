@@ -1,62 +1,93 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/hacdias/eagle/eagle"
 )
 
+func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
+	s.renderDashboard(w, "dashboard", &dashboardData{
+		Reply:  r.URL.Query().Get("reply"),
+		Edit:   r.URL.Query().Get("edit"),
+		Delete: r.URL.Query().Get("delete"),
+	})
+}
+
 func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	_ = cleanReplyURL(r.URL.Query().Get("reply"))
-	_ = r.URL.Query().Get("template")
-
-	/* for reply
-
-		for _, rel := range synd.Related {
-		err = s.XRay.RequestAndSave(rel)
+	if id != "" {
+		u, err := url.Parse(id)
 		if err != nil {
-			s.Warnf("could not xray %s: %s", rel, err)
-			s.NotifyError(err)
+			s.serveError(w, http.StatusInternalServerError, err)
+			return
+		}
+		id = u.Path
+	}
+
+	reply := cleanReplyURL(r.URL.Query().Get("reply"))
+
+	if (reply != "") && id != "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Cannot set id and reply at the same time.\n"))
+		return
+	}
+
+	var (
+		entry *eagle.Entry
+		err   error
+	)
+
+	if id != "" {
+		entry, err = s.GetEntry(id)
+	} else {
+		entry = &eagle.Entry{
+			Content: "Lorem ipsum...",
+			Metadata: eagle.EntryMetadata{
+				Date: time.Now(),
+				Tags: []string{"example"},
+			},
 		}
 	}
-	*/
 
-	entry, err := s.GetEntry(id)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	w.Write([]byte(entry.Content))
-}
-
-func cleanReplyURL(iu string) string {
-	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
-		u, err := url.Parse(iu)
+	if reply != "" {
+		entry.Metadata.Title = ""
+		entry.Metadata.ReplyTo, err = s.Crawl(reply)
 		if err != nil {
-			return iu
+			s.serveError(w, http.StatusInternalServerError, err)
+			return
 		}
-
-		for k := range u.Query() {
-			u.Query().Del(k)
-		}
-
-		return u.String()
 	}
 
-	return iu
+	str, err := s.EntryToString(entry)
+	if err != nil {
+		s.serveError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.renderDashboard(w, "editor", &dashboardData{
+		Content:   str,
+		ID:        id,
+		DefaultID: fmt.Sprintf("micro/%s/SLUG", time.Now().Format("2006/01")),
+	})
 }
 
 func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	if r.FormValue("id") == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		s.serveError(w, http.StatusBadRequest, errors.New("id is missing"))
 		return
 	}
 
@@ -65,11 +96,12 @@ func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.FormValue("action") {
 	case "create", "update":
-
+		code, err = s.editorUpdate(w, r)
 	case "delete":
 		code, err = s.editorDelete(w, r)
 	default:
-		w.WriteHeader(http.StatusBadRequest)
+		s.serveError(w, http.StatusBadRequest, errors.New("invalid action type"))
+		return
 	}
 
 	if code >= 200 && code < 400 {
@@ -85,17 +117,16 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 	id := r.FormValue("id")
 	content := r.FormValue("content")
 
-	entry, err := s.ParseEntry(content, id)
+	if id == r.FormValue("defaultid") {
+		return http.StatusBadRequest, errors.New("id must be updated")
+	}
+
+	entry, err := s.ParseEntry(id, content)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
 	err = s.SaveEntry(entry)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	err = s.Persist("update " + id)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -106,8 +137,8 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 	}
 
 	go func() {
-		s.sendWebmentions(entry)
-		s.activity(entry)
+		// s.sendWebmentions(entry)
+		// s.activity(entry)
 
 		if action == "create" {
 			// TODO .syndicate(entry, synd)
@@ -123,7 +154,7 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 
 	}()
 
-	http.Redirect(w, r, s.c.Domain+entry.ID, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
 	return 0, nil
 }
 
@@ -140,11 +171,6 @@ func (s *Server) editorDelete(w http.ResponseWriter, r *http.Request) (int, erro
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.Persist("delete " + id)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
 	err = s.Build(true)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -154,7 +180,7 @@ func (s *Server) editorDelete(w http.ResponseWriter, r *http.Request) (int, erro
 		// TODO err := s.MeiliSearch.Delete(entry)
 	}()
 
-	http.Redirect(w, r, s.c.Domain+entry.ID, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
 	return 0, nil
 }
 
@@ -284,4 +310,21 @@ func (s *Server) sendWebmentions(entry *eagle.Entry) {
 
 	s.Debugw("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
 	err = s.SendWebmention(entry.Permalink, targets...)
+}
+
+func cleanReplyURL(iu string) string {
+	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
+		u, err := url.Parse(iu)
+		if err != nil {
+			return iu
+		}
+
+		for k := range u.Query() {
+			u.Query().Del(k)
+		}
+
+		return u.String()
+	}
+
+	return iu
 }

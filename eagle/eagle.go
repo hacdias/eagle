@@ -8,6 +8,7 @@ import (
 type Eagle struct {
 	PublicDirCh chan string
 	ActivityPub *ActivityPub
+	Twitter     *Twitter
 
 	*Media
 	*Notifications
@@ -17,7 +18,6 @@ type Eagle struct {
 	*Crawler
 
 	StorageService
-	Syndicator
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
@@ -39,17 +39,23 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 	}
 
-	webmentions := NewWebmentions(conf, media, notifications)
+	webmentions := &Webmentions{
+		domain:     conf.Domain,
+		hugoSource: conf.Hugo.Source,
+		telegraph:  conf.Telegraph,
+		media:      media,
+		notify:     notifications,
+		store:      store,
+	}
+
 	activitypub, err := NewActivityPub(conf, webmentions)
 	if err != nil {
 		return nil, err
 	}
 
-	syndicator := Syndicator{}
-
 	if conf.Twitter.User != "" {
-		twitter := NewTwitter(&conf.Twitter)
-		syndicator["twitter"] = twitter
+		//twitter := NewTwitter(&conf.Twitter)
+		//syndicator["twitter"] = twitter
 		// hugo.Twitter = twitter
 	}
 
@@ -58,6 +64,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		EntryManager: &EntryManager{
 			domain: conf.Domain,
 			source: conf.Hugo.Source,
+			store:  store,
 		},
 		Media:         media,
 		Notifications: notifications,
@@ -72,6 +79,5 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		},
 		Webmentions: webmentions,
 		ActivityPub: activitypub,
-		Syndicator:  syndicator,
 	}, nil
 }

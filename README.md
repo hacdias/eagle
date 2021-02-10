@@ -11,17 +11,16 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 
 ## Update Plan
 
-1. Create endpoints for:
-   1. Creation / edition
-   2. Deletion
+1. Make interface for editing
 2. Commit specific files. Services that change files should take the storae service.) 
 3. Improve current search functionality and endpoint
    1. Allow more personalization on the website
    2. Allow the URL to indicate what we are searching
 4. Stop relying on GoodReads for my reading section. Streamline reads file and make it easy to edit by myself (add custom link possibility for reviews).
-5.  Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
-6.  CLI for local management.
-7.  Solve newsletter/goodbye and thanks
+5. Improve bookmarks section using posts again. Format: /bookmarks/{slug}. Show them table like. Allow for search.
+6. CLI for local management.
+7. Solve newsletter/goodbye and thanks
+8. List drafts?
 
 ### Notes
 

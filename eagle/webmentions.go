@@ -3,14 +3,13 @@ package eagle
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -63,16 +62,7 @@ type Webmentions struct {
 	telegraph  config.Telegraph
 	media      *Media
 	notify     *Notifications
-}
-
-func NewWebmentions(conf *config.Config, media *Media, notify *Notifications) *Webmentions {
-	return &Webmentions{
-		domain:     conf.Domain,
-		hugoSource: conf.Hugo.Source,
-		telegraph:  conf.Telegraph,
-		media:      media,
-		notify:     notify,
-	}
+	store      StorageService
 }
 
 func (w *Webmentions) SendWebmention(source string, targets ...string) error {
@@ -113,6 +103,7 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	w.Infow("received webmention", "webmention", payload)
 
+	// If it's a private notification, simply notify.
 	if payload.Post.WmPrivate {
 		w.notify.Notify(
 			fmt.Sprintf(
@@ -126,25 +117,20 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return nil
 	}
 
-	permalink := strings.Replace(payload.Target, w.domain, "", 1)
-
-	storeFile := strings.TrimSuffix(permalink, "/")
-	storeFile = strings.TrimPrefix(storeFile, "/")
-	storeFile = strings.ReplaceAll(storeFile, "/", "-")
-	if storeFile == "" {
-		storeFile = "index"
+	id, file, err := w.parseTarget(payload)
+	if err != nil {
+		return err
 	}
 
-	storeFile = path.Join(w.hugoSource, "data", "interactions", storeFile+".yaml")
-	mentions := []EmbeddedEntry{}
+	raw, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
 
-	if fd, err := os.Open(storeFile); err == nil {
-		err := json.NewDecoder(fd).Decode(&mentions)
-		if err != nil {
-			fd.Close()
-			return err
-		}
-		fd.Close()
+	mentions := []EmbeddedEntry{}
+	err = yaml.Unmarshal(raw, &mentions)
+	if err != nil {
+		return err
 	}
 
 	if payload.Deleted {
@@ -155,68 +141,100 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 			}
 		}
 
-		return w.save(newMentions, storeFile)
+		return w.save(id, file, newMentions)
 	}
 
 	for _, mention := range mentions {
 		if mention.WmID == payload.Post.WmID {
-			w.Infof("duplicated webmention for %s: %d", permalink, payload.Post.WmID)
+			w.Infof("duplicated webmention for %s: %d", id, payload.Post.WmID)
 			return ErrDuplicatedWebmention
 		}
 	}
 
-	wm := &EmbeddedEntry{
-		WmID:   payload.Post.WmID,
-		Author: &payload.Post.Author,
-	}
-
-	if payload.Post.Content.Text != "" {
-		wm.Content = payload.Post.Content.Text
-	} else if payload.Post.Content.HTML != "" {
-		wm.Content = payload.Post.Content.HTML
-	}
-
-	if payload.Post.WmProperty != "" {
-		if v, ok := webmentionTypes[payload.Post.WmProperty]; ok {
-			wm.Type = v
-		} else {
-			wm.Type = "mention"
-		}
-	} else {
-		wm.Type = "mention"
-	}
-
-	if payload.Post.URL != "" {
-		wm.URL = payload.Post.URL
-	} else {
-		wm.URL = payload.Post.WmSource
-	}
-
-	var err error
-	if payload.Post.Published != "" {
-		wm.Date, err = dateparse.ParseStrict(payload.Post.Published)
-	} else {
-		wm.Date, err = dateparse.ParseStrict(payload.Post.WmReceived)
-	}
+	ee, err := w.parsePayload(payload)
 	if err != nil {
 		return err
 	}
 
-	if wm.Author.Photo != "" {
-		wm.Author.Photo = w.uploadPhoto(wm.Author.Photo)
-	}
-
-	mentions = append(mentions, *wm)
-	return w.save(mentions, storeFile)
+	mentions = append(mentions, *ee)
+	return w.save(id, file, mentions)
 }
 
-func (w *Webmentions) save(mentions []EmbeddedEntry, file string) error {
+func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, err error) {
+	url, err := url.Parse(payload.Target)
+	if err != nil {
+		return "", "", err
+	}
+
+	id = url.Path
+	file = strings.TrimSuffix(id, "/")
+	file = strings.TrimPrefix(file, "/")
+	file = strings.ReplaceAll(file, "/", "-")
+	if file == "" {
+		file = "index"
+	}
+
+	file = filepath.Join(w.hugoSource, "data", "interactions", file+".yaml")
+	return id, file, nil
+}
+
+func (w *Webmentions) save(id, file string, mentions []EmbeddedEntry) (err error) {
 	bytes, err := yaml.Marshal(mentions)
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(file, bytes, 0644)
+	err = ioutil.WriteFile(file, bytes, 0644)
+	if err != nil {
+		return err
+	}
+
+	return w.store.Persist("webmentions: update "+id, file)
+}
+
+func (w *Webmentions) parsePayload(payload *WebmentionPayload) (*EmbeddedEntry, error) {
+	ee := &EmbeddedEntry{
+		WmID:   payload.Post.WmID,
+		Author: &payload.Post.Author,
+	}
+
+	if payload.Post.Content.Text != "" {
+		ee.Content = payload.Post.Content.Text
+	} else if payload.Post.Content.HTML != "" {
+		ee.Content = payload.Post.Content.HTML
+	}
+
+	if payload.Post.WmProperty != "" {
+		if v, ok := webmentionTypes[payload.Post.WmProperty]; ok {
+			ee.Type = v
+		} else {
+			ee.Type = "mention"
+		}
+	} else {
+		ee.Type = "mention"
+	}
+
+	if payload.Post.URL != "" {
+		ee.URL = payload.Post.URL
+	} else {
+		ee.URL = payload.Post.WmSource
+	}
+
+	var err error
+	if payload.Post.Published != "" {
+		ee.Date, err = dateparse.ParseStrict(payload.Post.Published)
+	} else {
+		ee.Date, err = dateparse.ParseStrict(payload.Post.WmReceived)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if ee.Author.Photo != "" {
+		ee.Author.Photo = w.uploadPhoto(ee.Author.Photo)
+	}
+
+	return ee, nil
 }
 
 func (w *Webmentions) uploadPhoto(url string) string {

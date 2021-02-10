@@ -17,6 +17,7 @@ import (
 
 type EntryManager struct {
 	sync.Mutex
+	store  StorageService
 	domain string
 	source string
 }
@@ -89,17 +90,31 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 		return err
 	}
 
-	val, err := yaml.Marshal(&entry.Metadata)
+	str, err := m.EntryToString(entry)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(entry.Path, []byte(fmt.Sprintf("---\n%s---\n\n%s\n", string(val), entry.Content)), 0644)
+	err = ioutil.WriteFile(entry.Path, []byte(str), 0644)
+	if err != nil {
+		return fmt.Errorf("could not save entry: %s", err)
+	}
+
+	err = m.store.Persist("hugo: update "+entry.ID, entry.Path)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %s", err)
 	}
 
 	return nil
+}
+
+func (m *EntryManager) EntryToString(entry *Entry) (string, error) {
+	val, err := yaml.Marshal(&entry.Metadata)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), entry.Content), nil
 }
 
 func (m *EntryManager) DeleteEntry(entry *Entry) error {

@@ -49,12 +49,16 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
+	r.Use(s.headers)
 
-	r.With(basicauth).Route("/sorcery", func(r chi.Router) {
-		// Interface: r.Get("/")
+	r.With(basicauth).Route(dashboardPath, func(r chi.Router) {
+		fs := afero.NewBasePathFs(afero.NewOsFs(), "dashboard/static")
+		httpdir := http.FileServer(neuteredFs{afero.NewHttpFs(fs).Dir("/")})
 
+		r.Get("/", s.dashboardHandler)
 		r.Get("/editor", s.editorGetHandler)
 		r.Post("/editor", s.editorPostHandler)
+		r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
 	})
 
 	//r.Get("/search.json", s.searchHandler)
@@ -122,6 +126,18 @@ func (s *Server) publicDirWorker() {
 		}
 	}
 	s.Info("stopped waiting for new directories, channel closed")
+}
+
+func (s *Server) headers(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		// w.Header().Add("Strict-Transport-Security", "max-age=31536000;")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
 }
 
 func (s *Server) recoverer(next http.Handler) http.Handler {

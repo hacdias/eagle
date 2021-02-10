@@ -3,11 +3,8 @@ package eagle
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"net/url"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/dghubble/oauth1"
@@ -30,8 +27,8 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	}
 }
 
-func (t *Twitter) Syndicate(entry *Entry, related string) (string, error) {
-	status := entry.Content
+func (t *Twitter) Syndicate(entry *Entry) (string, error) {
+	/* status := entry.Content
 	if len(status) > 280 {
 		status = strings.TrimSpace(status[0:230]) + "... " + entry.Permalink
 	}
@@ -78,11 +75,9 @@ func (t *Twitter) Syndicate(entry *Entry, related string) (string, error) {
 		return "", fmt.Errorf("got invalid response: %x", tid)
 	}
 
-	return "https://twitter.com/" + t.User + "/status/" + fmt.Sprint(id), nil
-}
+	return "https://twitter.com/" + t.User + "/status/" + fmt.Sprint(id), nil */
 
-func (t *Twitter) IsRelated(url string) bool {
-	return strings.HasPrefix(url, "https://twitter.com")
+	return "", nil
 }
 
 func (t *Twitter) UserExists(user string) (bool, error) {
@@ -110,8 +105,4 @@ func (t *Twitter) UserExists(user string) (bool, error) {
 	}
 
 	return false, nil
-}
-
-func (t *Twitter) Name() string {
-	return "Twitter (@" + t.User + ")"
 }

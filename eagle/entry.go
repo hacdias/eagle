@@ -29,6 +29,7 @@ type EntryMetadata struct {
 	Mermaid     bool           `yaml:"mermaid,omitempty"`
 	Pictures    []EntryPicture `yaml:"pictures,omitempty"`
 	Mentions    []EntryMention `yaml:"mentions,omitempty"`
+	Draft       bool           `yaml:"draft,omitempty"`
 }
 
 type EmbeddedEntry struct {
