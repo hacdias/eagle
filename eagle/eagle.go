@@ -49,11 +49,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	if conf.Twitter.User != "" {
-		// twitter := NewTwitter(&conf.Twitter)
-	}
-
-	return &Eagle{
+	eagle := &Eagle{
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			domain: conf.Domain,
@@ -72,5 +68,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		},
 		Webmentions: webmentions,
 		ActivityPub: activitypub,
-	}, nil
+	}
+
+	if conf.Twitter.User != "" {
+		eagle.Twitter = NewTwitter(&conf.Twitter)
+	}
+
+	return eagle, nil
 }

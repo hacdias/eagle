@@ -126,6 +126,8 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 		return http.StatusBadRequest, err
 	}
 
+	s.PopulateMentions(entry)
+
 	err = s.SaveEntry(entry)
 	if err != nil {
 		return http.StatusInternalServerError, err
