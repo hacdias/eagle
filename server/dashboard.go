@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
@@ -241,7 +242,9 @@ func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication
 */
 
 func (s *Server) activity(entry *eagle.Entry) {
-	activity, err := s.getAS2(entry.ID)
+	s.staticFsLock.RLock()
+	activity, err := s.staticFs.readAS2(entry.ID)
+	s.staticFsLock.RUnlock()
 	if err != nil {
 		s.Errorf("coult not fetch activity for %s: %s", entry.ID, err)
 		return
@@ -249,11 +252,11 @@ func (s *Server) activity(entry *eagle.Entry) {
 
 	err = s.ActivityPub.PostFollowers(activity)
 	if err != nil {
-		s.Errorf("coult not post activity %s: %s", entry.ID, err)
+		s.Errorf("could not queue activity posting for %s: %s", entry.ID, err)
 		return
 	}
 
-	s.Infof("activity %s scheduled for sending", entry.ID)
+	s.Infof("activity posting for %s scheduled", entry.ID)
 }
 
 func (s *Server) sendWebmentions(entry *eagle.Entry) {
@@ -265,20 +268,15 @@ func (s *Server) sendWebmentions(entry *eagle.Entry) {
 		}
 	}()
 
-	s.Debug("webmentions: entered")
-
-	s.Lock()
-	reader := s.getHTML(entry.ID)
-	if reader == nil {
-		err = fmt.Errorf("could not get reader for %s", entry.ID)
-		s.Unlock()
+	s.staticFsLock.RLock()
+	html, err := s.staticFs.readHTML(entry.ID)
+	s.staticFsLock.RUnlock()
+	if err != nil {
+		s.Errorf("could not fetch HTML for %s: %v", entry.ID, err)
 		return
 	}
 
-	s.Debugw("webmentions: got HTML", "entry", entry.ID)
-
-	doc, err := goquery.NewDocumentFromReader(reader)
-	s.Unlock()
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
 	if err != nil {
 		return
 	}
@@ -310,7 +308,7 @@ func (s *Server) sendWebmentions(entry *eagle.Entry) {
 		targets = append(targets, base.ResolveReference(u).String())
 	})
 
-	s.Debugw("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
+	s.Infow("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
 	err = s.SendWebmention(entry.Permalink, targets...)
 }
 

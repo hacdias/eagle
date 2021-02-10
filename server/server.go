@@ -21,16 +21,16 @@ import (
 )
 
 type Server struct {
-	sync.Mutex
-	*zap.SugaredLogger
+	//sync.Mutex
 	*eagle.Eagle
+	*zap.SugaredLogger
 
-	c       *config.Config
-	bot     *tb.Bot
-	dir     string
-	fs      afero.Fs
-	httpdir http.Handler
-	server  *http.Server
+	c      *config.Config
+	bot    *tb.Bot
+	server *http.Server
+
+	staticFsLock sync.RWMutex
+	staticFs     *staticFs
 }
 
 func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
@@ -66,10 +66,9 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	r.Post("/webmention", s.webmentionHandler)
 	r.Post("/activitypub/inbox", s.activityPubPostInboxHandler)
 
-	static := s.staticHandler()
-
-	r.NotFound(static)
-	r.MethodNotAllowed(static)
+	r.Get("/*", s.staticHandler)
+	r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
+	r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
 
 	s.server = &http.Server{
 		Addr:    ":" + strconv.Itoa(s.c.Port),
@@ -113,31 +112,21 @@ func (s *Server) publicDirWorker() {
 	s.Info("waiting for new directories")
 	for dir := range s.PublicDirCh {
 		s.Infof("received new public directory: %s", dir)
-		oldDir := s.dir
 
-		s.dir = dir
-		s.fs = afero.NewBasePathFs(afero.NewOsFs(), dir)
-		s.httpdir = http.FileServer(neuteredFs{afero.NewHttpFs(s.fs).Dir("/")})
+		s.staticFsLock.Lock()
+		oldFs := s.staticFs
+		s.staticFs = newStaticFs(dir)
+		s.staticFsLock.Unlock()
 
-		err := os.RemoveAll(oldDir)
-		if err != nil {
-			s.Warnf("could not delete old directory: %s", err)
-			s.NotifyError(err)
+		if oldFs != nil {
+			err := os.RemoveAll(oldFs.dir)
+			if err != nil {
+				s.Warnf("could not delete old directory: %s", err)
+				s.NotifyError(err)
+			}
 		}
 	}
 	s.Info("stopped waiting for new directories, channel closed")
-}
-
-func (s *Server) headers(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		// w.Header().Add("Strict-Transport-Security", "max-age=31536000;")
-		w.Header().Set("Referrer-Policy", "no-referrer")
-		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-		w.Header().Set("X-XSS-Protection", "1; mode=block")
-		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
 }
 
 func (s *Server) recoverer(next http.Handler) http.Handler {
@@ -150,6 +139,17 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 			}
 		}()
 
+		next.ServeHTTP(w, r)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func (s *Server) headers(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Referrer-Policy", "no-referrer")
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		next.ServeHTTP(w, r)
 	}
 

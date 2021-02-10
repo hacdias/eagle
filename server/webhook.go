@@ -9,8 +9,6 @@ import (
 )
 
 func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
-	s.Debug("webhook: received request")
-
 	signature := r.Header.Get("X-Hub-Signature")
 	if len(signature) == 0 {
 		s.Warn("webhook: request without signature")
@@ -40,10 +38,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		s.Lock()
-		defer s.Unlock()
-
-		err := s.Sync()
+		err := s.Eagle.Sync()
 		if err != nil {
 			s.Errorf("webhook: error git pull: %s", err)
 			s.NotifyError(err)
@@ -59,5 +54,4 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.WriteHeader(http.StatusOK)
-	s.Debug("webhook: request ok")
 }

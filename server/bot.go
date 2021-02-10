@@ -99,27 +99,27 @@ func (s *Server) buildBot() error {
 	}))
 
 	b.Handle("/webmentions", checkUser(func(m *tb.Message) {
-		/* id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmentions"))
+		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmentions"))
 
-		entry, err := s.Hugo.GetEntry(id)
+		entry, err := s.GetEntry(id)
 		if err != nil {
 			s.NotifyError(err)
 			return
 		}
 
-		s.sendWebmentions(entry) */
+		s.sendWebmentions(entry)
 	}))
 
 	b.Handle("/activity", checkUser(func(m *tb.Message) {
-		/* id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/activity"))
+		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/activity"))
 
-		entry, err := s.Hugo.GetEntry(id)
+		entry, err := s.GetEntry(id)
 		if err != nil {
 			s.NotifyError(err)
 			return
 		}
 
-		s.activity(entry) */
+		s.activity(entry)
 	}))
 
 	s.bot = b

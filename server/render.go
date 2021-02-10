@@ -17,10 +17,9 @@ type dashboardData struct {
 	Content   string
 	ID        string
 	DefaultID string
-
-	Reply  string
-	Edit   string
-	Delete string
+	Reply     string
+	Edit      string
+	Delete    string
 }
 
 func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashboardData) {

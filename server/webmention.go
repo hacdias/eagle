@@ -22,9 +22,6 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Lock()
-	defer s.Unlock()
-
 	wm.Secret = ""
 	err = s.ReceiveWebmentions(wm)
 	if err != nil {
@@ -42,9 +39,6 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	s.Debug("webmention: request ok")
 
 	go func() {
-		s.Lock()
-		defer s.Unlock()
-
 		err := s.Build(false)
 		if err != nil {
 			s.Errorf("webmention: error hugo build: %s", err)

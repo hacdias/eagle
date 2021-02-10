@@ -55,6 +55,9 @@ func (h *Hugo) Build(clean bool) error {
 		}
 	}
 
+	h.Lock()
+	defer h.Unlock()
+
 	dir := h.currentSubDir
 	new := dir == "" || clean
 
@@ -80,9 +83,6 @@ func (h *Hugo) Build(clean bool) error {
 		if err != nil {
 			return fmt.Errorf("could not write last dir: %s", err)
 		}
-
-		h.Lock()
-		defer h.Unlock()
 
 		h.currentSubDir = dir
 		h.publicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
