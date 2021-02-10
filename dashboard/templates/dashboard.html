@@ -1,0 +1,30 @@
+{{ define "main" }}
+
+<a href="{{ .Base }}/editor">New Post</a>
+
+<h2>Reply</h2>
+
+<form method=GET action={{ .Base }}/editor>
+  <input required name=reply id=reply type=text placeholder='URL...' value="{{ .Reply }}" />
+  <button>Reply</button>
+</form>
+
+<h2>Edit</h2>
+
+<form method=GET action={{ .Base }}/editor>
+  <input required name=id id=id type=text placeholder='URL...' value="{{ .Edit }}" />
+  <button>Edit</button>
+</form>
+
+<h2>Delete</h2>
+
+<form method=POST action={{ .Base }}/editor>
+  <input required name=id id=id type=text placeholder='URL...' value="{{ .Delete }}" />
+  <input required type=hidden id=action name=action value=delete />
+  <button>Delete</button>
+</form>
+{{ end }}
+
+{{ define "title" }}Dashboard{{ end }}
+
+{{ template "base" . }}

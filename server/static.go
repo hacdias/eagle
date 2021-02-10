@@ -2,17 +2,61 @@ package server
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/afero"
 )
 
 const activityContentType = "application/activity+json"
 const activityExt = ".as2"
+
+func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
+	s.staticFsLock.RLock()
+	defer s.staticFsLock.RUnlock()
+
+	accept := r.Header.Get("Accept")
+	acceptsHTML := strings.Contains(accept, "text/html")
+	acceptsActivity := strings.Contains(accept, activityContentType)
+
+	if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
+		s.tryActivity(w, r)
+	}
+
+	nfw := &notFoundRedirectRespWr{ResponseWriter: w}
+	s.staticFs.ServeHTTP(nfw, r)
+
+	if nfw.status == http.StatusNotFound {
+		w.Header().Del("Content-Type") // Let http.ServeFile set the correct header
+		r.URL.Path = "/404.html"
+		s.staticFs.ServeHTTP(w, r)
+	}
+}
+
+func (s *Server) tryActivity(w http.ResponseWriter, r *http.Request) {
+	fixedPath := path.Clean(r.URL.Path)
+	if !strings.HasSuffix(fixedPath, activityExt) {
+		fixedPath = path.Join(fixedPath, "index"+activityExt)
+	}
+
+	// Locked by caller.
+	_, err := s.staticFs.Stat(fixedPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			s.Infow("activity file does not exist", "path", fixedPath)
+		} else {
+			s.Warnf("error while stat'ing", "path", fixedPath, "error", err)
+		}
+		return
+	}
+
+	r.URL.Path = fixedPath
+	s.Debugf("variant file exists: %s", r.URL.Path)
+	w.Header().Set("Content-Type", activityContentType+"; charset=utf-8")
+}
 
 type notFoundRedirectRespWr struct {
 	http.ResponseWriter // We embed http.ResponseWriter
@@ -31,94 +75,6 @@ func (w *notFoundRedirectRespWr) Write(p []byte) (int, error) {
 		return w.ResponseWriter.Write(p)
 	}
 	return len(p), nil // Lie that we successfully written it
-}
-
-func (s *Server) getHTML(url string) io.ReadCloser {
-	if !strings.HasSuffix(url, ".html") {
-		url = path.Join(url, "index.html")
-	}
-
-	fd, err := s.fs.Open(url)
-	if err != nil {
-		return nil
-	}
-
-	return fd
-}
-
-func (s *Server) getAS2(url string) (map[string]interface{}, error) {
-	if !strings.HasSuffix(url, ".as2") {
-		url = path.Join(url, "index.as2")
-	}
-
-	fd, err := s.fs.Open(url)
-	if err != nil {
-		return nil, err
-	}
-	defer fd.Close()
-
-	var m map[string]interface{}
-	err = json.NewDecoder(fd).Decode(&m)
-	return m, err
-}
-
-func (s *Server) tryVariantFile(w http.ResponseWriter, r *http.Request, ext, contentType string) (string, bool) {
-	s.Debugf("trying variant file %s for %s", ext, r.URL.Path)
-	fixedPath := path.Clean(r.URL.Path)
-
-	if !strings.HasSuffix(fixedPath, ext) {
-		fixedPath = path.Join(fixedPath, "index"+ext)
-		s.Debugf("added variant file to url: %s", fixedPath)
-	}
-
-	s.Debugf("checking if variant file exists: %s", fixedPath)
-	_, err := s.fs.Stat(fixedPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			s.Debugf("variant file does not exist: %s", fixedPath)
-		} else {
-			s.Debugf("variant file error while stating: %s: %s", fixedPath, err)
-		}
-		return fixedPath, false
-	}
-
-	r.URL.Path = fixedPath
-	s.Debugf("variant file exists: %s", r.URL.Path)
-	w.Header().Set("Content-Type", contentType+"; charset=utf-8")
-	return fixedPath, true
-}
-
-func (s *Server) tryActivity(w http.ResponseWriter, r *http.Request) {
-	s.tryVariantFile(w, r, activityExt, activityContentType)
-}
-
-func (s *Server) staticHandler() http.HandlerFunc {
-	domain, err := url.Parse(s.c.Domain)
-	if err != nil {
-		panic("domain is invalid")
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		accept := r.Header.Get("Accept")
-		acceptsHTML := strings.Contains(accept, "text/html")
-		acceptsActivity := strings.Contains(accept, activityContentType)
-
-		r.URL.Scheme = domain.Scheme
-		r.URL.Host = domain.Host
-
-		if strings.HasSuffix(r.URL.Path, "index.as2") || (!acceptsHTML && acceptsActivity) {
-			s.tryActivity(w, r)
-		}
-
-		nfw := &notFoundRedirectRespWr{ResponseWriter: w}
-		s.httpdir.ServeHTTP(nfw, r)
-
-		if nfw.status == http.StatusNotFound {
-			w.Header().Del("Content-Type") // Let http.ServeFile set the correct header
-			r.URL.Path = "/404.html"
-			s.httpdir.ServeHTTP(w, r)
-		}
-	}
 }
 
 type neuteredFs struct {
@@ -148,4 +104,45 @@ func (nfs neuteredFs) Open(path string) (http.File, error) {
 	}
 
 	return f, nil
+}
+
+type staticFs struct {
+	dir string
+	afero.Fs
+	http.Handler
+}
+
+func newStaticFs(dir string) *staticFs {
+	fs := afero.NewBasePathFs(afero.NewOsFs(), dir)
+	handler := http.FileServer(neuteredFs{afero.NewHttpFs(fs).Dir("/")})
+
+	return &staticFs{
+		dir:     dir,
+		Fs:      fs,
+		Handler: handler,
+	}
+}
+
+func (s *staticFs) readHTML(filepath string) ([]byte, error) {
+	if !strings.HasSuffix(filepath, ".html") {
+		filepath = path.Join(filepath, "index.html")
+	}
+
+	return afero.ReadFile(s, filepath)
+}
+
+func (s *staticFs) readAS2(filepath string) (map[string]interface{}, error) {
+	if !strings.HasSuffix(filepath, ".as2") {
+		filepath = path.Join(filepath, "index.as2")
+	}
+
+	fd, err := s.Fs.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer fd.Close()
+
+	var m map[string]interface{}
+	err = json.NewDecoder(fd).Decode(&m)
+	return m, err
 }

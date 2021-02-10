@@ -1,5 +1,7 @@
-*.yml
-*.md
-Dockerfile
-eagle
+*config.yml
+*.pem
+public
 docker-compose.yml
+testing
+main
+rice-box.go

@@ -1,21 +1,22 @@
-package services
+package eagle
 
 import (
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/logging"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-type Notify struct {
+type Notifications struct {
 	*zap.SugaredLogger
 	*config.Telegram
 	b *tb.Bot
 }
 
-func NewNotify(c *config.Telegram, log *zap.SugaredLogger) (*Notify, error) {
-	n := &Notify{
+func NewNotifications(c *config.Telegram) (*Notifications, error) {
+	n := &Notifications{
 		Telegram:      c,
-		SugaredLogger: log,
+		SugaredLogger: logging.S().Named("notify"),
 	}
 	b, err := tb.NewBot(tb.Settings{Token: n.Token})
 	if err != nil {
@@ -26,24 +27,24 @@ func NewNotify(c *config.Telegram, log *zap.SugaredLogger) (*Notify, error) {
 	return n, nil
 }
 
-func (n *Notify) Info(msg string) {
+func (n *Notifications) Notify(msg string) {
 	_, err := n.b.Send(&tb.Chat{ID: n.ChatID}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {
-		n.Errorf("could not notify: %s", err)
+		n.Error(err)
 	}
 }
 
-func (n *Notify) Error(err error) {
-	_, err2 := n.b.Send(&tb.Chat{ID: n.ChatID}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
+func (n *Notifications) NotifyError(not error) {
+	_, err := n.b.Send(&tb.Chat{ID: n.ChatID}, "An error occurred:\n"+not.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
-	if err2 != nil {
-		n.Errorf("could not notify: %s", err2)
+	if err != nil {
+		n.Error(err)
 	}
 }

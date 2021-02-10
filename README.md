@@ -8,19 +8,6 @@ cases as this is just a personal project for personal use. If you're interested 
 something similar, I encourage you to take a look at the code.
 
 This repository replaces the old, JavaScript based, [API](https://github.com/hacdias/eagle-js).
-
-## Notes
-
-## GOAL: support ActivityPub
-
-- Make Inbox
-- Make Outbox (?)
-
-## GOAL: local syncs
-
-- Use local syncs per service. Services should return the files changed!
-- Then, we can commit specific files!
-
 ## License
 
 MIT © Henrique Dias

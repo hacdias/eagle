@@ -1,5 +1,7 @@
 *config.yml
 *.pem
-eagle
 public
 docker-compose.yml
+testing
+main
+rice-box.go

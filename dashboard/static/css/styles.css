@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica,helvetica neue,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
+}
+
+main {
+  width: 95%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+textarea,
+input,
+button,
+label {
+  display: block;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+textarea {
+  min-height: 20rem;
+  font-family: 'Fira Code', monospace;
+}
+
+label {
+  font-weight: bold;
+}
+
+.inline  * {
+  display: inline;
+  width: auto;
+}

@@ -1,0 +1,32 @@
+{{ define "main" }}
+<h2>Editor</h2>
+
+<form method="POST">
+  <label for=id>ID</label>
+  {{ with .ID }}
+    <input required disabled name=id id=id type=text value="{{ . }}" />
+    <input required type=hidden id=action name=action value=update />
+  {{ else }}
+    <input required name=id id=id type=text value="{{ .DefaultID }}" />
+    <input required type=hidden id=action name=action value=create />
+  {{ end }}
+
+  <input required hidden name=defaultid id=defaultid type=text value="{{ .DefaultID }}" />
+
+  <label for=content>Content</label>
+  <textarea required id=content name=content>{{ .Content }}</textarea>
+
+  {{ if not .ID }}
+  <div class=inline>
+    <input type=checkbox name=twitter id=twitter />
+    <label for=twitter>Publish on Twitter</label>
+  </div>
+  {{ end }}
+
+  <button>Save</button>
+</form>
+{{ end }}
+
+{{ define "title" }}Editing {{ with .ID }}{{ . }}{{ else }}new{{end}}{{ end }}
+
+{{ template "base" . }}

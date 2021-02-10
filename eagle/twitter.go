@@ -1,4 +1,4 @@
-package services
+package eagle
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 
 	"github.com/dghubble/oauth1"
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/middleware/micropub"
 )
 
 type Twitter struct {
@@ -23,7 +22,6 @@ type Twitter struct {
 func NewTwitter(opts *config.Twitter) *Twitter {
 	config := oauth1.NewConfig(opts.Key, opts.Secret)
 	token := oauth1.NewToken(opts.Token, opts.TokenSecret)
-
 	client := config.Client(oauth1.NoContext, token)
 
 	return &Twitter{
@@ -32,17 +30,10 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	}
 }
 
-func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string) (string, error) {
-	switch typ {
-	case micropub.TypeReply, micropub.TypeNote, micropub.TypeArticle:
-		// ok
-	default:
-		return "", fmt.Errorf("unsupported post type for twitter: %s", typ)
-	}
-
-	status := entry.RawContent
+func (t *Twitter) Syndicate(entry *Entry) (string, error) {
+	status := entry.Content
 	if len(status) > 280 {
-		status = strings.TrimSpace(status[0:230]) + "... " + entry.Permalink
+		status = strings.TrimSpace(status[0:270-len(entry.Permalink)]) + "... " + entry.Permalink
 	}
 
 	u, err := url.Parse("https://api.twitter.com/1.1/statuses/update.json")
@@ -52,12 +43,18 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 
 	q := u.Query()
 	q.Set("status", status)
-	if typ == micropub.TypeReply {
-		if strings.HasSuffix(related, "/") {
-			related = strings.TrimSuffix(related, "/")
+
+	if entry.Metadata.ReplyTo != nil {
+		replyTo, err := url.Parse(entry.Metadata.ReplyTo.URL)
+		if err != nil {
+			return "", err
 		}
-		parts := strings.Split(related, "/")
-		q.Set("in_reply_to_status_id", parts[len(parts)-1])
+
+		user := strings.TrimSuffix(replyTo.Path, "/")
+		user = strings.TrimPrefix(user, "/")
+		parts := strings.Split(user, "/")
+
+		q.Set("in_reply_to_status_id", parts[0])
 		q.Set("auto_populate_reply_metadata", "true")
 		// TODO: add attachment_url for retweet with status
 	}
@@ -90,10 +87,6 @@ func (t *Twitter) Syndicate(entry *HugoEntry, typ micropub.Type, related string)
 	return "https://twitter.com/" + t.User + "/status/" + fmt.Sprint(id), nil
 }
 
-func (t *Twitter) IsRelated(url string) bool {
-	return strings.HasPrefix(url, "https://twitter.com")
-}
-
 func (t *Twitter) UserExists(user string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
@@ -119,8 +112,4 @@ func (t *Twitter) UserExists(user string) (bool, error) {
 	}
 
 	return false, nil
-}
-
-func (t *Twitter) Name() string {
-	return "Twitter (@" + t.User + ")"
 }

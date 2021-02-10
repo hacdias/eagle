@@ -1,6 +1,6 @@
 FROM golang:1.15-alpine3.12 as build
 
-ENV HUGO_VERSION v0.76.3
+ENV HUGO_VERSION v0.80.0
 
 RUN apk update && \
     apk add --no-cache git gcc g++ musl-dev && \
@@ -14,11 +14,11 @@ RUN mage hugo && mage install
 
 WORKDIR /eagle/
 COPY . /eagle/
-RUN go build
+RUN ./build.sh
 
 FROM alpine:3.12
 
-COPY --from=build /eagle/eagle /bin/eagle
+COPY --from=build /eagle/main /bin/eagle
 COPY --from=build /hugo/hugo /bin/hugo
 
 ENV UID 501
@@ -39,6 +39,7 @@ RUN git config --global user.name "Eagle" && \
 WORKDIR /app
 VOLUME /app/source
 VOLUME /app/public
+VOLUME /app/activity
 
 EXPOSE 8080
 CMD ["eagle"]

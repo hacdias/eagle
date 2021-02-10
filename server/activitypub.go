@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hacdias/eagle/services"
+	"github.com/hacdias/eagle/eagle"
 )
 
 func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Request) {
@@ -14,9 +14,6 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		s.serveError(w, http.StatusBadRequest, err)
 		return
 	}
-
-	s.Lock()
-	defer s.Unlock()
 
 	var msg string
 
@@ -35,15 +32,15 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	case "Undo":
 		msg, err = s.ActivityPub.Undo(activity)
 	default:
-		err = services.ErrNotHandled
+		err = eagle.ErrNotHandled
 	}
 
-	if err == services.ErrNoChanges {
+	if err == eagle.ErrNoChanges {
 		w.WriteHeader(http.StatusCreated)
 		return
 	}
 
-	if err == services.ErrNotHandled {
+	if err == eagle.ErrNotHandled {
 		msg = "Received unhandled Activity"
 		err = s.ActivityPub.Log(activity)
 	}
@@ -51,18 +48,18 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.Errorf("activity inbox: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 		return
 	}
 
 	if msg != "" {
-		s.Notify.Info(msg)
+		s.Notify(msg)
 	}
 
-	err = s.Store.Persist("activitypub")
+	err = s.Persist("activitypub")
 	if err != nil {
 		s.Errorf("activitypub: error git commit: %s", err)
-		s.Notify.Error(err)
+		s.NotifyError(err)
 	}
 
 	w.WriteHeader(http.StatusCreated)

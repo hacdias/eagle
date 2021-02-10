@@ -8,14 +8,14 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-func (s *Server) StartBot() (*tb.Bot, error) {
+func (s *Server) buildBot() error {
 	b, err := tb.NewBot(tb.Settings{
 		Token:  s.c.Telegram.Token,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	logIfErr := func(err error) {
@@ -41,69 +41,40 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 	}))
 
 	b.Handle("/sync", checkUser(func(m *tb.Message) {
-		err := s.Store.Sync()
+		err := s.Sync()
 		if err != nil {
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		} else {
-			s.Notify.Info("Sync was successfull! ⚡️")
+			s.Notify("Sync was successfull! ⚡️")
 		}
 	}))
 
 	b.Handle("/build", checkUser(func(m *tb.Message) {
 		clean := strings.Contains(m.Text, "clean")
-		err := s.Hugo.Build(clean)
+		err := s.Build(clean)
 		if err != nil {
-			s.Notify.Error(err)
+			s.NotifyError(err)
 		} else {
-			s.Notify.Info("Build was successfull! 💪")
+			s.Notify("Build was successfull! 💪")
 		}
 	}))
 
-	b.Handle("/build_index", checkUser(func(m *tb.Message) {
-		if s.MeiliSearch == nil {
-			s.Notify.Info("MeiliSearch is not implemented!")
-			return
-		}
-
-		s.Lock()
-		entries, err := s.Hugo.GetAll()
+	b.Handle("/rebuild_index", checkUser(func(m *tb.Message) {
+		err = s.RebuildIndex()
 		if err != nil {
-			s.Notify.Error(err)
-			s.Unlock()
-			return
-		}
-		s.Unlock()
-
-		err = s.MeiliSearch.Add(entries...)
-		if err != nil {
-			s.Notify.Error(err)
+			s.NotifyError(err)
 			return
 		}
 
-		s.Notify.Info("Successfully indexed! 🔎")
-	}))
-
-	b.Handle("/delete_index", checkUser(func(m *tb.Message) {
-		if s.MeiliSearch == nil {
-			s.Notify.Info("MeiliSearch is not implemented!")
-			return
-		}
-
-		err = s.MeiliSearch.Wipe()
-		if err != nil {
-			s.Notify.Error(err)
-			return
-		}
-
-		s.Notify.Info("Search index wiped! 🔎")
+		s.Notify("Search index rebuilt! 🔎")
 	}))
 
 	b.Handle("/webmentions", checkUser(func(m *tb.Message) {
 		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmentions"))
 
-		entry, err := s.Hugo.GetEntry(id)
+		entry, err := s.GetEntry(id)
 		if err != nil {
-			s.Notify.Error(err)
+			s.NotifyError(err)
 			return
 		}
 
@@ -113,15 +84,15 @@ func (s *Server) StartBot() (*tb.Bot, error) {
 	b.Handle("/activity", checkUser(func(m *tb.Message) {
 		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/activity"))
 
-		entry, err := s.Hugo.GetEntry(id)
+		entry, err := s.GetEntry(id)
 		if err != nil {
-			s.Notify.Error(err)
+			s.NotifyError(err)
 			return
 		}
 
 		s.activity(entry)
 	}))
 
-	go b.Start()
-	return b, nil
+	s.bot = b
+	return nil
 }
