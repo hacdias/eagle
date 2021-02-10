@@ -57,6 +57,7 @@ func (g *GitStorage) Sync() error {
 	}
 
 	cmd = exec.Command("git", "push")
+	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git error (%s): %s", err, string(out))
