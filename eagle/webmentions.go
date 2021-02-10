@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/araddon/dateparse"
@@ -28,11 +29,6 @@ var webmentionTypes = map[string]string{
 	"repost-of":   "repost",
 	"mention-of":  "mention",
 	"in-reply-to": "reply",
-}
-
-type WebmentionContent struct {
-	Text string `json:"text"`
-	HTML string `json:"html"`
 }
 
 type WebmentionPayload struct {
@@ -55,8 +51,15 @@ type WebmentionPayload struct {
 	} `json:"post"`
 }
 
+type WebmentionContent struct {
+	Text string `json:"text"`
+	HTML string `json:"html"`
+}
+
 type Webmentions struct {
 	*zap.SugaredLogger
+	sync.Mutex
+
 	domain     string
 	hugoSource string
 	telegraph  config.Telegraph
@@ -121,6 +124,9 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	if err != nil {
 		return err
 	}
+
+	w.Lock()
+	defer w.Unlock()
 
 	raw, err := ioutil.ReadFile(file)
 	if err != nil {

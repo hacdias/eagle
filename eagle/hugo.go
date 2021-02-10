@@ -18,6 +18,7 @@ import (
 type Hugo struct {
 	config.Hugo
 	sync.Mutex
+
 	publicDirCh   chan string
 	currentSubDir string
 }

@@ -19,11 +19,7 @@ type Crawler struct {
 	twitter config.Twitter
 }
 
-func (c *Crawler) Crawl(url string) (*EmbeddedEntry, error) {
-	return c.crawl(url)
-}
-
-func (c *Crawler) crawl(u string) (*EmbeddedEntry, error) {
+func (c *Crawler) Crawl(u string) (*EmbeddedEntry, error) {
 	data := url.Values{}
 	data.Set("url", u)
 
@@ -57,62 +53,66 @@ func (c *Crawler) crawl(u string) (*EmbeddedEntry, error) {
 		return nil, err
 	}
 
-	entry := &EmbeddedEntry{
-		URL: u,
-	}
+	ee := c.parse(&xray)
+	ee.URL = u
+	return ee, nil
+}
+
+func (c *Crawler) parse(xray *xrayResponse) *EmbeddedEntry {
+	ee := &EmbeddedEntry{}
 
 	if xray.Data == nil {
-		return entry, nil
+		return ee
 	}
 
 	if v, ok := xray.Data["published"].(string); ok {
 		t, err := dateparse.ParseStrict(v)
 		if err == nil {
-			entry.Date = t
+			ee.Date = t
 		}
 	}
 
 	if v, ok := xray.Data["name"].(string); ok {
-		entry.Name = v
+		ee.Name = v
 	}
 
 	if v, ok := xray.Data["content"].(map[string]interface{}); ok {
 		if t, ok := v["text"].(string); ok {
-			entry.Content = t
+			ee.Content = t
 		} else if h, ok := v["html"].(string); ok {
-			entry.Content = h
+			ee.Content = h
 		}
 	}
 
 	if v, ok := xray.Data["content"].(string); ok {
-		entry.Content = v
+		ee.Content = v
 	}
 
-	if v, ok := xray.Data["summary"].(string); ok && entry.Content == "" {
-		entry.Content = v
+	if v, ok := xray.Data["summary"].(string); ok && ee.Content == "" {
+		ee.Content = v
 	}
 
-	if entry.Content != "" {
-		entry.Content = cleanContent(entry.Content)
+	if ee.Content != "" {
+		ee.Content = cleanContent(ee.Content)
 	}
 
 	if a, ok := xray.Data["author"].(map[string]interface{}); ok {
-		entry.Author = &EntryAuthor{}
+		ee.Author = &EntryAuthor{}
 
 		if v, ok := a["name"].(string); ok {
-			entry.Author.Name = v
+			ee.Author.Name = v
 		}
 
 		if v, ok := a["url"].(string); ok {
-			entry.Author.URL = v
+			ee.Author.URL = v
 		}
 
 		if v, ok := a["photo"].(string); ok {
-			entry.Author.Photo = v
+			ee.Author.Photo = v
 		}
 	}
 
-	return entry, nil
+	return ee
 }
 
 type xrayResponse struct {

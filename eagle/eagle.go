@@ -2,7 +2,6 @@ package eagle
 
 import (
 	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/logging"
 )
 
 type Eagle struct {
@@ -10,7 +9,6 @@ type Eagle struct {
 	ActivityPub *ActivityPub
 	Twitter     *Twitter
 
-	*Media
 	*Notifications
 	*Webmentions
 	*EntryManager
@@ -21,11 +19,9 @@ type Eagle struct {
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
-	media := &Media{conf.BunnyCDN}
-
 	publicDirCh := make(chan string)
 
-	notifications, err := NewNotifications(&conf.Telegram, logging.S().Named("telegram"))
+	notifications, err := NewNotifications(&conf.Telegram)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +39,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		domain:     conf.Domain,
 		hugoSource: conf.Hugo.Source,
 		telegraph:  conf.Telegraph,
-		media:      media,
+		media:      &Media{conf.BunnyCDN},
 		notify:     notifications,
 		store:      store,
 	}
@@ -54,9 +50,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Twitter.User != "" {
-		//twitter := NewTwitter(&conf.Twitter)
-		//syndicator["twitter"] = twitter
-		// hugo.Twitter = twitter
+		// twitter := NewTwitter(&conf.Twitter)
 	}
 
 	return &Eagle{
@@ -66,7 +60,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			source: conf.Hugo.Source,
 			store:  store,
 		},
-		Media:         media,
 		Notifications: notifications,
 		Hugo: &Hugo{
 			Hugo:        conf.Hugo,

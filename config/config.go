@@ -100,6 +100,7 @@ type MeiliSearch struct {
 
 type ActivityPub struct {
 	IRI      string
-	PubKeyId string `mapstructure:"pub_key_id"`
+	PubKeyID string `mapstructure:"pub_key_id"`
 	PrivKey  string `mapstructure:"priv_key"`
+	Dir      string
 }
