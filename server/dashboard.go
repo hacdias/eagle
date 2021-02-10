@@ -294,7 +294,7 @@ func sanitizeID(id string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		id = u.Path
+		id = path.Clean(u.Path)
 	}
-	return path.Clean(id), nil
+	return id, nil
 }
