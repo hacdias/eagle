@@ -141,8 +141,8 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 	}
 
 	go func() {
-		// TODO s.sendWebmentions(entry)
-		// s.activity(entry)
+		s.sendWebmentions(entry)
+		s.activity(entry)
 
 		if action == "create" && twitter == "on" && s.Twitter != nil {
 			s.syndicate(entry)
