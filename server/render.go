@@ -44,6 +44,7 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 }
 
 // TODO: only load templates once.
+// TODO: Go 1.16, use embbed
 func getTemplates() (map[string]*template.Template, error) {
 	box := rice.MustFindBox("../dashboard/templates")
 	templates := map[string]*template.Template{}

@@ -22,14 +22,10 @@ func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-	if id != "" {
-		u, err := url.Parse(id)
-		if err != nil {
-			s.serveError(w, http.StatusInternalServerError, err)
-			return
-		}
-		id = u.Path
+	id, err := sanitizeID(r.URL.Query().Get("id"))
+	if err != nil {
+		s.serveError(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	reply := cleanReplyURL(r.URL.Query().Get("reply"))
@@ -40,10 +36,7 @@ func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var (
-		entry *eagle.Entry
-		err   error
-	)
+	var entry *eagle.Entry
 
 	if id != "" {
 		entry, err = s.GetEntry(id)
@@ -116,9 +109,12 @@ func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, error) {
 	action := r.FormValue("action")
-	id := r.FormValue("id")
 	content := r.FormValue("content")
 	twitter := r.FormValue("twitter")
+	id, err := sanitizeID(r.FormValue("id"))
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	if id == r.FormValue("defaultid") {
 		return http.StatusBadRequest, errors.New("id must be updated")
@@ -289,4 +285,15 @@ func cleanReplyURL(iu string) string {
 	}
 
 	return iu
+}
+
+func sanitizeID(id string) (string, error) {
+	if id != "" {
+		u, err := url.Parse(id)
+		if err != nil {
+			return "", err
+		}
+		id = u.Path
+	}
+	return id, nil
 }
