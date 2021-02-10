@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"time"
 
@@ -295,5 +296,5 @@ func sanitizeID(id string) (string, error) {
 		}
 		id = u.Path
 	}
-	return id, nil
+	return path.Clean(id), nil
 }
