@@ -15,9 +15,6 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	s.Lock()
-	defer s.Unlock()
-
 	var msg string
 
 	// TODO: check if request is signed by the actual user

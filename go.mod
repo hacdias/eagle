@@ -10,12 +10,12 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-fed/httpsig v1.1.0
 	github.com/hashicorp/go-multierror v1.1.0
-	github.com/meilisearch/meilisearch-go v0.14.0 // indirect
+	github.com/meilisearch/meilisearch-go v0.14.0
 	github.com/prometheus/common v0.15.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/viper v1.7.1
-	github.com/writeas/go-strip-markdown v2.0.1+incompatible // indirect
+	github.com/writeas/go-strip-markdown v2.0.1+incompatible
 	go.uber.org/zap v1.16.0
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect

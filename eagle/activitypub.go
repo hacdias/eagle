@@ -31,10 +31,9 @@ var ErrNoChanges = errors.New("no changes")
 type ActivityPub struct {
 	*zap.SugaredLogger
 	*Webmentions
+	config.ActivityPub
+	sync.Mutex
 
-	dir      string
-	iri      string
-	pubKeyId string
 	privKey  crypto.PrivateKey
 	signer   httpsig.Signer
 	signerMu sync.Mutex
@@ -67,15 +66,16 @@ func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub
 	return &ActivityPub{
 		SugaredLogger: logging.S().Named("activitypub"),
 		Webmentions:   webmentions,
-		dir:           filepath.Join(conf.Hugo.Source, "data", "activity"),
-		iri:           conf.ActivityPub.IRI,
-		pubKeyId:      conf.ActivityPub.PubKeyId,
+		ActivityPub:   conf.ActivityPub,
 		privKey:       privateKey,
 		signer:        signer,
 	}, nil
 }
 
 func (ap *ActivityPub) Create(activity map[string]interface{}) error {
+	ap.Lock()
+	defer ap.Unlock()
+
 	ap.Debug("processing create activity")
 	object, exists := activity["object"].(map[string]interface{})
 	if !exists {
@@ -91,7 +91,7 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 		return errors.New("inReplyTo and id are required and need to be valid")
 	}
 
-	if !strings.Contains(reply, ap.iri) {
+	if !strings.Contains(reply, ap.IRI) {
 		ap.Warnf("create activity is destined to someone else: %s", reply)
 		return fmt.Errorf("reply is not for me: %s", reply)
 	}
@@ -105,6 +105,9 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 }
 
 func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
+	ap.Lock()
+	defer ap.Unlock()
+
 	ap.Debug("received delete activity")
 	object, ok := activity["object"].(string)
 	if !ok {
@@ -142,6 +145,9 @@ func (ap *ActivityPub) Like(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
+	ap.Lock()
+	defer ap.Unlock()
+
 	ap.Debug("received follow activity")
 	iri, ok := activity["actor"].(string)
 	if !ok || len(iri) == 0 {
@@ -182,7 +188,7 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 	accept := map[string]interface{}{}
 	accept["@context"] = "https://www.w3.org/ns/activitystreams"
 	accept["to"] = activity["actor"]
-	accept["actor"] = ap.iri
+	accept["actor"] = ap.IRI
 	accept["object"] = activity
 	accept["type"] = "Accept"
 	_, accept["id"] = ap.newID()
@@ -201,6 +207,9 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
+	ap.Lock()
+	defer ap.Unlock()
+
 	ap.Info("received undo activity")
 	object, ok := activity["object"].(map[string]interface{})
 	if !ok {
@@ -225,7 +234,10 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Followers() (map[string]string, error) {
-	fd, err := os.Open(filepath.Join(ap.dir, "followers.json"))
+	ap.Lock()
+	defer ap.Unlock()
+
+	fd, err := os.Open(filepath.Join(ap.Dir, "followers.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = ap.storeFollowers(map[string]string{})
@@ -241,7 +253,10 @@ func (ap *ActivityPub) Followers() (map[string]string, error) {
 }
 
 func (ap *ActivityPub) Log(activity map[string]interface{}) error {
-	filename := filepath.Join(ap.dir, "log.json")
+	ap.Lock()
+	defer ap.Unlock()
+
+	filename := filepath.Join(ap.Dir, "log.json")
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return err
@@ -264,10 +279,13 @@ func (ap *ActivityPub) storeFollowers(f map[string]string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(ap.dir, "followers.json"), bytes, 0644)
+	return ioutil.WriteFile(filepath.Join(ap.Dir, "followers.json"), bytes, 0644)
 }
 
 func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
+	ap.Lock()
+	defer ap.Unlock()
+
 	followers, err := ap.Followers()
 	if err != nil {
 		return err
@@ -362,7 +380,7 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	r.Header.Add("Host", iri.Host)
 
 	ap.signerMu.Lock()
-	err = ap.signer.SignRequest(ap.privKey, ap.pubKeyId, r, bodyCopy)
+	err = ap.signer.SignRequest(ap.privKey, ap.PubKeyID, r, bodyCopy)
 	ap.signerMu.Unlock()
 	if err != nil {
 		return err
@@ -380,5 +398,61 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 
 func (ap *ActivityPub) newID() (hash string, url string) {
 	hash = uniuri.New()
-	return hash, ap.iri + hash
+	return hash, ap.IRI + hash
+}
+
+type actor struct {
+	IRI   string
+	Inbox string
+}
+
+func (ap *ActivityPub) getActor(url string) (*actor, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+	defer cancel()
+
+	buf := new(bytes.Buffer)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Accept", "application/activity+json")
+	req.Header.Add("Accept-Charset", "utf-8")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isSuccess(resp.StatusCode) {
+		return nil, fmt.Errorf("request was not successfull: code %d", resp.StatusCode)
+	}
+
+	var e map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&e)
+	if err != nil {
+		return nil, err
+	}
+
+	if e["type"] != "Person" {
+		return nil, fmt.Errorf("actor %s should be a Person, received %s", url, e["type"])
+	}
+
+	iri, iriOK := e["id"].(string)
+	inbox, inboxOK := e["inbox"].(string)
+
+	if !iriOK || !inboxOK || len(iri) == 0 || len(inbox) == 0 {
+		return nil, fmt.Errorf("actor %s has wrong iri or inbox: %s, %s", url, iri, inbox)
+	}
+
+	return &actor{
+		IRI:   iri,
+		Inbox: inbox,
+	}, nil
+}
+
+func isSuccess(code int) bool {
+	return code == http.StatusOK ||
+		code == http.StatusCreated ||
+		code == http.StatusAccepted ||
+		code == http.StatusNoContent
 }
