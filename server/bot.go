@@ -41,7 +41,7 @@ func (s *Server) buildBot() error {
 	}))
 
 	b.Handle("/sync", checkUser(func(m *tb.Message) {
-		err := s.Sync()
+		err := s.StorageService.Sync()
 		if err != nil {
 			s.NotifyError(err)
 		} else {

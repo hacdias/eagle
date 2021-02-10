@@ -1,6 +1,7 @@
 package eagle
 
 import (
+	"fmt"
 	"os/exec"
 )
 
@@ -29,16 +30,22 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 
 		cmd = exec.Command("git", "commit", "-m", msg)
 		cmd.Dir = g.Directory
-		err = cmd.Run()
-		return err
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("git error (%s): %s", err, string(out))
+		}
+		return nil
 	}
 
 	args := []string{"commit", "-m", msg, "--"}
 	args = append(args, files...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.Directory
-	err := cmd.Run()
-	return err
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git error (%s): %s", err, string(out))
+	}
+	return nil
 }
 
 func (g *GitStorage) Sync() error {
@@ -50,8 +57,11 @@ func (g *GitStorage) Sync() error {
 	}
 
 	cmd = exec.Command("git", "push")
-	cmd.Dir = g.Directory
-	return cmd.Run()
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git error (%s): %s", err, string(out))
+	}
+	return nil
 }
 
 type PlaceboStorage struct{}
