@@ -14,7 +14,7 @@ RUN mage hugo && mage install
 
 WORKDIR /eagle/
 COPY . /eagle/
-RUN go build -o main ./cmd/eagle
+RUN ./build.sh
 
 FROM alpine:3.12
 

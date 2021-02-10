@@ -2,12 +2,13 @@ package server
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	rice "github.com/GeertJohan/go.rice"
 )
 
 const dashboardPath = "/dashboard"
@@ -42,11 +43,13 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 	_, _ = w.Write(buf.Bytes())
 }
 
+// TODO: only load templates once.
 func getTemplates() (map[string]*template.Template, error) {
+	box := rice.MustFindBox("../dashboard/templates")
 	templates := map[string]*template.Template{}
-	baseTpl := template.Must(template.ParseFiles("dashboard/templates/base.html"))
+	baseTpl := template.Must(template.New("base").Parse(box.MustString("base.html")))
 
-	err := filepath.Walk("dashboard/templates", func(p string, info os.FileInfo, err error) error {
+	err := box.Walk("/", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -63,10 +66,7 @@ func getTemplates() (map[string]*template.Template, error) {
 		ext := filepath.Ext(basename)
 		id := strings.TrimSuffix(basename, ext)
 
-		raw, err := ioutil.ReadFile(p)
-		if err != nil {
-			return err
-		}
+		raw := box.MustString(info.Name())
 
 		templates[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
 		return nil

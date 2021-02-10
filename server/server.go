@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
+	rice "github.com/GeertJohan/go.rice"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
-	"github.com/spf13/afero"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
@@ -52,8 +52,8 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	r.Use(s.headers)
 
 	r.With(basicauth).Route(dashboardPath, func(r chi.Router) {
-		fs := afero.NewBasePathFs(afero.NewOsFs(), "dashboard/static")
-		httpdir := http.FileServer(neuteredFs{afero.NewHttpFs(fs).Dir("/")})
+		fs := rice.MustFindBox("../dashboard/static").HTTPBox()
+		httpdir := http.FileServer(neuteredFs{fs})
 
 		r.Get("/", s.dashboardHandler)
 		r.Get("/editor", s.editorGetHandler)

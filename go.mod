@@ -3,6 +3,7 @@ module github.com/hacdias/eagle
 go 1.15
 
 require (
+	github.com/GeertJohan/go.rice v1.0.2
 	github.com/PuerkitoBio/goquery v1.6.1
 	github.com/araddon/dateparse v0.0.0-20210207001429-0eec95c9db7e
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
