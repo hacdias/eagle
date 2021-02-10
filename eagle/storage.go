@@ -49,7 +49,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 	args = append(args, files...)
 	cmd = exec.Command("git", args...)
 	cmd.Dir = g.dir
-	out, err := cmd.CombinedOutput()
+	out, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git error (%s): %s", err, string(out))
 	}
