@@ -16,6 +16,13 @@
   <label for=content>Content</label>
   <textarea required id=content name=content>{{ .Content }}</textarea>
 
+  {{ if not .ID }}
+  <div class=inline>
+    <input type=checkbox name=twitter id=twitter />
+    <label for=twitter>Publish on Twitter</label>
+  </div>
+  {{ end }}
+
   <button>Save</button>
 </form>
 {{ end }}

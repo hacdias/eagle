@@ -61,7 +61,7 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 		r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
 	})
 
-	//r.Get("/search.json", s.searchHandler)
+	r.Get("/search.json", s.searchHandler)
 	r.Post("/webhook", s.webhookHandler)
 	r.Post("/webmention", s.webmentionHandler)
 	r.Post("/activitypub/inbox", s.activityPubPostInboxHandler)

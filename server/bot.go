@@ -59,43 +59,14 @@ func (s *Server) buildBot() error {
 		}
 	}))
 
-	b.Handle("/build_index", checkUser(func(m *tb.Message) {
-		/* if s.MeiliSearch == nil {
-			s.Notify("MeiliSearch is not implemented!")
-			return
-		}
-
-		s.Lock()
-		entries, err := s.Hugo.GetAll()
-		if err != nil {
-			s.NotifyError(err)
-			s.Unlock()
-			return
-		}
-		s.Unlock()
-
-		err = s.MeiliSearch.Add(entries...)
+	b.Handle("/rebuild_index", checkUser(func(m *tb.Message) {
+		err = s.RebuildIndex()
 		if err != nil {
 			s.NotifyError(err)
 			return
 		}
 
-		s.Notify("Successfully indexed! 🔎") */
-	}))
-
-	b.Handle("/delete_index", checkUser(func(m *tb.Message) {
-		/* if s.MeiliSearch == nil {
-			s.Notify("MeiliSearch is not implemented!")
-			return
-		}
-
-		err = s.MeiliSearch.Wipe()
-		if err != nil {
-			s.NotifyError(err)
-			return
-		}
-
-		s.Notify("Search index wiped! 🔎") */
+		s.Notify("Search index rebuilt! 🔎")
 	}))
 
 	b.Handle("/webmentions", checkUser(func(m *tb.Message) {

@@ -1,26 +1,29 @@
 package eagle
 
-/*
 import (
 	"encoding/hex"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/meilisearch/meilisearch-go"
 	stripmd "github.com/writeas/go-strip-markdown"
 )
 
-const meiliSearchIndex = "posts"
+const meiliSearchIndex = "post2"
 const meiliSearchKey = "id"
+
+var shortCodesRegex = regexp.MustCompile(`{{<(.*?)>}}`)
 
 type MeiliSearch struct {
 	meilisearch.ClientInterface
 }
 
-func NewMeiliSearch(c *config.MeiliSearch) (*MeiliSearch, error) {
+func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, error) {
 	client := meilisearch.NewClient(meilisearch.Config{
-		Host:   c.Endpoint,
-		APIKey: c.Key,
+		Host:   conf.Endpoint,
+		APIKey: conf.Key,
 	})
 
 	ms := &MeiliSearch{
@@ -53,28 +56,17 @@ func NewMeiliSearch(c *config.MeiliSearch) (*MeiliSearch, error) {
 	return ms, nil
 }
 
-func (ms *MeiliSearch) Wipe() error {
+func (ms *MeiliSearch) ResetIndex() error {
 	_, err := ms.Documents(meiliSearchIndex).DeleteAllDocuments()
 	return err
 }
 
-func (ms *MeiliSearch) Add(entries ...*HugoEntry) error {
+func (ms *MeiliSearch) Add(entries ...*Entry) error {
 	docs := []interface{}{}
 
 	for _, entry := range entries {
-		tags := []string{}
-		if t, ok := entry.Metadata.StringsIf("tags"); ok {
-			tags = t
-		}
-
-		title := ""
-		if t, ok := entry.Metadata.StringIf("title"); ok {
-			title = t
-		}
-
-		date := ""
-		if d, ok := entry.Metadata.StringIf("date"); ok {
-			date = d
+		if entry.Metadata.ExpiryDate.After(time.Now()) {
+			continue
 		}
 
 		cleanID := strings.TrimPrefix(entry.ID, "/")
@@ -87,11 +79,11 @@ func (ms *MeiliSearch) Add(entries ...*HugoEntry) error {
 
 		docs = append(docs, map[string]interface{}{
 			meiliSearchKey: hex.EncodeToString([]byte(entry.ID)),
-			"title":        title,
-			"date":         date,
+			"title":        entry.Metadata.Title,
+			"date":         entry.Metadata.Date,
 			"section":      section,
-			"content":      stripmd.Strip(entry.Content),
-			"tags":         tags,
+			"content":      sanitizePost(entry.Content),
+			"tags":         entry.Metadata.Tags,
 		})
 	}
 
@@ -99,7 +91,7 @@ func (ms *MeiliSearch) Add(entries ...*HugoEntry) error {
 	return err
 }
 
-func (ms *MeiliSearch) Delete(entries ...*HugoEntry) error {
+func (ms *MeiliSearch) Remove(entries ...*Entry) error {
 	ids := []string{}
 	for _, entry := range entries {
 		ids = append(ids, entry.ID)
@@ -125,4 +117,10 @@ func (ms *MeiliSearch) Search(query string, filter string, page int) ([]interfac
 
 	return res.Hits, nil
 }
-*/
+
+func sanitizePost(content string) string {
+	content = shortCodesRegex.ReplaceAllString(content, "")
+	content = stripmd.Strip(content)
+
+	return content
+}

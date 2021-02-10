@@ -1,6 +1,10 @@
 package server
 
-/*
+import (
+	"net/http"
+	"strconv"
+)
+
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 	if query == "" {
@@ -20,7 +24,7 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	filter := r.URL.Query().Get("f")
 
-	res, err := s.MeiliSearch.Search(query, filter, page)
+	res, err := s.Search(query, filter, page)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return
@@ -28,4 +32,3 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	s.serveJSON(w, http.StatusOK, res)
 }
-*/

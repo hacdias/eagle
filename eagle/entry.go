@@ -72,15 +72,26 @@ type EntryAuthor struct {
 	Photo string `yaml:"photo,omitempty" json:"photo"`
 }
 
-type EntryManager struct {
-	sync.Mutex
+type SearchIndex interface {
+	ResetIndex() error
+	Add(entries ...*Entry) error
+	Remove(entries ...*Entry) error
+	Search(query string, filter string, page int) ([]interface{}, error)
+}
 
+type EntryManager struct {
+	sync.RWMutex
+
+	search SearchIndex
 	store  StorageService
 	domain string
 	source string
 }
 
 func (m *EntryManager) GetEntry(id string) (*Entry, error) {
+	m.RLock()
+	defer m.RUnlock()
+
 	id = m.cleanID(id)
 	filepath, err := m.guessPath(id)
 	if err != nil {
@@ -129,6 +140,9 @@ func (m *EntryManager) ParseEntry(id, raw string) (*Entry, error) {
 }
 
 func (m *EntryManager) SaveEntry(entry *Entry) error {
+	m.Lock()
+	defer m.Unlock()
+
 	entry.ID = m.cleanID(entry.ID)
 	if entry.Path == "" {
 		path, err := m.guessPath(entry.ID)
@@ -163,6 +177,10 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 		return fmt.Errorf("could not save entry: %s", err)
 	}
 
+	if m.search != nil {
+		_ = m.search.Add(entry)
+	}
+
 	return nil
 }
 
@@ -177,10 +195,18 @@ func (m *EntryManager) EntryToString(entry *Entry) (string, error) {
 
 func (m *EntryManager) DeleteEntry(entry *Entry) error {
 	entry.Metadata.ExpiryDate = time.Now()
+
+	if m.search != nil {
+		_ = m.search.Remove(entry)
+	}
+
 	return m.SaveEntry(entry)
 }
 
 func (m *EntryManager) GetAll() ([]*Entry, error) {
+	m.RLock()
+	defer m.RUnlock()
+
 	entries := []*Entry{}
 	content := path.Join(m.source, "content")
 
@@ -208,6 +234,32 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	})
 
 	return entries, err
+}
+
+func (m *EntryManager) Search(query string, filter string, page int) ([]interface{}, error) {
+	if m.search == nil {
+		return []interface{}{}, nil
+	}
+
+	return m.search.Search(query, filter, page)
+}
+
+func (m *EntryManager) RebuildIndex() error {
+	if m.search == nil {
+		return nil
+	}
+
+	err := m.search.ResetIndex()
+	if err != nil {
+		return err
+	}
+
+	entries, err := m.GetAll()
+	if err != nil {
+		return err
+	}
+
+	return m.search.Add(entries...)
 }
 
 func (m *EntryManager) cleanID(id string) string {

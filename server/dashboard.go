@@ -117,6 +117,7 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 	action := r.FormValue("action")
 	id := r.FormValue("id")
 	content := r.FormValue("content")
+	twitter := r.FormValue("twitter")
 
 	if id == r.FormValue("defaultid") {
 		return http.StatusBadRequest, errors.New("id must be updated")
@@ -140,21 +141,12 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 	}
 
 	go func() {
-		// s.sendWebmentions(entry)
+		// TODO s.sendWebmentions(entry)
 		// s.activity(entry)
 
-		if action == "create" {
-			// TODO .syndicate(entry, synd)
+		if action == "create" && twitter == "on" && s.Twitter != nil {
+			s.syndicate(entry)
 		}
-
-		/*
-			err := s.MeiliSearch.Add(entry)
-			if err != nil {
-				s.Warnf("could not add to meilisearch: %s", err)
-				s.NotifyError(err)
-			}
-		*/
-
 	}()
 
 	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
@@ -179,67 +171,36 @@ func (s *Server) editorDelete(w http.ResponseWriter, r *http.Request) (int, erro
 		return http.StatusInternalServerError, err
 	}
 
-	go func() {
-		// TODO err := s.MeiliSearch.Delete(entry)
-	}()
-
 	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
 	return 0, nil
 }
 
-/*
+func (s *Server) syndicate(entry *eagle.Entry) {
+	if s.Twitter == nil {
+		return
+	}
 
-func (s *Server) syndicate(entry *services.HugoEntry, synd *services.Syndication) {
-	s.Debug("syndicate: started")
-	syndication, err := s.Syndicator.Syndicate(entry, synd)
+	url, err := s.Twitter.Syndicate(entry)
 	if err != nil {
-		s.Errorf("syndicate: failed to syndicate: %s", err)
+		s.Errorf("failed to syndicate: %s", err)
 		s.NotifyError(err)
 		return
 	}
 
-	s.Debugw("syndicate: got syndication results", "syndication", syndication)
-	s.Lock()
-	defer func() {
-		s.Unlock()
-		if err != nil {
-			s.Errorf("syndicate: %s", err)
-			s.NotifyError(err)
-		}
-	}()
-
-	s.Debug("syndicate: fetch hugo entry")
-	entry, err = s.Hugo.GetEntry(entry.ID)
+	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
+	err = s.SaveEntry(entry)
 	if err != nil {
-		return
-	}
-	s.Debug("syndicate: got hugo entry")
-
-	props := entry.Metadata["properties"].(map[string][]interface{})
-	props["syndication"] = []interface{}{}
-
-	for _, s := range syndication {
-		props["syndication"] = append(props["syndication"], s)
-	}
-
-	entry.Metadata["properties"] = props
-
-	s.Debug("syndicate: saving hugo entry")
-	err = s.Hugo.SaveEntry(entry)
-	if err != nil {
-		return
-	}
-	s.Debug("syndicate: hugo entry saved")
-
-	err = s.Store.Persist("syndication on " + entry.ID)
-	if err != nil {
+		s.Errorf("failed to save entry: %s", err)
+		s.NotifyError(err)
 		return
 	}
 
-	err = s.Hugo.Build(false)
+	err = s.Build(false)
+	if err != nil {
+		s.Errorf("failed to build: %s", err)
+		s.NotifyError(err)
+	}
 }
-
-*/
 
 func (s *Server) activity(entry *eagle.Entry) {
 	s.staticFsLock.RLock()

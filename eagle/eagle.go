@@ -49,12 +49,21 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
+	var search SearchIndex
+	if conf.MeiliSearch != nil {
+		search, err = NewMeiliSearch(conf.MeiliSearch)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	eagle := &Eagle{
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			domain: conf.Domain,
 			source: conf.Hugo.Source,
 			store:  store,
+			search: search,
 		},
 		Notifications: notifications,
 		Hugo: &Hugo{
