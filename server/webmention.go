@@ -23,7 +23,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wm.Secret = ""
-	err = s.ReceiveWebmentions(wm)
+	err = s.e.ReceiveWebmentions(wm)
 	if err != nil {
 		if err == eagle.ErrDuplicatedWebmention {
 			w.WriteHeader(http.StatusOK)
@@ -39,15 +39,15 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	s.Debug("webmention: request ok")
 
 	go func() {
-		err := s.Build(false)
+		err := s.e.Build(false)
 		if err != nil {
 			s.Errorf("webmention: error hugo build: %s", err)
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 		} else {
 			if wm.Deleted {
-				s.Notify("💬 Deleted webmention at " + wm.Target)
+				s.e.Notify("💬 Deleted webmention at " + wm.Target)
 			} else {
-				s.Notify("💬 Received webmention at " + wm.Target)
+				s.e.Notify("💬 Received webmention at " + wm.Target)
 			}
 		}
 	}()

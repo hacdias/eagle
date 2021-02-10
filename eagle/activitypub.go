@@ -29,14 +29,14 @@ var ErrNotHandled = errors.New("not handled")
 var ErrNoChanges = errors.New("no changes")
 
 type ActivityPub struct {
-	*zap.SugaredLogger
-	*Webmentions
-	config.ActivityPub
 	sync.Mutex
 
-	privKey  crypto.PrivateKey
-	signer   httpsig.Signer
-	signerMu sync.Mutex
+	conf        config.ActivityPub
+	webmentions *Webmentions
+	log         *zap.SugaredLogger
+	privKey     crypto.PrivateKey
+	signer      httpsig.Signer
+	signerMu    sync.Mutex
 }
 
 func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub, error) {
@@ -64,11 +64,11 @@ func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub
 	}
 
 	return &ActivityPub{
-		SugaredLogger: logging.S().Named("activitypub"),
-		Webmentions:   webmentions,
-		ActivityPub:   conf.ActivityPub,
-		privKey:       privateKey,
-		signer:        signer,
+		conf:        conf.ActivityPub,
+		log:         logging.S().Named("activitypub"),
+		webmentions: webmentions,
+		privKey:     privateKey,
+		signer:      signer,
 	}, nil
 }
 
@@ -76,10 +76,10 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 	ap.Lock()
 	defer ap.Unlock()
 
-	ap.Debug("processing create activity")
+	ap.log.Debug("processing create activity")
 	object, exists := activity["object"].(map[string]interface{})
 	if !exists {
-		ap.Warn("create activity does not contain object")
+		ap.log.Warn("create activity does not contain object")
 		return errors.New("object must exist")
 	}
 
@@ -87,17 +87,17 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 	id, hasID := object["id"].(string)
 
 	if !hasReply || !hasID || len(reply) == 0 || len(id) == 0 {
-		ap.Warn("create activity has invalid ID or inReplyTo")
+		ap.log.Warn("create activity has invalid ID or inReplyTo")
 		return errors.New("inReplyTo and id are required and need to be valid")
 	}
 
-	if !strings.Contains(reply, ap.IRI) {
-		ap.Warnf("create activity is destined to someone else: %s", reply)
+	if !strings.Contains(reply, ap.conf.IRI) {
+		ap.log.Warnf("create activity is destined to someone else: %s", reply)
 		return fmt.Errorf("reply is not for me: %s", reply)
 	}
 
-	ap.Debug("converting create activity into webmention")
-	err := ap.SendWebmention(id, reply)
+	ap.log.Debug("converting create activity into webmention")
+	err := ap.webmentions.SendWebmention(id, reply)
 	if err != nil {
 		return err
 	}
@@ -108,24 +108,24 @@ func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
 	ap.Lock()
 	defer ap.Unlock()
 
-	ap.Debug("received delete activity")
+	ap.log.Debug("received delete activity")
 	object, ok := activity["object"].(string)
 	if !ok {
-		ap.Debug("delete activity not ok, not handlind")
+		ap.log.Debug("delete activity not ok, not handlind")
 		return "", ErrNotHandled
 	}
 
 	if len(object) > 0 && activity["actor"] == object {
-		ap.Debugf("delete activity is unfollow from: %s", object)
+		ap.log.Debugf("delete activity is unfollow from: %s", object)
 		return object + " unfollowed you... 😔", ap.removeFollower(object)
 	}
 
-	ap.Debug("delete activity not ok, not handlind")
+	ap.log.Debug("delete activity not ok, not handlind")
 	return "", ErrNotHandled
 }
 
 func (ap *ActivityPub) removeFollower(iri string) error {
-	ap.Debugf("removing follower %s", iri)
+	ap.log.Debugf("removing follower %s", iri)
 	followers, err := ap.Followers()
 	if err != nil {
 		return err
@@ -148,10 +148,10 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 	ap.Lock()
 	defer ap.Unlock()
 
-	ap.Debug("received follow activity")
+	ap.log.Debug("received follow activity")
 	iri, ok := activity["actor"].(string)
 	if !ok || len(iri) == 0 {
-		ap.Debugw("activity has no actor", "activity", activity)
+		ap.log.Debugw("activity has no actor", "activity", activity)
 		return "", errors.New("actor should exist in activity")
 	}
 
@@ -162,13 +162,13 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 
 	follower, err := ap.getActor(iri)
 	if err != nil {
-		ap.Debugf("failed to get actor %s: %s", iri, err)
+		ap.log.Debugf("failed to get actor %s: %s", iri, err)
 		return "", err
 	}
 
 	followers, err := ap.Followers()
 	if err != nil {
-		ap.Debugf("failed to get followers: %s", err)
+		ap.log.Debugf("failed to get followers: %s", err)
 		return "", err
 	}
 
@@ -179,7 +179,7 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 
 		err = ap.storeFollowers(followers)
 		if err != nil {
-			ap.Debugf("failed to store followers: %s", err)
+			ap.log.Debugf("failed to store followers: %s", err)
 			return "", err
 		}
 	}
@@ -188,14 +188,14 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 	accept := map[string]interface{}{}
 	accept["@context"] = "https://www.w3.org/ns/activitystreams"
 	accept["to"] = activity["actor"]
-	accept["actor"] = ap.IRI
+	accept["actor"] = ap.conf.IRI
 	accept["object"] = activity
 	accept["type"] = "Accept"
 	_, accept["id"] = ap.newID()
 
 	err = ap.sendSigned(accept, follower.Inbox)
 	if err != nil {
-		ap.Debugf("failed to send signed request: %s", err)
+		ap.log.Debugf("failed to send signed request: %s", err)
 		return "", err
 	}
 
@@ -210,26 +210,26 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
 	ap.Lock()
 	defer ap.Unlock()
 
-	ap.Info("received undo activity")
+	ap.log.Info("received undo activity")
 	object, ok := activity["object"].(map[string]interface{})
 	if !ok {
-		ap.Debug("undo activity: object not ok, not handling")
+		ap.log.Debug("undo activity: object not ok, not handling")
 		return "", ErrNotHandled
 	}
 
 	objectType, ok := object["type"].(string)
 	if !ok || objectType != "Follow" {
-		ap.Debug("undo activity: object type not supported, not handling")
+		ap.log.Debug("undo activity: object type not supported, not handling")
 		return "", ErrNotHandled
 	}
 
 	iri, ok := object["actor"].(string)
 	if !ok || iri != activity["actor"] {
-		ap.Debug("undo activity: object actor != activity actor, not handling")
+		ap.log.Debug("undo activity: object actor != activity actor, not handling")
 		return "", ErrNotHandled
 	}
 
-	ap.Infof("undo activity: unfollowed by %s", iri)
+	ap.log.Infof("undo activity: unfollowed by %s", iri)
 	return iri + " unfollowed you... 😔", ap.removeFollower(iri)
 }
 
@@ -237,7 +237,7 @@ func (ap *ActivityPub) Followers() (map[string]string, error) {
 	ap.Lock()
 	defer ap.Unlock()
 
-	fd, err := os.Open(filepath.Join(ap.Dir, "followers.json"))
+	fd, err := os.Open(filepath.Join(ap.conf.Dir, "followers.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			err = ap.storeFollowers(map[string]string{})
@@ -256,7 +256,7 @@ func (ap *ActivityPub) Log(activity map[string]interface{}) error {
 	ap.Lock()
 	defer ap.Unlock()
 
-	filename := filepath.Join(ap.Dir, "log.json")
+	filename := filepath.Join(ap.conf.Dir, "log.json")
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return err
@@ -279,7 +279,7 @@ func (ap *ActivityPub) storeFollowers(f map[string]string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filepath.Join(ap.Dir, "followers.json"), bytes, 0644)
+	return ioutil.WriteFile(filepath.Join(ap.conf.Dir, "followers.json"), bytes, 0644)
 }
 
 func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
@@ -296,7 +296,7 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 		return fmt.Errorf("activity id %s must be string", id)
 	}
 
-	ap.Infof("sending create for %s", id)
+	ap.log.Infof("sending create for %s", id)
 	create := make(map[string]interface{})
 	create["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
 	create["type"] = "Create"
@@ -309,7 +309,7 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 
 	// Boost if it contains "inReplyTo"
 	if activity["inReplyTo"] != nil {
-		ap.Infof("sending announce for %s", id)
+		ap.log.Infof("sending announce for %s", id)
 		announce := make(map[string]interface{})
 		announce["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
 		announce["type"] = "Announce"
@@ -323,7 +323,7 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 
 	// Send an update event if it contains "updated" and "updated" !== "published"
 	if activity["updated"] != nil && activity["published"] != nil && activity["updated"] != activity["published"] {
-		ap.Infof("sending update for %s", id)
+		ap.log.Infof("sending update for %s", id)
 		update := make(map[string]interface{})
 		update["@context"] = []string{"https://www.w3.org/ns/activitystreams"}
 		update["type"] = "Update"
@@ -343,14 +343,14 @@ func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[str
 		go func(inbox string) {
 			err := ap.sendSigned(activity, inbox)
 			if err != nil {
-				ap.Errorw("could not send signed", "inbox", inbox, "activity", activity)
+				ap.log.Errorw("could not send signed", "inbox", inbox, "activity", activity)
 			}
 		}(followers[iri])
 	}
 }
 
 func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
-	ap.Debugw("sending signed request", "to", to, "body", b)
+	ap.log.Debugw("sending signed request", "to", to, "body", b)
 	body, err := json.Marshal(b)
 	if err != nil {
 		return err
@@ -380,13 +380,13 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	r.Header.Add("Host", iri.Host)
 
 	ap.signerMu.Lock()
-	err = ap.signer.SignRequest(ap.privKey, ap.PubKeyID, r, bodyCopy)
+	err = ap.signer.SignRequest(ap.privKey, ap.conf.PubKeyID, r, bodyCopy)
 	ap.signerMu.Unlock()
 	if err != nil {
 		return err
 	}
 
-	ap.Debugw("sending request", "header", r.Header, "content", string(bodyCopy))
+	ap.log.Debugw("sending request", "header", r.Header, "content", string(bodyCopy))
 
 	resp, err := http.DefaultClient.Do(r)
 	if !isSuccess(resp.StatusCode) {
@@ -398,7 +398,7 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 
 func (ap *ActivityPub) newID() (hash string, url string) {
 	hash = uniuri.New()
-	return hash, ap.IRI + hash
+	return hash, ap.conf.IRI + hash
 }
 
 type actor struct {

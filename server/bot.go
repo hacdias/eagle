@@ -41,40 +41,40 @@ func (s *Server) buildBot() error {
 	}))
 
 	b.Handle("/sync", checkUser(func(m *tb.Message) {
-		err := s.StorageService.Sync()
+		err := s.Sync()
 		if err != nil {
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 		} else {
-			s.Notify("Sync was successfull! ⚡️")
+			s.e.Notify("Sync was successfull! ⚡️")
 		}
 	}))
 
 	b.Handle("/build", checkUser(func(m *tb.Message) {
 		clean := strings.Contains(m.Text, "clean")
-		err := s.Build(clean)
+		err := s.e.Build(clean)
 		if err != nil {
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 		} else {
-			s.Notify("Build was successfull! 💪")
+			s.e.Notify("Build was successfull! 💪")
 		}
 	}))
 
 	b.Handle("/rebuild_index", checkUser(func(m *tb.Message) {
-		err = s.RebuildIndex()
+		err = s.e.RebuildIndex()
 		if err != nil {
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 			return
 		}
 
-		s.Notify("Search index rebuilt! 🔎")
+		s.e.Notify("Search index rebuilt! 🔎")
 	}))
 
 	b.Handle("/webmentions", checkUser(func(m *tb.Message) {
 		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/webmentions"))
 
-		entry, err := s.GetEntry(id)
+		entry, err := s.e.GetEntry(id)
 		if err != nil {
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 			return
 		}
 
@@ -84,9 +84,9 @@ func (s *Server) buildBot() error {
 	b.Handle("/activity", checkUser(func(m *tb.Message) {
 		id := strings.TrimSpace(strings.TrimPrefix(m.Text, "/activity"))
 
-		entry, err := s.GetEntry(id)
+		entry, err := s.e.GetEntry(id)
 		if err != nil {
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 			return
 		}
 

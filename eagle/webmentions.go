@@ -57,7 +57,6 @@ type WebmentionContent struct {
 }
 
 type Webmentions struct {
-	*zap.SugaredLogger
 	sync.Mutex
 
 	domain     string
@@ -66,6 +65,7 @@ type Webmentions struct {
 	media      *Media
 	notify     *Notifications
 	store      StorageService
+	log        *zap.SugaredLogger
 }
 
 func (w *Webmentions) SendWebmention(source string, targets ...string) error {
@@ -84,7 +84,7 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
 			if err != nil {
 				errors = multierror.Append(errors, err)
-				w.Errorf("error creating request: %s", err)
+				w.log.Errorf("error creating request: %s", err)
 				return
 			}
 
@@ -94,7 +94,7 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 
 			_, err = http.DefaultClient.Do(req)
 			if err != nil {
-				w.Warnf("could not post telegraph: %s ==> %s: %s", source, target, err)
+				w.log.Warnf("could not post telegraph: %s ==> %s: %s", source, target, err)
 				errors = multierror.Append(errors, err)
 			}
 		}()
@@ -104,7 +104,7 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 }
 
 func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
-	w.Infow("received webmention", "webmention", payload)
+	w.log.Infow("received webmention", "webmention", payload)
 
 	// If it's a private notification, simply notify.
 	if payload.Post.WmPrivate {
@@ -152,7 +152,7 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 
 	for _, mention := range mentions {
 		if mention.WmID == payload.Post.WmID {
-			w.Infof("duplicated webmention for %s: %d", id, payload.Post.WmID)
+			w.log.Infof("duplicated webmention for %s: %d", id, payload.Post.WmID)
 			return ErrDuplicatedWebmention
 		}
 	}
@@ -249,14 +249,14 @@ func (w *Webmentions) uploadPhoto(url string) string {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		w.Warnf("could not fetch author photo: %s", url)
+		w.log.Warnf("could not fetch author photo: %s", url)
 		return url
 	}
 	defer resp.Body.Close()
 
 	newURL, err := w.media.UploadMedia("/webmentions/"+base+ext, resp.Body)
 	if err != nil {
-		w.Errorf("could not upload photo to cdn: %s", url)
+		w.log.Errorf("could not upload photo to cdn: %s", url)
 		return url
 	}
 	return newURL

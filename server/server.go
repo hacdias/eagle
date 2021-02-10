@@ -22,10 +22,11 @@ import (
 
 type Server struct {
 	//sync.Mutex
-	*eagle.Eagle
+
 	*zap.SugaredLogger
 
 	c      *config.Config
+	e      *eagle.Eagle
 	bot    *tb.Bot
 	server *http.Server
 
@@ -36,7 +37,7 @@ type Server struct {
 func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	s := &Server{
 		SugaredLogger: logging.S().Named("server"),
-		Eagle:         e,
+		e:             e,
 		c:             c,
 	}
 
@@ -84,13 +85,13 @@ func (s *Server) Start() error {
 	go s.publicDirWorker()
 
 	// Make sure we have a built version to serve
-	should, err := s.ShouldBuild()
+	should, err := s.e.ShouldBuild()
 	if err != nil {
 		return err
 	}
 
 	if should {
-		err = s.Build(false)
+		err = s.e.Build(false)
 		if err != nil {
 			return err
 		}
@@ -110,7 +111,7 @@ func (s *Server) Stop() error {
 
 func (s *Server) publicDirWorker() {
 	s.Info("waiting for new directories")
-	for dir := range s.PublicDirCh {
+	for dir := range s.e.PublicDirCh {
 		s.Infof("received new public directory: %s", dir)
 
 		s.staticFsLock.Lock()
@@ -122,7 +123,7 @@ func (s *Server) publicDirWorker() {
 			err := os.RemoveAll(oldFs.dir)
 			if err != nil {
 				s.Warnf("could not delete old directory: %s", err)
-				s.NotifyError(err)
+				s.e.NotifyError(err)
 			}
 		}
 	}
@@ -134,7 +135,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				s.Errorf("panic while serving: %s", rvr)
-				s.NotifyError(fmt.Errorf(fmt.Sprint(rvr)))
+				s.e.NotifyError(fmt.Errorf(fmt.Sprint(rvr)))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()

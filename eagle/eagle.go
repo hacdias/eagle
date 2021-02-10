@@ -31,7 +31,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		store = &PlaceboStorage{}
 	} else {
 		store = &GitStorage{
-			Directory: conf.Hugo.Source,
+			dir: conf.Hugo.Source,
 		}
 	}
 
@@ -67,7 +67,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		},
 		Notifications: notifications,
 		Hugo: &Hugo{
-			Hugo:        conf.Hugo,
+			conf:        conf.Hugo,
 			publicDirCh: publicDirCh,
 		},
 		StorageService: store,

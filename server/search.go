@@ -24,7 +24,7 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	filter := r.URL.Query().Get("f")
 
-	res, err := s.Search(query, filter, page)
+	res, err := s.e.Search(query, filter, page)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return

@@ -15,7 +15,7 @@ import (
 )
 
 type Twitter struct {
-	*config.Twitter
+	conf   *config.Twitter
 	client *http.Client
 }
 
@@ -25,8 +25,8 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	client := config.Client(oauth1.NoContext, token)
 
 	return &Twitter{
-		Twitter: opts,
-		client:  client,
+		conf:   opts,
+		client: client,
 	}
 }
 
@@ -84,7 +84,7 @@ func (t *Twitter) Syndicate(entry *Entry) (string, error) {
 		return "", fmt.Errorf("got invalid response: %x", tid)
 	}
 
-	return "https://twitter.com/" + t.User + "/status/" + fmt.Sprint(id), nil
+	return "https://twitter.com/" + t.conf.User + "/status/" + fmt.Sprint(id), nil
 }
 
 func (t *Twitter) UserExists(user string) (bool, error) {

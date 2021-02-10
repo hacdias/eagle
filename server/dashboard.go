@@ -40,7 +40,7 @@ func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 	var entry *eagle.Entry
 
 	if id != "" {
-		entry, err = s.GetEntry(id)
+		entry, err = s.e.GetEntry(id)
 	} else {
 		entry = &eagle.Entry{
 			Content: "Lorem ipsum...",
@@ -58,14 +58,14 @@ func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	if reply != "" {
 		entry.Metadata.Title = ""
-		entry.Metadata.ReplyTo, err = s.Crawl(reply)
+		entry.Metadata.ReplyTo, err = s.e.Crawl(reply)
 		if err != nil {
 			s.serveError(w, http.StatusInternalServerError, err)
 			return
 		}
 	}
 
-	str, err := s.EntryToString(entry)
+	str, err := s.e.EntryToString(entry)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return
@@ -121,19 +121,19 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 		return http.StatusBadRequest, errors.New("id must be updated")
 	}
 
-	entry, err := s.ParseEntry(id, content)
+	entry, err := s.e.ParseEntry(id, content)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	s.PopulateMentions(entry)
+	s.e.PopulateMentions(entry)
 
-	err = s.SaveEntry(entry)
+	err = s.e.SaveEntry(entry)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.Build(false)
+	err = s.e.Build(false)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -142,7 +142,7 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 		s.sendWebmentions(entry)
 		s.activity(entry)
 
-		if action == "create" && twitter == "on" && s.Twitter != nil {
+		if action == "create" && twitter == "on" && s.e.Twitter != nil {
 			s.syndicate(entry)
 		}
 	}()
@@ -154,17 +154,17 @@ func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, erro
 func (s *Server) editorDelete(w http.ResponseWriter, r *http.Request) (int, error) {
 	id := r.FormValue("id")
 
-	entry, err := s.GetEntry(id)
+	entry, err := s.e.GetEntry(id)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.DeleteEntry(entry)
+	err = s.e.DeleteEntry(entry)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.Build(true)
+	err = s.e.Build(true)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -174,29 +174,29 @@ func (s *Server) editorDelete(w http.ResponseWriter, r *http.Request) (int, erro
 }
 
 func (s *Server) syndicate(entry *eagle.Entry) {
-	if s.Twitter == nil {
+	if s.e.Twitter == nil {
 		return
 	}
 
-	url, err := s.Twitter.Syndicate(entry)
+	url, err := s.e.Twitter.Syndicate(entry)
 	if err != nil {
 		s.Errorf("failed to syndicate: %s", err)
-		s.NotifyError(err)
+		s.e.NotifyError(err)
 		return
 	}
 
 	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
-	err = s.SaveEntry(entry)
+	err = s.e.SaveEntry(entry)
 	if err != nil {
 		s.Errorf("failed to save entry: %s", err)
-		s.NotifyError(err)
+		s.e.NotifyError(err)
 		return
 	}
 
-	err = s.Build(false)
+	err = s.e.Build(false)
 	if err != nil {
 		s.Errorf("failed to build: %s", err)
-		s.NotifyError(err)
+		s.e.NotifyError(err)
 	}
 }
 
@@ -209,7 +209,7 @@ func (s *Server) activity(entry *eagle.Entry) {
 		return
 	}
 
-	err = s.ActivityPub.PostFollowers(activity)
+	err = s.e.ActivityPub.PostFollowers(activity)
 	if err != nil {
 		s.Errorf("could not queue activity posting for %s: %s", entry.ID, err)
 		return
@@ -222,7 +222,7 @@ func (s *Server) sendWebmentions(entry *eagle.Entry) {
 	var err error
 	defer func() {
 		if err != nil {
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 			s.Warnf("webmentions: %s", err)
 		}
 	}()
@@ -268,7 +268,7 @@ func (s *Server) sendWebmentions(entry *eagle.Entry) {
 	})
 
 	s.Infow("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
-	err = s.SendWebmention(entry.Permalink, targets...)
+	err = s.e.SendWebmention(entry.Permalink, targets...)
 }
 
 func cleanReplyURL(iu string) string {

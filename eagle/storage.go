@@ -16,20 +16,20 @@ type StorageService interface {
 }
 
 type GitStorage struct {
-	Directory string
+	dir string
 }
 
 func (g *GitStorage) Persist(msg string, files ...string) error {
 	if len(files) == 0 {
 		cmd := exec.Command("git", "add", "-A")
-		cmd.Dir = g.Directory
+		cmd.Dir = g.dir
 		err := cmd.Run()
 		if err != nil {
 			return err
 		}
 
 		cmd = exec.Command("git", "commit", "-m", msg)
-		cmd.Dir = g.Directory
+		cmd.Dir = g.dir
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			return fmt.Errorf("git error (%s): %s", err, string(out))
@@ -40,7 +40,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 	args := []string{"commit", "-m", msg, "--"}
 	args = append(args, files...)
 	cmd := exec.Command("git", args...)
-	cmd.Dir = g.Directory
+	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git error (%s): %s", err, string(out))
@@ -50,7 +50,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 
 func (g *GitStorage) Sync() error {
 	cmd := exec.Command("git", "pull")
-	cmd.Dir = g.Directory
+	cmd.Dir = g.dir
 	err := cmd.Run()
 	if err != nil {
 		return err

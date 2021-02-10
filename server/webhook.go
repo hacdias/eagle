@@ -38,17 +38,17 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := s.Eagle.Sync()
+		err := s.e.Sync()
 		if err != nil {
 			s.Errorf("webhook: error git pull: %s", err)
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 			return
 		}
 
-		err = s.Build(false)
+		err = s.e.Build(false)
 		if err != nil {
 			s.Errorf("webhook: error hugo build: %s", err)
-			s.NotifyError(err)
+			s.e.NotifyError(err)
 			return
 		}
 	}()

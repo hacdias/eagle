@@ -22,15 +22,15 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 
 	switch activity["type"] {
 	case "Follow":
-		msg, err = s.ActivityPub.Follow(activity)
+		msg, err = s.e.ActivityPub.Follow(activity)
 	case "Create":
-		err = s.ActivityPub.Create(activity)
+		err = s.e.ActivityPub.Create(activity)
 	case "Like":
-		msg, err = s.ActivityPub.Like(activity)
+		msg, err = s.e.ActivityPub.Like(activity)
 	case "Delete":
-		msg, err = s.ActivityPub.Delete(activity)
+		msg, err = s.e.ActivityPub.Delete(activity)
 	case "Undo":
-		msg, err = s.ActivityPub.Undo(activity)
+		msg, err = s.e.ActivityPub.Undo(activity)
 	default:
 		err = eagle.ErrNotHandled
 	}
@@ -42,24 +42,24 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 
 	if err == eagle.ErrNotHandled {
 		msg = "Received unhandled Activity"
-		err = s.ActivityPub.Log(activity)
+		err = s.e.ActivityPub.Log(activity)
 	}
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.Errorf("activity inbox: %s", err)
-		s.NotifyError(err)
+		s.e.NotifyError(err)
 		return
 	}
 
 	if msg != "" {
-		s.Notify(msg)
+		s.e.Notify(msg)
 	}
 
-	err = s.Persist("activitypub")
+	err = s.e.Persist("activitypub")
 	if err != nil {
 		s.Errorf("activitypub: error git commit: %s", err)
-		s.NotifyError(err)
+		s.e.NotifyError(err)
 	}
 
 	w.WriteHeader(http.StatusCreated)

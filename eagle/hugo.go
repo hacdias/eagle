@@ -16,9 +16,9 @@ import (
 )
 
 type Hugo struct {
-	config.Hugo
 	sync.Mutex
 
+	conf          config.Hugo
 	publicDirCh   chan string
 	currentSubDir string
 }
@@ -33,7 +33,7 @@ func (h *Hugo) ShouldBuild() (bool, error) {
 		return false, nil
 	}
 
-	content, err := ioutil.ReadFile(path.Join(h.Destination, "last"))
+	content, err := ioutil.ReadFile(path.Join(h.conf.Destination, "last"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return true, nil
@@ -43,7 +43,7 @@ func (h *Hugo) ShouldBuild() (bool, error) {
 	}
 
 	h.currentSubDir = string(content)
-	h.publicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
+	h.publicDirCh <- filepath.Join(h.conf.Destination, h.currentSubDir)
 	return false, nil
 }
 
@@ -65,11 +65,11 @@ func (h *Hugo) Build(clean bool) error {
 		dir = generateHash()
 	}
 
-	destination := filepath.Join(h.Destination, dir)
+	destination := filepath.Join(h.conf.Destination, dir)
 	args := []string{"--minify", "--destination", destination}
 
 	cmd := exec.Command("hugo", args...)
-	cmd.Dir = h.Source
+	cmd.Dir = h.conf.Source
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -79,13 +79,13 @@ func (h *Hugo) Build(clean bool) error {
 	if new {
 		// We build to a different sub directory so we can change the directory
 		// we are serving seamlessly without users noticing. Check server/satic.go!
-		err = ioutil.WriteFile(path.Join(h.Destination, "last"), []byte(dir), 0644)
+		err = ioutil.WriteFile(path.Join(h.conf.Destination, "last"), []byte(dir), 0644)
 		if err != nil {
 			return fmt.Errorf("could not write last dir: %s", err)
 		}
 
 		h.currentSubDir = dir
-		h.publicDirCh <- filepath.Join(h.Destination, h.currentSubDir)
+		h.publicDirCh <- filepath.Join(h.conf.Destination, h.currentSubDir)
 	}
 
 	return nil

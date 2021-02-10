@@ -8,17 +8,17 @@ import (
 )
 
 type Notifications struct {
-	*zap.SugaredLogger
-	*config.Telegram
-	b *tb.Bot
+	b    *tb.Bot
+	conf *config.Telegram
+	log  *zap.SugaredLogger
 }
 
 func NewNotifications(c *config.Telegram) (*Notifications, error) {
 	n := &Notifications{
-		Telegram:      c,
-		SugaredLogger: logging.S().Named("notify"),
+		conf: c,
+		log:  logging.S().Named("notify"),
 	}
-	b, err := tb.NewBot(tb.Settings{Token: n.Token})
+	b, err := tb.NewBot(tb.Settings{Token: n.conf.Token})
 	if err != nil {
 		return nil, err
 	}
@@ -28,23 +28,23 @@ func NewNotifications(c *config.Telegram) (*Notifications, error) {
 }
 
 func (n *Notifications) Notify(msg string) {
-	_, err := n.b.Send(&tb.Chat{ID: n.ChatID}, msg, &tb.SendOptions{
+	_, err := n.b.Send(&tb.Chat{ID: n.conf.ChatID}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {
-		n.Error(err)
+		n.log.Error(err)
 	}
 }
 
 func (n *Notifications) NotifyError(not error) {
-	_, err := n.b.Send(&tb.Chat{ID: n.ChatID}, "An error occurred:\n"+not.Error(), &tb.SendOptions{
+	_, err := n.b.Send(&tb.Chat{ID: n.conf.ChatID}, "An error occurred:\n"+not.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {
-		n.Error(err)
+		n.log.Error(err)
 	}
 }
