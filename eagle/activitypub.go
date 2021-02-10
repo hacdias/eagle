@@ -73,9 +73,6 @@ func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub
 }
 
 func (ap *ActivityPub) Create(activity map[string]interface{}) error {
-	ap.Lock()
-	defer ap.Unlock()
-
 	ap.log.Debug("processing create activity")
 	object, exists := activity["object"].(map[string]interface{})
 	if !exists {
@@ -105,9 +102,6 @@ func (ap *ActivityPub) Create(activity map[string]interface{}) error {
 }
 
 func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
-	ap.Lock()
-	defer ap.Unlock()
-
 	ap.log.Debug("received delete activity")
 	object, ok := activity["object"].(string)
 	if !ok {
@@ -130,9 +124,6 @@ func (ap *ActivityPub) Like(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
-	ap.Lock()
-	defer ap.Unlock()
-
 	ap.log.Debug("received follow activity")
 	iri, ok := activity["actor"].(string)
 	if !ok || len(iri) == 0 {
@@ -192,9 +183,6 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 }
 
 func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
-	ap.Lock()
-	defer ap.Unlock()
-
 	ap.log.Info("received undo activity")
 	object, ok := activity["object"].(map[string]interface{})
 	if !ok {
@@ -255,7 +243,32 @@ func (ap *ActivityPub) removeFollower(iri string) error {
 	return ap.storeFollowers(followers)
 }
 
+// NOTE: this two functions use locks but they can work wrongly.
+// Idea: keep the followers map in memory and use it with a lock
+// for changes. After each change, store it. RWLock. The Logs function
+// should have its OWN lock.
+func (ap *ActivityPub) followers() (map[string]string, error) {
+	ap.Lock()
+	defer ap.Unlock()
+
+	fd, err := os.Open(filepath.Join(ap.conf.Dir, "followers.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return map[string]string{}, err
+		}
+
+		return nil, err
+	}
+	defer fd.Close()
+
+	var f map[string]string
+	return f, json.NewDecoder(fd).Decode(&f)
+}
+
 func (ap *ActivityPub) storeFollowers(f map[string]string) error {
+	ap.Lock()
+	defer ap.Unlock()
+
 	bytes, err := json.MarshalIndent(f, "", "  ")
 	if err != nil {
 		return err
@@ -264,9 +277,6 @@ func (ap *ActivityPub) storeFollowers(f map[string]string) error {
 }
 
 func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
-	ap.Lock()
-	defer ap.Unlock()
-
 	followers, err := ap.followers()
 	if err != nil {
 		return err
@@ -317,22 +327,6 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 	}
 
 	return nil
-}
-
-func (ap *ActivityPub) followers() (map[string]string, error) {
-	fd, err := os.Open(filepath.Join(ap.conf.Dir, "followers.json"))
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = ap.storeFollowers(map[string]string{})
-			return map[string]string{}, err
-		}
-
-		return nil, err
-	}
-	defer fd.Close()
-
-	var f map[string]string
-	return f, json.NewDecoder(fd).Decode(&f)
 }
 
 func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[string]string) {
