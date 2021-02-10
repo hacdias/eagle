@@ -39,7 +39,7 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 	}
 
 	w.Header().Set("Content-type", "text/html; charset=urf-8")
-	w.Write(buf.Bytes())
+	_, _ = w.Write(buf.Bytes())
 }
 
 func getTemplates() (map[string]*template.Template, error) {

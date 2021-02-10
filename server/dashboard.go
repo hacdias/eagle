@@ -36,7 +36,7 @@ func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	if (reply != "") && id != "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Cannot set id and reply at the same time.\n"))
+		_, _ = w.Write([]byte("Cannot set id and reply at the same time.\n"))
 		return
 	}
 
@@ -85,7 +85,10 @@ func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		s.serveError(w, http.StatusInternalServerError, err)
+	}
 
 	if r.FormValue("id") == "" {
 		s.serveError(w, http.StatusBadRequest, errors.New("id is missing"))
@@ -93,8 +96,6 @@ func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var code int
-	var err error
-
 	switch r.FormValue("action") {
 	case "create", "update":
 		code, err = s.editorUpdate(w, r)

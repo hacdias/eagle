@@ -49,5 +49,5 @@ func main() {
 	<-quit
 
 	log.Info("stopping server")
-	server.Stop()
+	_ = server.Stop()
 }
