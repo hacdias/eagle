@@ -79,6 +79,7 @@ func (s *Server) buildBot() error {
 		}
 
 		s.sendWebmentions(entry)
+		s.e.Notify("Webmentions sent! 💭")
 	}))
 
 	b.Handle("/activity", checkUser(func(m *tb.Message) {
@@ -91,6 +92,7 @@ func (s *Server) buildBot() error {
 		}
 
 		s.activity(entry)
+		s.e.Notify("Activity sent! 💭")
 	}))
 
 	s.bot = b

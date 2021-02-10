@@ -124,21 +124,6 @@ func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
 	return "", ErrNotHandled
 }
 
-func (ap *ActivityPub) removeFollower(iri string) error {
-	ap.log.Debugf("removing follower %s", iri)
-	followers, err := ap.Followers()
-	if err != nil {
-		return err
-	}
-
-	if _, ok := followers[iri]; !ok {
-		return ErrNoChanges
-	}
-
-	delete(followers, iri)
-	return ap.storeFollowers(followers)
-}
-
 func (ap *ActivityPub) Like(activity map[string]interface{}) (string, error) {
 	// TODO: make new like and add it to mentions.json, send notification
 	return "", ErrNotHandled
@@ -166,7 +151,7 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	followers, err := ap.Followers()
+	followers, err := ap.followers()
 	if err != nil {
 		ap.log.Debugf("failed to get followers: %s", err)
 		return "", err
@@ -233,25 +218,6 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
 	return iri + " unfollowed you... 😔", ap.removeFollower(iri)
 }
 
-func (ap *ActivityPub) Followers() (map[string]string, error) {
-	ap.Lock()
-	defer ap.Unlock()
-
-	fd, err := os.Open(filepath.Join(ap.conf.Dir, "followers.json"))
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = ap.storeFollowers(map[string]string{})
-			return map[string]string{}, err
-		}
-
-		return nil, err
-	}
-	defer fd.Close()
-
-	var f map[string]string
-	return f, json.NewDecoder(fd).Decode(&f)
-}
-
 func (ap *ActivityPub) Log(activity map[string]interface{}) error {
 	ap.Lock()
 	defer ap.Unlock()
@@ -274,6 +240,21 @@ func (ap *ActivityPub) Log(activity map[string]interface{}) error {
 	return err
 }
 
+func (ap *ActivityPub) removeFollower(iri string) error {
+	ap.log.Debugf("removing follower %s", iri)
+	followers, err := ap.followers()
+	if err != nil {
+		return err
+	}
+
+	if _, ok := followers[iri]; !ok {
+		return ErrNoChanges
+	}
+
+	delete(followers, iri)
+	return ap.storeFollowers(followers)
+}
+
 func (ap *ActivityPub) storeFollowers(f map[string]string) error {
 	bytes, err := json.MarshalIndent(f, "", "  ")
 	if err != nil {
@@ -286,7 +267,7 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 	ap.Lock()
 	defer ap.Unlock()
 
-	followers, err := ap.Followers()
+	followers, err := ap.followers()
 	if err != nil {
 		return err
 	}
@@ -336,6 +317,22 @@ func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+func (ap *ActivityPub) followers() (map[string]string, error) {
+	fd, err := os.Open(filepath.Join(ap.conf.Dir, "followers.json"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = ap.storeFollowers(map[string]string{})
+			return map[string]string{}, err
+		}
+
+		return nil, err
+	}
+	defer fd.Close()
+
+	var f map[string]string
+	return f, json.NewDecoder(fd).Decode(&f)
 }
 
 func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[string]string) {
