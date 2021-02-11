@@ -20,7 +20,7 @@ type Config struct {
 	Webhook      Webhook
 	ActivityPub  ActivityPub
 	MeiliSearch  *MeiliSearch
-	BasicAuth    map[string]string
+	Auth         Auth
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -103,4 +103,10 @@ type ActivityPub struct {
 	PubKeyID string `mapstructure:"pub_key_id"`
 	PrivKey  string `mapstructure:"priv_key"`
 	Dir      string
+}
+
+type Auth struct {
+	Username string
+	Password string
+	Secret   string
 }

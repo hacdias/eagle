@@ -1,0 +1,11 @@
+{{ define "main" }}
+  <form id=login method=POST>
+    <input required name=username id=username type=text placeholder='Username' />
+    <input required name=password id=password type=password placeholder='Password' />
+    <button>Login</button>
+  </form>
+{{ end }}
+
+{{ define "title" }}Login{{ end }}
+
+{{ template "base" . }}
