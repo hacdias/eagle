@@ -84,7 +84,7 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
 			if err != nil {
 				errors = multierror.Append(errors, err)
-				w.log.Errorf("error creating request: %s", err)
+				w.log.Errorf("error creating request: %w", err)
 				return
 			}
 

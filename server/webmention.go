@@ -39,7 +39,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := s.e.Build(false)
 		if err != nil {
-			s.Errorf("webmention: error hugo build: %s", err)
+			s.Errorf("webmention: error hugo build: %w", err)
 			s.e.NotifyError(err)
 		} else {
 			if wm.Deleted {

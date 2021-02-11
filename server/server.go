@@ -132,7 +132,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				s.Errorf("panic while serving: %s", rvr)
+				s.Errorf("panic while serving: %v", rvr)
 				s.e.NotifyError(fmt.Errorf(fmt.Sprint(rvr)))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
@@ -160,7 +160,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		s.Errorf("error while serving json: %s", err)
+		s.Errorf("error while serving json: %w", err)
 	}
 }
 

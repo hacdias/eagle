@@ -17,7 +17,7 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 
 	url, err := s.e.Twitter.Syndicate(entry)
 	if err != nil {
-		s.Errorf("failed to syndicate: %s", err)
+		s.Errorf("failed to syndicate: %w", err)
 		s.e.NotifyError(err)
 		return
 	}
@@ -25,14 +25,14 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
 	err = s.e.SaveEntry(entry)
 	if err != nil {
-		s.Errorf("failed to save entry: %s", err)
+		s.Errorf("failed to save entry: %w", err)
 		s.e.NotifyError(err)
 		return
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Errorf("failed to build: %s", err)
+		s.Errorf("failed to build: %w", err)
 		s.e.NotifyError(err)
 	}
 }
@@ -42,13 +42,13 @@ func (s *Server) goActivity(entry *eagle.Entry) {
 	activity, err := s.staticFs.readAS2(entry.ID)
 	s.staticFsLock.RUnlock()
 	if err != nil {
-		s.Errorf("coult not fetch activity for %s: %s", entry.ID, err)
+		s.Errorf("coult not fetch activity for %s: %w", entry.ID, err)
 		return
 	}
 
 	err = s.e.ActivityPub.PostFollowers(activity)
 	if err != nil {
-		s.Errorf("could not queue activity posting for %s: %s", entry.ID, err)
+		s.Errorf("could not queue activity posting for %s: %w", entry.ID, err)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 	html, err := s.staticFs.readHTML(entry.ID)
 	s.staticFsLock.RUnlock()
 	if err != nil {
-		s.Errorf("could not fetch HTML for %s: %v", entry.ID, err)
+		s.Errorf("could not fetch HTML for %s: %w", entry.ID, err)
 		return
 	}
 

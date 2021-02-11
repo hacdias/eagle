@@ -45,6 +45,6 @@ func (s *Server) activityPubPostInboxHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
-	s.Errorf("activity handler: %s", err)
+	s.Errorf("activity handler: %w", err)
 	s.e.NotifyError(err)
 }
