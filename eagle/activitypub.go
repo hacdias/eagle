@@ -28,14 +28,17 @@ import (
 var ErrNotHandled = errors.New("not handled")
 
 type ActivityPub struct {
-	conf        config.ActivityPub
+	conf config.ActivityPub
+	log  *zap.SugaredLogger
+
+	privKey   crypto.PrivateKey
+	signer    httpsig.Signer
+	signerMu  sync.Mutex
+	logMu     sync.Mutex
+	followers *filemap
+
+	// External services
 	webmentions *Webmentions
-	log         *zap.SugaredLogger
-	privKey     crypto.PrivateKey
-	signer      httpsig.Signer
-	signerMu    sync.Mutex
-	logMu       sync.Mutex
-	followers   *filemap
 	notify      *Notifications
 }
 
