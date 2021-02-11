@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,8 +12,9 @@ import (
 	"time"
 
 	rice "github.com/GeertJohan/go.rice"
+
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
@@ -27,39 +29,50 @@ type Server struct {
 	c      *config.Config
 	e      *eagle.Eagle
 	server *http.Server
+	token  *jwtauth.JWTAuth
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
 }
 
 func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
+	secret := base64.StdEncoding.EncodeToString([]byte(c.Auth.Secret))
+	token := jwtauth.New("HS256", []byte(secret), nil)
+
 	s := &Server{
 		SugaredLogger: logging.S().Named("server"),
 		e:             e,
 		c:             c,
+		token:         token,
 	}
-
-	basicauth := middleware.BasicAuth(c.Domain, c.BasicAuth)
 
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 	r.Use(s.headers)
 
-	r.With(basicauth).Route(dashboardPath, func(r chi.Router) {
+	r.Route(dashboardPath, func(r chi.Router) {
 		fs := rice.MustFindBox("../dashboard/static").HTTPBox()
 		httpdir := http.FileServer(neuteredFs{fs})
 
-		r.Get("/", s.dashboardGetHandler)
-		r.Get("/new", s.newGetHandler)
-		r.Get("/edit", s.editGetHandler)
-		r.Get("/reply", s.replyGetHandler)
-		r.Get("/delete", s.deleteGetHandler)
+		r.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(s.token))
+			r.Use(s.dashboardAuth)
 
-		r.Post("/", s.dashboardPostHandler)
-		r.Post("/new", s.newPostHandler)
-		r.Post("/edit", s.editPostHandler)
-		r.Post("/delete", s.deletePostHandler)
+			r.Get("/", s.dashboardGetHandler)
+			r.Get("/new", s.newGetHandler)
+			r.Get("/edit", s.editGetHandler)
+			r.Get("/reply", s.replyGetHandler)
+			r.Get("/delete", s.deleteGetHandler)
 
+			r.Post("/", s.dashboardPostHandler)
+			r.Post("/new", s.newPostHandler)
+			r.Post("/edit", s.editPostHandler)
+			r.Post("/delete", s.deletePostHandler)
+		})
+
+		r.Get("/logout", s.logoutGetHandler)
+		r.Get("/login", s.loginGetHandler)
+		r.Post("/login", s.loginPostHandler)
 		r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
 	})
 

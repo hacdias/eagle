@@ -111,6 +111,10 @@ navbar a {
   font-weight: bold;
 }
 
+navbar a:last-child {
+  margin-left: auto;
+}
+
 .inline-form {
   display:flex;
 }
@@ -144,6 +148,11 @@ navbar a {
 #actions form:nth-child(odd) button {
   background-color: var(--blue);
   border-color: var(--blue);
+}
+
+#login {
+  max-width: 20rem;
+  margin: 5rem auto;
 }
 
 @media screen and (max-width: 38rem) {
