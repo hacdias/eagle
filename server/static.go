@@ -54,7 +54,6 @@ func (s *Server) tryActivity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.URL.Path = fixedPath
-	s.Debugf("variant file exists: %s", r.URL.Path)
 	w.Header().Set("Content-Type", activityContentType+"; charset=utf-8")
 }
 

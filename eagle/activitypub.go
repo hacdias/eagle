@@ -189,7 +189,7 @@ func (ap *ActivityPub) Undo(activity map[string]interface{}) error {
 
 	iri, ok := object["actor"].(string)
 	if !ok || iri != activity["actor"] {
-		ap.log.Debug("undo activity: object actor != activity actor, not handling")
+		ap.log.Info("undo activity: object actor != activity actor, not handling")
 		return fmt.Errorf("undo: object actor not activity actor: %v != %v: %w", iri, activity["actor"], ErrNotHandled)
 	}
 
@@ -280,7 +280,7 @@ func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[str
 }
 
 func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
-	ap.log.Debugw("sending signed request", "to", to, "body", b)
+	ap.log.Infow("sending signed request", "to", to, "body", b)
 	body, err := json.Marshal(b)
 	if err != nil {
 		return fmt.Errorf("could not marshal activity: %w", err)
@@ -316,7 +316,7 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 		return fmt.Errorf("could not sign request: %w", err)
 	}
 
-	ap.log.Debugw("sending request", "header", r.Header, "content", string(bodyCopy))
+	ap.log.Infow("sending request", "header", r.Header, "content", string(bodyCopy))
 	resp, err := http.DefaultClient.Do(r)
 	if !isSuccess(resp.StatusCode) {
 		body, _ := ioutil.ReadAll(resp.Body)

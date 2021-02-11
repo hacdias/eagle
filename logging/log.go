@@ -2,8 +2,6 @@ package logging
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -35,16 +33,6 @@ func init() {
 	}
 
 	level := zap.NewAtomicLevelAt(zapcore.InfoLevel)
-
-	debug := false
-	val, ok := os.LookupEnv("DEBUG")
-	if ok && strings.EqualFold(val, "true") {
-		debug = true
-	}
-
-	if debug {
-		level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
-	}
 
 	stdout := sout
 	stderr := serr
