@@ -1,0 +1,22 @@
+{
+  "name": "codemirror",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@codemirror/basic-setup": "^0.17.1",
+    "@codemirror/commands": "^0.17.2",
+    "@codemirror/lang-css": "^0.17.1",
+    "@codemirror/lang-html": "^0.17.1",
+    "@codemirror/lang-javascript": "^0.17.1",
+    "@codemirror/lang-markdown": "^0.17.2",
+    "@codemirror/view": "^0.17.7",
+    "@rollup/plugin-node-resolve": "^11.1.1",
+    "rollup": "^2.38.5"
+  }
+}
