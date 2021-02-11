@@ -10,7 +10,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 )
 
-func (s *Server) syndicate(entry *eagle.Entry) {
+func (s *Server) goSyndicate(entry *eagle.Entry) {
 	if s.e.Twitter == nil {
 		return
 	}
@@ -37,7 +37,7 @@ func (s *Server) syndicate(entry *eagle.Entry) {
 	}
 }
 
-func (s *Server) activity(entry *eagle.Entry) {
+func (s *Server) goActivity(entry *eagle.Entry) {
 	s.staticFsLock.RLock()
 	activity, err := s.staticFs.readAS2(entry.ID)
 	s.staticFsLock.RUnlock()
@@ -55,7 +55,7 @@ func (s *Server) activity(entry *eagle.Entry) {
 	s.Infof("activity posting for %s scheduled", entry.ID)
 }
 
-func (s *Server) sendWebmentions(entry *eagle.Entry) {
+func (s *Server) goWebmentions(entry *eagle.Entry) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -108,7 +108,7 @@ func (s *Server) sendWebmentions(entry *eagle.Entry) {
 	err = s.e.SendWebmention(entry.Permalink, targets...)
 }
 
-func cleanReplyURL(iu string) string {
+func sanitizeReplyURL(iu string) string {
 	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
 		u, err := url.Parse(iu)
 		if err != nil {

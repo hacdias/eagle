@@ -66,7 +66,7 @@ func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
-	reply := cleanReplyURL(r.URL.Query().Get("url"))
+	reply := sanitizeReplyURL(r.URL.Query().Get("url"))
 	if reply == "" {
 		s.renderDashboard(w, "reply", &dashboardData{})
 		return
@@ -181,8 +181,8 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		s.sendWebmentions(entry)
-		s.activity(entry)
+		s.goWebmentions(entry)
+		s.goActivity(entry)
 		s.renderDashboard(w, "dashboard", &dashboardData{Content: "Webmentions and Activity scheduled! 💭"})
 		return
 	}
@@ -275,7 +275,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		if twitter == "on" {
-			s.syndicate(entry)
+			s.goSyndicate(entry)
 		}
 	}()
 
@@ -303,13 +303,13 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.e.GetEntry(id)
+	_, err = s.e.GetEntry(id)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	entry, err = s.e.ParseEntry(id, content)
+	entry, err := s.e.ParseEntry(id, content)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -339,7 +339,6 @@ func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err erro
 	s.renderDashboard(w, "error", &dashboardData{
 		Content: err.Error(),
 	})
-	return
 }
 
 func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
@@ -356,8 +355,8 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
 	}
 
 	go func() {
-		s.sendWebmentions(entry)
-		s.activity(entry)
+		s.goWebmentions(entry)
+		s.goActivity(entry)
 	}()
 
 	return nil
