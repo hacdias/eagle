@@ -320,11 +320,11 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	if !isSuccess(resp.StatusCode) {
 		body, _ := ioutil.ReadAll(resp.Body)
 		return fmt.Errorf(
-			"could not send signed request: failed with status %d\n\nBody:\n%s\n\nHeaders:\n%v\n\nContent:\n%s", 
-			resp.StatusCode, 
-			string(body), 
-			r.Header, 
-			string(bodyCopy)
+			"could not send signed request: failed with status %d\n\nBody:\n%s\n\nHeaders:\n%v\n\nContent:\n%s",
+			resp.StatusCode,
+			string(body),
+			r.Header,
+			string(bodyCopy),
 		)
 	}
 	return err
