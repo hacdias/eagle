@@ -120,7 +120,7 @@ func (s *Server) publicDirWorker() {
 		if oldFs != nil {
 			err := os.RemoveAll(oldFs.dir)
 			if err != nil {
-				s.Warnf("could not delete old directory: %s", err)
+				s.Warnf("could not delete old directory: %w", err)
 				s.e.NotifyError(err)
 			}
 		}

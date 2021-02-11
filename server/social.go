@@ -60,7 +60,7 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 	defer func() {
 		if err != nil {
 			s.e.NotifyError(err)
-			s.Warnf("webmentions: %s", err)
+			s.Warnf("webmentions: %w", err)
 		}
 	}()
 
