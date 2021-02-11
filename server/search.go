@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,8 +23,27 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	filter := r.URL.Query().Get("f")
+	// Parse sections
+	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
+	sectionsList := strings.Split(sectionsQuery, ",")
+	sectionsCond := []string{}
 
+	for _, s := range sectionsList {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		sectionsCond = append(sectionsCond, "section=\""+s+"\"")
+	}
+
+	filter := ""
+	if len(sectionsCond) > 0 {
+		filter = "(" + strings.Join(sectionsCond, " OR ") + ")"
+	}
+
+	// Search!
+	// TODO: maybe make the search api receive the sections instead of the raw filter.
+	// Or some other {} struct.
 	res, err := s.e.Search(query, filter, page)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
