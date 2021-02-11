@@ -9,16 +9,6 @@ something similar, I encourage you to take a look at the code.
 
 This repository replaces the old, JavaScript based, [API](https://github.com/hacdias/eagle-js).
 
-### Telegram Bot Commands
-
-```
-ping - pong
-sync - git pull & git push
-build - build hugo (add "clean" to remove first)
-rebuild_index - rebuild search index
-webmentions - send webmentions of an URL
-activity - share activity of an URL
-```
 ## License
 
 MIT © Henrique Dias

@@ -1,300 +1,364 @@
 package server
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
-	"path"
-	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/hacdias/eagle/eagle"
 )
 
-func (s *Server) dashboardHandler(w http.ResponseWriter, r *http.Request) {
-	s.renderDashboard(w, "dashboard", &dashboardData{
-		Reply:  r.URL.Query().Get("reply"),
-		Edit:   r.URL.Query().Get("edit"),
-		Delete: r.URL.Query().Get("delete"),
-	})
+func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
+	s.renderDashboard(w, "dashboard", &dashboardData{})
 }
 
-func (s *Server) editorGetHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := sanitizeID(r.URL.Query().Get("id"))
-	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	reply := cleanReplyURL(r.URL.Query().Get("reply"))
-
-	if (reply != "") && id != "" {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte("Cannot set id and reply at the same time.\n"))
-		return
-	}
-
-	var entry *eagle.Entry
-
-	if id != "" {
-		entry, err = s.e.GetEntry(id)
-	} else {
-		entry = &eagle.Entry{
-			Content: "Lorem ipsum...",
-			Metadata: eagle.EntryMetadata{
-				Date: time.Now(),
-				Tags: []string{"example"},
-			},
-		}
-	}
-
-	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	if reply != "" {
-		entry.Metadata.Title = ""
-		entry.Metadata.ReplyTo, err = s.e.Crawl(reply)
-		if err != nil {
-			s.serveError(w, http.StatusInternalServerError, err)
-			return
-		}
+func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: add option for different types? Archetypes?
+	entry := &eagle.Entry{
+		Content: "Lorem ipsum...",
+		Metadata: eagle.EntryMetadata{
+			Date: time.Now(),
+			Tags: []string{"example"},
+		},
 	}
 
 	str, err := s.e.EntryToString(entry)
 	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	s.renderDashboard(w, "editor", &dashboardData{
-		Content:   str,
-		ID:        id,
-		DefaultID: fmt.Sprintf("micro/%s/SLUG", time.Now().Format("2006/01")),
+	s.renderDashboard(w, "new", &dashboardData{
+		Content: str,
+		ID:      fmt.Sprintf("micro/%s/SLUG", time.Now().Format("2006/01")),
 	})
 }
 
-func (s *Server) editorPostHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := sanitizeID(r.URL.Query().Get("url"))
 	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
-	}
-
-	if r.FormValue("id") == "" {
-		s.serveError(w, http.StatusBadRequest, errors.New("id is missing"))
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	var code int
-	switch r.FormValue("action") {
-	case "create", "update":
-		code, err = s.editorUpdate(w, r)
-	case "delete":
-		code, err = s.editorDelete(w, r)
-	default:
-		s.serveError(w, http.StatusBadRequest, errors.New("invalid action type"))
+	if id == "" {
+		s.renderDashboard(w, "edit", &dashboardData{})
 		return
 	}
 
-	if code >= 200 && code < 400 {
-		w.WriteHeader(code)
-	} else if code >= 400 {
-		s.Errorf("editor: post handler: %s", err)
-		s.serveError(w, code, err)
+	entry, err := s.e.GetEntry(id)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
 	}
+
+	str, err := s.e.EntryToString(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	s.renderDashboard(w, "edit", &dashboardData{
+		ID:      entry.ID,
+		Content: str,
+	})
 }
 
-func (s *Server) editorUpdate(w http.ResponseWriter, r *http.Request) (int, error) {
-	action := r.FormValue("action")
+func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
+	reply := cleanReplyURL(r.URL.Query().Get("url"))
+	if reply == "" {
+		s.renderDashboard(w, "reply", &dashboardData{})
+		return
+	}
+
+	entry := &eagle.Entry{
+		Content: "Your reply here...",
+		Metadata: eagle.EntryMetadata{
+			Date: time.Now(),
+			Tags: []string{"example"},
+		},
+	}
+
+	var err error
+	entry.Metadata.ReplyTo, err = s.e.Crawl(reply)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	str, err := s.e.EntryToString(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	s.renderDashboard(w, "reply", &dashboardData{
+		Content: str,
+		ID:      fmt.Sprintf("micro/%s/SLUG", time.Now().Format("2006/01")),
+	})
+}
+
+func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := sanitizeID(r.URL.Query().Get("url"))
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	if id == "" {
+		s.renderDashboard(w, "delete", &dashboardData{})
+		return
+	}
+
+	entry, err := s.e.GetEntry(id)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	str, err := s.e.EntryToString(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	s.renderDashboard(w, "delete", &dashboardData{
+		ID:      entry.ID,
+		Content: str,
+	})
+}
+
+func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	if r.FormValue("sync") == "true" {
+		err := s.e.Sync()
+		if err != nil {
+			s.dashboardError(w, r, err)
+		} else {
+			s.renderDashboard(w, "dashboard", &dashboardData{Content: "Sync was successfull! ⚡️"})
+		}
+		return
+	}
+
+	if r.FormValue("build") == "true" {
+		clean := r.FormValue("mode") == "clean"
+		err := s.e.Build(clean)
+		if err != nil {
+			s.dashboardError(w, r, err)
+		} else {
+			s.renderDashboard(w, "dashboard", &dashboardData{Content: "Build was successfull! 💪"})
+		}
+		return
+	}
+
+	if r.FormValue("rebuild-index") == "true" {
+		err = s.e.RebuildIndex()
+		if err != nil {
+			s.dashboardError(w, r, err)
+		} else {
+			s.renderDashboard(w, "dashboard", &dashboardData{Content: "Search index rebuilt! 🔎"})
+		}
+		return
+	}
+
+	reshare := r.FormValue("reshare")
+	if reshare != "" {
+		id, err := sanitizeID(reshare)
+		if err != nil {
+			s.dashboardError(w, r, err)
+			return
+		}
+
+		entry, err := s.e.GetEntry(id)
+		if err != nil {
+			s.e.NotifyError(err)
+			return
+		}
+
+		s.sendWebmentions(entry)
+		s.activity(entry)
+		s.renderDashboard(w, "dashboard", &dashboardData{Content: "Webmentions and Activity scheduled! 💭"})
+		return
+	}
+
+	s.renderDashboard(w, "dashboard", &dashboardData{})
+}
+
+func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	id, err := sanitizeID(r.FormValue("url"))
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	if id == "" {
+		s.dashboardError(w, r, errors.New("no ID provided"))
+		return
+	}
+
+	entry, err := s.e.GetEntry(id)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	err = s.e.DeleteEntry(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	err = s.e.Build(true)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
+}
+
+func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
 	content := r.FormValue("content")
 	twitter := r.FormValue("twitter")
+
 	id, err := sanitizeID(r.FormValue("id"))
 	if err != nil {
-		return http.StatusInternalServerError, err
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	if id == "" {
+		s.dashboardError(w, r, errors.New("no ID provided"))
+		return
 	}
 
 	if id == r.FormValue("defaultid") {
-		return http.StatusBadRequest, errors.New("id must be updated")
+		s.dashboardError(w, r, errors.New("cannot use default ID"))
+		return
 	}
 
 	entry, err := s.e.ParseEntry(id, content)
 	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	s.e.PopulateMentions(entry)
-
-	err = s.e.SaveEntry(entry)
-	if err != nil {
-		return http.StatusInternalServerError, err
+		s.dashboardError(w, r, err)
+		return
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	err = s.newEditPostSaver(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
 	}
 
 	go func() {
-		s.sendWebmentions(entry)
-		s.activity(entry)
-
-		if action == "create" && twitter == "on" && s.e.Twitter != nil {
+		if twitter == "on" {
 			s.syndicate(entry)
 		}
 	}()
 
 	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
-	return 0, nil
 }
 
-func (s *Server) editorDelete(w http.ResponseWriter, r *http.Request) (int, error) {
-	id := r.FormValue("id")
+func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	content := r.FormValue("content")
+	lastmod := r.FormValue("lastmod")
+
+	id, err := sanitizeID(r.FormValue("id"))
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	if id == "" {
+		s.dashboardError(w, r, errors.New("no ID provided"))
+		return
+	}
 
 	entry, err := s.e.GetEntry(id)
 	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	err = s.e.DeleteEntry(entry)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	err = s.e.Build(true)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
-	return 0, nil
-}
-
-func (s *Server) syndicate(entry *eagle.Entry) {
-	if s.e.Twitter == nil {
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	url, err := s.e.Twitter.Syndicate(entry)
+	entry, err = s.e.ParseEntry(id, content)
 	if err != nil {
-		s.Errorf("failed to syndicate: %s", err)
-		s.e.NotifyError(err)
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
-	err = s.e.SaveEntry(entry)
-	if err != nil {
-		s.Errorf("failed to save entry: %s", err)
-		s.e.NotifyError(err)
-		return
+	if lastmod == "on" {
+		entry.Metadata.Lastmod = time.Now()
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Errorf("failed to build: %s", err)
-		s.e.NotifyError(err)
-	}
-}
-
-func (s *Server) activity(entry *eagle.Entry) {
-	s.staticFsLock.RLock()
-	activity, err := s.staticFs.readAS2(entry.ID)
-	s.staticFsLock.RUnlock()
-	if err != nil {
-		s.Errorf("coult not fetch activity for %s: %s", entry.ID, err)
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	err = s.e.ActivityPub.PostFollowers(activity)
+	err = s.newEditPostSaver(entry)
 	if err != nil {
-		s.Errorf("could not queue activity posting for %s: %s", entry.ID, err)
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	s.Infof("activity posting for %s scheduled", entry.ID)
+	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
 }
 
-func (s *Server) sendWebmentions(entry *eagle.Entry) {
-	var err error
-	defer func() {
-		if err != nil {
-			s.e.NotifyError(err)
-			s.Warnf("webmentions: %s", err)
-		}
+func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	s.renderDashboard(w, "error", &dashboardData{
+		Content: err.Error(),
+	})
+	return
+}
+
+func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
+	s.e.PopulateMentions(entry)
+
+	err := s.e.SaveEntry(entry)
+	if err != nil {
+		return err
+	}
+
+	err = s.e.Build(false)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		s.sendWebmentions(entry)
+		s.activity(entry)
 	}()
 
-	s.staticFsLock.RLock()
-	html, err := s.staticFs.readHTML(entry.ID)
-	s.staticFsLock.RUnlock()
-	if err != nil {
-		s.Errorf("could not fetch HTML for %s: %v", entry.ID, err)
-		return
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
-	if err != nil {
-		return
-	}
-
-	targets := []string{}
-
-	if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
-		targets = append(targets, entry.Metadata.ReplyTo.URL)
-	}
-
-	doc.Find(".h-entry .e-content a").Each(func(i int, q *goquery.Selection) {
-		val, ok := q.Attr("href")
-		if !ok {
-			return
-		}
-
-		u, err := url.Parse(val)
-		if err != nil {
-			targets = append(targets, val)
-			return
-		}
-
-		base, err := url.Parse(entry.Permalink)
-		if err != nil {
-			targets = append(targets, val)
-			return
-		}
-
-		targets = append(targets, base.ResolveReference(u).String())
-	})
-
-	s.Infow("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
-	err = s.e.SendWebmention(entry.Permalink, targets...)
-}
-
-func cleanReplyURL(iu string) string {
-	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
-		u, err := url.Parse(iu)
-		if err != nil {
-			return iu
-		}
-
-		for k := range u.Query() {
-			u.Query().Del(k)
-		}
-
-		return u.String()
-	}
-
-	return iu
-}
-
-func sanitizeID(id string) (string, error) {
-	if id != "" {
-		u, err := url.Parse(id)
-		if err != nil {
-			return "", err
-		}
-		id = path.Clean(u.Path)
-	}
-	return id, nil
+	return nil
 }

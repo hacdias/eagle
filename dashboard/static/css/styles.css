@@ -2,18 +2,36 @@
   box-sizing: border-box;
 }
 
+:root {
+  --purple: #8e44ad;
+  --blue: #2980b9;
+  --red: #c0392b;
+  --black: #111;
+  --dark-gray: #333;
+  --light-white: #ddd;
+  --near-white: #f4f4f4;
+  --white: #ffffff;
+  --space: 2.5rem;
+  --half-space: 1.25rem;
+  --max-width: 48rem;
+  --f6: .875rem;
+  --f7: .75rem;
+}
+
+a {
+  color: var(--black);
+}
+
 body {
   line-height: 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica,helvetica neue,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
-}
-
-main {
   width: 95%;
-  max-width: 40rem;
+  max-width: 60rem;
   margin: 0 auto;
+  color: var(--black);
 }
 
 textarea,
@@ -26,8 +44,43 @@ label {
 }
 
 textarea {
-  min-height: 20rem;
+  resize: vertical;
+  min-height: 40rem;
   font-family: 'Fira Code', monospace;
+}
+
+input,
+textarea {
+  padding: .5rem;
+  border: 1px solid var(--light-white);
+  outline: 0;
+  border-radius: 0;
+  background: var(--white);
+  color: var(--dark-gray);
+}
+
+button,
+input[type="submit"] {
+  background-color: var(--black);
+  border: 1px solid var(--black);
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  color: var(--white);
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 0;
+  outline: 0;
+}
+
+button:hover,
+input[type="submit"]:hover {
+  background-color: var(--dark-gray);
+  border-color: var(--dark-gray);
+}
+
+textarea:read-only,
+input:read-only {
+  background: var(--near-white);
 }
 
 label {
@@ -37,4 +90,71 @@ label {
 .inline  * {
   display: inline;
   width: auto;
+}
+
+pre {
+  white-space: break-spaces;
+}
+
+navbar {
+  background: var(--purple);
+  width: 100%;
+  display: block;
+  color: white;
+}
+
+navbar a {
+  padding: 1rem;
+  display: inline-block;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.inline-form {
+  display:flex;
+}
+
+.inline-form input:first-of-type {
+  flex-grow: 1;
+}
+
+.inline-form > *:last-child {
+  margin-left: 1rem;
+  max-width: 10rem;
+}
+
+#message {
+  background: var(--blue);
+  color: var(--white);
+  padding: .5rem;
+}
+
+#actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  grid-column-gap: 1rem;
+}
+
+#actions form:nth-child(even) button {
+  background-color: var(--purple);
+  border-color: var(--purple);
+}
+
+#actions form:nth-child(odd) button {
+  background-color: var(--blue);
+  border-color: var(--blue);
+}
+
+@media screen and (max-width: 38rem) {
+  .inline-form,
+  .inline-form input {
+    display: block;
+    width: 100%
+  }
+
+  .inline-form > *:last-child {
+    margin: 1rem 0 0 0;
+    max-width: 100%;
+  }
 }

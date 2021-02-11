@@ -12,7 +12,6 @@ require (
 	github.com/go-fed/httpsig v1.1.0
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/meilisearch/meilisearch-go v0.14.0
-	github.com/prometheus/common v0.15.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cast v1.3.1
 	github.com/spf13/viper v1.7.1
@@ -21,6 +20,7 @@ require (
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/sys v0.0.0-20201005172224-997123666555 // indirect
 	golang.org/x/tools v0.0.0-20201028215501-2b84a066b2fb // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/tucnak/telebot.v2 v2.3.5
 	gopkg.in/yaml.v2 v2.4.0
 )

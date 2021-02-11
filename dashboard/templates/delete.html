@@ -1,0 +1,22 @@
+{{ define "main" }}
+  {{ if .ID }}
+    <h2>Are you sure you want to delete the <a target="_blank" rel="noopener noreferrer" href="{{ .ID }}">post</a>?</h2>
+
+    <form method=POST>
+      <input required readonly name=id id=id type=text value="{{ .ID }}" />
+      <textarea readonly>{{.Content}}</textarea>
+      <button style="background-color: var(--red); border-color: var(--red);">Delete</button>
+    </form>
+  {{ else }}
+    <h2>Delete Post</h2>
+
+    <form method=GET class=inline-form>
+      <input required name=url id=url type=text placeholder='URL...' />
+      <button>Continue</button>
+    </form>
+  {{ end }}
+{{ end }}
+
+{{ define "title" }}Delete Post{{ end }}
+
+{{ template "base" . }}

@@ -1,0 +1,16 @@
+{{ define "main" }}
+  <h2>Reply To</h2>
+
+  {{ if .Content }}
+    {{ template "new-form" . }}
+  {{ else }}
+    <form method=GET class=inline-form>
+      <input required name=url id=url type=text placeholder='URL...' />
+      <button>Reply</button>
+    </form>
+  {{ end }}
+{{ end }}
+
+{{ define "title" }}Reply To{{ end }}
+
+{{ template "base" . }}

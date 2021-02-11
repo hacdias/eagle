@@ -1,28 +1,35 @@
 {{ define "main" }}
+  <h2>Dashboard</h2>
 
-<a href="{{ .Base }}/editor">New Post</a>
+  {{ with .Content }}<p id=message>{{ . }}</p>{{ end }}
 
-<h2>Reply</h2>
+  <div id=actions>
+    <form method=POST>
+      <input required type=hidden name=sync value=true />
+      <button>Sync</button>
+    </form>
 
-<form method=GET action={{ .Base }}/editor>
-  <input required name=reply id=reply type=text placeholder='URL...' value="{{ .Reply }}" />
-  <button>Reply</button>
-</form>
+    <form method=POST>
+      <input required type=hidden name=build value=true />
+      <button>Build</button>
+    </form>
 
-<h2>Edit</h2>
+    <form method=POST>
+      <input required type=hidden name=build value=true />
+      <input required type=hidden name=mode value=clean />
+      <button>Build Clean</button>
+    </form>
 
-<form method=GET action={{ .Base }}/editor>
-  <input required name=id id=id type=text placeholder='URL...' value="{{ .Edit }}" />
-  <button>Edit</button>
-</form>
+    <form method=POST>
+      <input required type=hidden name=rebuild-index value=true />
+      <button>Rebuild Index</button>
+    </form>
+  </div>
 
-<h2>Delete</h2>
-
-<form method=POST action={{ .Base }}/editor>
-  <input required name=id id=id type=text placeholder='URL...' value="{{ .Delete }}" />
-  <input required type=hidden id=action name=action value=delete />
-  <button>Delete</button>
-</form>
+  <form method=POST class=inline-form>
+    <input required name=reshare type=text placeholder='URL to reshare Webmentions and ActivityPub...' />
+    <button>ReShare</button>
+  </form>
 {{ end }}
 
 {{ define "title" }}Dashboard{{ end }}

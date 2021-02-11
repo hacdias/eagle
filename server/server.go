@@ -17,7 +17,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
 	"go.uber.org/zap"
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 type Server struct {
@@ -27,7 +26,6 @@ type Server struct {
 
 	c      *config.Config
 	e      *eagle.Eagle
-	bot    *tb.Bot
 	server *http.Server
 
 	staticFsLock sync.RWMutex
@@ -41,11 +39,6 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 		c:             c,
 	}
 
-	err := s.buildBot()
-	if err != nil {
-		return nil, err
-	}
-
 	basicauth := middleware.BasicAuth(c.Domain, c.BasicAuth)
 
 	r := chi.NewRouter()
@@ -56,9 +49,17 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 		fs := rice.MustFindBox("../dashboard/static").HTTPBox()
 		httpdir := http.FileServer(neuteredFs{fs})
 
-		r.Get("/", s.dashboardHandler)
-		r.Get("/editor", s.editorGetHandler)
-		r.Post("/editor", s.editorPostHandler)
+		r.Get("/", s.dashboardGetHandler)
+		r.Get("/new", s.newGetHandler)
+		r.Get("/edit", s.editGetHandler)
+		r.Get("/reply", s.replyGetHandler)
+		r.Get("/delete", s.deleteGetHandler)
+
+		r.Post("/", s.dashboardPostHandler)
+		r.Post("/new", s.newPostHandler)
+		r.Post("/edit", s.editPostHandler)
+		r.Post("/delete", s.deletePostHandler)
+
 		r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
 	})
 
@@ -80,8 +81,7 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 }
 
 func (s *Server) Start() error {
-	// Start bot and public dir worker
-	go s.bot.Start()
+	// Start public dir worker
 	go s.publicDirWorker()
 
 	// Make sure we have a built version to serve
@@ -104,8 +104,6 @@ func (s *Server) Start() error {
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	s.bot.Stop()
 	return s.server.Shutdown(ctx)
 }
 

@@ -1,0 +1,9 @@
+{{ define "main" }}
+  <h2>New Post</h2>
+
+  {{ template "new-form" . }}
+{{ end }}
+
+{{ define "title" }}New Post{{ end }}
+
+{{ template "base" . }}

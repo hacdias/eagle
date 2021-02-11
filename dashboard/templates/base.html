@@ -1,3 +1,4 @@
+{{ define "base" }}
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,6 +10,31 @@
     <link rel=stylesheet href={{ .Base}}/css/styles.css>
   </head>
   <body>
+    <navbar>
+      <a href="{{ .Base }}">Dashboard</a>
+      <a href="{{ .Base }}/new">New</a>
+      <a href="{{ .Base }}/reply">Reply</a>
+      <a href="{{ .Base }}/edit">Edit</a>
+      <a href="{{ .Base }}/delete">Delete</a>
+    </navbar>
+
     <main>{{ template "main" . }}</main>
   </body>
 </html>
+{{ end }}
+
+{{ define "new-form" }}
+<form method=POST action="{{ .Base }}/new">
+  <input required name=id id=id type=text value="{{ .ID }}" />
+  <textarea required id=content name=content>{{ .Content }}</textarea>
+
+  <div class=inline>
+    <input type=checkbox name=twitter id=twitter />
+    <label for=twitter>Publish on Twitter</label>
+  </div>
+
+  <input required type=hidden id=action name=action value=create />
+  <input required hidden name=defaultid id=defaultid type=text value="{{ .ID }}" />
+  <button>Create</button>
+</form>
+{{ end }}
