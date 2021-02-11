@@ -26,20 +26,20 @@ import (
 )
 
 var ErrNotHandled = errors.New("not handled")
-var ErrNoChanges = errors.New("no changes")
 
 type ActivityPub struct {
-	sync.Mutex
-
 	conf        config.ActivityPub
 	webmentions *Webmentions
 	log         *zap.SugaredLogger
 	privKey     crypto.PrivateKey
 	signer      httpsig.Signer
 	signerMu    sync.Mutex
+	logMu       sync.Mutex
+	followers   *filemap
+	notify      *Notifications
 }
 
-func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub, error) {
+func NewActivityPub(conf *config.Config, webmentions *Webmentions, notify *Notifications) (*ActivityPub, error) {
 	pkfile, err := ioutil.ReadFile(conf.ActivityPub.PrivKey)
 	if err != nil {
 		return nil, err
@@ -63,100 +63,95 @@ func NewActivityPub(conf *config.Config, webmentions *Webmentions) (*ActivityPub
 		return nil, err
 	}
 
+	followers, err := newFileMap(filepath.Join(conf.ActivityPub.Dir, "followers.json"))
+	if err != nil {
+		return nil, err
+	}
+
 	return &ActivityPub{
 		conf:        conf.ActivityPub,
 		log:         logging.S().Named("activitypub"),
 		webmentions: webmentions,
+		notify:      notify,
 		privKey:     privateKey,
 		signer:      signer,
+		followers:   followers,
 	}, nil
 }
 
 func (ap *ActivityPub) Create(activity map[string]interface{}) error {
-	ap.log.Debug("processing create activity")
+	ap.log.Info("received create activity")
 	object, exists := activity["object"].(map[string]interface{})
 	if !exists {
-		ap.log.Warn("create activity does not contain object")
-		return errors.New("object must exist")
+		return fmt.Errorf("key 'object' not present or not map[string]interface{}: %v", object)
 	}
 
 	reply, hasReply := object["inReplyTo"].(string)
 	id, hasID := object["id"].(string)
 
-	if !hasReply || !hasID || len(reply) == 0 || len(id) == 0 {
-		ap.log.Warn("create activity has invalid ID or inReplyTo")
-		return errors.New("inReplyTo and id are required and need to be valid")
+	if !hasReply || len(reply) == 0 {
+		return fmt.Errorf("key 'inReplyTo' not present or not string: %v", reply)
+	}
+
+	if !hasID || len(id) == 0 {
+		return fmt.Errorf("key 'id' not present or not string: %v", id)
 	}
 
 	if !strings.Contains(reply, ap.conf.IRI) {
-		ap.log.Warnf("create activity is destined to someone else: %s", reply)
-		return fmt.Errorf("reply is not for me: %s", reply)
+		return fmt.Errorf("create activity destined to someone else: %s", reply)
 	}
 
-	ap.log.Debug("converting create activity into webmention")
 	err := ap.webmentions.SendWebmention(id, reply)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not convert activity to webmentions: %w", err)
 	}
-	return ErrNoChanges
+
+	return nil
 }
 
-func (ap *ActivityPub) Delete(activity map[string]interface{}) (string, error) {
-	ap.log.Debug("received delete activity")
+func (ap *ActivityPub) Delete(activity map[string]interface{}) error {
+	ap.log.Info("received delete activity")
 	object, ok := activity["object"].(string)
 	if !ok {
-		ap.log.Debug("delete activity not ok, not handlind")
-		return "", ErrNotHandled
+		return ErrNotHandled
 	}
 
 	if len(object) > 0 && activity["actor"] == object {
-		ap.log.Debugf("delete activity is unfollow from: %s", object)
-		return object + " unfollowed you... 😔", ap.removeFollower(object)
+		err := ap.followers.remove(object)
+		if err != nil {
+			return fmt.Errorf("could not remove follower: %w", err)
+		}
+		return nil
 	}
 
-	ap.log.Debug("delete activity not ok, not handlind")
-	return "", ErrNotHandled
+	return ErrNotHandled
 }
 
-func (ap *ActivityPub) Like(activity map[string]interface{}) (string, error) {
-	// TODO: make new like and add it to mentions.json, send notification
-	return "", ErrNotHandled
+func (ap *ActivityPub) Like(activity map[string]interface{}) error {
+	// TODO: make new like and add it as webmention
+	return ErrNotHandled
 }
 
-func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
-	ap.log.Debug("received follow activity")
+func (ap *ActivityPub) Follow(activity map[string]interface{}) error {
+	ap.log.Info("received follow activity")
 	iri, ok := activity["actor"].(string)
 	if !ok || len(iri) == 0 {
-		ap.log.Debugw("activity has no actor", "activity", activity)
-		return "", errors.New("actor should exist in activity")
+		return fmt.Errorf("key 'actor' not present or not string: %v", iri)
 	}
 
 	if iri == activity["object"] {
-		// Avoid following myself. Why would this happen though?
-		return "", nil
+		return nil
 	}
 
 	follower, err := ap.getActor(iri)
 	if err != nil {
-		ap.log.Debugf("failed to get actor %s: %s", iri, err)
-		return "", err
+		return fmt.Errorf("failed to get actor %s: %w", iri, err)
 	}
 
-	followers, err := ap.followers()
-	if err != nil {
-		ap.log.Debugf("failed to get followers: %s", err)
-		return "", err
-	}
-
-	changed := false
-	if inbox, ok := followers[follower.IRI]; !ok || inbox != follower.Inbox {
-		followers[follower.IRI] = follower.Inbox
-		changed = true
-
-		err = ap.storeFollowers(followers)
+	if inbox, ok := ap.followers.get(follower.IRI); !ok || inbox != follower.Inbox {
+		err = ap.followers.set(follower.IRI, follower.Inbox)
 		if err != nil {
-			ap.log.Debugf("failed to store followers: %s", err)
-			return "", err
+			return fmt.Errorf("failed to store followers: %w", err)
 		}
 	}
 
@@ -171,44 +166,36 @@ func (ap *ActivityPub) Follow(activity map[string]interface{}) (string, error) {
 
 	err = ap.sendSigned(accept, follower.Inbox)
 	if err != nil {
-		ap.log.Debugf("failed to send signed request: %s", err)
-		return "", err
+		return fmt.Errorf("failed to send signed request: %w", err)
 	}
 
-	if !changed {
-		err = ErrNoChanges
-	}
-
-	return follower.IRI + " followed you! 🤯", err
+	return nil
 }
 
-func (ap *ActivityPub) Undo(activity map[string]interface{}) (string, error) {
+func (ap *ActivityPub) Undo(activity map[string]interface{}) error {
 	ap.log.Info("received undo activity")
 	object, ok := activity["object"].(map[string]interface{})
 	if !ok {
-		ap.log.Debug("undo activity: object not ok, not handling")
-		return "", ErrNotHandled
+		return fmt.Errorf("key 'object' not present or not map[string]interface{}: %v: %w", object, ErrNotHandled)
 	}
 
 	objectType, ok := object["type"].(string)
 	if !ok || objectType != "Follow" {
-		ap.log.Debug("undo activity: object type not supported, not handling")
-		return "", ErrNotHandled
+		return fmt.Errorf("key 'type' not present or not string: %v: %w", objectType, ErrNotHandled)
 	}
 
 	iri, ok := object["actor"].(string)
 	if !ok || iri != activity["actor"] {
 		ap.log.Debug("undo activity: object actor != activity actor, not handling")
-		return "", ErrNotHandled
+		return fmt.Errorf("undo: object actor not activity actor: %v != %v: %w", iri, activity["actor"], ErrNotHandled)
 	}
 
-	ap.log.Infof("undo activity: unfollowed by %s", iri)
-	return iri + " unfollowed you... 😔", ap.removeFollower(iri)
+	return ap.followers.remove(iri)
 }
 
 func (ap *ActivityPub) Log(activity map[string]interface{}) error {
-	ap.Lock()
-	defer ap.Unlock()
+	ap.logMu.Lock()
+	defer ap.logMu.Unlock()
 
 	filename := filepath.Join(ap.conf.Dir, "log.json")
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
@@ -228,60 +215,8 @@ func (ap *ActivityPub) Log(activity map[string]interface{}) error {
 	return err
 }
 
-func (ap *ActivityPub) removeFollower(iri string) error {
-	ap.log.Debugf("removing follower %s", iri)
-	followers, err := ap.followers()
-	if err != nil {
-		return err
-	}
-
-	if _, ok := followers[iri]; !ok {
-		return ErrNoChanges
-	}
-
-	delete(followers, iri)
-	return ap.storeFollowers(followers)
-}
-
-// NOTE: this two functions use locks but they can work wrongly.
-// Idea: keep the followers map in memory and use it with a lock
-// for changes. After each change, store it. RWLock. The Logs function
-// should have its OWN lock.
-func (ap *ActivityPub) followers() (map[string]string, error) {
-	ap.Lock()
-	defer ap.Unlock()
-
-	fd, err := os.Open(filepath.Join(ap.conf.Dir, "followers.json"))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return map[string]string{}, err
-		}
-
-		return nil, err
-	}
-	defer fd.Close()
-
-	var f map[string]string
-	return f, json.NewDecoder(fd).Decode(&f)
-}
-
-func (ap *ActivityPub) storeFollowers(f map[string]string) error {
-	ap.Lock()
-	defer ap.Unlock()
-
-	bytes, err := json.MarshalIndent(f, "", "  ")
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(filepath.Join(ap.conf.Dir, "followers.json"), bytes, 0644)
-}
-
 func (ap *ActivityPub) PostFollowers(activity map[string]interface{}) error {
-	followers, err := ap.followers()
-	if err != nil {
-		return err
-	}
-
+	followers := ap.followers.getAll()
 	id, ok := activity["id"].(string)
 	if !ok {
 		return fmt.Errorf("activity id %s must be string", id)
@@ -334,7 +269,8 @@ func (ap *ActivityPub) sendTo(activity map[string]interface{}, followers map[str
 		go func(inbox string) {
 			err := ap.sendSigned(activity, inbox)
 			if err != nil {
-				ap.log.Errorw("could not send signed", "inbox", inbox, "activity", activity)
+				ap.log.Errorw("could not send signed", "inbox", inbox, "activity", activity, "err", err)
+				ap.notify.NotifyError(err)
 			}
 		}(followers[iri])
 	}
@@ -344,23 +280,23 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	ap.log.Debugw("sending signed request", "to", to, "body", b)
 	body, err := json.Marshal(b)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not marshal activity: %w", err)
 	}
 
 	bodyCopy := make([]byte, len(body))
 	copy(bodyCopy, body)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 
 	r, err := http.NewRequestWithContext(ctx, http.MethodPost, to, bytes.NewBuffer(body))
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create request: %w", err)
 	}
 
 	iri, err := url.Parse(to)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not parse iri: %w", err)
 	}
 
 	r.Header.Add("Accept-Charset", "utf-8")
@@ -374,15 +310,14 @@ func (ap *ActivityPub) sendSigned(b interface{}, to string) error {
 	err = ap.signer.SignRequest(ap.privKey, ap.conf.PubKeyID, r, bodyCopy)
 	ap.signerMu.Unlock()
 	if err != nil {
-		return err
+		return fmt.Errorf("could not sign request: %w", err)
 	}
 
 	ap.log.Debugw("sending request", "header", r.Header, "content", string(bodyCopy))
-
 	resp, err := http.DefaultClient.Do(r)
 	if !isSuccess(resp.StatusCode) {
 		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("signed request failed with status %d: %s", resp.StatusCode, string(body))
+		return fmt.Errorf("could not send signed request: failed with status %d: %s", resp.StatusCode, string(body))
 	}
 	return err
 }
@@ -446,4 +381,76 @@ func isSuccess(code int) bool {
 		code == http.StatusCreated ||
 		code == http.StatusAccepted ||
 		code == http.StatusNoContent
+}
+
+type filemap struct {
+	sync.RWMutex
+	data map[string]string
+	file string
+}
+
+func newFileMap(file string) (*filemap, error) {
+	fm := &filemap{
+		data: map[string]string{},
+		file: file,
+	}
+
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		return fm, fm.save()
+	} else if err != nil {
+		return nil, err
+	}
+
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &fm.data)
+	if err != nil {
+		return nil, err
+	}
+
+	return fm, nil
+}
+
+func (f *filemap) getAll() map[string]string {
+	f.RLock()
+	defer f.RUnlock()
+
+	m := make(map[string]string)
+	for key, value := range f.data {
+		m[key] = value
+	}
+
+	return m
+}
+
+func (f *filemap) get(key string) (string, bool) {
+	f.RLock()
+	v, ok := f.data[key]
+	f.RUnlock()
+	return v, ok
+}
+
+func (f *filemap) remove(key string) error {
+	f.Lock()
+	defer f.Unlock()
+	delete(f.data, key)
+	return f.save()
+}
+
+func (f *filemap) set(key, value string) error {
+	f.Lock()
+	defer f.Unlock()
+	f.data[key] = value
+	return f.save()
+}
+
+func (f *filemap) save() error {
+	bytes, err := json.MarshalIndent(f.data, "", "  ")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(f.file, bytes, 0644)
 }

@@ -169,12 +169,12 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 
 	err = ioutil.WriteFile(entry.Path, []byte(str), 0644)
 	if err != nil {
-		return fmt.Errorf("could not save entry: %s", err)
+		return fmt.Errorf("could not save entry: %w", err)
 	}
 
 	err = m.store.Persist("hugo: update "+entry.ID, entry.Path)
 	if err != nil {
-		return fmt.Errorf("could not save entry: %s", err)
+		return fmt.Errorf("could not save entry: %w", err)
 	}
 
 	if m.search != nil {

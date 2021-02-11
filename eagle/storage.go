@@ -32,7 +32,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 		cmd.Dir = g.dir
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("git error (%s): %s", err, string(out))
+			return fmt.Errorf("git error (%w): %s", err, string(out))
 		}
 		return nil
 	}
@@ -42,7 +42,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git error (%s): %s", err, string(out))
+		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 
 	args = []string{"commit", "-m", msg, "--"}
@@ -51,7 +51,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 	cmd.Dir = g.dir
 	out, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git error (%s): %s", err, string(out))
+		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 	return nil
 }
@@ -68,7 +68,7 @@ func (g *GitStorage) Sync() error {
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git error (%s): %s", err, string(out))
+		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 	return nil
 }

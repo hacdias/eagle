@@ -73,7 +73,7 @@ func (h *Hugo) Build(clean bool) error {
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
-		return fmt.Errorf("hugo run failed: %s: %s", err, out)
+		return fmt.Errorf("hugo run failed: %w: %s", err, out)
 	}
 
 	if new {
@@ -81,7 +81,7 @@ func (h *Hugo) Build(clean bool) error {
 		// we are serving seamlessly without users noticing. Check server/satic.go!
 		err = ioutil.WriteFile(path.Join(h.conf.Destination, "last"), []byte(dir), 0644)
 		if err != nil {
-			return fmt.Errorf("could not write last dir: %s", err)
+			return fmt.Errorf("could not write last dir: %w", err)
 		}
 
 		h.currentSubDir = dir

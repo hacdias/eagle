@@ -44,7 +44,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		store:      store,
 	}
 
-	activitypub, err := NewActivityPub(conf, webmentions)
+	activitypub, err := NewActivityPub(conf, webmentions, notifications)
 	if err != nil {
 		return nil, err
 	}

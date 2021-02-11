@@ -65,24 +65,24 @@ func isActivityPub(user, domain string) (string, error) {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return "", fmt.Errorf("error while creating request: %v", err)
+		return "", fmt.Errorf("error while creating request: %w", err)
 	}
 
 	req.Header.Add("Accept", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("webfinger request failed: %v", err)
+		return "", fmt.Errorf("webfinger request failed: %w", err)
 	}
 
 	if res.StatusCode >= 400 {
-		return "", fmt.Errorf("unexpected status code for webfinger: %v", err)
+		return "", fmt.Errorf("unexpected status code for webfinger: %w", err)
 	}
 
 	var r map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&r)
 	if err != nil {
-		return "", fmt.Errorf("invalid request body received: %v", err)
+		return "", fmt.Errorf("invalid request body received: %w", err)
 	}
 
 	links, ok := r["links"].([]interface{})
