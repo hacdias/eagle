@@ -53,11 +53,14 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, error) {
 		}
 	}
 
-	ms.Settings(meiliSearchIndex).UpdateSearchableAttributes([]string{
+	_, err = ms.Settings(meiliSearchIndex).UpdateSearchableAttributes([]string{
 		"title",
 		"tags",
 		"content",
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return ms, nil
 }
