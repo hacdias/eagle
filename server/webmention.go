@@ -30,7 +30,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusInternalServerError)
-		s.Errorf("could noit parse webmention: %w", err)
+		s.Errorf("could not parse webmention: %w", err)
 		return
 	}
 

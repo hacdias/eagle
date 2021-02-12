@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -128,12 +129,14 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	w.Lock()
 	defer w.Unlock()
 
+	mentions := []EmbeddedEntry{}
 	raw, err := ioutil.ReadFile(file)
 	if err != nil {
-		return err
+		if !os.IsNotExist(err) {
+			return err
+		}
 	}
 
-	mentions := []EmbeddedEntry{}
 	err = yaml.Unmarshal(raw, &mentions)
 	if err != nil {
 		return err

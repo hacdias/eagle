@@ -16,6 +16,7 @@ const activityExt = ".as2"
 
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: see if removing this improves speed,
+	// This works and improved the speed substaintialy. Find other was to improve speed.
 	// s.staticFsLock.RLock()
 	// defer s.staticFsLock.RUnlock()
 
