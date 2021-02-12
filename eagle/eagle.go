@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/logging"
 )
 
 type Eagle struct {
@@ -36,6 +37,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	webmentions := &Webmentions{
+		log:        logging.S().Named("webmentions"),
 		domain:     conf.Domain,
 		hugoSource: conf.Hugo.Source,
 		telegraph:  conf.Telegraph,
