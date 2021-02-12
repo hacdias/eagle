@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
@@ -145,7 +146,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				s.Errorf("panic while serving: %v", rvr)
+				s.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
 				s.e.NotifyError(fmt.Errorf(fmt.Sprint(rvr)))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
