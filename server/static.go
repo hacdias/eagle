@@ -15,8 +15,9 @@ const activityContentType = "application/activity+json"
 const activityExt = ".as2"
 
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
-	s.staticFsLock.RLock()
-	defer s.staticFsLock.RUnlock()
+	// TODO: see if removing this improves speed,
+	// s.staticFsLock.RLock()
+	// defer s.staticFsLock.RUnlock()
 
 	accept := r.Header.Get("Accept")
 	acceptsHTML := strings.Contains(accept, "text/html")
