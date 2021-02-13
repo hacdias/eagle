@@ -147,12 +147,12 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 	if entry.Path == "" {
 		path, err := m.guessPath(entry.ID)
 		if err != nil {
-			if os.IsNotExist(err) {
-				// Default path for new files is {slug}.md
-				path = filepath.Join(m.source, "content", entry.ID+".md")
-			} else {
+			if !os.IsNotExist(err) {
 				return err
+
 			}
+			// Default path for new files is content/{slug}/index.md
+			path = filepath.Join(m.source, "content", entry.ID, "index.md")
 		}
 		entry.Path = path
 	}
