@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/afero"
@@ -32,9 +33,16 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	s.staticFs.ServeHTTP(nfw, r)
 
 	if nfw.status == http.StatusNotFound {
-		w.Header().Del("Content-Type") // Let http.ServeFile set the correct header
-		r.URL.Path = "/404.html"
-		s.staticFs.ServeHTTP(w, r)
+		bytes, err := afero.ReadFile(s.staticFs.Fs, "404.html")
+		if err != nil {
+			s.serveError(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.Header().Set("Content-Lenght", strconv.Itoa(len(bytes)))
+		w.Header().Set("Content-Type", "text/html; charset=utf-8") // Let http.ServeFile set the correct header
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(bytes)
 	}
 }
 
