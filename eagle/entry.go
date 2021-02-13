@@ -16,11 +16,12 @@ import (
 )
 
 type Entry struct {
-	Path      string // The original path of the file. Might be empty.
-	ID        string
-	Permalink string
-	Content   string
-	Metadata  EntryMetadata
+	Path       string // The original path of the file. Might be empty.
+	ID         string
+	Permalink  string
+	Content    string
+	RawContent string
+	Metadata   EntryMetadata
 }
 
 type EntryMetadata struct {
@@ -131,6 +132,7 @@ func (m *EntryManager) ParseEntry(id, raw string) (*Entry, error) {
 		Metadata:  EntryMetadata{},
 	}
 
+	entry.RawContent = entry.Content
 	err = yaml.Unmarshal([]byte(splits[0]), &entry.Metadata)
 	if err != nil {
 		return nil, err
