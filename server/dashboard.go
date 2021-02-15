@@ -140,7 +140,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.FormValue("sync") == "true" {
-		err := s.e.Sync()
+		_, err := s.e.Sync()
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {

@@ -37,21 +37,35 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func() {
-		err := s.e.Sync()
-		if err != nil {
-			s.Errorf("webhook: error git pull: %w", err)
-			s.e.NotifyError(err)
-			return
-		}
-
-		err = s.e.Build(false)
-		if err != nil {
-			s.Errorf("webhook: error hugo build: %w", err)
-			s.e.NotifyError(err)
-			return
-		}
-	}()
-
+	go s.syncStorage()
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) syncStorage() {
+	files, err := s.e.Sync()
+	if err != nil {
+		s.Errorf("sync storage: git pull: %w", err)
+		s.e.NotifyError(err)
+		return
+	}
+
+	if len(files) > 1 {
+		// TODO: add one by one and detect removed files.
+		// Maybe instead of wiping the complete index, simply
+		// add everythign again - might be a problem when removing
+		// posts.
+		s.Infof("sync storage: files updated: %v", files)
+		err = s.e.RebuildIndex()
+		if err != nil {
+			s.Errorf("sync storage: rebuild index: %w", err)
+			s.e.NotifyError(err)
+		}
+	}
+
+	err = s.e.Build(false)
+	if err != nil {
+		s.Errorf("sync storage: hugo build: %w", err)
+		s.e.NotifyError(err)
+		return
+	}
 }
