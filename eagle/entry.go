@@ -44,6 +44,7 @@ type EntryMetadata struct {
 	Pictures    []EntryPicture `yaml:"pictures,omitempty"`
 	Mentions    []EntryMention `yaml:"mentions,omitempty"`
 	Draft       bool           `yaml:"draft,omitempty"`
+	Social      string         `yaml:"social,omitempty"` // image for social media hero
 }
 
 type EmbeddedEntry struct {
