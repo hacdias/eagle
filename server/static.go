@@ -39,10 +39,10 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.Header().Set("Content-Lenght", strconv.Itoa(len(bytes)))
+		w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 		w.Header().Set("Content-Type", "text/html; charset=utf-8") // Let http.ServeFile set the correct header
 		w.WriteHeader(http.StatusNotFound)
-		w.Write(bytes)
+		_, _ = w.Write(bytes)
 	}
 }
 
