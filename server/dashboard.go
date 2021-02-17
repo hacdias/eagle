@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-chi/jwtauth"
@@ -408,7 +409,11 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
+	redirectTo := dashboardPath
+	if r.URL.Query().Get("redirect") != "" {
+		redirectTo = r.URL.Query().Get("redirect")
+	}
+	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
 }
 
 func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -429,7 +434,8 @@ func (s *Server) dashboardAuth(next http.Handler) http.Handler {
 		token, _, err := jwtauth.FromContext(r.Context())
 
 		if err != nil || token == nil || jwt.Validate(token) != nil {
-			http.Redirect(w, r, dashboardPath+"/login", http.StatusTemporaryRedirect)
+			newPath := dashboardPath + "/login?redirect=" + url.PathEscape(r.URL.Path)
+			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
 			return
 		}
 
