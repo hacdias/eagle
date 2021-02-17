@@ -41,7 +41,7 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	// Search!
 	res, err := s.e.Search(&eagle.SearchQuery{
 		Query:    query,
-		Sections: sectionsList,
+		Sections: parsedSections,
 		Draft:    false,
 	}, page)
 	if err != nil {
