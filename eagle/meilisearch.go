@@ -3,6 +3,7 @@ package eagle
 import (
 	"encoding/hex"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	stripmd "github.com/writeas/go-strip-markdown"
 )
 
-const meiliSearchIndex = "post2"
+const meiliSearchIndex = "website3"
 const meiliSearchKey = "id"
 
 var shortCodesRegex = regexp.MustCompile(`{{<(.*?)>}}`)
@@ -20,7 +21,7 @@ type MeiliSearch struct {
 	meilisearch.ClientInterface
 }
 
-func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, error) {
+func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, bool, error) {
 	client := meilisearch.NewClient(meilisearch.Config{
 		Host:   conf.Endpoint,
 		APIKey: conf.Key,
@@ -32,7 +33,7 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, error) {
 
 	indexes, err := ms.Indexes().List()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	found := false
@@ -49,7 +50,7 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, error) {
 		})
 
 		if err != nil {
-			return nil, err
+			return nil, found, err
 		}
 	}
 
@@ -59,10 +60,10 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, error) {
 		"content",
 	})
 	if err != nil {
-		return nil, err
+		return nil, found, err
 	}
 
-	return ms, nil
+	return ms, found, nil
 }
 
 func (ms *MeiliSearch) ResetIndex() error {
@@ -93,6 +94,7 @@ func (ms *MeiliSearch) Add(entries ...*Entry) error {
 			"section":      section,
 			"content":      sanitizePost(entry.Content),
 			"tags":         entry.Metadata.Tags,
+			"draft":        entry.Metadata.Draft,
 		})
 	}
 
@@ -110,15 +112,35 @@ func (ms *MeiliSearch) Remove(entries ...*Entry) error {
 	return err
 }
 
-func (ms *MeiliSearch) Search(query string, filter string, page int) ([]interface{}, error) {
-	res, err := ms.ClientInterface.Search(meiliSearchIndex).Search(meilisearch.SearchRequest{
-		Query:            query,
+func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]interface{}, error) {
+	sectionsCond := []string{}
+
+	if query.Sections != nil {
+		for _, s := range query.Sections {
+			sectionsCond = append(sectionsCond, "section=\""+s+"\"")
+		}
+	}
+
+	filter := ""
+	if len(sectionsCond) > 0 {
+		filter = "(" + strings.Join(sectionsCond, " OR ") + ") AND "
+	}
+
+	filter = filter + "(draft=" + strconv.FormatBool(query.Draft) + ")"
+
+	req := meilisearch.SearchRequest{
+		Query:            query.Query,
 		Filters:          filter,
-		Offset:           int64(page * 20),
-		Limit:            20,
 		AttributesToCrop: []string{"content"},
 		CropLength:       200,
-	})
+	}
+
+	if page != -1 {
+		req.Offset = int64(page * 20)
+		req.Limit = 20
+	}
+
+	res, err := ms.ClientInterface.Search(meiliSearchIndex).Search(req)
 
 	if err != nil {
 		return nil, err

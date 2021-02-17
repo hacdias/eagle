@@ -74,11 +74,17 @@ type EntryAuthor struct {
 	Photo string `yaml:"photo,omitempty" json:"photo"`
 }
 
+type SearchQuery struct {
+	Query    string
+	Sections []string // if empty, matches all sections
+	Draft    bool
+}
+
 type SearchIndex interface {
 	ResetIndex() error
 	Add(entries ...*Entry) error
 	Remove(entries ...*Entry) error
-	Search(query string, filter string, page int) ([]interface{}, error)
+	Search(query *SearchQuery, page int) ([]interface{}, error)
 }
 
 type EntryManager struct {
@@ -239,12 +245,12 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	return entries, err
 }
 
-func (m *EntryManager) Search(query string, filter string, page int) ([]interface{}, error) {
+func (m *EntryManager) Search(query *SearchQuery, page int) ([]interface{}, error) {
 	if m.search == nil {
 		return []interface{}{}, nil
 	}
 
-	return m.search.Search(query, filter, page)
+	return m.search.Search(query, page)
 }
 
 func (m *EntryManager) RebuildIndex() error {

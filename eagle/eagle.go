@@ -52,8 +52,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	var search SearchIndex
+	var indexOk bool
 	if conf.MeiliSearch != nil {
-		search, err = NewMeiliSearch(conf.MeiliSearch)
+		search, indexOk, err = NewMeiliSearch(conf.MeiliSearch)
 		if err != nil {
 			return nil, err
 		}
@@ -85,5 +86,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		eagle.Twitter = NewTwitter(&conf.Twitter)
 	}
 
-	return eagle, nil
+	if !indexOk {
+		err = eagle.RebuildIndex()
+	}
+
+	return eagle, err
 }

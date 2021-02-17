@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/hacdias/eagle/eagle"
 )
 
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,25 +28,22 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse sections
 	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
 	sectionsList := strings.Split(sectionsQuery, ",")
-	sectionsCond := []string{}
+	parsedSections := []string{}
 
 	for _, s := range sectionsList {
 		s = strings.TrimSpace(s)
 		if s == "" {
 			continue
 		}
-		sectionsCond = append(sectionsCond, "section=\""+s+"\"")
-	}
-
-	filter := ""
-	if len(sectionsCond) > 0 {
-		filter = "(" + strings.Join(sectionsCond, " OR ") + ")"
+		parsedSections = append(parsedSections, s)
 	}
 
 	// Search!
-	// TODO: maybe make the search api receive the sections instead of the raw filter.
-	// Or some other {} struct.
-	res, err := s.e.Search(query, filter, page)
+	res, err := s.e.Search(&eagle.SearchQuery{
+		Query:    query,
+		Sections: sectionsList,
+		Draft:    false,
+	}, page)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return
