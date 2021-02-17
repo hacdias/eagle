@@ -12,8 +12,8 @@ import (
 	stripmd "github.com/writeas/go-strip-markdown"
 )
 
-const meiliSearchIndex = "website3"
-const meiliSearchKey = "id"
+const meiliSearchIndex = "IndexV3"
+const meiliSearchKey = "idx"
 
 var shortCodesRegex = regexp.MustCompile(`{{<(.*?)>}}`)
 
@@ -95,6 +95,7 @@ func (ms *MeiliSearch) Add(entries ...*Entry) error {
 			"content":      sanitizePost(entry.Content),
 			"tags":         entry.Metadata.Tags,
 			"draft":        entry.Metadata.Draft,
+			"id":           entry.ID,
 		})
 	}
 

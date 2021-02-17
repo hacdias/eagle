@@ -14,9 +14,10 @@ import (
 const dashboardPath = "/dashboard"
 
 type dashboardData struct {
-	Base    string
-	Content string
-	ID      string
+	Base       string
+	Content    string
+	ID         string
+	DraftsList []interface{}
 }
 
 func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashboardData) {

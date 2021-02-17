@@ -87,6 +87,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if !indexOk {
+		logging.S().Info("building index for the first time")
 		err = eagle.RebuildIndex()
 	}
 

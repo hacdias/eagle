@@ -14,7 +14,18 @@ import (
 )
 
 func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
-	s.renderDashboard(w, "dashboard", &dashboardData{})
+	drafts, err := s.e.Search(&eagle.SearchQuery{
+		Draft: true,
+	}, -1)
+
+	data := &dashboardData{}
+	if err != nil {
+		data.Content = err.Error()
+	} else {
+		data.DraftsList = drafts
+	}
+
+	s.renderDashboard(w, "dashboard", data)
 }
 
 func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {

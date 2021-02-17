@@ -30,6 +30,16 @@
     <input required name=reshare type=text placeholder='URL to reshare Webmentions and ActivityPub...' />
     <button>ReShare</button>
   </form>
+
+  {{ with .DraftsList }}
+  <h2>Drafts</h2>
+
+  <ul>
+    {{ range . }}
+      <li><a href="{{ $.Base }}/edit?url={{ .id }}">{{ .title }}</a></li>
+    {{ end }}
+  </ul>
+  {{ end }}
 {{ end }}
 
 {{ define "title" }}Dashboard{{ end }}
