@@ -175,15 +175,18 @@ func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, 
 		return "", "", err
 	}
 
-	id = url.Path
-	file = strings.TrimSuffix(id, "/")
-	file = strings.TrimPrefix(file, "/")
-	file = strings.ReplaceAll(file, "/", "-")
-	if file == "" {
-		file = "index"
+	id = filepath.Clean(url.Path)
+	dir := filepath.Join(w.hugoSource, "content", id)
+
+	if stat, err := os.Stat(dir); err != nil || !stat.IsDir() {
+		if !stat.IsDir() {
+			err = fmt.Errorf("entry is not a bundle")
+		}
+		return id, file, err
 	}
 
-	file = filepath.Join(w.hugoSource, "data", "interactions", file+".yaml")
+	file = filepath.Join(dir, "interactions.yaml")
+
 	return id, file, nil
 }
 
