@@ -47,6 +47,34 @@ type EntryMetadata struct {
 	Social      string         `yaml:"social,omitempty"` // image for social media hero
 }
 
+// Bundle transforms the entry into a page bundle.
+func (e *Entry) Bundle() error {
+	if e.Path == "" {
+		return fmt.Errorf("post %s does not contain a path", e.ID)
+	}
+
+	if strings.HasSuffix(e.Path, "index.md") {
+		// already a page bundle
+		return nil
+	}
+
+	dir := strings.TrimSuffix(e.Path, filepath.Ext(e.Path))
+	file := filepath.Join(dir, "index.md")
+
+	err := os.MkdirAll(dir, 0777)
+	if err != nil {
+		return err
+	}
+
+	err = os.Rename(e.Path, file)
+	if err != nil {
+		return err
+	}
+
+	e.Path = file
+	return nil
+}
+
 type EmbeddedEntry struct {
 	WmID    int          `yaml:"wm-id,omitempty"`
 	Type    string       `yaml:"type,omitempty"`
