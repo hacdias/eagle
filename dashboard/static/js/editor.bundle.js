@@ -21977,5 +21977,6 @@
     textarea.form.addEventListener('submit', () => {
       textarea.value = view.state.doc.toString();
     });
+    textarea.style.display = 'none';
 
 }());
