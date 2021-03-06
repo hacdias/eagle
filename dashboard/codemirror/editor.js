@@ -6,9 +6,7 @@ import {defaultTabBinding} from "@codemirror/commands"
 const textarea = document.querySelector("#content")
 const editor = document.querySelector("#editor")
 
-// Sync: https://discuss.codemirror.net/t/codemirror-6-and-textareas/2731/3
-
-let editor = new EditorView({
+let view = new EditorView({
   state: EditorState.create({
     doc: textarea.value,
     extensions: [
@@ -20,3 +18,8 @@ let editor = new EditorView({
   }),
   parent: editor,
 })
+
+textarea.form.addEventListener('submit', () => {
+  textarea.value = view.state.doc.toString()
+})
+textarea.style.display = 'none'
