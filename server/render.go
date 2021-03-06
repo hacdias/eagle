@@ -3,12 +3,11 @@ package server
 import (
 	"bytes"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
-	rice "github.com/GeertJohan/go.rice"
+	"github.com/hacdias/eagle/dashboard/templates"
 )
 
 const dashboardPath = "/dashboard"
@@ -41,34 +40,35 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 }
 
 // TODO: only load templates once.
-// TODO: Go 1.16, use embbed
 func getTemplates() (map[string]*template.Template, error) {
-	box := rice.MustFindBox("../dashboard/templates")
-	templates := map[string]*template.Template{}
-	baseTpl := template.Must(template.New("base").Parse(box.MustString("base.html")))
+	parsed := map[string]*template.Template{}
+	baseTpl := template.Must(template.New("base").Parse(templates.Base))
 
-	err := box.Walk("/", func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	files, err := templates.FS.ReadDir(".")
+	if err != nil {
+		return nil, err
+	}
 
+	for _, info := range files {
 		if info.IsDir() {
-			return nil
+			continue
 		}
 
 		basename := filepath.Base(info.Name())
 		if basename == "base" {
-			return nil
+			continue
 		}
 
 		ext := filepath.Ext(basename)
 		id := strings.TrimSuffix(basename, ext)
 
-		raw := box.MustString(info.Name())
+		raw, err := templates.FS.ReadFile(info.Name())
+		if err != nil {
+			return nil, err
+		}
 
-		templates[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
-		return nil
-	})
+		parsed[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
+	}
 
-	return templates, err
+	return parsed, err
 }

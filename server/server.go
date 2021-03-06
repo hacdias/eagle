@@ -12,11 +12,10 @@ import (
 	"sync"
 	"time"
 
-	rice "github.com/GeertJohan/go.rice"
-
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/dashboard/static"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
 	"go.uber.org/zap"
@@ -52,7 +51,7 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	r.Use(s.headers)
 
 	r.Route(dashboardPath, func(r chi.Router) {
-		fs := rice.MustFindBox("../dashboard/static").HTTPBox()
+		fs := http.FS(static.FS)
 		httpdir := http.FileServer(neuteredFs{fs})
 
 		r.Group(func(r chi.Router) {
