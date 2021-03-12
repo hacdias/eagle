@@ -282,6 +282,11 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if entry.Metadata.Draft {
+		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
+		return
+	}
+
 	err = s.newEditPostSaver(entry)
 	if err != nil {
 		s.dashboardError(w, r, err)
@@ -337,6 +342,11 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 	err = s.e.Build(false)
 	if err != nil {
 		s.dashboardError(w, r, err)
+		return
+	}
+
+	if entry.Metadata.Draft {
+		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
 		return
 	}
 
