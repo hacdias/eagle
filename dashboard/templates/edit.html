@@ -4,7 +4,9 @@
   {{ if .Content }}
     <form method=POST action="{{ .Base }}/edit">
       <input required readonly name=id id=id type=text value="{{ .ID }}" />
+
       <textarea required id=content name=content>{{ .Content }}</textarea>
+      <div id="editor"></div>
 
       <div class=inline>
         <input type=checkbox name=lastmod id=lastmod checked/>
@@ -14,6 +16,8 @@
       <input required type=hidden id=action name=action value=update />
       <button>Save</button>
     </form>
+
+    <script src="{{ .Base }}/js/editor.bundle.js"></script>
   {{ else }}
     <form method=GET class=inline-form>
       <input required name=url id=url type=text placeholder='URL...' />

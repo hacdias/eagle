@@ -28,6 +28,7 @@
 <form method=POST action="{{ .Base }}/new">
   <input required name=id id=id type=text value="{{ .ID }}" />
   <textarea required id=content name=content>{{ .Content }}</textarea>
+  <div id="editor"></div>
 
   <div class=inline>
     <input type=checkbox name=twitter id=twitter />
@@ -38,4 +39,6 @@
   <input required hidden name=defaultid id=defaultid type=text value="{{ .ID }}" />
   <button>Create</button>
 </form>
+
+<script src="{{ .Base }}/js/editor.bundle.js"></script>
 {{ end }}

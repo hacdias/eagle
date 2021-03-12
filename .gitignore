@@ -4,4 +4,4 @@ public
 docker-compose.yml
 testing
 main
-rice-box.go
+node_modules
