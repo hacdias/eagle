@@ -25,26 +25,27 @@ type Entry struct {
 }
 
 type EntryMetadata struct {
-	Title       string         `yaml:"title,omitempty"`
-	Description string         `yaml:"description,omitempty"`
-	Tags        []string       `yaml:"tags,omitempty"`
-	Date        time.Time      `yaml:"date,omitempty"`
-	Lastmod     time.Time      `yaml:"lastmod,omitempty"`
-	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
-	Syndication []string       `yaml:"syndication,omitempty"`
-	ReplyTo     *EmbeddedEntry `yaml:"replyTo,omitempty"`
-	URL         string         `yaml:"url,omitempty"`
-	Aliases     []string       `yaml:"aliases,omitempty"`
-	Emoji       string         `yaml:"emoji,omitempty"`
-	Layout      string         `yaml:"layout,omitempty"`
-	NoIndex     bool           `yaml:"noIndex,omitempty"`
-	NoMentions  bool           `yaml:"noMentions,omitempty"`
-	Math        bool           `yaml:"math,omitempty"`
-	Mermaid     bool           `yaml:"mermaid,omitempty"`
-	Pictures    []EntryPicture `yaml:"pictures,omitempty"`
-	Mentions    []EntryMention `yaml:"mentions,omitempty"`
-	Draft       bool           `yaml:"draft,omitempty"`
-	Social      string         `yaml:"social,omitempty"` // image for social media hero
+	Title       string          `yaml:"title,omitempty"`
+	Description string          `yaml:"description,omitempty"`
+	Tags        []string        `yaml:"tags,omitempty"`
+	Date        time.Time       `yaml:"date,omitempty"`
+	Lastmod     time.Time       `yaml:"lastmod,omitempty"`
+	ExpiryDate  time.Time       `yaml:"expiryDate,omitempty"`
+	Syndication []string        `yaml:"syndication,omitempty"`
+	ReplyTo     *EmbeddedEntry  `yaml:"replyTo,omitempty"`
+	URL         string          `yaml:"url,omitempty"`
+	Aliases     []string        `yaml:"aliases,omitempty"`
+	Emoji       string          `yaml:"emoji,omitempty"`
+	Layout      string          `yaml:"layout,omitempty"`
+	NoIndex     bool            `yaml:"noIndex,omitempty"`
+	NoMentions  bool            `yaml:"noMentions,omitempty"`
+	Math        bool            `yaml:"math,omitempty"`
+	Mermaid     bool            `yaml:"mermaid,omitempty"`
+	Pictures    []*EntryPicture `yaml:"pictures,omitempty"`
+	Cover       *EntryPicture   `yaml:"cover,omitempty"`
+	Mentions    []EntryMention  `yaml:"mentions,omitempty"`
+	Draft       bool            `yaml:"draft,omitempty"`
+	Social      string          `yaml:"social,omitempty"` // image for social media hero
 }
 
 // Bundle transforms the entry into a page bundle.
