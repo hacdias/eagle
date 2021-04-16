@@ -37,24 +37,6 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 	}
 }
 
-func (s *Server) goActivity(entry *eagle.Entry) {
-	s.staticFsLock.RLock()
-	activity, err := s.staticFs.readAS2(entry.ID)
-	s.staticFsLock.RUnlock()
-	if err != nil {
-		s.Errorf("coult not fetch activity for %s: %w", entry.ID, err)
-		return
-	}
-
-	err = s.e.ActivityPub.PostFollowers(activity)
-	if err != nil {
-		s.Errorf("could not queue activity posting for %s: %w", entry.ID, err)
-		return
-	}
-
-	s.Infof("activity posting for %s scheduled", entry.ID)
-}
-
 func (s *Server) goWebmentions(entry *eagle.Entry) {
 	var err error
 	defer func() {

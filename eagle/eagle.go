@@ -7,7 +7,6 @@ import (
 
 type Eagle struct {
 	PublicDirCh chan string
-	ActivityPub *ActivityPub
 	Twitter     *Twitter
 
 	*Notifications
@@ -46,11 +45,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		store:      store,
 	}
 
-	activitypub, err := NewActivityPub(conf, webmentions, notifications)
-	if err != nil {
-		return nil, err
-	}
-
 	var search SearchIndex
 	var indexOk bool
 	if conf.MeiliSearch != nil {
@@ -79,7 +73,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			twitter: conf.Twitter,
 		},
 		Webmentions: webmentions,
-		ActivityPub: activitypub,
 	}
 
 	if conf.Twitter.User != "" {

@@ -18,7 +18,6 @@ type Config struct {
 	BunnyCDN     BunnyCDN
 	WebmentionIO WebmentionIO
 	Webhook      Webhook
-	ActivityPub  ActivityPub
 	MeiliSearch  *MeiliSearch
 	Auth         Auth
 }
@@ -96,13 +95,6 @@ type XRay struct {
 type MeiliSearch struct {
 	Endpoint string
 	Key      string
-}
-
-type ActivityPub struct {
-	IRI      string
-	PubKeyID string `mapstructure:"pub_key_id"`
-	PrivKey  string `mapstructure:"priv_key"`
-	Dir      string
 }
 
 type Auth struct {
