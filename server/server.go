@@ -79,7 +79,6 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	r.Get("/search.json", s.searchHandler)
 	r.Post("/webhook", s.webhookHandler)
 	r.Post("/webmention", s.webmentionHandler)
-	r.Post("/activitypub/inbox", s.activityPubPostInboxHandler)
 
 	r.Get("/*", s.staticHandler)
 	r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.

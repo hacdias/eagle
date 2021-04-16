@@ -197,8 +197,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.goWebmentions(entry)
-		s.goActivity(entry)
-		s.renderDashboard(w, "dashboard", &dashboardData{Content: "Webmentions and Activity scheduled! 💭"})
+		s.renderDashboard(w, "dashboard", &dashboardData{Content: "Webmentions scheduled! 💭"})
 		return
 	}
 
@@ -381,7 +380,6 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
 
 	go func() {
 		s.goWebmentions(entry)
-		s.goActivity(entry)
 	}()
 
 	return nil

@@ -39,7 +39,6 @@ RUN git config --global user.name "Eagle" && \
 WORKDIR /app
 VOLUME /app/source
 VOLUME /app/public
-VOLUME /app/activity
 
 EXPOSE 8080
 CMD ["eagle"]
