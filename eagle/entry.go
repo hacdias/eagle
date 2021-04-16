@@ -45,6 +45,7 @@ type EntryMetadata struct {
 	Cover       *EntryPicture   `yaml:"cover,omitempty"`
 	Mentions    []EntryMention  `yaml:"mentions,omitempty"`
 	Draft       bool            `yaml:"draft,omitempty"`
+	Social      string          `yaml:"social,omitempty"` // image for social media hero
 }
 
 // Bundle transforms the entry into a page bundle.
