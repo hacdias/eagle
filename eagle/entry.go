@@ -90,7 +90,6 @@ type EntryPicture struct {
 	Title string `yaml:"title,omitempty"`
 	Slug  string `yaml:"slug,omitempty"`
 	Hide  bool   `yaml:"hide,omitempty"`
-	Raw   bool   `yaml:"raw,omitempty"` // If true, then the image is on /u/ and not /i/
 }
 
 type EntryMention struct {
