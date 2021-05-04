@@ -46,6 +46,7 @@ type EntryMetadata struct {
 	Mentions    []EntryMention  `yaml:"mentions,omitempty"`
 	Draft       bool            `yaml:"draft,omitempty"`
 	Social      string          `yaml:"social,omitempty"` // image for social media hero
+	Reading     *EntryReading   `yaml:"reading,omitempty"`
 }
 
 // Bundle transforms the entry into a page bundle.
@@ -101,6 +102,14 @@ type EntryAuthor struct {
 	Name  string `yaml:"name,omitempty" json:"name"`
 	URL   string `yaml:"url,omitempty" json:"url"`
 	Photo string `yaml:"photo,omitempty" json:"photo"`
+}
+
+type EntryReading struct {
+	Name   string    `yaml:"name,omitempty"`
+	Author string    `yaml:"author,omitempty"`
+	ISBN   string    `yaml:"isbn,omitempty"`
+	Date   time.Time `yaml:"date,omitempty"`
+	Tags   []string  `yaml:"tags,omitempty"`
 }
 
 type SearchQuery struct {
