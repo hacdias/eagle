@@ -45,7 +45,6 @@ type EntryMetadata struct {
 	Cover       *EntryPicture   `yaml:"cover,omitempty"`
 	Mentions    []EntryMention  `yaml:"mentions,omitempty"`
 	Draft       bool            `yaml:"draft,omitempty"`
-	Social      string          `yaml:"social,omitempty"` // image for social media hero
 	Reading     *EntryReading   `yaml:"reading,omitempty"`
 }
 
@@ -91,6 +90,7 @@ type EntryPicture struct {
 	Title string `yaml:"title,omitempty"`
 	Slug  string `yaml:"slug,omitempty"`
 	Hide  bool   `yaml:"hide,omitempty"`
+	Raw   bool   `yaml:"raw,omitempty"` // If true, then the image is on /u/ and not /i/
 }
 
 type EntryMention struct {
