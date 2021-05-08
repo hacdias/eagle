@@ -453,7 +453,7 @@ func (s *Server) dashboardAuth(next http.Handler) http.Handler {
 		token, _, err := jwtauth.FromContext(r.Context())
 
 		if err != nil || token == nil || jwt.Validate(token) != nil {
-			newPath := dashboardPath + "/login?redirect=" + url.PathEscape(r.URL.Path)
+			newPath := dashboardPath + "/login?redirect=" + url.PathEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
 			return
 		}
