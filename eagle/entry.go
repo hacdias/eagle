@@ -46,6 +46,7 @@ type EntryMetadata struct {
 	Mentions    []EntryMention  `yaml:"mentions,omitempty"`
 	Draft       bool            `yaml:"draft,omitempty"`
 	Reading     *EntryReading   `yaml:"reading,omitempty"`
+	Growth      string          `yaml:"growth,omitempty"`
 }
 
 // Bundle transforms the entry into a page bundle.
