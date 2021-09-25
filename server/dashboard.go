@@ -275,26 +275,14 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.e.Build(false)
+	err = s.newEditPostSaver(entry)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
 	if entry.Metadata.Draft {
-		err := s.e.SaveEntry(entry)
-		if err != nil {
-			s.dashboardError(w, r, err)
-			return
-		}
-
 		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
-		return
-	}
-
-	err = s.newEditPostSaver(entry)
-	if err != nil {
-		s.dashboardError(w, r, err)
 		return
 	}
 
@@ -344,7 +332,7 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 		entry.Metadata.Lastmod = time.Now()
 	}
 
-	err = s.e.Build(false)
+	err = s.newEditPostSaver(entry)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -352,16 +340,9 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if entry.Metadata.Draft {
 		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
-		return
+	} else {
+		http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
 	}
-
-	err = s.newEditPostSaver(entry)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
 }
 
 func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err error) {
@@ -384,6 +365,10 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
 	err = s.e.Build(false)
 	if err != nil {
 		return err
+	}
+
+	if entry.Metadata.Draft {
+		return nil
 	}
 
 	go func() {
