@@ -25,28 +25,29 @@ type Entry struct {
 }
 
 type EntryMetadata struct {
-	Title       string          `yaml:"title,omitempty"`
-	Description string          `yaml:"description,omitempty"`
-	Tags        []string        `yaml:"tags,omitempty"`
-	Date        time.Time       `yaml:"date,omitempty"`
-	Lastmod     time.Time       `yaml:"lastmod,omitempty"`
-	ExpiryDate  time.Time       `yaml:"expiryDate,omitempty"`
-	Syndication []string        `yaml:"syndication,omitempty"`
-	ReplyTo     *EmbeddedEntry  `yaml:"replyTo,omitempty"`
-	URL         string          `yaml:"url,omitempty"`
-	Aliases     []string        `yaml:"aliases,omitempty"`
-	Emoji       string          `yaml:"emoji,omitempty"`
-	Layout      string          `yaml:"layout,omitempty"`
-	NoIndex     bool            `yaml:"noIndex,omitempty"`
-	NoMentions  bool            `yaml:"noMentions,omitempty"`
-	Math        bool            `yaml:"math,omitempty"`
-	Mermaid     bool            `yaml:"mermaid,omitempty"`
-	Pictures    []*EntryPicture `yaml:"pictures,omitempty"`
-	Cover       *EntryPicture   `yaml:"cover,omitempty"`
-	Mentions    []EntryMention  `yaml:"mentions,omitempty"`
-	Draft       bool            `yaml:"draft,omitempty"`
-	Reading     *EntryReading   `yaml:"reading,omitempty"`
-	Growth      string          `yaml:"growth,omitempty"`
+	Title       string                `yaml:"title,omitempty"`
+	Description string                `yaml:"description,omitempty"`
+	Tags        []string              `yaml:"tags,omitempty"`
+	Date        time.Time             `yaml:"date,omitempty"`
+	Lastmod     time.Time             `yaml:"lastmod,omitempty"`
+	ExpiryDate  time.Time             `yaml:"expiryDate,omitempty"`
+	Syndication []string              `yaml:"syndication,omitempty"`
+	ReplyTo     *EmbeddedEntry        `yaml:"replyTo,omitempty"`
+	URL         string                `yaml:"url,omitempty"`
+	Aliases     []string              `yaml:"aliases,omitempty"`
+	Emoji       string                `yaml:"emoji,omitempty"`
+	Layout      string                `yaml:"layout,omitempty"`
+	NoIndex     bool                  `yaml:"noIndex,omitempty"`
+	NoMentions  bool                  `yaml:"noMentions,omitempty"`
+	Math        bool                  `yaml:"math,omitempty"`
+	Mermaid     bool                  `yaml:"mermaid,omitempty"`
+	Pictures    []*EntryPicture       `yaml:"pictures,omitempty"`
+	Cover       *EntryPicture         `yaml:"cover,omitempty"`
+	Mentions    []EntryMention        `yaml:"mentions,omitempty"`
+	Draft       bool                  `yaml:"draft,omitempty"`
+	Reading     *EntryReading         `yaml:"reading,omitempty"`
+	Growth      string                `yaml:"growth,omitempty"`
+	Menu        map[string]*EntryMenu `yaml:"menu,omitempty"`
 }
 
 // Bundle transforms the entry into a page bundle.
@@ -110,6 +111,12 @@ type EntryReading struct {
 	ISBN   string    `yaml:"isbn,omitempty"`
 	Date   time.Time `yaml:"date,omitempty"`
 	Tags   []string  `yaml:"tags,omitempty"`
+}
+
+type EntryMenu struct {
+	Weight int    `yaml:"weight,omitempty"`
+	Name   string `yaml:"name,omitempty"`
+	Pre    string `yaml:"pre,omitempty"`
 }
 
 type SearchQuery struct {
