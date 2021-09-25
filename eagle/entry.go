@@ -43,7 +43,6 @@ type EntryMetadata struct {
 	Mermaid     bool                  `yaml:"mermaid,omitempty"`
 	Pictures    []*EntryPicture       `yaml:"pictures,omitempty"`
 	Cover       *EntryPicture         `yaml:"cover,omitempty"`
-	Mentions    []EntryMention        `yaml:"mentions,omitempty"`
 	Draft       bool                  `yaml:"draft,omitempty"`
 	Reading     *EntryReading         `yaml:"reading,omitempty"`
 	Growth      string                `yaml:"growth,omitempty"`
@@ -92,11 +91,6 @@ type EntryPicture struct {
 	Title string `yaml:"title,omitempty"`
 	Slug  string `yaml:"slug,omitempty"`
 	Hide  bool   `yaml:"hide,omitempty"`
-}
-
-type EntryMention struct {
-	Href string `yaml:"href,omitempty"`
-	Name string `yaml:"name,omitempty"`
 }
 
 type EntryAuthor struct {

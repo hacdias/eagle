@@ -353,8 +353,6 @@ func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err erro
 }
 
 func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
-	// FIXME: this is creating weird things when there's at @ in the middle of
-	// the code and it is available.
 	// s.e.PopulateMentions(entry)
 
 	err := s.e.SaveEntry(entry)

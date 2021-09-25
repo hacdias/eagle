@@ -10,12 +10,11 @@ import (
 	"time"
 )
 
-// PopulateMentions replaces all Twitter and ActivityPub @mentions in a post
-// by proper links, as well as populate the "mentions" frontmatter field.
-func (e *Eagle) PopulateMentions(entry *Entry) {
-	mentions := []EntryMention{}
-
-	newContent := handles.ReplaceAllStringFunc(entry.Content, func(s string) string {
+// AutoLinkMentions mentions replaces all Twitter and ActivityPub @mentions in a
+// post by proper links.
+// FIXME: do not check for mentions inside code blocks, only paragraphs.
+func (e *Eagle) AutoLinkMentions(entry *Entry) {
+	entry.Content = handles.ReplaceAllStringFunc(entry.Content, func(s string) string {
 		ss := s[1:] // Strip out "@" which is encoded in 1 byte
 		href := ""
 
@@ -39,18 +38,8 @@ func (e *Eagle) PopulateMentions(entry *Entry) {
 			return s
 		}
 
-		mentions = append(mentions, EntryMention{
-			Name: "@" + ss,
-			Href: href,
-		})
-
 		return "<a href='" + href + "' rel='noopener noreferrer' target='_blank'>@" + ss + "</a>"
 	})
-
-	if len(mentions) > 0 {
-		entry.Metadata.Mentions = mentions
-		entry.Content = newContent
-	}
 }
 
 // isActivityPub checks if a certain user exists in a certain
