@@ -282,6 +282,12 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry.Metadata.Draft {
+		err := s.e.SaveEntry(entry)
+		if err != nil {
+			s.dashboardError(w, r, err)
+			return
+		}
+
 		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
 		return
 	}
