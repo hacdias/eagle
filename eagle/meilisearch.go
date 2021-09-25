@@ -9,20 +9,39 @@ import (
 
 	"github.com/hacdias/eagle/config"
 	"github.com/meilisearch/meilisearch-go"
-	stripmd "github.com/writeas/go-strip-markdown"
+	stripMarkdown "github.com/writeas/go-strip-markdown"
 )
 
-const meiliSearchIndex = "IndexV3"
-const meiliSearchKey = "idx"
+const (
+	searchIndex = "IndexV4"
+	searchKey   = "idx"
+)
 
-var shortCodesRegex = regexp.MustCompile(`{{<(.*?)>}}`)
+var (
+	shortcodeRegex = regexp.MustCompile(`{{<(.*?)>}}`)
+
+	searcheableAttributes = []string{
+		"title",
+		"tags",
+		"content",
+	}
+
+	filterableAttributes = []string{
+		"section",
+		"draft",
+	}
+
+	cropAttributes = []string{
+		"content",
+	}
+)
 
 type MeiliSearch struct {
 	meilisearch.ClientInterface
 }
 
 func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, bool, error) {
-	client := meilisearch.NewClient(meilisearch.Config{
+	client := meilisearch.NewClient(meilisearch.ClientConfig{
 		Host:   conf.Endpoint,
 		APIKey: conf.Key,
 	})
@@ -31,22 +50,22 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, bool, error) {
 		ClientInterface: client,
 	}
 
-	indexes, err := ms.Indexes().List()
+	indexes, err := ms.GetAllIndexes()
 	if err != nil {
 		return nil, false, err
 	}
 
 	found := false
 	for _, idx := range indexes {
-		if idx.Name == meiliSearchIndex {
+		if idx.UID == searchIndex {
 			found = true
 		}
 	}
 
 	if !found {
-		_, err := ms.Indexes().Create(meilisearch.CreateIndexRequest{
-			UID:        meiliSearchIndex,
-			PrimaryKey: meiliSearchKey,
+		_, err := ms.CreateIndex(&meilisearch.IndexConfig{
+			Uid:        searchIndex,
+			PrimaryKey: searchKey,
 		})
 
 		if err != nil {
@@ -54,11 +73,12 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, bool, error) {
 		}
 	}
 
-	_, err = ms.Settings(meiliSearchIndex).UpdateSearchableAttributes([]string{
-		"title",
-		"tags",
-		"content",
-	})
+	_, err = ms.Index(searchIndex).UpdateSearchableAttributes(&searcheableAttributes)
+	if err != nil {
+		return nil, found, err
+	}
+
+	_, err = ms.Index(searchIndex).UpdateFilterableAttributes(&filterableAttributes)
 	if err != nil {
 		return nil, found, err
 	}
@@ -67,7 +87,7 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, bool, error) {
 }
 
 func (ms *MeiliSearch) ResetIndex() error {
-	_, err := ms.Documents(meiliSearchIndex).DeleteAllDocuments()
+	_, err := ms.Index(searchIndex).DeleteAllDocuments()
 	return err
 }
 
@@ -88,18 +108,21 @@ func (ms *MeiliSearch) Add(entries ...*Entry) error {
 		}
 
 		docs = append(docs, map[string]interface{}{
-			meiliSearchKey: hex.EncodeToString([]byte(entry.ID)),
-			"title":        entry.Metadata.Title,
-			"date":         entry.Metadata.Date,
-			"section":      section,
-			"content":      sanitizePost(entry.Content),
-			"tags":         entry.Metadata.Tags,
-			"draft":        entry.Metadata.Draft,
-			"id":           entry.ID,
+			searchKey: hex.EncodeToString([]byte(entry.ID)),
+			"id":      entry.ID,
+			// Searcheable Attributes
+			"title":   entry.Metadata.Title,
+			"tags":    entry.Metadata.Tags,
+			"content": sanitizePost(entry.Content),
+			// Filterable Attributes
+			"section": section,
+			"draft":   entry.Metadata.Draft,
+			// Other Attributes
+			"date": entry.Metadata.Date,
 		})
 	}
 
-	_, err := ms.Documents(meiliSearchIndex).AddOrUpdate(docs)
+	_, err := ms.Index(searchIndex).UpdateDocuments(docs)
 	return err
 }
 
@@ -109,7 +132,7 @@ func (ms *MeiliSearch) Remove(entries ...*Entry) error {
 		ids = append(ids, entry.ID)
 	}
 
-	_, err := ms.Documents(meiliSearchIndex).Deletes(ids)
+	_, err := ms.Index(searchIndex).DeleteDocuments(ids)
 	return err
 }
 
@@ -129,10 +152,9 @@ func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]interface{}, erro
 
 	filter = filter + "(draft=" + strconv.FormatBool(query.Draft) + ")"
 
-	req := meilisearch.SearchRequest{
-		Query:            query.Query,
-		Filters:          filter,
-		AttributesToCrop: []string{"content"},
+	req := &meilisearch.SearchRequest{
+		Filter:           filter,
+		AttributesToCrop: cropAttributes,
 		CropLength:       200,
 	}
 
@@ -141,7 +163,7 @@ func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]interface{}, erro
 		req.Limit = 20
 	}
 
-	res, err := ms.ClientInterface.Search(meiliSearchIndex).Search(req)
+	res, err := ms.Index(searchIndex).Search(query.Query, req)
 
 	if err != nil {
 		return nil, err
@@ -151,8 +173,8 @@ func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]interface{}, erro
 }
 
 func sanitizePost(content string) string {
-	content = shortCodesRegex.ReplaceAllString(content, "")
-	content = stripmd.Strip(content)
+	content = shortcodeRegex.ReplaceAllString(content, "")
+	content = stripMarkdown.Strip(content)
 
 	return content
 }
