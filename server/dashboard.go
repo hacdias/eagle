@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/jwtauth"
@@ -14,18 +15,40 @@ import (
 )
 
 func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
-	drafts, err := s.e.Search(&eagle.SearchQuery{
-		Draft: true,
-	}, -1)
-
 	data := &dashboardData{}
+
+	query, page, err := getSearchQuery(r)
 	if err != nil {
 		data.Content = err.Error()
-	} else {
-		data.DraftsList = drafts
+		s.renderDashboard(w, "root", data)
+		return
 	}
 
-	s.renderDashboard(w, "dashboard", data)
+	if r.URL.Query().Get("drafts") == "on" {
+		t := true
+		query.Draft = &t
+		data.Drafts = true
+	}
+
+	entries, err := s.e.Search(query, page)
+	if err != nil {
+		data.Content = err.Error()
+	}
+
+	data.Entries = entries
+	data.Query = query.Query
+
+	if page > 0 {
+		p := r.URL.Query()
+		p.Set("p", strconv.Itoa(page-1))
+		data.PreviousPage = "/?" + p.Encode()
+	}
+
+	n := r.URL.Query()
+	n.Set("p", strconv.Itoa(page+1))
+	data.NextPage = "/?" + n.Encode()
+
+	s.renderDashboard(w, "root", data)
 }
 
 func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +179,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {
-			s.renderDashboard(w, "dashboard", &dashboardData{Content: "Sync was successfull! ⚡️"})
+			s.renderDashboard(w, "root", &dashboardData{Content: "Sync was successfull! ⚡️"})
 		}
 		return
 	}
@@ -167,7 +190,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {
-			s.renderDashboard(w, "dashboard", &dashboardData{Content: "Build was successfull! 💪"})
+			s.renderDashboard(w, "root", &dashboardData{Content: "Build was successfull! 💪"})
 		}
 		return
 	}
@@ -177,7 +200,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {
-			s.renderDashboard(w, "dashboard", &dashboardData{Content: "Search index rebuilt! 🔎"})
+			s.renderDashboard(w, "root", &dashboardData{Content: "Search index rebuilt! 🔎"})
 		}
 		return
 	}
@@ -197,11 +220,11 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.goWebmentions(entry)
-		s.renderDashboard(w, "dashboard", &dashboardData{Content: "Webmentions scheduled! 💭"})
+		s.renderDashboard(w, "root", &dashboardData{Content: "Webmentions scheduled! 💭"})
 		return
 	}
 
-	s.renderDashboard(w, "dashboard", &dashboardData{})
+	s.renderDashboard(w, "root", &dashboardData{})
 }
 
 func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
@@ -282,7 +305,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry.Metadata.Draft {
-		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -292,7 +315,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
 }
 
 func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -339,9 +362,9 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry.Metadata.Draft {
-		http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	} else {
-		http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
 	}
 }
 
@@ -414,12 +437,12 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		Expires:  expiration,
 		Secure:   !s.c.Development,
 		HttpOnly: true,
-		Path:     dashboardPath,
+		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 	}
 
 	http.SetCookie(w, cookie)
-	redirectTo := dashboardPath
+	redirectTo := "/"
 	if r.URL.Query().Get("redirect") != "" {
 		redirectTo = r.URL.Query().Get("redirect")
 	}
@@ -432,11 +455,11 @@ func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		MaxAge:   0,
 		Secure:   !s.c.Development,
-		Path:     dashboardPath,
+		Path:     "/",
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, dashboardPath, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 func (s *Server) dashboardAuth(next http.Handler) http.Handler {
@@ -444,7 +467,7 @@ func (s *Server) dashboardAuth(next http.Handler) http.Handler {
 		token, _, err := jwtauth.FromContext(r.Context())
 
 		if err != nil || token == nil || jwt.Validate(token) != nil {
-			newPath := dashboardPath + "/login?redirect=" + url.PathEscape(r.URL.String())
+			newPath := "/login?redirect=" + url.PathEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
 			return
 		}

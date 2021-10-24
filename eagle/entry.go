@@ -3,7 +3,6 @@ package eagle
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/yaml"
+	"github.com/spf13/afero"
 )
 
 type Entry struct {
@@ -50,31 +50,54 @@ type EntryMetadata struct {
 }
 
 // Bundle transforms the entry into a page bundle.
-func (e *Entry) Bundle() error {
-	if e.Path == "" {
-		return fmt.Errorf("post %s does not contain a path", e.ID)
+// func (e *Entry) Bundle() error {
+// 	if e.Path == "" {
+// 		return fmt.Errorf("post %s does not contain a path", e.ID)
+// 	}
+
+// 	if strings.HasSuffix(e.Path, "index.md") {
+// 		// already a page bundle
+// 		return nil
+// 	}
+
+// 	dir := strings.TrimSuffix(e.Path, filepath.Ext(e.Path))
+// 	file := filepath.Join(dir, "index.md")
+
+// 	err := os.MkdirAll(dir, 0777)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = os.Rename(e.Path, file)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	e.Path = file
+// 	return nil
+// }
+
+func (e *Entry) Section() string {
+	cleanID := strings.TrimPrefix(e.ID, "/")
+	cleanID = strings.TrimSuffix(cleanID, "/")
+
+	section := ""
+	if strings.Count(cleanID, "/") >= 1 {
+		section = strings.Split(cleanID, "/")[0]
+	}
+	return section
+}
+
+func (e *Entry) Deleted() bool {
+	if e.Metadata.ExpiryDate.IsZero() {
+		return false
 	}
 
-	if strings.HasSuffix(e.Path, "index.md") {
-		// already a page bundle
-		return nil
-	}
+	return e.Metadata.ExpiryDate.Before(time.Now())
+}
 
-	dir := strings.TrimSuffix(e.Path, filepath.Ext(e.Path))
-	file := filepath.Join(dir, "index.md")
-
-	err := os.MkdirAll(dir, 0777)
-	if err != nil {
-		return err
-	}
-
-	err = os.Rename(e.Path, file)
-	if err != nil {
-		return err
-	}
-
-	e.Path = file
-	return nil
+func (e *Entry) Date() string {
+	return e.Metadata.Date.Format(time.RFC3339)
 }
 
 type EmbeddedEntry struct {
@@ -116,14 +139,8 @@ type EntryMenu struct {
 type SearchQuery struct {
 	Query    string
 	Sections []string // if empty, matches all sections
-	Draft    bool
-}
-
-type SearchIndex interface {
-	ResetIndex() error
-	Add(entries ...*Entry) error
-	Remove(entries ...*Entry) error
-	Search(query *SearchQuery, page int) ([]interface{}, error)
+	Draft    *bool
+	Deleted  *bool
 }
 
 type EntryManager struct {
@@ -132,7 +149,7 @@ type EntryManager struct {
 	search SearchIndex
 	store  StorageService
 	domain string
-	source string
+	fs     *afero.Afero
 }
 
 func (m *EntryManager) GetEntry(id string) (*Entry, error) {
@@ -145,7 +162,7 @@ func (m *EntryManager) GetEntry(id string) (*Entry, error) {
 		return nil, err
 	}
 
-	raw, err := ioutil.ReadFile(filepath)
+	raw, err := m.fs.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -200,12 +217,12 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 
 			}
 			// Default path for new files is content/{slug}/index.md
-			path = filepath.Join(m.source, "content", entry.ID, "index.md")
+			path = filepath.Join(entry.ID, "index.md")
 		}
 		entry.Path = path
 	}
 
-	err := os.MkdirAll(filepath.Dir(entry.Path), 0777)
+	err := m.fs.MkdirAll(filepath.Dir(entry.Path), 0777)
 	if err != nil {
 		return err
 	}
@@ -215,7 +232,7 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(entry.Path, []byte(str), 0644)
+	err = m.fs.WriteFile(entry.Path, []byte(str), 0644)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -256,9 +273,7 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	defer m.RUnlock()
 
 	entries := []*Entry{}
-	content := path.Join(m.source, "content")
-
-	err := filepath.Walk(content, func(p string, info os.FileInfo, err error) error {
+	err := m.fs.Walk(".", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -267,8 +282,7 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 			return nil
 		}
 
-		id := strings.TrimPrefix(p, content)
-		id = strings.TrimSuffix(id, ".md")
+		id := strings.TrimSuffix(p, ".md")
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")
 
@@ -284,9 +298,9 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	return entries, err
 }
 
-func (m *EntryManager) Search(query *SearchQuery, page int) ([]interface{}, error) {
+func (m *EntryManager) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
 	if m.search == nil {
-		return []interface{}{}, nil
+		return []*SearchEntry{}, nil
 	}
 
 	return m.search.Search(query, page)
@@ -318,22 +332,22 @@ func (m *EntryManager) cleanID(id string) string {
 }
 
 func (m *EntryManager) guessPath(id string) (string, error) {
-	path := filepath.Join(m.source, "content", id+".md")
-	if _, err := os.Stat(path); err == nil {
+	path := id + ".md"
+	if _, err := m.fs.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
-	path = filepath.Join(m.source, "content", id, "index.md")
-	if _, err := os.Stat(path); err == nil {
+	path = filepath.Join(id, "index.md")
+	if _, err := m.fs.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
-	path = filepath.Join(m.source, "content", id, "_index.md")
-	if _, err := os.Stat(path); err == nil {
+	path = filepath.Join(id, "_index.md")
+	if _, err := m.fs.Stat(path); err == nil {
 		return path, nil
 	} else {
 		return "", err

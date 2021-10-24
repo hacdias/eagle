@@ -11,6 +11,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lestrrat-go/jwx v1.2.6
 	github.com/meilisearch/meilisearch-go v0.16.1
+	github.com/mitchellh/mapstructure v1.4.2
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/viper v1.9.0

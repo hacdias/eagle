@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	Port         int
+	PortAdmin    int
 	Domain       string
 	Development  bool
 	Telegraph    Telegraph
@@ -30,6 +31,7 @@ func Parse() (*Config, error) {
 	viper.AutomaticEnv()
 
 	viper.SetDefault("port", 8080)
+	viper.SetDefault("portAdmin", 8081)
 	viper.SetDefault("domain", "http://localhost:8080")
 
 	err := viper.ReadInConfig()

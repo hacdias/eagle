@@ -1,9 +1,13 @@
 {{ define "main" }}
-  <form id=login method=POST>
-    <input required name=username id=username type=text placeholder='Username' />
-    <input required name=password id=password type=password placeholder='Password' />
-    <button>Login</button>
-  </form>
+  <div id=login>
+    <h1>Eagle</h1>
+
+    <form method=POST>
+      <input required name=username id=username type=text placeholder='Username' />
+      <input required name=password id=password type=password placeholder='Password' />
+      <button>Login</button>
+    </form>
+  </div>
 {{ end }}
 
 {{ define "title" }}Login{{ end }}

@@ -46,4 +46,6 @@ VOLUME /app/source
 VOLUME /app/public
 
 EXPOSE 8080
+EXPOSE 8081
+
 CMD ["eagle"]

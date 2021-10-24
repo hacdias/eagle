@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,6 +19,7 @@ import (
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
+	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
@@ -60,13 +60,13 @@ type WebmentionContent struct {
 type Webmentions struct {
 	sync.Mutex
 
-	domain     string
-	hugoSource string
-	telegraph  config.Telegraph
-	media      *Media
-	notify     *Notifications
-	store      StorageService
-	log        *zap.SugaredLogger
+	domain    string
+	fs        afero.Afero
+	telegraph config.Telegraph
+	media     *Media
+	notify    *Notifications
+	store     StorageService
+	log       *zap.SugaredLogger
 }
 
 func (w *Webmentions) SendWebmention(source string, targets ...string) error {
@@ -130,7 +130,7 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	defer w.Unlock()
 
 	mentions := []EmbeddedEntry{}
-	raw, err := ioutil.ReadFile(file)
+	raw, err := w.fs.ReadFile(file)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -176,9 +176,9 @@ func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, 
 	}
 
 	id = filepath.Clean(url.Path)
-	dir := filepath.Join(w.hugoSource, "content", id)
+	dir := id
 
-	if stat, err := os.Stat(dir); err != nil || !stat.IsDir() {
+	if stat, err := w.fs.Stat(dir); err != nil || !stat.IsDir() {
 		if !stat.IsDir() {
 			err = fmt.Errorf("entry is not a bundle")
 		}
@@ -196,7 +196,7 @@ func (w *Webmentions) save(id, file string, mentions []EmbeddedEntry) (err error
 		return err
 	}
 
-	err = ioutil.WriteFile(file, bytes, 0644)
+	err = w.fs.WriteFile(file, bytes, 0644)
 	if err != nil {
 		return err
 	}

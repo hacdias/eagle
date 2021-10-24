@@ -1,8 +1,11 @@
 package eagle
 
 import (
+	"path/filepath"
+
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/logging"
+	"github.com/spf13/afero"
 )
 
 type Eagle struct {
@@ -36,35 +39,37 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	webmentions := &Webmentions{
-		log:        logging.S().Named("webmentions"),
-		domain:     conf.Domain,
-		hugoSource: conf.Hugo.Source,
-		telegraph:  conf.Telegraph,
-		media:      &Media{conf.BunnyCDN},
-		notify:     notifications,
-		store:      store,
+		log:       logging.S().Named("webmentions"),
+		domain:    conf.Domain,
+		telegraph: conf.Telegraph,
+		media:     &Media{conf.BunnyCDN},
+		notify:    notifications,
+		store:     store,
 	}
 
-	var search SearchIndex
-	var indexOk bool
+	var (
+		search  SearchIndex
+		indexOk bool
+	)
 	if conf.MeiliSearch != nil {
 		search, indexOk, err = NewMeiliSearch(conf.MeiliSearch)
-		if err != nil {
-			return nil, err
-		}
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	eagle := &Eagle{
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			domain: conf.Domain,
-			source: conf.Hugo.Source,
+			fs:     makeAfero(filepath.Join(conf.Hugo.Source, "content")),
 			store:  store,
 			search: search,
 		},
 		Notifications: notifications,
 		Hugo: &Hugo{
 			conf:        conf.Hugo,
+			dstFs:       makeAfero(conf.Hugo.Destination),
 			publicDirCh: publicDirCh,
 		},
 		StorageService: store,
@@ -85,4 +90,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	return eagle, err
+}
+
+func makeAfero(path string) *afero.Afero {
+	return &afero.Afero{
+		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
+	}
 }

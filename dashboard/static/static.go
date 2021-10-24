@@ -1,6 +1,8 @@
 package static
 
-import "embed"
+import (
+	"embed"
+)
 
 //go:embed "js/*"
 //go:embed "css/*"

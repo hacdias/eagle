@@ -2,31 +2,41 @@ package server
 
 import (
 	"bytes"
+	"html/template"
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/hacdias/eagle/dashboard/templates"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/spf13/afero"
 )
 
-const dashboardPath = "/dashboard"
-
 type dashboardData struct {
-	Base       string
-	Content    string
-	ID         string
-	DraftsList []interface{}
+	// Common To All Pages
+	LoggedIn bool
+
+	// Cleanup
+	Content string
+	ID      string
+
+	// Root Page Only
+	Entries      []*eagle.SearchEntry
+	Drafts       bool
+	Query        string
+	NextPage     string
+	PreviousPage string
 }
 
 func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashboardData) {
-	data.Base = dashboardPath
-
-	tpls, err := getTemplates()
+	tpls, err := s.getTemplates()
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	data.LoggedIn = tpl != "login"
 
 	var buf bytes.Buffer
 	err = tpls[tpl].ExecuteTemplate(&buf, tpl, data)
@@ -39,16 +49,37 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 	_, _ = w.Write(buf.Bytes())
 }
 
-// TODO: only load templates once.
-func getTemplates() (map[string]*template.Template, error) {
-	parsed := map[string]*template.Template{}
-	baseTpl := template.Must(template.New("base").Parse(templates.Base))
+type readDirFileFS interface {
+	fs.ReadDirFS
+	fs.ReadFileFS
+}
 
-	files, err := templates.FS.ReadDir(".")
+func (s *Server) getTemplates() (map[string]*template.Template, error) {
+	if s.adminTemplates != nil {
+		return s.adminTemplates, nil
+	}
+
+	var fs readDirFileFS
+
+	if s.c.Development {
+		fs = afero.NewIOFS(afero.NewBasePathFs(afero.NewOsFs(), "./dashboard/templates"))
+	} else {
+		fs = templates.FS
+	}
+
+	baseRaw, err := fs.ReadFile("base.html")
 	if err != nil {
 		return nil, err
 	}
 
+	baseTpl := template.Must(template.New("base").Parse(string(baseRaw)))
+
+	files, err := fs.ReadDir(".")
+	if err != nil {
+		return nil, err
+	}
+
+	parsed := map[string]*template.Template{}
 	for _, info := range files {
 		if info.IsDir() {
 			continue
@@ -62,12 +93,16 @@ func getTemplates() (map[string]*template.Template, error) {
 		ext := filepath.Ext(basename)
 		id := strings.TrimSuffix(basename, ext)
 
-		raw, err := templates.FS.ReadFile(info.Name())
+		raw, err := fs.ReadFile(info.Name())
 		if err != nil {
 			return nil, err
 		}
 
 		parsed[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
+	}
+
+	if !s.c.Development {
+		s.adminTemplates = parsed
 	}
 
 	return parsed, err

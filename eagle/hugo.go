@@ -4,21 +4,21 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/config"
+	"github.com/spf13/afero"
 )
 
 type Hugo struct {
 	sync.Mutex
 
 	conf          config.Hugo
+	dstFs         *afero.Afero
 	publicDirCh   chan string
 	currentSubDir string
 }
@@ -33,7 +33,7 @@ func (h *Hugo) ShouldBuild() (bool, error) {
 		return false, nil
 	}
 
-	content, err := ioutil.ReadFile(path.Join(h.conf.Destination, "last"))
+	content, err := h.dstFs.ReadFile("last")
 	if err != nil {
 		if os.IsNotExist(err) {
 			return true, nil
@@ -79,7 +79,7 @@ func (h *Hugo) Build(clean bool) error {
 	if new {
 		// We build to a different sub directory so we can change the directory
 		// we are serving seamlessly without users noticing. Check server/satic.go!
-		err = ioutil.WriteFile(path.Join(h.conf.Destination, "last"), []byte(dir), 0644)
+		err = h.dstFs.WriteFile("last", []byte(dir), 0644)
 		if err != nil {
 			return fmt.Errorf("could not write last dir: %w", err)
 		}

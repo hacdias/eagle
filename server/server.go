@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -18,6 +19,8 @@ import (
 	"github.com/hacdias/eagle/dashboard/static"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
+	"github.com/hashicorp/go-multierror"
+	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
@@ -30,6 +33,9 @@ type Server struct {
 	e      *eagle.Eagle
 	server *http.Server
 	token  *jwtauth.JWTAuth
+
+	adminServer    *http.Server
+	adminTemplates map[string]*template.Template
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -46,35 +52,16 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 		token:         token,
 	}
 
+	s.buildRouter()
+	s.buildAdminRouter()
+
+	return s, nil
+}
+
+func (s *Server) buildRouter() {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 	r.Use(s.headers)
-
-	r.Route(dashboardPath, func(r chi.Router) {
-		fs := http.FS(static.FS)
-		httpdir := http.FileServer(neuteredFs{fs})
-
-		r.Group(func(r chi.Router) {
-			r.Use(jwtauth.Verifier(s.token))
-			r.Use(s.dashboardAuth)
-
-			r.Get("/", s.dashboardGetHandler)
-			r.Get("/new", s.newGetHandler)
-			r.Get("/edit", s.editGetHandler)
-			r.Get("/reply", s.replyGetHandler)
-			r.Get("/delete", s.deleteGetHandler)
-
-			r.Post("/", s.dashboardPostHandler)
-			r.Post("/new", s.newPostHandler)
-			r.Post("/edit", s.editPostHandler)
-			r.Post("/delete", s.deletePostHandler)
-		})
-
-		r.Get("/logout", s.logoutGetHandler)
-		r.Get("/login", s.loginGetHandler)
-		r.Post("/login", s.loginPostHandler)
-		r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
-	})
 
 	r.Get("/search.json", s.searchHandler)
 	r.Post("/webhook", s.webhookHandler)
@@ -88,8 +75,45 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 		Addr:    ":" + strconv.Itoa(s.c.Port),
 		Handler: r,
 	}
+}
 
-	return s, nil
+func (s *Server) buildAdminRouter() {
+	r := chi.NewRouter()
+	r.Use(s.recoverer)
+	r.Use(s.headers)
+
+	fs := http.FS(static.FS)
+	if s.c.Development {
+		fs = http.FS(afero.NewIOFS(afero.NewBasePathFs(afero.NewOsFs(), "./dashboard/static")))
+	}
+
+	httpdir := http.FileServer(neuteredFs{fs})
+
+	r.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(s.token))
+		r.Use(s.dashboardAuth)
+
+		r.Get("/", s.dashboardGetHandler)
+		r.Get("/new", s.newGetHandler)
+		r.Get("/edit", s.editGetHandler)
+		r.Get("/reply", s.replyGetHandler)
+		r.Get("/delete", s.deleteGetHandler)
+
+		r.Post("/", s.dashboardPostHandler)
+		r.Post("/new", s.newPostHandler)
+		r.Post("/edit", s.editPostHandler)
+		r.Post("/delete", s.deletePostHandler)
+	})
+
+	r.Get("/logout", s.logoutGetHandler)
+	r.Get("/login", s.loginGetHandler)
+	r.Post("/login", s.loginPostHandler)
+	r.Get("/*", httpdir.ServeHTTP)
+
+	s.adminServer = &http.Server{
+		Addr:    ":" + strconv.Itoa(s.c.PortAdmin),
+		Handler: r,
+	}
 }
 
 func (s *Server) Start() error {
@@ -109,14 +133,34 @@ func (s *Server) Start() error {
 		}
 	}
 
-	s.Infof("Listening on http://localhost:%d", s.c.Port)
-	return s.server.ListenAndServe()
+	errCh := make(chan error, 2)
+
+	go func() {
+		s.Infof("Website listening on http://localhost:%d", s.c.Port)
+		err := s.server.ListenAndServe()
+		errCh <- err
+	}()
+
+	go func() {
+		s.Infof("Admin listening on http://localhost:%d", s.c.PortAdmin)
+		err := s.adminServer.ListenAndServe()
+		errCh <- err
+	}()
+
+	err1 := <-errCh
+	err2 := <-errCh
+
+	return multierror.Append(err1, err2).ErrorOrNil()
 }
 
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return s.server.Shutdown(ctx)
+
+	var err *multierror.Error
+	err = multierror.Append(err, s.server.Shutdown(ctx))
+	err = multierror.Append(err, s.adminServer.Shutdown(ctx))
+	return err.ErrorOrNil()
 }
 
 func (s *Server) publicDirWorker() {

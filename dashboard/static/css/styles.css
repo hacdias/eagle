@@ -28,16 +28,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica,helvetica neue,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
-  width: 95%;
-  max-width: 60rem;
-  margin: 0 auto;
   color: var(--black);
 }
 
+navbar ul,
+main {
+  width: calc(100% - 2rem);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+form,
 textarea,
 input,
 button,
-label {
+label,
+.inline {
   display: block;
   width: 100%;
   margin: 1rem 0;
@@ -106,10 +112,27 @@ pre {
 }
 
 navbar {
-  background: var(--purple);
+  background: var(--blue);
   width: 100%;
   display: block;
   color: white;
+}
+
+navbar ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  font-weight: bold;
+}
+
+navbar li:first-of-type {
+  margin-left: -1rem;
+  font-weight: 900;
+  font-style: italic;
+}
+
+navbar li:last-of-type {
+  margin-left: auto;
 }
 
 navbar a {
@@ -117,7 +140,6 @@ navbar a {
   display: inline-block;
   color: white;
   text-decoration: none;
-  font-weight: bold;
 }
 
 navbar a:last-child {
@@ -130,6 +152,11 @@ navbar a:last-child {
 
 .inline-form input:first-of-type {
   flex-grow: 1;
+}
+
+.inline > *,
+.inline-form > * {
+  margin: 0;
 }
 
 .inline-form > *:last-child {
@@ -146,7 +173,13 @@ navbar a:last-child {
 #actions {
   display: grid;
   grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-  grid-column-gap: 1rem;
+  grid-gap: 1rem;
+  margin: 1rem 0;
+}
+
+#actions form,
+#actions button {
+  margin: 0;
 }
 
 #actions form:nth-child(even) button {
@@ -161,8 +194,58 @@ navbar a:last-child {
 
 #login {
   max-width: 20rem;
-  margin: 5rem auto;
+  width: 90%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  top: 50%;
+  left: 50%;
 }
+
+#login h1 {
+  text-align: center;
+  color: var(--blue);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 3rem;
+  margin-top: 0;
+}
+
+#nextprev {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 0;
+}
+
+#nextprev button {
+  margin: 0;
+}
+
+table {
+  width: 100%;
+  overflow: auto;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+table th {
+  font-weight: 600;
+}
+
+table th,
+table td {
+  padding: 6px 13px;
+  border: 1px solid var(--light-white);;
+}
+
+table tr {
+  background-color: var(--white);
+  border-top: 1px solid var(--light-white);;
+}
+
+table tr:nth-child(2n) {
+  background-color: var(--near-white);
+}
+
 
 @media screen and (max-width: 38rem) {
   .inline-form,
@@ -176,3 +259,4 @@ navbar a:last-child {
     max-width: 100%;
   }
 }
+

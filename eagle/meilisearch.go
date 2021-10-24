@@ -5,15 +5,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/meilisearch/meilisearch-go"
-	stripMarkdown "github.com/writeas/go-strip-markdown"
+	"github.com/mitchellh/mapstructure"
 )
 
 const (
-	searchIndex = "IndexV4"
+	searchIndex = "IndexV5"
 	searchKey   = "idx"
 )
 
@@ -29,6 +28,7 @@ var (
 	filterableAttributes = []string{
 		"section",
 		"draft",
+		"deleted",
 	}
 
 	cropAttributes = []string{
@@ -92,33 +92,22 @@ func (ms *MeiliSearch) ResetIndex() error {
 }
 
 func (ms *MeiliSearch) Add(entries ...*Entry) error {
-	docs := []interface{}{}
+	docs := []*SearchEntry{}
 
 	for _, entry := range entries {
-		if entry.Metadata.ExpiryDate.After(time.Now()) {
-			continue
-		}
-
-		cleanID := strings.TrimPrefix(entry.ID, "/")
-		cleanID = strings.TrimSuffix(cleanID, "/")
-
-		section := ""
-		if strings.Count(cleanID, "/") >= 1 {
-			section = strings.Split(cleanID, "/")[0]
-		}
-
-		docs = append(docs, map[string]interface{}{
-			searchKey: hex.EncodeToString([]byte(entry.ID)),
-			"id":      entry.ID,
+		docs = append(docs, &SearchEntry{
+			SearchID:  hex.EncodeToString([]byte(entry.ID)),
+			ID:        entry.ID,
+			Permalink: entry.Permalink,
+			Date:      entry.Date(),
 			// Searcheable Attributes
-			"title":   entry.Metadata.Title,
-			"tags":    entry.Metadata.Tags,
-			"content": sanitizePost(entry.Content),
+			Title:   entry.Metadata.Title,
+			Tags:    entry.Metadata.Tags,
+			Content: sanitizePost(entry.Content),
 			// Filterable Attributes
-			"section": section,
-			"draft":   entry.Metadata.Draft,
-			// Other Attributes
-			"date": entry.Metadata.Date,
+			Section: entry.Section(),
+			Draft:   entry.Metadata.Draft,
+			Deleted: entry.Deleted(),
 		})
 	}
 
@@ -136,21 +125,34 @@ func (ms *MeiliSearch) Remove(entries ...*Entry) error {
 	return err
 }
 
-func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]interface{}, error) {
-	sectionsCond := []string{}
+func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
+	filters := []string{}
 
+	if query.Deleted != nil {
+		filters = append(filters, "(deleted="+strconv.FormatBool(*query.Deleted)+")")
+	}
+
+	if query.Draft != nil {
+		filters = append(filters, "(draft="+strconv.FormatBool(*query.Draft)+")")
+	}
+
+	sections := []string{}
 	if query.Sections != nil {
 		for _, s := range query.Sections {
-			sectionsCond = append(sectionsCond, "section=\""+s+"\"")
+			sections = append(sections, "section=\""+s+"\"")
 		}
 	}
 
-	filter := ""
-	if len(sectionsCond) > 0 {
-		filter = "(" + strings.Join(sectionsCond, " OR ") + ") AND "
+	if len(sections) > 0 {
+		filters = append(filters, "("+strings.Join(sections, " OR ")+")")
 	}
 
-	filter = filter + "(draft=" + strconv.FormatBool(query.Draft) + ")"
+	var filter interface{}
+	if len(filters) > 0 {
+		filter = strings.Join(filters, " AND ")
+	} else {
+		filter = nil
+	}
 
 	req := &meilisearch.SearchRequest{
 		Filter:           filter,
@@ -159,22 +161,20 @@ func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]interface{}, erro
 	}
 
 	if page != -1 {
-		req.Offset = int64(page * 20)
-		req.Limit = 20
+		req.Offset = int64(page * pageSize)
+		req.Limit = pageSize
 	}
 
-	res, err := ms.Index(searchIndex).Search(query.Query, req)
-
+	data, err := ms.Index(searchIndex).Search(query.Query, req)
 	if err != nil {
 		return nil, err
 	}
 
-	return res.Hits, nil
-}
+	res := []*SearchEntry{}
+	err = mapstructure.Decode(data.Hits, &res)
+	if err != nil {
+		return nil, err
+	}
 
-func sanitizePost(content string) string {
-	content = shortcodeRegex.ReplaceAllString(content, "")
-	content = stripMarkdown.Strip(content)
-
-	return content
+	return res, nil
 }

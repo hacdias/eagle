@@ -1,0 +1,82 @@
+{{ define "main" }}
+  {{ with .Content }}<p id=message>{{ . }}</p>{{ end }}
+
+  <h2>Quick</h2>
+
+  <div id=actions>
+    <form method=POST>
+      <input required type=hidden name=sync value=true />
+      <button>Sync</button>
+    </form>
+
+    <form method=POST>
+      <input required type=hidden name=build value=true />
+      <button>Build</button>
+    </form>
+
+    <form method=POST>
+      <input required type=hidden name=build value=true />
+      <input required type=hidden name=mode value=clean />
+      <button>Build Clean</button>
+    </form>
+
+    <form method=POST>
+      <input required type=hidden name=rebuild-index value=true />
+      <button>Rebuild Index</button>
+    </form>
+  </div>
+
+  <form method=POST class=inline-form>
+    <input required name=reshare type=text placeholder='URL to reshare Webmentions...' />
+    <button>ReShare</button>
+  </form>
+
+  <h2>Posts</h2>
+
+  <form method=GET>
+    <div class=inline>
+      <input type=checkbox name=drafts id=drafts {{ if .Drafts }}checked{{ end }}/>
+      <label for=drafts>Drafts only</label>
+    </div>
+
+    <div class=inline-form>
+      <input name=q type=text placeholder='Search posts...' {{ with .Query }}value="{{ . }}"{{ end }}/>
+      <button>Search</button>
+    </div>
+  </form>
+
+  <table>
+    <tr>
+      <th>Title</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+
+    {{ range .Entries }}
+      <tr>
+        <td>
+          {{ if and (not .Draft) (not .Deleted) }}<a href="{{ .Permalink }}" target="_blank">{{ end }}
+            {{ or .Title .ID }}
+          {{ if and (not .Draft) (not .Deleted) }}</a>{{ end }}
+        </td>
+        <td>
+          {{ if .Draft }}Draft{{ else if .Deleted }}Deleted{{ else }}Published{{ end }}
+        <td>
+          <a href="/edit?url={{ .ID }}">✏️</a>
+          {{ if and (not .Draft) (not .Deleted) }}
+            <a href="/delete?url={{ .ID }}">🗑</a>
+          {{ end }}
+        </td>
+      </tr>
+    {{ end }}
+  </table>
+
+  <div id=nextprev>
+    {{ with .PreviousPage }}<a href="{{ . }}"><button>Previous</button></a>{{ end }}
+    {{ with .NextPage }}<a href="{{ . }}"><button>Next</button></a>{{ end }}
+  </div>
+{{ end }}
+
+{{ define "title" }}Dashboard{{ end }}
+
+{{ template "base" . }}

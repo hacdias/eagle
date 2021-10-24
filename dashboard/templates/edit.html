@@ -2,7 +2,7 @@
   <h2>Edit Post</h2>
 
   {{ if .Content }}
-    <form method=POST action="{{ .Base }}/edit">
+    <form method=POST action="/edit">
       <input required readonly name=id id=id type=text value="{{ .ID }}" />
 
       <textarea required id=content name=content>{{ .Content }}</textarea>
@@ -17,7 +17,7 @@
       <button>Save</button>
     </form>
 
-    <script src="{{ .Base }}/js/editor.bundle.js"></script>
+    <script src="/js/editor.bundle.js"></script>
   {{ else }}
     <form method=GET class=inline-form>
       <input required name=url id=url type=text placeholder='URL...' />

@@ -5,19 +5,25 @@
     <meta charset=utf-8>
     <meta http-equiv=x-ua-compatible content="IE=edge">
     <meta name=viewport content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#2980b9">
+
     <title>{{ template "title" . }}</title>
-    <link rel=stylesheet href={{ .Base}}/css/normalize.css>
-    <link rel=stylesheet href={{ .Base}}/css/styles.css>
+    <link rel=stylesheet href=/css/normalize.css>
+    <link rel=stylesheet href=/css/styles.css>
   </head>
   <body>
+    {{ if .LoggedIn }}
     <navbar>
-      <a href="{{ .Base }}">Dashboard</a>
-      <a href="{{ .Base }}/new">New</a>
-      <a href="{{ .Base }}/reply">Reply</a>
-      <a href="{{ .Base }}/edit">Edit</a>
-      <a href="{{ .Base }}/delete">Delete</a>
-      <a href="{{ .Base }}/logout">Logout</a>
+      <ul>
+        <li><a href="/">Eagle</a></li>
+        <li><a href="/new">New</a></li>
+        <li><a href="/reply">Reply</a></li>
+        <li><a href="/edit">Edit</a></li>
+        <li><a href="/delete">Delete</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
     </navbar>
+    {{ end }}
 
     <main>{{ template "main" . }}</main>
   </body>
@@ -25,7 +31,7 @@
 {{ end }}
 
 {{ define "new-form" }}
-<form method=POST action="{{ .Base }}/new">
+<form method=POST action="/new">
   <input required name=id id=id type=text value="{{ .ID }}" />
   <textarea required id=content name=content>{{ .Content }}</textarea>
   <div id="editor"></div>
@@ -40,5 +46,5 @@
   <button>Create</button>
 </form>
 
-<script src="{{ .Base }}/js/editor.bundle.js"></script>
+<script src="/js/editor.bundle.js"></script>
 {{ end }}
