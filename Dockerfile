@@ -13,8 +13,13 @@ RUN git clone --branch $HUGO_VERSION https://github.com/gohugoio/hugo.git . &&\
 RUN mage hugo && mage install
 
 WORKDIR /eagle/
+
+COPY ./go.mod ./
+COPY ./go.sum ./
+RUN go mod download
+
 COPY . /eagle/
-RUN ./build.sh
+RUN go build -o main ./cmd/eagle
 
 FROM alpine:3.12
 
