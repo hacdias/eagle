@@ -3,7 +3,6 @@
 }
 
 :root {
-  --purple: #8e44ad;
   --blue: #2980b9;
   --red: #c0392b;
   --black: #111;
@@ -42,7 +41,6 @@ form,
 textarea,
 input,
 button,
-label,
 .inline {
   display: block;
   width: 100%;
@@ -118,6 +116,10 @@ navbar {
   color: white;
 }
 
+navbar input {
+  display: none;
+}
+
 navbar ul {
   display: flex;
   list-style: none;
@@ -127,6 +129,9 @@ navbar ul {
 
 navbar li:first-of-type {
   margin-left: -1rem;
+}
+
+navbar li #eagle {
   font-weight: 900;
   font-style: italic;
 }
@@ -182,12 +187,7 @@ navbar a:last-child {
   margin: 0;
 }
 
-#actions form:nth-child(even) button {
-  background-color: var(--purple);
-  border-color: var(--purple);
-}
-
-#actions form:nth-child(odd) button {
+#actions button {
   background-color: var(--blue);
   border-color: var(--blue);
 }
@@ -248,6 +248,31 @@ table tr:nth-child(2n) {
 
 
 @media screen and (max-width: 38rem) {
+  navbar ul {
+    display: block;
+  }
+
+  navbar li:first-of-type {
+    margin-left: 0;
+    display: block;
+  }
+
+  navbar li {
+    display: none;
+  }
+
+  navbar a {
+    display: block;
+  }
+
+  navbar label a {
+    text-align: right;
+  }
+
+  navbar #toggler:checked + ul > li {
+    display: block;
+  }
+
   .inline-form,
   .inline-form input {
     display: block;
