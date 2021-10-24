@@ -1,4 +1,5 @@
 *config.yml
+*config.yaml
 *.pem
 public
 docker-compose.yml
