@@ -2,6 +2,7 @@ package config
 
 import (
 	"net/url"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -43,6 +44,16 @@ func Parse() (*Config, error) {
 	}
 
 	domain, err := url.Parse(conf.Domain)
+	if err != nil {
+		return nil, err
+	}
+
+	conf.Hugo.Source, err = filepath.Abs(conf.Hugo.Source)
+	if err != nil {
+		return nil, err
+	}
+
+	conf.Hugo.Destination, err = filepath.Abs(conf.Hugo.Destination)
 	if err != nil {
 		return nil, err
 	}
