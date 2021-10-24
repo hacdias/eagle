@@ -11,8 +11,8 @@ import (
 )
 
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: see if removing this improves speed,
-	// This works and improved the speed substaintialy. Find other was to improve speed.
+	// TODO: removing this improved speed dramatically. Not sure what are
+	// the consequences when we're updating the website. Hopefully not many.
 	// s.staticFsLock.RLock()
 	// defer s.staticFsLock.RUnlock()
 	nfw := &notFoundRedirectRespWr{ResponseWriter: w}
