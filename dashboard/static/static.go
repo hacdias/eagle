@@ -6,5 +6,5 @@ import (
 
 //go:embed "js/*"
 //go:embed "css/*"
-//go:embed "favicon.png"
+//go:embed "favicon.ico"
 var FS embed.FS
