@@ -224,6 +224,10 @@ navbar a:last-child {
   margin: 0;
 }
 
+#nextprev > *:last-child {
+  margin-left: auto;
+}
+
 table {
   width: 100%;
   overflow: auto;
