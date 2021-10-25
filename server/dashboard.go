@@ -73,6 +73,33 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Server) reshareGetHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := sanitizeID(r.URL.Query().Get("url"))
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	if id == "" {
+		s.renderDashboard(w, "reshare", &dashboardData{})
+		return
+	}
+
+	entry, err := s.e.GetEntry(id)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	targets, err := s.getWebmentionTargets(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	s.renderDashboard(w, "reshare", &dashboardData{Targets: targets, ID: id})
+}
+
 func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := sanitizeID(r.URL.Query().Get("url"))
 	if err != nil {
@@ -205,26 +232,30 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reshare := r.FormValue("reshare")
-	if reshare != "" {
-		id, err := sanitizeID(reshare)
-		if err != nil {
-			s.dashboardError(w, r, err)
-			return
-		}
+	s.renderDashboard(w, "root", &dashboardData{})
+}
 
-		entry, err := s.e.GetEntry(id)
-		if err != nil {
-			s.e.NotifyError(err)
-			return
-		}
-
-		s.goWebmentions(entry)
-		s.renderDashboard(w, "root", &dashboardData{Content: "Webmentions scheduled! 💭"})
+func (s *Server) resharePostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.dashboardError(w, r, err)
 		return
 	}
 
-	s.renderDashboard(w, "root", &dashboardData{})
+	id, err := sanitizeID(r.FormValue("url"))
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	entry, err := s.e.GetEntry(id)
+	if err != nil {
+		s.e.NotifyError(err)
+		return
+	}
+
+	s.goWebmentions(entry)
+	s.renderDashboard(w, "reshare", &dashboardData{Content: "Webmentions scheduled! 💭"})
 }
 
 func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
@@ -376,8 +407,6 @@ func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err erro
 }
 
 func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
-	// s.e.PopulateMentions(entry)
-
 	err := s.e.SaveEntry(entry)
 	if err != nil {
 		return err

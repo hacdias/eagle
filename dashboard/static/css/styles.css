@@ -21,6 +21,10 @@ a {
   color: var(--black);
 }
 
+.nl {
+  text-decoration: none;
+}
+
 body {
   line-height: 1;
   -webkit-font-smoothing: antialiased;
@@ -248,31 +252,6 @@ table tr:nth-child(2n) {
 
 
 @media screen and (max-width: 38rem) {
-  navbar ul {
-    display: block;
-  }
-
-  navbar li:first-of-type {
-    margin-left: 0;
-    display: block;
-  }
-
-  navbar li {
-    display: none;
-  }
-
-  navbar a {
-    display: block;
-  }
-
-  navbar label a {
-    text-align: right;
-  }
-
-  navbar #toggler:checked + ul > li {
-    display: block;
-  }
-
   .inline-form,
   .inline-form input {
     display: block;

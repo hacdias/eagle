@@ -37,26 +37,17 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 	}
 }
 
-func (s *Server) goWebmentions(entry *eagle.Entry) {
-	var err error
-	defer func() {
-		if err != nil {
-			s.e.NotifyError(err)
-			s.Warnf("webmentions: %w", err)
-		}
-	}()
-
+func (s *Server) getWebmentionTargets(entry *eagle.Entry) ([]string, error) {
 	s.staticFsLock.RLock()
 	html, err := s.staticFs.readHTML(entry.ID)
 	s.staticFsLock.RUnlock()
 	if err != nil {
-		s.Errorf("could not fetch HTML for %s: %w", entry.ID, err)
-		return
+		return nil, err
 	}
 
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	targets := []string{}
@@ -85,6 +76,24 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 
 		targets = append(targets, base.ResolveReference(u).String())
 	})
+
+	return targets, nil
+}
+
+func (s *Server) goWebmentions(entry *eagle.Entry) {
+	var err error
+	defer func() {
+		if err != nil {
+			s.e.NotifyError(err)
+			s.Warnf("webmentions: %w", err)
+		}
+	}()
+
+	targets, err := s.getWebmentionTargets(entry)
+	if err != nil {
+		s.Errorf("could not fetch webmention targets %s: %w", entry.ID, err)
+		return
+	}
 
 	s.Infow("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
 	err = s.e.SendWebmention(entry.Permalink, targets...)

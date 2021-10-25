@@ -1,0 +1,31 @@
+{{ define "main" }}
+  <h2>Reshare</h2>
+
+  {{ if .ID }}
+    <p>Found targets:</p>
+
+    <ul>
+    {{ range .Targets }}
+      <li>{{ . }}</li>
+    {{ end }}
+    </ul>
+  
+    <form method=POST class=inline-form>
+      <input required name=url type=text placeholder='URL...' {{ with .ID }}value="{{ . }}" readonly{{ end }} />
+      <button>Send</button>
+    </form>
+  {{ else if .Content }}
+    <p id=message>{{ .Content }}</p>
+  {{ else }}
+    <p>Easy resharing of Webmentions in case they previously failed or did not reach the target.</p>
+
+    <form method=GET class=inline-form>
+      <input required name=url type=text placeholder='URL...' {{ with .ID }}value="{{ . }}" readonly{{ end }} />
+      <button>ReShare</button>
+    </form>
+  {{ end }}
+{{ end }}
+
+{{ define "title" }}Reshare{{ end }}
+
+{{ template "base" . }}

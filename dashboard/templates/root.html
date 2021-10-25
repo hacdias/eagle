@@ -24,12 +24,27 @@
       <input required type=hidden name=rebuild-index value=true />
       <button>Rebuild Index</button>
     </form>
-  </div>
 
-  <form method=POST class=inline-form>
-    <input required name=reshare type=text placeholder='URL to reshare Webmentions...' />
-    <button>ReShare</button>
-  </form>
+    <a class="nl" href="/new">
+      <button>New</button>
+    </a>
+
+    <a class="nl" href="/reply">
+      <button>Reply</button>
+    </a>
+
+    <a class="nl" href="/edit">
+      <button>Edit</button>
+    </a>
+
+    <a class="nl" href="/delete">
+      <button>Delete</button>
+    </a>
+
+    <a class="nl" href="/reshare">
+      <button>ReShare</button>
+    </a>
+  </div>
 
   <h2>Posts</h2>
 
@@ -62,9 +77,10 @@
         <td>
           {{ if .Draft }}Draft{{ else if .Deleted }}Deleted{{ else }}Published{{ end }}
         <td>
-          <a href="/edit?url={{ .ID }}">✏️</a>
+          <a title="Edit" href="/edit?url={{ .ID }}">✏️</a>
           {{ if and (not .Draft) (not .Deleted) }}
-            <a href="/delete?url={{ .ID }}">🗑</a>
+            <a title="Delete" href="/delete?url={{ .ID }}">❌</a>
+            <a title="ReShare" href="/reshare?url={{ .ID }}">👥</a>
           {{ end }}
         </td>
       </tr>

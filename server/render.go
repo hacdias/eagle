@@ -21,6 +21,9 @@ type dashboardData struct {
 	Content string
 	ID      string
 
+	// ReShare Page Only
+	Targets []string
+
 	// Root Page Only
 	Entries      []*eagle.SearchEntry
 	Drafts       bool
