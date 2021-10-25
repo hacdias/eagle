@@ -45,6 +45,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		media:     &Media{conf.BunnyCDN},
 		notify:    notifications,
 		store:     store,
+		fs:        makeAfero(filepath.Join(conf.Hugo.Source, "content")),
 	}
 
 	var (
