@@ -518,7 +518,7 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
 }
 
 func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
-	s.renderDashboard(w, "login", &dashboardData{})
+	s.renderDashboard(w, "login", &dashboardData{IsLogin: true})
 }
 
 func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {

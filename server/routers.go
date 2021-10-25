@@ -38,8 +38,10 @@ func (s *Server) makeDashboardHandler() http.Handler {
 	httpdir := http.FileServer(neuteredFs{fs})
 
 	r.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(s.token))
-		r.Use(s.dashboardAuth)
+		if s.c.Auth != nil {
+			r.Use(jwtauth.Verifier(s.token))
+			r.Use(s.dashboardAuth)
+		}
 
 		r.Get("/", s.dashboardGetHandler)
 		r.Get("/new", s.newGetHandler)

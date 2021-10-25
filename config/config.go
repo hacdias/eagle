@@ -13,7 +13,7 @@ type Config struct {
 
 	WebsitePort   int
 	DashboardPort int
-	Auth          Auth // TODO: make optional
+	Auth          *Auth
 
 	Webmentions Webmentions
 	Webhook     Webhook

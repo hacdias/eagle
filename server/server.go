@@ -40,14 +40,15 @@ type Server struct {
 }
 
 func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
-	secret := base64.StdEncoding.EncodeToString([]byte(c.Auth.Secret))
-	token := jwtauth.New("HS256", []byte(secret), nil)
-
 	s := &Server{
 		SugaredLogger: logging.S().Named("server"),
 		e:             e,
 		c:             c,
-		token:         token,
+	}
+
+	if c.Auth != nil {
+		secret := base64.StdEncoding.EncodeToString([]byte(c.Auth.Secret))
+		s.token = jwtauth.New("HS256", []byte(secret), nil)
 	}
 
 	return s, nil
