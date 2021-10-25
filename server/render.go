@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -53,6 +54,27 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 
 	w.Header().Set("Content-type", "text/html; charset=utf-8")
 	_, _ = w.Write(buf.Bytes())
+}
+
+func (s *Server) renderAdminBar(path string) ([]byte, error) {
+	tpls, err := s.getTemplates()
+	if err != nil {
+		return nil, err
+	}
+
+	data := &dashboardData{
+		HasAuth:  s.c.Auth != nil,
+		BasePath: dashboardPath,
+		ID:       url.QueryEscape(path),
+	}
+
+	var buf bytes.Buffer
+	err = tpls["admin-bar"].ExecuteTemplate(&buf, "admin-bar", data)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 type readDirFileFS interface {
@@ -104,7 +126,11 @@ func (s *Server) getTemplates() (map[string]*template.Template, error) {
 			return nil, err
 		}
 
-		parsed[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
+		if id == "admin-bar" {
+			parsed[id] = template.Must(template.New(id).Parse(string(raw)))
+		} else {
+			parsed[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
+		}
 	}
 
 	if !s.c.Development {

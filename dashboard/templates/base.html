@@ -17,6 +17,8 @@
     <navbar>
       <ul>
         <li><a href="{{ .BasePath }}/" id="eagle">Eagle</a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="{{ .BasePath }}/new">New</a></li>
         <li>{{ if .HasAuth }}<a href="/logout">Logout</a>{{ end }}</li>
       </ul>
     </navbar>
