@@ -35,6 +35,7 @@ func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 		data.Drafts = true
 	}
 
+	query.ByDate = true
 	entries, err := s.e.Search(query, page)
 	if err != nil {
 		data.Content = err.Error()

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	searchIndex = "IndexV5"
+	searchIndex = "IndexV6"
 	searchKey   = "idx"
 )
 
@@ -33,6 +33,10 @@ var (
 
 	cropAttributes = []string{
 		"content",
+	}
+
+	sortableAttributes = []string{
+		"date",
 	}
 )
 
@@ -79,6 +83,11 @@ func NewMeiliSearch(conf *config.MeiliSearch) (*MeiliSearch, bool, error) {
 	}
 
 	_, err = ms.Index(searchIndex).UpdateFilterableAttributes(&filterableAttributes)
+	if err != nil {
+		return nil, found, err
+	}
+
+	_, err = ms.Index(searchIndex).UpdateSortableAttributes(&sortableAttributes)
 	if err != nil {
 		return nil, found, err
 	}
@@ -158,6 +167,10 @@ func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]*SearchEntry, err
 		Filter:           filter,
 		AttributesToCrop: cropAttributes,
 		CropLength:       200,
+	}
+
+	if query.ByDate {
+		req.Sort = []string{"date:desc"}
 	}
 
 	if page != -1 {
