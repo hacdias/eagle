@@ -72,7 +72,7 @@ func (s *Server) buildRouter() {
 	r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
 
 	s.server = &http.Server{
-		Addr:    ":" + strconv.Itoa(s.c.Port),
+		Addr:    ":" + strconv.Itoa(s.c.Website.Port),
 		Handler: r,
 	}
 }
@@ -116,7 +116,7 @@ func (s *Server) buildAdminRouter() {
 	r.Get("/*", httpdir.ServeHTTP)
 
 	s.adminServer = &http.Server{
-		Addr:    ":" + strconv.Itoa(s.c.PortAdmin),
+		Addr:    ":" + strconv.Itoa(s.c.Dashboard.Port),
 		Handler: r,
 	}
 }
@@ -141,13 +141,13 @@ func (s *Server) Start() error {
 	errCh := make(chan error, 2)
 
 	go func() {
-		s.Infof("Website listening on http://localhost:%d", s.c.Port)
+		s.Infof("Website listening on http://localhost:%d", s.c.Website.Port)
 		err := s.server.ListenAndServe()
 		errCh <- err
 	}()
 
 	go func() {
-		s.Infof("Admin listening on http://localhost:%d", s.c.PortAdmin)
+		s.Infof("Admin listening on http://localhost:%d", s.c.Dashboard.Port)
 		err := s.adminServer.ListenAndServe()
 		errCh <- err
 	}()

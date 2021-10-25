@@ -10,20 +10,27 @@ import (
 )
 
 type Config struct {
-	Port        int
-	PortAdmin   int
-	Domain      string
 	Development bool
-	XRay        XRay
-	Hugo        Hugo
-	Twitter     *Twitter
-	Telegram    Telegram
-	BunnyCDN    BunnyCDN
+	Domain      string
+
+	Website   Server
+	Dashboard Server
+	Auth      Auth // TODO: make optional
+
 	Webmentions Webmentions
 	Webhook     Webhook
+	Hugo        Hugo
+	XRay        XRay
+	Telegram    Telegram
+	BunnyCDN    BunnyCDN
+
+	Twitter     *Twitter
+	Miniflux    *Miniflux // TODO: make sure optionallity handled correctly
 	MeiliSearch *MeiliSearch
-	Auth        Auth
-	Miniflux    *Miniflux
+}
+
+type Server struct {
+	Port int
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -32,8 +39,8 @@ func Parse() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("port", 8080)
-	viper.SetDefault("portAdmin", 8081)
+	viper.SetDefault("website.port", 8080)
+	viper.SetDefault("dashboard.port", 8081)
 	viper.SetDefault("domain", "http://localhost:8080")
 
 	err := viper.ReadInConfig()
@@ -76,12 +83,12 @@ type Twitter struct {
 	Key         string
 	Secret      string
 	Token       string
-	TokenSecret string `mapstructure:"token_secret"`
+	TokenSecret string
 }
 
 type Telegram struct {
 	Token  string
-	ChatID int64 `mapstructure:"chat_id"`
+	ChatID int64
 }
 
 type BunnyCDN struct {
