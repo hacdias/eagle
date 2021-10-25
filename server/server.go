@@ -123,27 +123,6 @@ func (s *Server) startServer(h http.Handler, ln net.Listener, errCh chan error) 
 
 	s.Infof("Listening on %s", ln.Addr().String())
 	errCh <- srv.Serve(ln)
-
-	// if c.Port > 0 {
-	// 	addr := ":" + strconv.Itoa(c.Port)
-
-	// 	ln, err := net.Listen("tcp", addr)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	start(ln)
-	// }
-
-	// if c.Tailscale != nil {
-	// 	ln, err := s.getTailscaleListener(c.Tailscale)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	start(ln)
-	// }
-
 }
 
 func (s *Server) getTcpListener(port int) (net.Listener, error) {
