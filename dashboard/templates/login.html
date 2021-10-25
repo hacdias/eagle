@@ -2,6 +2,8 @@
   <div id=login>
     <h1>Eagle</h1>
 
+    {{ with .Content }}<p id=message>{{ . }}</p>{{ end }}
+
     <form method=POST>
       <input required name=username id=username type=text placeholder='Username' />
       <input required name=password id=password type=password placeholder='Password' />

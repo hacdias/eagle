@@ -519,7 +519,8 @@ func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		s.dashboardError(w, r, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		s.renderDashboard(w, "login", &dashboardData{Content: err.Error()})
 		return
 	}
 
@@ -528,7 +529,8 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.Auth.Password), []byte(password)) == nil
 
 	if username != s.c.Auth.Username || !correctPassword {
-		s.dashboardError(w, r, errors.New("wrong credentials"))
+		w.WriteHeader(http.StatusInternalServerError)
+		s.renderDashboard(w, "login", &dashboardData{Content: "wrong credentials"})
 		return
 	}
 
@@ -540,7 +542,8 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		jwt.ExpirationKey: expiration,
 	})
 	if err != nil {
-		s.dashboardError(w, r, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		s.renderDashboard(w, "login", &dashboardData{Content: err.Error()})
 		return
 	}
 
