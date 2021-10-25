@@ -4,7 +4,6 @@ website:
   domain: "http://localhost:8080"
 dashboard:
   port: 8081
-  domain: "http://localhost:8081"
 auth:
   username:
   password:

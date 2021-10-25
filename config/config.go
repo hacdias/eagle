@@ -10,8 +10,8 @@ import (
 type Config struct {
 	Development bool
 
-	Website   Server
-	Dashboard Server
+	Website   Website
+	Dashboard Dashboard
 	Auth      *Auth
 
 	Webmentions Webmentions
@@ -34,9 +34,7 @@ func Parse() (*Config, error) {
 
 	viper.SetDefault("website.port", 8080)
 	viper.SetDefault("website.baseUrl", "http://localhost:8080")
-
 	viper.SetDefault("dashboard.port", 8081)
-	viper.SetDefault("dashboard.baseUrl", "http://localhost:8081")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -50,11 +48,6 @@ func Parse() (*Config, error) {
 	}
 
 	conf.Website.BaseURL, err = validateBaseURL(conf.Website.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	conf.Dashboard.BaseURL, err = validateBaseURL(conf.Dashboard.BaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -82,14 +75,13 @@ func validateBaseURL(s string) (string, error) {
 	return baseUrl.String(), nil
 }
 
-type Server struct {
+type Website struct {
 	Port    int
 	BaseURL string
 }
 
-func (s *Server) IsHTTPS() bool {
-	u, _ := url.Parse(s.BaseURL)
-	return u.Scheme == "https"
+type Dashboard struct {
+	Port int
 }
 
 type Auth struct {
