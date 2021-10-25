@@ -20,4 +20,5 @@ require (
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	gopkg.in/tucnak/telebot.v2 v2.4.0
 	gopkg.in/yaml.v2 v2.4.0
+	miniflux.app v0.0.0-20211024044718-d6ad9a471bb9
 )

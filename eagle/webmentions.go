@@ -19,7 +19,6 @@ import (
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
-	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
@@ -61,11 +60,10 @@ type Webmentions struct {
 	sync.Mutex
 
 	domain    string
-	fs        afero.Afero
 	telegraph config.Telegraph
 	media     *Media
 	notify    *Notifications
-	store     StorageService
+	store     *Storage
 	log       *zap.SugaredLogger
 }
 
@@ -130,7 +128,7 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 	defer w.Unlock()
 
 	mentions := []EmbeddedEntry{}
-	raw, err := w.fs.ReadFile(file)
+	raw, err := w.store.ReadFile(file)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -178,7 +176,7 @@ func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, 
 	id = filepath.Clean(url.Path)
 	dir := id
 
-	if stat, err := w.fs.Stat(dir); err != nil || !stat.IsDir() {
+	if stat, err := w.store.Stat(dir); err != nil || !stat.IsDir() {
 		if !stat.IsDir() {
 			err = fmt.Errorf("entry is not a bundle")
 		}
@@ -196,12 +194,7 @@ func (w *Webmentions) save(id, file string, mentions []EmbeddedEntry) (err error
 		return err
 	}
 
-	err = w.fs.WriteFile(file, bytes, 0644)
-	if err != nil {
-		return err
-	}
-
-	return w.store.Persist("webmentions: update "+id, file)
+	return w.store.Persist(file, bytes, "webmentions: update "+id)
 }
 
 func (w *Webmentions) parsePayload(payload *WebmentionPayload) (*EmbeddedEntry, error) {

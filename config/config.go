@@ -15,13 +15,14 @@ type Config struct {
 	Telegraph    Telegraph
 	XRay         XRay
 	Hugo         Hugo
-	Twitter      Twitter
+	Twitter      *Twitter
 	Telegram     Telegram
 	BunnyCDN     BunnyCDN
 	WebmentionIO WebmentionIO
 	Webhook      Webhook
 	MeiliSearch  *MeiliSearch
 	Auth         Auth
+	Miniflux     *Miniflux
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -114,4 +115,9 @@ type Auth struct {
 	Username string
 	Password string
 	Secret   string
+}
+
+type Miniflux struct {
+	Endpoint string
+	Key      string
 }

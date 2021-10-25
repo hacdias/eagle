@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -192,6 +193,52 @@ func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
 		ID:      entry.ID,
 		Content: str,
 	})
+}
+
+func (s *Server) blogrollGetHandler(w http.ResponseWriter, r *http.Request) {
+	feeds, err := s.e.Miniflux.Fetch()
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	data, err := json.MarshalIndent(feeds, "", "  ")
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	s.renderDashboard(w, "blogroll", &dashboardData{
+		Content: string(data),
+	})
+}
+
+func (s *Server) blogrollPostHandler(w http.ResponseWriter, r *http.Request) {
+	feeds, err := s.e.Miniflux.Fetch()
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	data, err := json.MarshalIndent(feeds, "", "  ")
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	err = s.e.Persist("data/blogroll.json", data, "blogroll: update from miniflux")
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	err = s.e.Build(false)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	http.Redirect(w, r, s.c.Domain+"/links", http.StatusTemporaryRedirect)
 }
 
 func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {

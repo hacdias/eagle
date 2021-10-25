@@ -1,8 +1,6 @@
 package eagle
 
 import (
-	"path/filepath"
-
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/logging"
 	"github.com/spf13/afero"
@@ -11,6 +9,7 @@ import (
 type Eagle struct {
 	PublicDirCh chan string
 	Twitter     *Twitter
+	Miniflux    *Miniflux
 
 	*Notifications
 	*Webmentions
@@ -18,7 +17,7 @@ type Eagle struct {
 	*Hugo
 	*Crawler
 
-	StorageService
+	*Storage
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
@@ -29,14 +28,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	var store StorageService
-	if conf.Development {
-		store = &PlaceboStorage{}
-	} else {
-		store = &GitStorage{
-			dir: conf.Hugo.Source,
-		}
-	}
+	storage := NewStorage(conf.Hugo.Source, &GitStorage{
+		dir: conf.Hugo.Source,
+	})
 
 	webmentions := &Webmentions{
 		log:       logging.S().Named("webmentions"),
@@ -44,8 +38,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		telegraph: conf.Telegraph,
 		media:     &Media{conf.BunnyCDN},
 		notify:    notifications,
-		store:     store,
-		fs:        makeAfero(filepath.Join(conf.Hugo.Source, "content")),
+		store:     storage.Sub("content"),
 	}
 
 	var (
@@ -63,26 +56,31 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			domain: conf.Domain,
-			fs:     makeAfero(filepath.Join(conf.Hugo.Source, "content")),
-			store:  store,
+			store:  storage.Sub("content"),
 			search: search,
 		},
 		Notifications: notifications,
 		Hugo: &Hugo{
-			conf:        conf.Hugo,
-			dstFs:       makeAfero(conf.Hugo.Destination),
+			conf: conf.Hugo,
+			dstFs: &afero.Afero{
+				Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.Hugo.Destination),
+			},
 			publicDirCh: publicDirCh,
 		},
-		StorageService: store,
+		Storage: storage,
 		Crawler: &Crawler{
 			xray:    conf.XRay,
-			twitter: conf.Twitter,
+			twitter: *conf.Twitter,
 		},
 		Webmentions: webmentions,
 	}
 
-	if conf.Twitter.User != "" {
-		eagle.Twitter = NewTwitter(&conf.Twitter)
+	if conf.Twitter != nil {
+		eagle.Twitter = NewTwitter(conf.Twitter)
+	}
+
+	if conf.Miniflux != nil {
+		eagle.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
 	if !indexOk {
@@ -91,10 +89,4 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	return eagle, err
-}
-
-func makeAfero(path string) *afero.Afero {
-	return &afero.Afero{
-		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
-	}
 }

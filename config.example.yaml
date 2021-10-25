@@ -35,3 +35,6 @@ auth:
 meilisearch:
   key:
   endpoint: "http://localhost:7700"
+miniflux:
+  endpoint:
+  key:

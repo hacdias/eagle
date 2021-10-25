@@ -3,13 +3,16 @@ package eagle
 import (
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"github.com/spf13/afero"
 )
 
-type StorageService interface {
+type RemoteStorage interface {
 	// Persist persists the files into the storage. If no files are passed
 	// everything should be persisted.
-	Persist(msg string, files ...string) error
+	Persist(msg string, file string) error
 
 	// Sync syncs the storage with whatever sync service we're using. In case
 	// of a CVS, it might be pull + push.
@@ -20,25 +23,8 @@ type GitStorage struct {
 	dir string
 }
 
-func (g *GitStorage) Persist(msg string, files ...string) error {
-	if len(files) == 0 {
-		cmd := exec.Command("git", "add", "-A")
-		cmd.Dir = g.dir
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-
-		cmd = exec.Command("git", "commit", "-m", msg)
-		cmd.Dir = g.dir
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			return fmt.Errorf("git error (%w): %s", err, string(out))
-		}
-		return nil
-	}
-
-	args := append([]string{"add"}, files...)
+func (g *GitStorage) Persist(msg string, file string) error {
+	args := append([]string{"add"}, file)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -47,7 +33,7 @@ func (g *GitStorage) Persist(msg string, files ...string) error {
 	}
 
 	args = []string{"commit", "-m", msg, "--"}
-	args = append(args, files...)
+	args = append(args, file)
 	cmd = exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err = cmd.CombinedOutput()
@@ -133,12 +119,48 @@ func (g *GitStorage) changedFiles(since string) ([]string, error) {
 	return files, nil
 }
 
-type PlaceboStorage struct{}
+type Storage struct {
+	*afero.Afero
+	remote  RemoteStorage
+	prepend string
+}
 
-func (p *PlaceboStorage) Persist(msg string, files ...string) error {
+func NewStorage(path string, remote RemoteStorage) *Storage {
+	return &Storage{
+		Afero: &afero.Afero{
+			Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
+		},
+		remote:  remote,
+		prepend: "",
+	}
+}
+
+func (fm *Storage) Persist(path string, data []byte, message string) error {
+	err := fm.WriteFile(path, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	fullPath := filepath.Join(fm.prepend, path)
+	err = fm.remote.Persist(message, fullPath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (p *PlaceboStorage) Sync() ([]string, error) {
-	return []string{}, nil
+func (fm *Storage) Sync() ([]string, error) {
+	return fm.remote.Sync()
+}
+
+func (fm *Storage) Sub(path string) *Storage {
+	fs := afero.NewBasePathFs(fm.Afero.Fs, path)
+	prepend := filepath.Join(fm.prepend, path)
+
+	return &Storage{
+		Afero:   &afero.Afero{Fs: fs},
+		remote:  fm.remote,
+		prepend: prepend,
+	}
 }

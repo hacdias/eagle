@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/yaml"
-	"github.com/spf13/afero"
 )
 
 type Entry struct {
@@ -147,9 +146,8 @@ type EntryManager struct {
 	sync.RWMutex
 
 	search SearchIndex
-	store  StorageService
+	store  *Storage
 	domain string
-	fs     *afero.Afero
 }
 
 func (m *EntryManager) GetEntry(id string) (*Entry, error) {
@@ -162,7 +160,7 @@ func (m *EntryManager) GetEntry(id string) (*Entry, error) {
 		return nil, err
 	}
 
-	raw, err := m.fs.ReadFile(filepath)
+	raw, err := m.store.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -216,13 +214,13 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 				return err
 
 			}
-			// Default path for new files is content/{slug}/index.md
+			// Default path for new files is {slug}/index.md
 			path = filepath.Join(entry.ID, "index.md")
 		}
 		entry.Path = path
 	}
 
-	err := m.fs.MkdirAll(filepath.Dir(entry.Path), 0777)
+	err := m.store.MkdirAll(filepath.Dir(entry.Path), 0777)
 	if err != nil {
 		return err
 	}
@@ -232,12 +230,7 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 		return err
 	}
 
-	err = m.fs.WriteFile(entry.Path, []byte(str), 0644)
-	if err != nil {
-		return fmt.Errorf("could not save entry: %w", err)
-	}
-
-	err = m.store.Persist("hugo: update "+entry.ID, entry.Path)
+	err = m.store.Persist(entry.Path, []byte(str), "hugo: update "+entry.ID)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -273,7 +266,7 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	defer m.RUnlock()
 
 	entries := []*Entry{}
-	err := m.fs.Walk(".", func(p string, info os.FileInfo, err error) error {
+	err := m.store.Walk(".", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -333,21 +326,21 @@ func (m *EntryManager) cleanID(id string) string {
 
 func (m *EntryManager) guessPath(id string) (string, error) {
 	path := id + ".md"
-	if _, err := m.fs.Stat(path); err == nil {
+	if _, err := m.store.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
 	path = filepath.Join(id, "index.md")
-	if _, err := m.fs.Stat(path); err == nil {
+	if _, err := m.store.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
 	path = filepath.Join(id, "_index.md")
-	if _, err := m.fs.Stat(path); err == nil {
+	if _, err := m.store.Stat(path); err == nil {
 		return path, nil
 	} else {
 		return "", err
