@@ -60,28 +60,28 @@
     </div>
   </form>
 
-  <table>
+  <table id=posts>
     <tr>
       <th>Title</th>
-      <th>Status</th>
       <th>Actions</th>
     </tr>
 
     {{ range .Entries }}
       <tr>
         <td>
+          {{ if .Draft }}<span>*</span>{{ else if .Deleted }}<span>-</span>{{ end }}
           {{ if and (not .Draft) (not .Deleted) }}<a href="{{ .Permalink }}" target="_blank">{{ end }}
             {{ or .Title .ID }}
           {{ if and (not .Draft) (not .Deleted) }}</a>{{ end }}
         </td>
         <td>
-          {{ if .Draft }}Draft{{ else if .Deleted }}Deleted{{ else }}Published{{ end }}
-        <td>
-          <a title="Edit" href="/edit?url={{ .ID }}">✏️</a>
-          {{ if and (not .Draft) (not .Deleted) }}
-            <a title="Delete" href="/delete?url={{ .ID }}">❌</a>
-            <a title="ReShare" href="/reshare?url={{ .ID }}">👥</a>
-          {{ end }}
+          <div>
+            <a class="nl" title="Edit" href="/edit?url={{ .ID }}">✏️</a>
+            {{ if and (not .Draft) (not .Deleted) }}
+              <a class="nl" title="Delete" href="/delete?url={{ .ID }}">❌</a>
+              <a class="nl" title="ReShare" href="/reshare?url={{ .ID }}">👥</a>
+            {{ end }}
+          </div>
         </td>
       </tr>
     {{ end }}

@@ -254,6 +254,19 @@ table tr:nth-child(2n) {
   background-color: var(--near-white);
 }
 
+table#posts span {
+  font-weight: bold;
+}
+
+table#posts td:last-child {
+  text-align: right;
+  width: 7.5rem;
+}
+
+table#posts div {
+  display: flex;
+  justify-content: space-between;
+}
 
 @media screen and (max-width: 38rem) {
   .inline-form,
