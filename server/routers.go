@@ -40,7 +40,12 @@ func (s *Server) makeDashboardHandler() http.Handler {
 	r.Group(func(r chi.Router) {
 		if s.c.Auth != nil {
 			r.Use(jwtauth.Verifier(s.token))
-			r.Use(s.dashboardAuth)
+		}
+
+		r.Use(s.isAuthenticated)
+
+		if s.c.Auth != nil {
+			r.Use(s.mustAuthenticate)
 		}
 
 		r.Get("/", s.dashboardGetHandler)
@@ -60,9 +65,12 @@ func (s *Server) makeDashboardHandler() http.Handler {
 		r.Post("/gedit", s.geditPostHandler)
 	})
 
-	r.Get("/logout", s.logoutGetHandler)
-	r.Get("/login", s.loginGetHandler)
-	r.Post("/login", s.loginPostHandler)
+	if s.c.Auth != nil {
+		r.Get("/logout", s.logoutGetHandler)
+		r.Get("/login", s.loginGetHandler)
+		r.Post("/login", s.loginPostHandler)
+	}
+
 	r.Get("/*", httpdir.ServeHTTP)
 
 	return r

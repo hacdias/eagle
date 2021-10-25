@@ -5,14 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
-	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/eagle"
-	"github.com/lestrrat-go/jwx/jwt"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *Server) redirectWithStatus(w http.ResponseWriter, status string) {
@@ -515,84 +511,4 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
 	}()
 
 	return nil
-}
-
-func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
-	s.renderDashboard(w, "login", &dashboardData{IsLogin: true})
-}
-
-func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		s.renderDashboard(w, "login", &dashboardData{Content: err.Error()})
-		return
-	}
-
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.Auth.Password), []byte(password)) == nil
-
-	if username != s.c.Auth.Username || !correctPassword {
-		w.WriteHeader(http.StatusInternalServerError)
-		s.renderDashboard(w, "login", &dashboardData{Content: "wrong credentials"})
-		return
-	}
-
-	expiration := time.Now().Add(time.Hour * 24 * 7)
-
-	_, signed, err := s.token.Encode(map[string]interface{}{
-		jwt.SubjectKey:    "Eagle",
-		jwt.IssuedAtKey:   time.Now().Unix(),
-		jwt.ExpirationKey: expiration,
-	})
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		s.renderDashboard(w, "login", &dashboardData{Content: err.Error()})
-		return
-	}
-
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    string(signed),
-		Expires:  expiration,
-		Secure:   r.URL.Scheme == "https",
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
-	}
-
-	http.SetCookie(w, cookie)
-	redirectTo := "/"
-	if r.URL.Query().Get("redirect") != "" {
-		redirectTo = r.URL.Query().Get("redirect")
-	}
-	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
-}
-
-func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
-	cookie := http.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		MaxAge:   0,
-		Secure:   r.URL.Scheme == "https",
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-}
-
-func (s *Server) dashboardAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, _, err := jwtauth.FromContext(r.Context())
-
-		if err != nil || token == nil || jwt.Validate(token) != nil {
-			newPath := "/login?redirect=" + url.PathEscape(r.URL.String())
-			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
