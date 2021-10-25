@@ -57,15 +57,15 @@ textarea {
   font-family: 'Fira Code', monospace;
 }
 
-.cm-wrap .cm-scroller {
+.cm-editor .cm-scroller {
   font-family: Fira Code, monospace  !important;
 }
 
-.cm-wrap .cm-gutters {
+.cm-editor .cm-gutters {
   display: none;
 }
 
-.cm-wrap,
+.cm-editor,
 input,
 textarea {
   padding: .5rem;

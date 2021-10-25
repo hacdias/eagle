@@ -5,7 +5,7 @@
     <form method=POST action="/edit">
       <input required readonly name=id id=id type=text value="{{ .ID }}" />
 
-      <textarea required id=content name=content>{{ .Content }}</textarea>
+      <textarea required id=content name=content data-lang=markdown>{{ .Content }}</textarea>
       <div id="editor"></div>
 
       <div class=inline>

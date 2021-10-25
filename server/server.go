@@ -100,13 +100,14 @@ func (s *Server) buildAdminRouter() {
 		r.Get("/delete", s.deleteGetHandler)
 		r.Get("/reshare", s.reshareGetHandler)
 		r.Get("/blogroll", s.blogrollGetHandler)
+		r.Get("/gedit", s.geditGetHandler)
 
 		r.Post("/", s.dashboardPostHandler)
 		r.Post("/new", s.newPostHandler)
 		r.Post("/edit", s.editPostHandler)
 		r.Post("/delete", s.deletePostHandler)
 		r.Post("/reshare", s.resharePostHandler)
-		r.Post("/blogroll", s.blogrollPostHandler)
+		r.Post("/gedit", s.geditPostHandler)
 	})
 
 	r.Get("/logout", s.logoutGetHandler)

@@ -15,6 +15,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func (s *Server) redirectWithStatus(w http.ResponseWriter, status string) {
+	s.renderDashboard(w, "status", &dashboardData{Content: status})
+}
+
 func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 	data := &dashboardData{}
 
@@ -208,37 +212,69 @@ func (s *Server) blogrollGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderDashboard(w, "blogroll", &dashboardData{
+	s.renderDashboard(w, "gedit", &dashboardData{
+		ID:      "data/blogroll.json",
 		Content: string(data),
 	})
 }
 
-func (s *Server) blogrollPostHandler(w http.ResponseWriter, r *http.Request) {
-	feeds, err := s.e.Miniflux.Fetch()
+func (s *Server) geditGetHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	data, err := json.MarshalIndent(feeds, "", "  ")
+	path := r.FormValue("path")
+	if path == "" {
+		s.renderDashboard(w, "gedit", &dashboardData{})
+		return
+	}
+
+	data, err := s.e.ReadFile(path)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	err = s.e.Persist("data/blogroll.json", data, "blogroll: update from miniflux")
+	s.renderDashboard(w, "gedit", &dashboardData{
+		ID:      path,
+		Content: string(data),
+	})
+}
+
+func (s *Server) geditPostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	err = s.e.Build(false)
+	path := r.FormValue("path")
+	if path == "" {
+		s.dashboardError(w, r, errors.New("no path provided"))
+		return
+	}
+
+	content := r.FormValue("content")
+	if content == "" {
+		s.dashboardError(w, r, errors.New("no content provided"))
+		return
+	}
+
+	err = s.e.Persist(path, []byte(content), "edit: update "+path)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	http.Redirect(w, r, s.c.Domain+"/links", http.StatusTemporaryRedirect)
+	err = s.e.Build(true)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
+
+	s.redirectWithStatus(w, path+" updated! 🗄")
 }
 
 func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -253,7 +289,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {
-			s.renderDashboard(w, "root", &dashboardData{Content: "Sync was successfull! ⚡️"})
+			s.redirectWithStatus(w, "Sync was successfull! ⚡️")
 		}
 		return
 	}
@@ -264,7 +300,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {
-			s.renderDashboard(w, "root", &dashboardData{Content: "Build was successfull! 💪"})
+			s.redirectWithStatus(w, "Build was successfull! 💪")
 		}
 		return
 	}
@@ -274,7 +310,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.dashboardError(w, r, err)
 		} else {
-			s.renderDashboard(w, "root", &dashboardData{Content: "Search index rebuilt! 🔎"})
+			s.redirectWithStatus(w, "Search index rebuilt! 🔎")
 		}
 		return
 	}
@@ -302,7 +338,7 @@ func (s *Server) resharePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.goWebmentions(entry)
-	s.renderDashboard(w, "reshare", &dashboardData{Content: "Webmentions scheduled! 💭"})
+	s.redirectWithStatus(w, "Webmentions scheduled! 💭")
 }
 
 func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
@@ -383,7 +419,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry.Metadata.Draft {
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		s.redirectWithStatus(w, entry.ID+" updated successfullyl! ⚡️")
 		return
 	}
 
@@ -440,7 +476,7 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entry.Metadata.Draft {
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		s.redirectWithStatus(w, entry.ID+" updated successfullyl! ⚡️")
 	} else {
 		http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
 	}

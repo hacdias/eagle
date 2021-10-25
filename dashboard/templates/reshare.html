@@ -14,8 +14,6 @@
       <input required name=url type=text placeholder='URL...' {{ with .ID }}value="{{ . }}" readonly{{ end }} />
       <button>Send</button>
     </form>
-  {{ else if .Content }}
-    <p id=message>{{ .Content }}</p>
   {{ else }}
     <p>Easy resharing of Webmentions in case they previously failed or did not reach the target.</p>
 

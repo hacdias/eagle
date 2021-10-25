@@ -1,0 +1,15 @@
+{{ define "main" }}
+  <p id=message>{{ .Content }}</p>
+
+  <p>Click <a href="/">here</a> if it does not redirect...</p>
+  
+  <script>
+  setTimeout(() => {
+    window.location = '/'
+  }, 1000)
+  </script>
+{{ end }}
+
+{{ define "title" }}Status{{ end }}
+
+{{ template "base" . }}
