@@ -1,8 +1,6 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/url"
 	"path/filepath"
 
@@ -68,9 +66,6 @@ func Parse() (*Config, error) {
 	domain.Path = ""
 	conf.Domain = domain.String()
 
-	d, _ := json.MarshalIndent(conf, "", "  ")
-
-	fmt.Println(string(d))
 	return conf, nil
 }
 
