@@ -166,24 +166,22 @@ func (s *Server) Start() error {
 	go s.startServer(dr, ln, errCh)
 
 	// Collect errors in the end
-	var multierr *multierror.Error
+	var errs *multierror.Error
 	for i := 0; i < len(s.servers); i++ {
-		multierror.Append(multierr, <-errCh)
+		errs = multierror.Append(errs, <-errCh)
 	}
-	return multierr.ErrorOrNil()
+	return errs.ErrorOrNil()
 }
 
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var err *multierror.Error
-
+	var errs *multierror.Error
 	for _, s := range s.servers {
-		multierror.Append(err, s.Shutdown(ctx))
+		errs = multierror.Append(errs, s.Shutdown(ctx))
 	}
-
-	return err.ErrorOrNil()
+	return errs.ErrorOrNil()
 }
 
 func (s *Server) publicDirWorker() {
