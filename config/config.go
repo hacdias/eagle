@@ -1,6 +1,8 @@
 package config
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/url"
 	"path/filepath"
 
@@ -8,21 +10,20 @@ import (
 )
 
 type Config struct {
-	Port         int
-	PortAdmin    int
-	Domain       string
-	Development  bool
-	Telegraph    Telegraph
-	XRay         XRay
-	Hugo         Hugo
-	Twitter      *Twitter
-	Telegram     Telegram
-	BunnyCDN     BunnyCDN
-	WebmentionIO WebmentionIO
-	Webhook      Webhook
-	MeiliSearch  *MeiliSearch
-	Auth         Auth
-	Miniflux     *Miniflux
+	Port        int
+	PortAdmin   int
+	Domain      string
+	Development bool
+	XRay        XRay
+	Hugo        Hugo
+	Twitter     *Twitter
+	Telegram    Telegram
+	BunnyCDN    BunnyCDN
+	Webmentions Webmentions
+	Webhook     Webhook
+	MeiliSearch *MeiliSearch
+	Auth        Auth
+	Miniflux    *Miniflux
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -63,6 +64,10 @@ func Parse() (*Config, error) {
 
 	domain.Path = ""
 	conf.Domain = domain.String()
+
+	d, _ := json.MarshalIndent(conf, "", "  ")
+
+	fmt.Println(string(d))
 	return conf, nil
 }
 
@@ -85,8 +90,9 @@ type BunnyCDN struct {
 	Base string
 }
 
-type WebmentionIO struct {
-	Secret string
+type Webmentions struct {
+	TelegraphToken string
+	Secret         string
 }
 
 type Webhook struct {
@@ -96,10 +102,6 @@ type Webhook struct {
 type Hugo struct {
 	Source      string
 	Destination string
-}
-
-type Telegraph struct {
-	Token string
 }
 
 type XRay struct {

@@ -33,12 +33,12 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	})
 
 	webmentions := &Webmentions{
-		log:       logging.S().Named("webmentions"),
-		domain:    conf.Domain,
-		telegraph: conf.Telegraph,
-		media:     &Media{conf.BunnyCDN},
-		notify:    notifications,
-		store:     storage.Sub("content"),
+		log:            logging.S().Named("webmentions"),
+		domain:         conf.Domain,
+		telegraphToken: conf.Webmentions.TelegraphToken,
+		media:          &Media{conf.BunnyCDN},
+		notify:         notifications,
+		store:          storage.Sub("content"),
 	}
 
 	var (

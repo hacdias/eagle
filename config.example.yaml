@@ -1,40 +1,51 @@
+development: false
+
 port: 8080
 portAdmin: 8081
 
 domain: "http://localhost:8080"
-development: false
 
-telegraph:
-  token:
+webmentions:
+  # https://telegraph.p3k.io/ token to send webmentions
+  telegraphToken:
+  # https://webmention.io/ secret to receive webmentions
+  secret:
+
 xray:
   endpoint:
+
 hugo:
   source:
   destination:
+
 twitter:
   user:
   key:
   secret:
   token:
   token_secret:
+
 telegram:
   token:
   chat_id:
+
 bunnycdn:
   zone:
   key:
   base:
-webmentionio:
-  secret:
+
 webhook:
   secret:
+
 auth:
   username:
   password:
   secret:
+
 meilisearch:
   key:
   endpoint: "http://localhost:7700"
+
 miniflux:
   endpoint:
   key:
