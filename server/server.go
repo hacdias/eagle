@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -25,18 +26,19 @@ import (
 )
 
 type Server struct {
-	//sync.Mutex
-
 	*zap.SugaredLogger
 
-	c      *config.Config
-	e      *eagle.Eagle
-	server *http.Server
-	token  *jwtauth.JWTAuth
+	c *config.Config
+	e *eagle.Eagle
 
-	adminServer    *http.Server
-	adminTemplates map[string]*template.Template
+	serversMu sync.Mutex
+	servers   []*http.Server
 
+	// Dashboard-specific variables.
+	token     *jwtauth.JWTAuth
+	templates map[string]*template.Template
+
+	// Website-specific variables.
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
 }
@@ -52,13 +54,10 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 		token:         token,
 	}
 
-	s.buildRouter()
-	s.buildAdminRouter()
-
 	return s, nil
 }
 
-func (s *Server) buildRouter() {
+func (s *Server) makeWebsiteServer() http.Handler {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 	r.Use(s.headers)
@@ -71,13 +70,10 @@ func (s *Server) buildRouter() {
 	r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
 	r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
 
-	s.server = &http.Server{
-		Addr:    ":" + strconv.Itoa(s.c.Port),
-		Handler: r,
-	}
+	return r
 }
 
-func (s *Server) buildAdminRouter() {
+func (s *Server) makeDashboardHandler() http.Handler {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 	r.Use(s.headers)
@@ -115,10 +111,23 @@ func (s *Server) buildAdminRouter() {
 	r.Post("/login", s.loginPostHandler)
 	r.Get("/*", httpdir.ServeHTTP)
 
-	s.adminServer = &http.Server{
-		Addr:    ":" + strconv.Itoa(s.c.PortAdmin),
-		Handler: r,
-	}
+	return r
+}
+
+func (s *Server) startServer(h http.Handler, ln net.Listener, errCh chan error) {
+	srv := &http.Server{Handler: h}
+
+	s.serversMu.Lock()
+	s.servers = append(s.servers, srv)
+	s.serversMu.Unlock()
+
+	s.Infof("Listening on %s", ln.Addr().String())
+	errCh <- srv.Serve(ln)
+}
+
+func (s *Server) getTcpListener(port int) (net.Listener, error) {
+	addr := ":" + strconv.Itoa(port)
+	return net.Listen("tcp", addr)
 }
 
 func (s *Server) Start() error {
@@ -138,34 +147,41 @@ func (s *Server) Start() error {
 		}
 	}
 
-	errCh := make(chan error, 2)
+	errCh := make(chan error)
 
-	go func() {
-		s.Infof("Website listening on http://localhost:%d", s.c.Port)
-		err := s.server.ListenAndServe()
-		errCh <- err
-	}()
+	// Start Website Server
+	wr := s.makeWebsiteServer()
+	ln, err := s.getTcpListener(s.c.WebsitePort)
+	if err != nil {
+		return err
+	}
+	go s.startServer(wr, ln, errCh)
 
-	go func() {
-		s.Infof("Admin listening on http://localhost:%d", s.c.PortAdmin)
-		err := s.adminServer.ListenAndServe()
-		errCh <- err
-	}()
+	// Start Dashboard Server
+	dr := s.makeDashboardHandler()
+	ln, err = s.getTcpListener(s.c.DashboardPort)
+	if err != nil {
+		return err
+	}
+	go s.startServer(dr, ln, errCh)
 
-	err1 := <-errCh
-	err2 := <-errCh
-
-	return multierror.Append(err1, err2).ErrorOrNil()
+	// Collect errors in the end
+	var errs *multierror.Error
+	for i := 0; i < len(s.servers); i++ {
+		errs = multierror.Append(errs, <-errCh)
+	}
+	return errs.ErrorOrNil()
 }
 
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var err *multierror.Error
-	err = multierror.Append(err, s.server.Shutdown(ctx))
-	err = multierror.Append(err, s.adminServer.Shutdown(ctx))
-	return err.ErrorOrNil()
+	var errs *multierror.Error
+	for _, s := range s.servers {
+		errs = multierror.Append(errs, s.Shutdown(ctx))
+	}
+	return errs.ErrorOrNil()
 }
 
 func (s *Server) publicDirWorker() {

@@ -548,7 +548,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "jwt",
 		Value:    string(signed),
 		Expires:  expiration,
-		Secure:   !s.c.Development,
+		Secure:   !s.c.Development, // TODO: fix this.
 		HttpOnly: true,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
@@ -567,7 +567,7 @@ func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "jwt",
 		Value:    "",
 		MaxAge:   0,
-		Secure:   !s.c.Development,
+		Secure:   !s.c.Development, // TODO: fix this.
 		Path:     "/",
 		HttpOnly: true,
 	}

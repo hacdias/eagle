@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
@@ -59,12 +58,12 @@ type WebmentionContent struct {
 type Webmentions struct {
 	sync.Mutex
 
-	domain    string
-	telegraph config.Telegraph
-	media     *Media
-	notify    *Notifications
-	store     *Storage
-	log       *zap.SugaredLogger
+	domain         string
+	telegraphToken string
+	media          *Media
+	notify         *Notifications
+	store          *Storage
+	log            *zap.SugaredLogger
 }
 
 func (w *Webmentions) SendWebmention(source string, targets ...string) error {
@@ -73,7 +72,7 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 	for _, target := range targets {
 		func() {
 			data := url.Values{}
-			data.Set("token", w.telegraph.Token)
+			data.Set("token", w.telegraphToken)
 			data.Set("source", source)
 			data.Set("target", target)
 

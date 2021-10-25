@@ -58,8 +58,8 @@ type readDirFileFS interface {
 }
 
 func (s *Server) getTemplates() (map[string]*template.Template, error) {
-	if s.adminTemplates != nil {
-		return s.adminTemplates, nil
+	if s.templates != nil {
+		return s.templates, nil
 	}
 
 	var fs readDirFileFS
@@ -105,7 +105,7 @@ func (s *Server) getTemplates() (map[string]*template.Template, error) {
 	}
 
 	if !s.c.Development {
-		s.adminTemplates = parsed
+		s.templates = parsed
 	}
 
 	return parsed, err

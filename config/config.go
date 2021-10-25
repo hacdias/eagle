@@ -8,21 +8,23 @@ import (
 )
 
 type Config struct {
-	Port         int
-	PortAdmin    int
-	Domain       string
-	Development  bool
-	Telegraph    Telegraph
-	XRay         XRay
-	Hugo         Hugo
-	Twitter      *Twitter
-	Telegram     Telegram
-	BunnyCDN     BunnyCDN
-	WebmentionIO WebmentionIO
-	Webhook      Webhook
-	MeiliSearch  *MeiliSearch
-	Auth         Auth
-	Miniflux     *Miniflux
+	Development bool
+	Domain      string
+
+	WebsitePort   int
+	DashboardPort int
+	Auth          Auth // TODO: make optional
+
+	Webmentions Webmentions
+	Webhook     Webhook
+	Hugo        Hugo
+	XRay        XRay
+	Telegram    Telegram
+	BunnyCDN    BunnyCDN
+
+	Twitter     *Twitter
+	Miniflux    *Miniflux // TODO: make sure optionallity handled correctly
+	MeiliSearch *MeiliSearch
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -31,8 +33,8 @@ func Parse() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("port", 8080)
-	viper.SetDefault("portAdmin", 8081)
+	viper.SetDefault("websitePort", 8080)
+	viper.SetDefault("dashboardPort", 8081)
 	viper.SetDefault("domain", "http://localhost:8080")
 
 	err := viper.ReadInConfig()
@@ -63,30 +65,19 @@ func Parse() (*Config, error) {
 
 	domain.Path = ""
 	conf.Domain = domain.String()
+
 	return conf, nil
 }
 
-type Twitter struct {
-	User        string
-	Key         string
-	Secret      string
-	Token       string
-	TokenSecret string `mapstructure:"token_secret"`
+type Auth struct {
+	Username string
+	Password string
+	Secret   string
 }
 
-type Telegram struct {
-	Token  string
-	ChatID int64 `mapstructure:"chat_id"`
-}
-
-type BunnyCDN struct {
-	Zone string
-	Key  string
-	Base string
-}
-
-type WebmentionIO struct {
-	Secret string
+type Webmentions struct {
+	TelegraphToken string
+	Secret         string
 }
 
 type Webhook struct {
@@ -98,26 +89,34 @@ type Hugo struct {
 	Destination string
 }
 
-type Telegraph struct {
-	Token string
-}
-
 type XRay struct {
 	Endpoint string
 }
+type Telegram struct {
+	Token  string
+	ChatID int64
+}
 
-type MeiliSearch struct {
+type BunnyCDN struct {
+	Zone string
+	Key  string
+	Base string
+}
+
+type Twitter struct {
+	User        string
+	Key         string
+	Secret      string
+	Token       string
+	TokenSecret string
+}
+
+type Miniflux struct {
 	Endpoint string
 	Key      string
 }
 
-type Auth struct {
-	Username string
-	Password string
-	Secret   string
-}
-
-type Miniflux struct {
+type MeiliSearch struct {
 	Endpoint string
 	Key      string
 }
