@@ -29,10 +29,6 @@ type Config struct {
 	MeiliSearch *MeiliSearch
 }
 
-type Server struct {
-	Port int
-}
-
 // Parse parses the configuration from the default files and paths.
 func Parse() (*Config, error) {
 	viper.SetConfigName("config")
@@ -78,23 +74,14 @@ func Parse() (*Config, error) {
 	return conf, nil
 }
 
-type Twitter struct {
-	User        string
-	Key         string
-	Secret      string
-	Token       string
-	TokenSecret string
+type Server struct {
+	Port int
 }
 
-type Telegram struct {
-	Token  string
-	ChatID int64
-}
-
-type BunnyCDN struct {
-	Zone string
-	Key  string
-	Base string
+type Auth struct {
+	Username string
+	Password string
+	Secret   string
 }
 
 type Webmentions struct {
@@ -114,19 +101,31 @@ type Hugo struct {
 type XRay struct {
 	Endpoint string
 }
+type Telegram struct {
+	Token  string
+	ChatID int64
+}
 
-type MeiliSearch struct {
+type BunnyCDN struct {
+	Zone string
+	Key  string
+	Base string
+}
+
+type Twitter struct {
+	User        string
+	Key         string
+	Secret      string
+	Token       string
+	TokenSecret string
+}
+
+type Miniflux struct {
 	Endpoint string
 	Key      string
 }
 
-type Auth struct {
-	Username string
-	Password string
-	Secret   string
-}
-
-type Miniflux struct {
+type MeiliSearch struct {
 	Endpoint string
 	Key      string
 }
