@@ -151,7 +151,7 @@ func (s *Server) Start() error {
 
 	// Start Website Server
 	wr := s.makeWebsiteServer()
-	ln, err := s.getTcpListener(s.c.Website.Port)
+	ln, err := s.getTcpListener(s.c.WebsitePort)
 	if err != nil {
 		return err
 	}
@@ -159,20 +159,11 @@ func (s *Server) Start() error {
 
 	// Start Dashboard Server
 	dr := s.makeDashboardHandler()
-	if s.c.Dashboard.Port > 0 {
-		ln, err := s.getTcpListener(s.c.Dashboard.Port)
-		if err != nil {
-			return err
-		}
-		go s.startServer(dr, ln, errCh)
+	ln, err = s.getTcpListener(s.c.DashboardPort)
+	if err != nil {
+		return err
 	}
-	if s.c.Dashboard.Tailscale != nil {
-		ln, err := s.getTailscaleListener(s.c.Dashboard.Tailscale)
-		if err != nil {
-			return err
-		}
-		go s.startServer(dr, ln, errCh)
-	}
+	go s.startServer(dr, ln, errCh)
 
 	// Collect errors in the end
 	var multierr *multierror.Error
