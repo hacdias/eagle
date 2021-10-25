@@ -15,8 +15,9 @@ import (
 
 type dashboardData struct {
 	// Common To All Pages
-	HasAuth bool
-	IsLogin bool
+	HasAuth  bool
+	IsLogin  bool
+	BasePath string
 
 	// Cleanup
 	Content string
@@ -41,6 +42,7 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 	}
 
 	data.HasAuth = s.c.Auth != nil
+	data.BasePath = dashboardPath
 
 	var buf bytes.Buffer
 	err = tpls[tpl].ExecuteTemplate(&buf, tpl, data)

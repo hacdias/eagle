@@ -23,27 +23,27 @@
       <button>Build Index</button>
     </form>
 
-    <a class="nl" href="/blogroll">
+    <a class="nl" href="{{ .BasePath }}/blogroll">
       <button>Blogroll</button>
     </a>
 
-    <a class="nl" href="/new">
+    <a class="nl" href="{{ .BasePath }}/new">
       <button>New</button>
     </a>
 
-    <a class="nl" href="/reply">
+    <a class="nl" href="{{ .BasePath }}/reply">
       <button>Reply</button>
     </a>
 
-    <a class="nl" href="/edit">
+    <a class="nl" href="{{ .BasePath }}/edit">
       <button>Edit</button>
     </a>
 
-    <a class="nl" href="/delete">
+    <a class="nl" href="{{ .BasePath }}/delete">
       <button>Delete</button>
     </a>
 
-    <a class="nl" href="/reshare">
+    <a class="nl" href="{{ .BasePath }}/reshare">
       <button>ReShare</button>
     </a>
   </div>
@@ -78,10 +78,10 @@
         </td>
         <td>
           <div>
-            <a class="nl" title="Edit" href="/edit?url={{ .ID }}">✏️</a>
+            <a class="nl" title="Edit" href="{{ $.BasePath }}/edit?url={{ .ID }}">✏️</a>
             {{ if and (not .Draft) (not .Deleted) }}
-              <a class="nl" title="Delete" href="/delete?url={{ .ID }}">❌</a>
-              <a class="nl" title="ReShare" href="/reshare?url={{ .ID }}">👥</a>
+              <a class="nl" title="Delete" href="{{ $.BasePath }}/delete?url={{ .ID }}">❌</a>
+              <a class="nl" title="ReShare" href="{{ $.BasePath }}/reshare?url={{ .ID }}">👥</a>
             {{ end }}
           </div>
         </td>

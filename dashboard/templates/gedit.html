@@ -2,7 +2,7 @@
   <h2>Edit File</h2>
 
   {{ if .Content }}
-    <form method=POST action="/gedit">
+    <form method=POST action="{{ .BasePath }}/gedit">
       <input required readonly name=path id=path type=text value="{{ .ID }}" />
 
       <textarea required id=content name=content>{{ .Content }}</textarea>
@@ -12,7 +12,7 @@
       <button>Save</button>
     </form>
 
-    <script src="/js/editor.bundle.js"></script>
+    <script src="{{ .BasePath }}/js/editor.bundle.js"></script>
   {{ else }}
     <form method=GET class=inline-form>
       <input required name=path id=path type=text placeholder='File path...' />

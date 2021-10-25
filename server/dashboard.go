@@ -11,6 +11,8 @@ import (
 	"github.com/hacdias/eagle/eagle"
 )
 
+const dashboardPath = "/dashboard"
+
 func (s *Server) redirectWithStatus(w http.ResponseWriter, status string) {
 	s.renderDashboard(w, "status", &dashboardData{Content: status})
 }
@@ -43,12 +45,12 @@ func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 	if page > 0 {
 		p := r.URL.Query()
 		p.Set("p", strconv.Itoa(page-1))
-		data.PreviousPage = "/?" + p.Encode()
+		data.PreviousPage = dashboardPath + "/?" + p.Encode()
 	}
 
 	n := r.URL.Query()
 	n.Set("p", strconv.Itoa(page+1))
-	data.NextPage = "/?" + n.Encode()
+	data.NextPage = dashboardPath + "/?" + n.Encode()
 
 	s.renderDashboard(w, "root", data)
 }

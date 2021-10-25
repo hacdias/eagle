@@ -54,7 +54,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	eagle := &Eagle{
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
-			baseURL: conf.Website.BaseURL,
+			baseURL: conf.BaseURL,
 			store:   storage.Sub("content"),
 			search:  search,
 		},
