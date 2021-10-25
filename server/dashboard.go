@@ -377,7 +377,7 @@ func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, entry.ID, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
 }
 
 func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
