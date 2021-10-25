@@ -121,8 +121,10 @@ func (s *Server) startServer(h http.Handler, ln net.Listener, errCh chan error) 
 	s.servers = append(s.servers, srv)
 	s.serversMu.Unlock()
 
-	s.Infof("Listening on %s", ln.Addr().String())
-	errCh <- srv.Serve(ln)
+	go func() {
+		s.Infof("Listening on %s", ln.Addr().String())
+		errCh <- srv.Serve(ln)
+	}()
 }
 
 func (s *Server) getTcpListener(port int) (net.Listener, error) {
@@ -155,7 +157,7 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	go s.startServer(wr, ln, errCh)
+	s.startServer(wr, ln, errCh)
 
 	// Start Dashboard Server
 	dr := s.makeDashboardHandler()
@@ -163,7 +165,7 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	go s.startServer(dr, ln, errCh)
+	s.startServer(dr, ln, errCh)
 
 	// Collect errors in the end
 	var errs *multierror.Error
