@@ -21,4 +21,5 @@ require (
 	gopkg.in/tucnak/telebot.v2 v2.4.0
 	gopkg.in/yaml.v2 v2.4.0
 	miniflux.app v0.0.0-20211024044718-d6ad9a471bb9
+	tailscale.com v1.16.1
 )

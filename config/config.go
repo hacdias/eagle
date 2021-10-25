@@ -13,8 +13,8 @@ type Config struct {
 	Development bool
 	Domain      string
 
-	Website   Server
-	Dashboard Server
+	Website   Website
+	Dashboard Dashboard
 	Auth      Auth // TODO: make optional
 
 	Webmentions Webmentions
@@ -34,10 +34,6 @@ func Parse() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
-
-	viper.SetDefault("website.port", 8080)
-	viper.SetDefault("dashboard.port", 8081)
-	viper.SetDefault("domain", "http://localhost:8080")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -74,8 +70,20 @@ func Parse() (*Config, error) {
 	return conf, nil
 }
 
-type Server struct {
+type Website struct {
 	Port int
+}
+
+type Dashboard struct {
+	Port      int
+	Tailscale *Tailscale
+}
+
+type Tailscale struct {
+	Hostname string
+	Logging  bool
+	Port     int
+	AuthKey  string
 }
 
 type Auth struct {
