@@ -181,7 +181,7 @@ navbar a:last-child {
 
 #actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
   grid-gap: 1rem;
   margin: 1rem 0;
 }
