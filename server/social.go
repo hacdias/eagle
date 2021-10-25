@@ -106,9 +106,11 @@ func sanitizeReplyURL(iu string) string {
 			return iu
 		}
 
-		for k := range u.Query() {
-			u.Query().Del(k)
+		q := u.Query()
+		for k := range q {
+			q.Del(k)
 		}
+		u.RawQuery = q.Encode()
 
 		return u.String()
 	}
