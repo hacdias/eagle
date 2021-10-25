@@ -256,7 +256,9 @@ func (m *EntryManager) DeleteEntry(entry *Entry) error {
 	entry.Metadata.ExpiryDate = time.Now()
 
 	if m.search != nil {
-		_ = m.search.Remove(entry)
+		// We update the search index so it knows the post is expired.
+		// Only remove posts that actually do not exist in disk.
+		_ = m.search.Add(entry)
 	}
 
 	return m.SaveEntry(entry)
