@@ -10,9 +10,10 @@ import (
 type Config struct {
 	Development bool
 
-	Port    int
-	BaseURL string
-	Auth    *Auth
+	Port      int
+	BaseURL   string
+	Auth      *Auth
+	Tailscale *Tailscale
 
 	Webmentions Webmentions
 	Webhook     Webhook
@@ -78,6 +79,14 @@ type Auth struct {
 	Username string
 	Password string
 	Secret   string
+}
+
+type Tailscale struct {
+	DashboardOnly bool
+	Hostname      string
+	Logging       bool
+	Port          int
+	AuthKey       string
 }
 
 type Webmentions struct {

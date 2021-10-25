@@ -9,16 +9,17 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (s *Server) makeRouter() http.Handler {
+func (s *Server) makeRouter(withoutDashboard bool) http.Handler {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 	r.Use(s.headers)
 
-	if s.c.Auth != nil {
-		r.Use(jwtauth.Verifier(s.token))
+	if !withoutDashboard {
+		if s.c.Auth != nil {
+			r.Use(jwtauth.Verifier(s.token))
+		}
+		r.Use(s.isAuthenticated)
 	}
-
-	r.Use(s.isAuthenticated)
 
 	r.Get("/search.json", s.searchHandler)
 	r.Post("/webhook", s.webhookHandler)
@@ -27,6 +28,10 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/*", s.staticHandler)
 	r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
 	r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
+
+	if withoutDashboard {
+		return r
+	}
 
 	r.Route(dashboardPath, func(r chi.Router) {
 		fs := http.FS(static.FS)

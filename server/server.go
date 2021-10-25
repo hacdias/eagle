@@ -54,7 +54,7 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) startServer(h http.Handler, port int, errCh chan error) error {
+func (s *Server) startTcpServer(h http.Handler, port int, errCh chan error) error {
 	srv := &http.Server{Handler: h}
 
 	addr := ":" + strconv.Itoa(port)
@@ -66,6 +66,23 @@ func (s *Server) startServer(h http.Handler, port int, errCh chan error) error {
 
 	go func() {
 		s.Infof("Listening on %s", ln.Addr().String())
+		errCh <- srv.Serve(ln)
+	}()
+
+	return nil
+}
+
+func (s *Server) startTailscaleServer(h http.Handler, errCh chan error) error {
+	srv := &http.Server{Handler: h}
+
+	ln, err := s.getTailscaleListener(s.c.Tailscale)
+	if err != nil {
+		return err
+	}
+	s.servers = append(s.servers, srv)
+
+	go func() {
+		s.Infof("Listening on Tailscale %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)
 	}()
 
@@ -92,7 +109,17 @@ func (s *Server) Start() error {
 	errCh := make(chan error)
 
 	// Start server.
-	err = s.startServer(s.makeRouter(), s.c.Port, errCh)
+	disableDashboard := false
+
+	if s.c.Tailscale != nil {
+		err = s.startTailscaleServer(s.makeRouter(false), errCh)
+		if err != nil {
+			return err
+		}
+		disableDashboard = s.c.Tailscale.DashboardOnly
+	}
+
+	err = s.startTcpServer(s.makeRouter(disableDashboard), s.c.Port, errCh)
 	if err != nil {
 		return err
 	}
