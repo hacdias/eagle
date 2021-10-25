@@ -9,11 +9,10 @@ import (
 
 type Config struct {
 	Development bool
-	Domain      string
 
-	WebsitePort   int
-	DashboardPort int
-	Auth          *Auth
+	Website   Server
+	Dashboard Server
+	Auth      *Auth
 
 	Webmentions Webmentions
 	Webhook     Webhook
@@ -33,9 +32,11 @@ func Parse() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("websitePort", 8080)
-	viper.SetDefault("dashboardPort", 8081)
-	viper.SetDefault("domain", "http://localhost:8080")
+	viper.SetDefault("website.port", 8080)
+	viper.SetDefault("website.baseUrl", "http://localhost:8080")
+
+	viper.SetDefault("dashboard.port", 8081)
+	viper.SetDefault("dashboard.baseUrl", "http://localhost:8081")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -48,7 +49,12 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	domain, err := url.Parse(conf.Domain)
+	conf.Website.BaseURL, err = validateBaseURL(conf.Website.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	conf.Dashboard.BaseURL, err = validateBaseURL(conf.Dashboard.BaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -63,10 +69,27 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	domain.Path = ""
-	conf.Domain = domain.String()
-
 	return conf, nil
+}
+
+func validateBaseURL(s string) (string, error) {
+	baseUrl, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+
+	baseUrl.Path = ""
+	return baseUrl.String(), nil
+}
+
+type Server struct {
+	Port    int
+	BaseURL string
+}
+
+func (s *Server) IsHTTPS() bool {
+	u, _ := url.Parse(s.BaseURL)
+	return u.Scheme == "https"
 }
 
 type Auth struct {

@@ -146,9 +146,9 @@ type SearchQuery struct {
 type EntryManager struct {
 	sync.RWMutex
 
-	search SearchIndex
-	store  *Storage
-	domain string
+	search  SearchIndex
+	store   *Storage
+	baseURL string
 }
 
 func (m *EntryManager) GetEntry(id string) (*Entry, error) {
@@ -349,7 +349,7 @@ func (m *EntryManager) guessPath(id string) (string, error) {
 }
 
 func (m *EntryManager) makePermalink(id string) (string, error) {
-	u, err := url.Parse(m.domain)
+	u, err := url.Parse(m.baseURL)
 	if err != nil {
 		return "", err
 	}

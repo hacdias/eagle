@@ -34,11 +34,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	webmentions := &Webmentions{
 		log:            logging.S().Named("webmentions"),
-		domain:         conf.Domain,
-		telegraphToken: conf.Webmentions.TelegraphToken,
 		media:          &Media{conf.BunnyCDN},
 		notify:         notifications,
 		store:          storage.Sub("content"),
+		telegraphToken: conf.Webmentions.TelegraphToken,
 	}
 
 	var (
@@ -55,9 +54,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	eagle := &Eagle{
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
-			domain: conf.Domain,
-			store:  storage.Sub("content"),
-			search: search,
+			baseURL: conf.Website.BaseURL,
+			store:   storage.Sub("content"),
+			search:  search,
 		},
 		Notifications: notifications,
 		Hugo: &Hugo{

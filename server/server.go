@@ -54,10 +54,10 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) startServer(h http.Handler, port int, errCh chan error) error {
+func (s *Server) startServer(h http.Handler, c config.Server, errCh chan error) error {
 	srv := &http.Server{Handler: h}
 
-	addr := ":" + strconv.Itoa(port)
+	addr := ":" + strconv.Itoa(c.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -65,7 +65,7 @@ func (s *Server) startServer(h http.Handler, port int, errCh chan error) error {
 	s.servers = append(s.servers, srv)
 
 	go func() {
-		s.Infof("Listening on %s", ln.Addr().String())
+		s.Infof("Listening on %s", c.BaseURL)
 		errCh <- srv.Serve(ln)
 	}()
 
@@ -92,13 +92,13 @@ func (s *Server) Start() error {
 	errCh := make(chan error)
 
 	// Start website server.
-	err = s.startServer(s.makeWebsiteHandler(), s.c.WebsitePort, errCh)
+	err = s.startServer(s.makeWebsiteHandler(), s.c.Website, errCh)
 	if err != nil {
 		return err
 	}
 
 	// Start dashboard server.
-	err = s.startServer(s.makeDashboardHandler(), s.c.DashboardPort, errCh)
+	err = s.startServer(s.makeDashboardHandler(), s.c.Dashboard, errCh)
 	if err != nil {
 		return err
 	}

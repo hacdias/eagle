@@ -1,7 +1,10 @@
 development: false
-domain: "http://localhost:8080"
-websitePort: 8080
-dashboardPort: 8081
+website:
+  port: 8080
+  domain: "http://localhost:8080"
+dashboard:
+  port: 8081
+  domain: "http://localhost:8081"
 auth:
   username:
   password:

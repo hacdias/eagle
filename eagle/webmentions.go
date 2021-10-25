@@ -58,7 +58,6 @@ type WebmentionContent struct {
 type Webmentions struct {
 	sync.Mutex
 
-	domain         string
 	telegraphToken string
 	media          *Media
 	notify         *Notifications
