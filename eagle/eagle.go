@@ -70,7 +70,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Storage: storage,
 		Crawler: &Crawler{
 			xray:    conf.XRay,
-			twitter: *conf.Twitter,
+			twitter: conf.Twitter,
 		},
 		Webmentions: webmentions,
 	}

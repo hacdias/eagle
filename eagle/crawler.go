@@ -16,14 +16,14 @@ import (
 
 type Crawler struct {
 	xray    config.XRay
-	twitter config.Twitter
+	twitter *config.Twitter
 }
 
 func (c *Crawler) Crawl(u string) (*EmbeddedEntry, error) {
 	data := url.Values{}
 	data.Set("url", u)
 
-	if strings.Contains(u, "twitter.com") {
+	if strings.Contains(u, "twitter.com") && c.twitter != nil {
 		data.Set("twitter_api_key", c.twitter.Key)
 		data.Set("twitter_api_secret", c.twitter.Secret)
 		data.Set("twitter_access_token", c.twitter.Token)
