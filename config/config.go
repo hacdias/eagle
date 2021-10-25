@@ -23,7 +23,7 @@ type Config struct {
 	BunnyCDN    BunnyCDN
 
 	Twitter     *Twitter
-	Miniflux    *Miniflux // TODO: make sure optionallity handled correctly
+	Miniflux    *Miniflux
 	MeiliSearch *MeiliSearch
 }
 

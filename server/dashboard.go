@@ -201,6 +201,11 @@ func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) blogrollGetHandler(w http.ResponseWriter, r *http.Request) {
+	if s.e.Miniflux == nil {
+		s.dashboardError(w, r, errors.New("miniflux integration is disabled"))
+		return
+	}
+
 	feeds, err := s.e.Miniflux.Fetch()
 	if err != nil {
 		s.dashboardError(w, r, err)
