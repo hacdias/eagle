@@ -91,14 +91,8 @@ func (s *Server) Start() error {
 
 	errCh := make(chan error)
 
-	// Start website server.
-	err = s.startServer(s.makeWebsiteHandler(), s.c.Website.Port, errCh)
-	if err != nil {
-		return err
-	}
-
-	// Start dashboard server.
-	err = s.startServer(s.makeDashboardHandler(), s.c.Dashboard.Port, errCh)
+	// Start server.
+	err = s.startServer(s.makeRouter(), s.c.Port, errCh)
 	if err != nil {
 		return err
 	}

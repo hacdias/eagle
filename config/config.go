@@ -10,9 +10,9 @@ import (
 type Config struct {
 	Development bool
 
-	Website   Website
-	Dashboard Dashboard
-	Auth      *Auth
+	Port    int
+	BaseURL string
+	Auth    *Auth
 
 	Webmentions Webmentions
 	Webhook     Webhook
@@ -32,9 +32,8 @@ func Parse() (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
-	viper.SetDefault("website.port", 8080)
-	viper.SetDefault("website.baseUrl", "http://localhost:8080")
-	viper.SetDefault("dashboard.port", 8081)
+	viper.SetDefault("port", 8080)
+	viper.SetDefault("baseUrl", "http://localhost:8080")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -47,7 +46,7 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	conf.Website.BaseURL, err = validateBaseURL(conf.Website.BaseURL)
+	conf.BaseURL, err = validateBaseURL(conf.BaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -73,15 +72,6 @@ func validateBaseURL(s string) (string, error) {
 
 	baseUrl.Path = ""
 	return baseUrl.String(), nil
-}
-
-type Website struct {
-	Port    int
-	BaseURL string
-}
-
-type Dashboard struct {
-	Port int
 }
 
 type Auth struct {

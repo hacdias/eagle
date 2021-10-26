@@ -6,17 +6,17 @@
     <meta http-equiv=x-ua-compatible content="IE=edge">
     <meta name=viewport content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#2980b9">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="{{ .BasePath }}/favicon.ico">
 
     <title>{{ template "title" . }}</title>
-    <link rel=stylesheet href=/css/normalize.css>
-    <link rel=stylesheet href=/css/styles.css>
+    <link rel="stylesheet" href="{{ .BasePath }}/css/normalize.css">
+    <link rel="stylesheet" href="{{ .BasePath }}/css/styles.css">
   </head>
   <body>
     {{ if not .IsLogin }}
     <navbar>
       <ul>
-        <li><a href="/" id="eagle">Eagle</a></li>
+        <li><a href="{{ .BasePath }}/" id="eagle">Eagle</a></li>
         <li>{{ if .HasAuth }}<a href="/logout">Logout</a>{{ end }}</li>
       </ul>
     </navbar>
@@ -28,7 +28,7 @@
 {{ end }}
 
 {{ define "new-form" }}
-<form method=POST action="/new">
+<form method=POST action="{{ .BasePath }}/new">
   <input required name=id id=id type=text value="{{ .ID }}" />
   <textarea required id=content name=content>{{ .Content }}</textarea>
   <div id="editor"></div>
@@ -43,5 +43,5 @@
   <button>Create</button>
 </form>
 
-<script src="/js/editor.bundle.js"></script>
+<script src="{{ .BasePath }}/js/editor.bundle.js"></script>
 {{ end }}

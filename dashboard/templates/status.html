@@ -1,11 +1,11 @@
 {{ define "main" }}
   <p id=message>{{ .Content }}</p>
 
-  <p>Click <a href="/">here</a> if it does not redirect...</p>
+  <p>Click <a href="{{ .BasePath }}/">here</a> if it does not redirect...</p>
   
   <script>
   setTimeout(() => {
-    window.location = '/'
+    window.location = '{{ .BasePath }}/'
   }, 1000)
   </script>
 {{ end }}
