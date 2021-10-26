@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/dashboard/static"
 	"github.com/spf13/afero"
