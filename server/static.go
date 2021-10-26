@@ -38,6 +38,8 @@ func (s *staticFs) readHTML(filepath string) ([]byte, error) {
 	return afero.ReadFile(s, filepath)
 }
 
+// notFoundResponseWriter wraps a Response Writer to capture 404 requests.
+// In case it is a 404 request, then we do not write the body.
 type notFoundResponseWriter struct {
 	http.ResponseWriter
 	status int
@@ -57,6 +59,8 @@ func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
 	return len(p), nil // Lie that we successfully written it
 }
 
+// neuteredFs is a file system that returns 404 when a directory contains no index.html
+// to prevent http.FileServer to render a listing of the directory.
 type neuteredFs struct {
 	http.FileSystem
 }
