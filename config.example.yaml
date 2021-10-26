@@ -6,9 +6,9 @@ auth:
   password:
   secret:
 tailscale:
-  # If dashboardOnly is true, the dashboard will be disabled on the public
+  # If exclusiveDashboard is true, the dashboard will be disabled on the public
   # website and only accessible through the Tailscale network.
-  dashboardOnly: false
+  exclusiveDashboard: false
   # The hostname you want to use for the "device" in your Tailscale network.
   hostname: eagle
   # The Tailscale logging is pretty intensive. Recommend it on true only for

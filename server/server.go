@@ -114,7 +114,7 @@ func (s *Server) startRegularServer(errCh chan error) error {
 
 	noDashboard := false
 	if s.c.Tailscale != nil {
-		noDashboard = s.c.Tailscale.DashboardOnly
+		noDashboard = s.c.Tailscale.ExclusiveDashboard
 	}
 
 	router := s.makeRouter(noDashboard)

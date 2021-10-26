@@ -82,11 +82,11 @@ type Auth struct {
 }
 
 type Tailscale struct {
-	DashboardOnly bool
-	Hostname      string
-	Logging       bool
-	Port          int
-	AuthKey       string
+	ExclusiveDashboard bool
+	Hostname           string
+	Logging            bool
+	Port               int
+	AuthKey            string
 }
 
 type Webmentions struct {
