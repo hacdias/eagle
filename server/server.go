@@ -118,7 +118,7 @@ func (s *Server) startRegularServer(errCh chan error) error {
 	}
 
 	router := s.makeRouter(noDashboard)
-	s.startServer(router, ln, errCh)
+	s.startServer(router, ln, "public", errCh)
 	return nil
 }
 
@@ -129,16 +129,16 @@ func (s *Server) startTailscaleServer(errCh chan error) error {
 	}
 
 	router := s.makeRouter(false)
-	s.startServer(router, ln, errCh)
+	s.startServer(router, ln, "tailscale", errCh)
 	return nil
 }
 
-func (s *Server) startServer(h http.Handler, ln net.Listener, errCh chan error) {
+func (s *Server) startServer(h http.Handler, ln net.Listener, name string, errCh chan error) {
 	srv := &http.Server{Handler: h}
 	s.servers = append(s.servers, srv)
 
 	go func() {
-		s.Infof("Listening on Tailscale %s", ln.Addr().String())
+		s.Infof("Listening (%s) on %s", name, ln.Addr().String())
 		errCh <- srv.Serve(ln)
 	}()
 }
