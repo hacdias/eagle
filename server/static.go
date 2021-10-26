@@ -30,14 +30,6 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *staticFs) readHTML(filepath string) ([]byte, error) {
-	if !strings.HasSuffix(filepath, ".html") {
-		filepath = path.Join(filepath, "index.html")
-	}
-
-	return afero.ReadFile(s, filepath)
-}
-
 // notFoundResponseWriter wraps a Response Writer to capture 404 requests.
 // In case it is a 404 request, then we do not write the body.
 type notFoundResponseWriter struct {
@@ -106,4 +98,12 @@ func newStaticFs(dir string) *staticFs {
 		Fs:      fs,
 		Handler: handler,
 	}
+}
+
+func (s *staticFs) readHTML(filepath string) ([]byte, error) {
+	if !strings.HasSuffix(filepath, ".html") {
+		filepath = path.Join(filepath, "index.html")
+	}
+
+	return afero.ReadFile(s, filepath)
 }

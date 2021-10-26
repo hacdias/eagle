@@ -79,31 +79,31 @@ func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
+func (s *Server) isAuthenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var isAuthd bool
+
+		if s.c.Auth != nil {
+			token, _, err := jwtauth.FromContext(r.Context())
+			isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil)
+		} else {
+			isAuthd = true
+		}
+
+		ctx := context.WithValue(r.Context(), &authContextKey, isAuthd)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (s *Server) mustAuthenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authenticated := r.Context().Value(&authContextKey).(bool)
-		if !authenticated {
+		isAuthd := r.Context().Value(&authContextKey).(bool)
+		if !isAuthd {
 			newPath := "/login?redirect=" + url.PathEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
 			return
 		}
 
 		next.ServeHTTP(w, r)
-	})
-}
-
-func (s *Server) isAuthenticated(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var auth bool
-
-		if s.c.Auth != nil {
-			token, _, err := jwtauth.FromContext(r.Context())
-			auth = !(err != nil || token == nil || jwt.Validate(token) != nil)
-		} else {
-			auth = true
-		}
-
-		ctx := context.WithValue(r.Context(), &authContextKey, auth)
-		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
