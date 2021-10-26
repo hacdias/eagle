@@ -92,12 +92,12 @@ func (s *Server) getTemplates() (map[string]*template.Template, error) {
 		}
 
 		basename := filepath.Base(info.Name())
-		if basename == "base" {
-			continue
-		}
-
 		ext := filepath.Ext(basename)
 		id := strings.TrimSuffix(basename, ext)
+
+		if ext != ".html" || id == "base" {
+			continue
+		}
 
 		raw, err := fs.ReadFile(info.Name())
 		if err != nil {
