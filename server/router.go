@@ -9,15 +9,16 @@ import (
 	"github.com/spf13/afero"
 )
 
-func (s *Server) makeRouter(withoutDashboard bool) http.Handler {
+func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r := chi.NewRouter()
 	r.Use(s.recoverer)
 	r.Use(s.headers)
 
-	if !withoutDashboard {
+	if !noDashboard {
 		if s.c.Auth != nil {
 			r.Use(jwtauth.Verifier(s.token))
 		}
+
 		r.Use(s.isAuthenticated)
 	}
 
@@ -29,7 +30,7 @@ func (s *Server) makeRouter(withoutDashboard bool) http.Handler {
 	r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
 	r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
 
-	if withoutDashboard {
+	if noDashboard {
 		return r
 	}
 

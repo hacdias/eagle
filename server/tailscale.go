@@ -6,12 +6,12 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/hacdias/eagle/config"
 	"tailscale.com/client/tailscale"
 	"tailscale.com/tsnet"
 )
 
-func (s *Server) getTailscaleListener(c *config.Tailscale) (net.Listener, error) {
+func (s *Server) getTailscaleListener() (net.Listener, error) {
+	c := s.c.Tailscale
 	addr := ":" + strconv.Itoa(c.Port)
 
 	_ = os.Setenv("TS_AUTHKEY", c.AuthKey)

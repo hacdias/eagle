@@ -54,41 +54,6 @@ func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) startTcpServer(h http.Handler, port int, errCh chan error) error {
-	srv := &http.Server{Handler: h}
-
-	addr := ":" + strconv.Itoa(port)
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
-	s.servers = append(s.servers, srv)
-
-	go func() {
-		s.Infof("Listening on %s", ln.Addr().String())
-		errCh <- srv.Serve(ln)
-	}()
-
-	return nil
-}
-
-func (s *Server) startTailscaleServer(h http.Handler, errCh chan error) error {
-	srv := &http.Server{Handler: h}
-
-	ln, err := s.getTailscaleListener(s.c.Tailscale)
-	if err != nil {
-		return err
-	}
-	s.servers = append(s.servers, srv)
-
-	go func() {
-		s.Infof("Listening on Tailscale %s", ln.Addr().String())
-		errCh <- srv.Serve(ln)
-	}()
-
-	return nil
-}
-
 func (s *Server) Start() error {
 	// Start public dir worker
 	go s.publicDirWorker()
@@ -108,23 +73,20 @@ func (s *Server) Start() error {
 
 	errCh := make(chan error)
 
-	// Start server.
-	disableDashboard := false
-
+	// Start server(s)
 	if s.c.Tailscale != nil {
-		err = s.startTailscaleServer(s.makeRouter(false), errCh)
+		err = s.startTailscaleServer(errCh)
 		if err != nil {
 			return err
 		}
-		disableDashboard = s.c.Tailscale.DashboardOnly
 	}
 
-	err = s.startTcpServer(s.makeRouter(disableDashboard), s.c.Port, errCh)
+	err = s.startRegularServer(errCh)
 	if err != nil {
 		return err
 	}
 
-	// Collect errors in the end.
+	// Collect errors when the server stops
 	var errs *multierror.Error
 	for i := 0; i < len(s.servers); i++ {
 		errs = multierror.Append(errs, <-errCh)
@@ -141,6 +103,44 @@ func (s *Server) Stop() error {
 		errs = multierror.Append(errs, s.Shutdown(ctx))
 	}
 	return errs.ErrorOrNil()
+}
+
+func (s *Server) startRegularServer(errCh chan error) error {
+	addr := ":" + strconv.Itoa(s.c.Port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	noDashboard := false
+	if s.c.Tailscale != nil {
+		noDashboard = s.c.Tailscale.DashboardOnly
+	}
+
+	router := s.makeRouter(noDashboard)
+	s.startServer(router, ln, errCh)
+	return nil
+}
+
+func (s *Server) startTailscaleServer(errCh chan error) error {
+	ln, err := s.getTailscaleListener()
+	if err != nil {
+		return err
+	}
+
+	router := s.makeRouter(false)
+	s.startServer(router, ln, errCh)
+	return nil
+}
+
+func (s *Server) startServer(h http.Handler, ln net.Listener, errCh chan error) {
+	srv := &http.Server{Handler: h}
+	s.servers = append(s.servers, srv)
+
+	go func() {
+		s.Infof("Listening on Tailscale %s", ln.Addr().String())
+		errCh <- srv.Serve(ln)
+	}()
 }
 
 func (s *Server) publicDirWorker() {
