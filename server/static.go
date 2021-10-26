@@ -15,10 +15,10 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	// the consequences when we're updating the website. Hopefully not many.
 	// s.staticFsLock.RLock()
 	// defer s.staticFsLock.RUnlock()
-	nfw := &notFoundRedirectRespWr{ResponseWriter: w}
-	s.staticFs.ServeHTTP(nfw, r)
+	nfrw := &notFoundResponseWriter{ResponseWriter: w}
+	s.staticFs.ServeHTTP(nfrw, r)
 
-	if nfw.status == http.StatusNotFound {
+	if nfrw.status == http.StatusNotFound {
 		bytes, err := afero.ReadFile(s.staticFs.Fs, "404.html")
 		if err != nil {
 			s.serveError(w, http.StatusInternalServerError, err)
@@ -32,19 +32,27 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type notFoundRedirectRespWr struct {
-	http.ResponseWriter // We embed http.ResponseWriter
-	status              int
+func (s *staticFs) readHTML(filepath string) ([]byte, error) {
+	if !strings.HasSuffix(filepath, ".html") {
+		filepath = path.Join(filepath, "index.html")
+	}
+
+	return afero.ReadFile(s, filepath)
 }
 
-func (w *notFoundRedirectRespWr) WriteHeader(status int) {
-	w.status = status // Store the status for our own use
+type notFoundResponseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *notFoundResponseWriter) WriteHeader(status int) {
+	w.status = status
 	if status != http.StatusNotFound {
 		w.ResponseWriter.WriteHeader(status)
 	}
 }
 
-func (w *notFoundRedirectRespWr) Write(p []byte) (int, error) {
+func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
 	if w.status != http.StatusNotFound {
 		return w.ResponseWriter.Write(p)
 	}
@@ -95,12 +103,4 @@ func newStaticFs(dir string) *staticFs {
 		Fs:      fs,
 		Handler: handler,
 	}
-}
-
-func (s *staticFs) readHTML(filepath string) ([]byte, error) {
-	if !strings.HasSuffix(filepath, ".html") {
-		filepath = path.Join(filepath, "index.html")
-	}
-
-	return afero.ReadFile(s, filepath)
 }
