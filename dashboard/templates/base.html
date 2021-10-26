@@ -11,15 +11,19 @@
     <title>{{ template "title" . }}</title>
     <link rel="stylesheet" href="{{ .BasePath }}/css/normalize.css">
     <link rel="stylesheet" href="{{ .BasePath }}/css/styles.css">
+    <link rel="stylesheet" href="{{ .BasePath }}/css/bar.css">
   </head>
   <body>
     {{ if not .IsLogin }}
-    <navbar>
+    <div id="eagle-bar">
       <ul>
-        <li><a href="{{ .BasePath }}/" id="eagle">Eagle</a></li>
-        <li>{{ if .HasAuth }}<a href="/logout">Logout</a>{{ end }}</li>
+        <li><a title="Dashboard" href="{{ .BasePath }}/" class="fancy">Dsh</a></li>
+        <li><a title="Home" href="/" class="fancy">Hm</a></li>
+        <li><a title="New" href="{{ .BasePath }}/new">+</a></li>
+
+        <li>{{ if .HasAuth }}<a title="Logout" href="/logout">Logout</a>{{ end }}</li>
       </ul>
-    </navbar>
+    </div>
     {{ end }}
 
     <main>{{ template "main" . }}</main>

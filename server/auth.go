@@ -59,7 +59,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, cookie)
-	redirectTo := dashboardPath
+	redirectTo := "/"
 	if r.URL.Query().Get("redirect") != "" {
 		redirectTo = r.URL.Query().Get("redirect")
 	}

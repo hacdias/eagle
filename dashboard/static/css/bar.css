@@ -1,0 +1,57 @@
+#eagle-bar {
+  background: #2980b9;
+  width: 100%;
+  display: block;
+  color: white;
+  position: sticky;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+}
+
+#eagle-bar ul {
+  width: calc(100% - 2rem);
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+#eagle-bar li {
+  margin: 0;
+}
+
+#eagle-bar ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  font-weight: bold;
+}
+
+#eagle-bar li:first-of-type {
+  margin-left: -1rem;
+}
+
+#eagle-bar li .fancy {
+  font-weight: 900;
+  font-style: italic;
+}
+
+#eagle-bar li:last-of-type {
+  margin-left: auto;
+}
+
+#eagle-bar a {
+  line-height: 1;
+  padding: 1rem;
+  display: inline-block;
+  color: white;
+  text-decoration: none;
+  background: none;
+}
+
+#eagle-bar a:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+#eagle-bar a:last-child {
+  margin-left: auto;
+}
