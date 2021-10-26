@@ -48,14 +48,10 @@
 }
 
 .eagle-menu.fixed ul {
-  width: calc(100% - 2rem);
-  max-width: 60rem;
+  width: 100%;
+  max-width: 62rem;
   margin: 0 auto;
   display: flex;
-}
-
-.eagle-menu.fixed ul li:first-of-type {
-  margin-left: -1rem;
 }
 
 .eagle-menu.fixed ul li:last-of-type {
