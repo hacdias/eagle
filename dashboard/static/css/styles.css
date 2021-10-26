@@ -4,17 +4,13 @@
 
 :root {
   --blue: #2980b9;
+  --blue-darker: #19608f;
   --red: #c0392b;
   --black: #111;
   --dark-gray: #333;
   --light-white: #ddd;
   --near-white: #f4f4f4;
   --white: #ffffff;
-  --space: 2.5rem;
-  --half-space: 1.25rem;
-  --max-width: 48rem;
-  --f6: .875rem;
-  --f7: .75rem;
 }
 
 a {
@@ -136,23 +132,6 @@ pre {
   padding: .5rem;
 }
 
-#actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-  grid-gap: 1rem;
-  margin: 1rem 0;
-}
-
-#actions form,
-#actions button {
-  margin: 0;
-}
-
-#actions button {
-  background-color: var(--blue);
-  border-color: var(--blue);
-}
-
 #login {
   max-width: 20rem;
   width: 90%;
@@ -223,6 +202,15 @@ table#posts td:last-child {
 table#posts div {
   display: flex;
   justify-content: space-between;
+}
+
+.eagle-menu:not(.fixed) {
+  margin: 1rem 0;
+}
+
+.eagle-menu summary {
+  font-weight: bold;
+  background-color: var(--blue-darker);
 }
 
 @media screen and (max-width: 38rem) {

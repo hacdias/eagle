@@ -55,8 +55,10 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 			r.Get("/webmentions", s.webmentionsGetHandler)
 			r.Get("/blogroll", s.blogrollGetHandler)
 			r.Get("/gedit", s.geditGetHandler)
+			r.Get("/sync", s.syncGetHandler)
+			r.Get("/build", s.buildGetHandler)
+			r.Get("/rebuild-index", s.rebuildIndexGetHandler)
 
-			r.Post("/", s.dashboardPostHandler)
 			r.Post("/new", s.newPostHandler)
 			r.Post("/edit", s.editPostHandler)
 			r.Post("/delete", s.deletePostHandler)

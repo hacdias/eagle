@@ -1,52 +1,32 @@
 {{ define "main" }}
-  <h2>Quick</h2>
-
-  <div id=actions>
-    <form method=POST>
-      <input required type=hidden name=sync value=true />
-      <button>Sync</button>
-    </form>
-
-    <form method=POST>
-      <input required type=hidden name=build value=true />
-      <button>Build</button>
-    </form>
-
-    <form method=POST>
-      <input required type=hidden name=build value=true />
-      <input required type=hidden name=mode value=clean />
-      <button>Build Clean</button>
-    </form>
-
-    <form method=POST>
-      <input required type=hidden name=rebuild-index value=true />
-      <button>Build Index</button>
-    </form>
-
-    <a class="nl" href="{{ .BasePath }}/blogroll">
-      <button>Blogroll</button>
-    </a>
-
-    <a class="nl" href="{{ .BasePath }}/new">
-      <button>New</button>
-    </a>
-
-    <a class="nl" href="{{ .BasePath }}/reply">
-      <button>Reply</button>
-    </a>
-
-    <a class="nl" href="{{ .BasePath }}/edit">
-      <button>Edit</button>
-    </a>
-
-    <a class="nl" href="{{ .BasePath }}/delete">
-      <button>Delete</button>
-    </a>
-
-    <a class="nl" href="{{ .BasePath }}/webmentions">
-      <button>Webmentions</button>
-    </a>
+  <div class="eagle-menu">
+    <ul>
+      <li><a title="New" href="{{ .BasePath }}/new">New</a></li>
+      <li><a title="Reply" href="{{ .BasePath }}/reply">Reply</a></li>
+    </ul>
   </div>
+
+  <details class="eagle-menu">
+    <summary>More</summary>
+
+    <ul>
+      <li><a title="Edit" href="{{ .BasePath }}/edit">Edit</a></li>
+      <li><a title="Delete" href="{{ .BasePath }}/delete">Delete</a></li>
+      <li><a title="Resend Webmentions" href="{{ .BasePath }}/webmentions">Resend Webmentions</a></li>
+    </ul>
+  </details>
+
+  <details class="eagle-menu">
+    <summary>Tools</summary>
+
+    <ul>
+      <li><a title="Sync" href="{{ .BasePath }}/sync">Sync</a></li>
+      <li><a title="Build" href="{{ .BasePath }}/build">Build</a></li>
+      <li><a title="Clean Build" href="{{ .BasePath }}/build?mode=clean">Clean Build</a></li>
+      <li><a title="Reset Index" href="{{ .BasePath }}/rebuild-index">Rebuild Index</a></li>
+      <li><a title="Regenerate Blogroll" href="{{ .BasePath }}/blogroll">Regenerate Blogroll</a></li>
+    </ul>
+  </details>
 
   <h2>Posts</h2>
 

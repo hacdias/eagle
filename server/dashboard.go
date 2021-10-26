@@ -281,45 +281,32 @@ func (s *Server) geditPostHandler(w http.ResponseWriter, r *http.Request) {
 	s.redirectWithStatus(w, path+" updated! 🗄")
 }
 
-func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+func (s *Server) syncGetHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := s.e.Sync()
 	if err != nil {
 		s.dashboardError(w, r, err)
-		return
+	} else {
+		s.redirectWithStatus(w, "Sync was successfull! ⚡️")
 	}
+}
 
-	if r.FormValue("sync") == "true" {
-		_, err := s.e.Sync()
-		if err != nil {
-			s.dashboardError(w, r, err)
-		} else {
-			s.redirectWithStatus(w, "Sync was successfull! ⚡️")
-		}
-		return
+func (s *Server) buildGetHandler(w http.ResponseWriter, r *http.Request) {
+	clean := r.URL.Query().Get("mode") == "clean"
+	err := s.e.Build(clean)
+	if err != nil {
+		s.dashboardError(w, r, err)
+	} else {
+		s.redirectWithStatus(w, "Build was successfull! 💪")
 	}
+}
 
-	if r.FormValue("build") == "true" {
-		clean := r.FormValue("mode") == "clean"
-		err := s.e.Build(clean)
-		if err != nil {
-			s.dashboardError(w, r, err)
-		} else {
-			s.redirectWithStatus(w, "Build was successfull! 💪")
-		}
-		return
+func (s *Server) rebuildIndexGetHandler(w http.ResponseWriter, r *http.Request) {
+	err := s.e.RebuildIndex()
+	if err != nil {
+		s.dashboardError(w, r, err)
+	} else {
+		s.redirectWithStatus(w, "Search index rebuilt! 🔎")
 	}
-
-	if r.FormValue("rebuild-index") == "true" {
-		err = s.e.RebuildIndex()
-		if err != nil {
-			s.dashboardError(w, r, err)
-		} else {
-			s.redirectWithStatus(w, "Search index rebuilt! 🔎")
-		}
-		return
-	}
-
-	s.renderDashboard(w, "root", &dashboardData{})
 }
 
 func (s *Server) webmentionsPostHandler(w http.ResponseWriter, r *http.Request) {
