@@ -1,70 +1,19 @@
 {{ define "bar" }}
+<link rel="stylesheet" href="{{ .BasePath }}/css/bar.css">
+
 <div id="eagle-bar">
   <ul>
-    <li><a href="{{ .BasePath }}/" id="eagle">Eagle</a></li>
-    <li><a href="{{ .BasePath }}/edit?url={{ .ID }}">Edit</a></li>
-    <li><a href="{{ .BasePath }}/delete?url={{ .ID }}">Delete</a></li>
-    <li><a href="{{ .BasePath }}/reshare?url={{ .ID }}">ReShare</a></li>
-    <li>{{ if .HasAuth }}<a href="/logout">Logout</a>{{ end }}</li>
+    <li><a title="Dashboard" href="{{ .BasePath }}/" class="fancy">Dsh</a></li>
+    <li><a title="Home" href="/" class="fancy">Hm</a></li>
+    <li><a href="{{ .BasePath }}/new">+</a></li>
+
+    <li><a title="Edit" href="{{ .BasePath }}/edit?url={{ .ID }}">e</a></li>
+    <li><a title="Delete" href="{{ .BasePath }}/delete?url={{ .ID }}">d</a></li>
+
+    <li>{{ if .HasAuth }}<a title="Logout" href="/logout">Logout</a>{{ end }}</li>
   </ul>
 </div>
 
-<style>
-#eagle-bar {
-  background: #2980b9;
-  width: 100%;
-  display: block;
-  color: white;
-  position: sticky;
-  z-index: 9999;
-  top: 0;
-  left: 0;
-}
-
-#eagle-bar ul {
-  width: calc(100% - 2rem);
-  max-width: 60rem;
-  margin: 0 auto;
-}
-
-#eagle-bar li {
-  margin: 0
-}
-
-#eagle-bar ul {
-  display: flex;
-  list-style: none;
-  padding: 0;
-  font-weight: bold;
-}
-
-#eagle-bar li:first-of-type {
-  margin-left: -1rem;
-}
-
-#eagle-bar li #eagle {
-  font-weight: 900;
-  font-style: italic;
-}
-
-#eagle-bar li:last-of-type {
-  margin-left: auto;
-}
-
-#eagle-bar a,
-#eagle-bar a:hover {
-  line-height: 1;
-  padding: 1rem;
-  display: inline-block;
-  color: white;
-  text-decoration: none;
-  background: none;
-}
-
-#eagle-bar a:last-child {
-  margin-left: auto;
-}
-</style>
 {{ end }}
 
 {{ template "bar" . }}

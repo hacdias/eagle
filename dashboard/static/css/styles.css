@@ -34,7 +34,6 @@ body {
   color: var(--black);
 }
 
-navbar ul,
 main {
   width: calc(100% - 2rem);
   max-width: 60rem;
@@ -111,48 +110,6 @@ label {
 
 pre {
   white-space: break-spaces;
-}
-
-navbar {
-  background: var(--blue);
-  width: 100%;
-  display: block;
-  color: white;
-}
-
-navbar input {
-  display: none;
-}
-
-navbar ul {
-  display: flex;
-  list-style: none;
-  padding: 0;
-  font-weight: bold;
-}
-
-navbar li:first-of-type {
-  margin-left: -1rem;
-}
-
-navbar li #eagle {
-  font-weight: 900;
-  font-style: italic;
-}
-
-navbar li:last-of-type {
-  margin-left: auto;
-}
-
-navbar a {
-  padding: 1rem;
-  display: inline-block;
-  color: white;
-  text-decoration: none;
-}
-
-navbar a:last-child {
-  margin-left: auto;
 }
 
 .inline-form {
