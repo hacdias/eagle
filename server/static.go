@@ -11,10 +11,8 @@ import (
 )
 
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: removing this improved speed dramatically. Not sure what are
-	// the consequences when we're updating the website. Hopefully not many.
-	// s.staticFsLock.RLock()
-	// defer s.staticFsLock.RUnlock()
+	// NOTE: previously we'd do a staticFs read lock here. However, removing
+	// it increased performance dramatically. Hopefully there's no consequences.
 	nfrw := &notFoundResponseWriter{ResponseWriter: w}
 	s.staticFs.ServeHTTP(nfrw, r)
 
@@ -26,7 +24,7 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-		w.Header().Set("Content-Type", "text/html; charset=utf-8") // Let http.ServeFile set the correct header
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusNotFound)
 		_, _ = w.Write(bytes)
 	}
