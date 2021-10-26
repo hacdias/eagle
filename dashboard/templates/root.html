@@ -43,8 +43,8 @@
       <button>Delete</button>
     </a>
 
-    <a class="nl" href="{{ .BasePath }}/reshare">
-      <button>ReShare</button>
+    <a class="nl" href="{{ .BasePath }}/webmentions">
+      <button>Webmentions</button>
     </a>
   </div>
 
@@ -81,7 +81,7 @@
             <a class="nl" title="Edit" href="{{ $.BasePath }}/edit?url={{ .ID }}">✏️</a>
             {{ if and (not .Draft) (not .Deleted) }}
               <a class="nl" title="Delete" href="{{ $.BasePath }}/delete?url={{ .ID }}">❌</a>
-              <a class="nl" title="ReShare" href="{{ $.BasePath }}/reshare?url={{ .ID }}">👥</a>
+              <a class="nl" title="Webmentions" href="{{ $.BasePath }}/webmentions?url={{ .ID }}">👥</a>
             {{ end }}
           </div>
         </td>

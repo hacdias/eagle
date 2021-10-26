@@ -24,7 +24,7 @@ type dashboardData struct {
 	Content string
 	ID      string
 
-	// ReShare Page Only
+	// Webmentions Page Only
 	Targets []string
 
 	// Root Page Only

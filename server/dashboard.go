@@ -77,7 +77,7 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) reshareGetHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) webmentionsGetHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := sanitizeID(r.URL.Query().Get("url"))
 	if err != nil {
 		s.dashboardError(w, r, err)
@@ -85,7 +85,7 @@ func (s *Server) reshareGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if id == "" {
-		s.renderDashboard(w, "reshare", &dashboardData{})
+		s.renderDashboard(w, "webmentions", &dashboardData{})
 		return
 	}
 
@@ -101,7 +101,7 @@ func (s *Server) reshareGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderDashboard(w, "reshare", &dashboardData{Targets: targets, ID: id})
+	s.renderDashboard(w, "webmentions", &dashboardData{Targets: targets, ID: id})
 }
 
 func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -322,7 +322,7 @@ func (s *Server) dashboardPostHandler(w http.ResponseWriter, r *http.Request) {
 	s.renderDashboard(w, "root", &dashboardData{})
 }
 
-func (s *Server) resharePostHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) webmentionsPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		s.dashboardError(w, r, err)

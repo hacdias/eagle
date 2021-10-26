@@ -1,5 +1,5 @@
 {{ define "main" }}
-  <h2>Reshare</h2>
+  <h2>Webmentions</h2>
 
   {{ if .ID }}
     <p>Found targets:</p>
@@ -19,11 +19,11 @@
 
     <form method=GET class=inline-form>
       <input required name=url type=text placeholder='URL...' {{ with .ID }}value="{{ . }}" readonly{{ end }} />
-      <button>ReShare</button>
+      <button>Send</button>
     </form>
   {{ end }}
 {{ end }}
 
-{{ define "title" }}Reshare{{ end }}
+{{ define "title" }}Webmentions{{ end }}
 
 {{ template "base" . }}
