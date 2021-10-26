@@ -3,9 +3,11 @@ package server
 import (
 	"crypto/tls"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 
+	"github.com/hacdias/eagle/logging"
 	"tailscale.com/client/tailscale"
 	"tailscale.com/tsnet"
 )
@@ -22,7 +24,7 @@ func (s *Server) getTailscaleListener() (net.Listener, error) {
 	}
 
 	if c.Logging {
-		server.Logf = s.Named("tailscale").Infof
+		server.Logf = logging.S().Named("tailscale").Infof
 	} else {
 		server.Logf = func(format string, args ...interface{}) {}
 	}
@@ -39,4 +41,26 @@ func (s *Server) getTailscaleListener() (net.Listener, error) {
 	}
 
 	return ln, nil
+}
+
+func (s *Server) startTailscaleServer(errCh chan error) error {
+	ln, err := s.getTailscaleListener()
+	if err != nil {
+		return err
+	}
+
+	router := s.makeRouter(false)
+	srv := &http.Server{Handler: router}
+
+	err = s.registerServer(srv, "tailscale")
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		s.Infof("tailscale listening on %s", ln.Addr().String())
+		errCh <- srv.Serve(ln)
+	}()
+
+	return nil
 }

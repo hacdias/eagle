@@ -28,7 +28,8 @@ type Server struct {
 	c *config.Config
 	e *eagle.Eagle
 
-	servers []*http.Server
+	serversLock sync.Mutex
+	servers     map[string]*http.Server
 
 	// Dashboard-specific variables.
 	token     *jwtauth.JWTAuth
@@ -42,6 +43,7 @@ type Server struct {
 func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
 	s := &Server{
 		SugaredLogger: logging.S().Named("server"),
+		servers:       map[string]*http.Server{},
 		e:             e,
 		c:             c,
 	}
@@ -74,16 +76,16 @@ func (s *Server) Start() error {
 	errCh := make(chan error)
 
 	// Start server(s)
+	err = s.startRegularServer(errCh)
+	if err != nil {
+		return err
+	}
+
 	if s.c.Tailscale != nil {
 		err = s.startTailscaleServer(errCh)
 		if err != nil {
 			return err
 		}
-	}
-
-	err = s.startRegularServer(errCh)
-	if err != nil {
-		return err
 	}
 
 	// Collect errors when the server stops
@@ -99,10 +101,23 @@ func (s *Server) Stop() error {
 	defer cancel()
 
 	var errs *multierror.Error
-	for _, s := range s.servers {
-		errs = multierror.Append(errs, s.Shutdown(ctx))
+	for name, srv := range s.servers {
+		s.Infof("shutting down %s", name)
+		errs = multierror.Append(errs, srv.Shutdown(ctx))
 	}
 	return errs.ErrorOrNil()
+}
+
+func (s *Server) registerServer(srv *http.Server, name string) error {
+	s.serversLock.Lock()
+	defer s.serversLock.Unlock()
+
+	if _, ok := s.servers[name]; ok {
+		return fmt.Errorf("server %s already registered", name)
+	}
+
+	s.servers[name] = srv
+	return nil
 }
 
 func (s *Server) startRegularServer(errCh chan error) error {
@@ -118,29 +133,19 @@ func (s *Server) startRegularServer(errCh chan error) error {
 	}
 
 	router := s.makeRouter(noDashboard)
-	s.startServer(router, ln, "public", errCh)
-	return nil
-}
+	srv := &http.Server{Handler: router}
 
-func (s *Server) startTailscaleServer(errCh chan error) error {
-	ln, err := s.getTailscaleListener()
+	err = s.registerServer(srv, "public")
 	if err != nil {
 		return err
 	}
 
-	router := s.makeRouter(false)
-	s.startServer(router, ln, "tailscale", errCh)
-	return nil
-}
-
-func (s *Server) startServer(h http.Handler, ln net.Listener, name string, errCh chan error) {
-	srv := &http.Server{Handler: h}
-	s.servers = append(s.servers, srv)
-
 	go func() {
-		s.Infof("Listening (%s) on %s", name, ln.Addr().String())
+		s.Infof("listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)
 	}()
+
+	return nil
 }
 
 func (s *Server) publicDirWorker() {

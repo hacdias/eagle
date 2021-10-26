@@ -13,7 +13,7 @@ tailscale:
   hostname: eagle
   # The Tailscale logging is pretty intensive. Recommend it on true only for
   # debugging.
-  logging: true
+  logging: false
   # The port to listen to on Tailscale. If the port is 443, Tailscale SSL will
   # be used on the Tailscale listener.
   port: 443
