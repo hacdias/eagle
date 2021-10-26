@@ -18,6 +18,7 @@ type Config struct {
 	WebmentionsSecret string
 	Auth              *Auth
 	Tailscale         *Tailscale
+	Tor               *Tor
 	BunnyCDN          *BunnyCDN
 	Telegram          *Telegram
 	Twitter           *Twitter
@@ -63,6 +64,13 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
+	if conf.Tor != nil {
+		conf.Tor.ConfDir, err = filepath.Abs(conf.Tor.ConfDir)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return conf, nil
 }
 
@@ -88,6 +96,11 @@ type Tailscale struct {
 	Logging            bool
 	Port               int
 	AuthKey            string
+}
+
+type Tor struct {
+	ConfDir string
+	Logging bool
 }
 
 type Telegram struct {

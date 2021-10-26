@@ -28,6 +28,8 @@ type Server struct {
 	serversLock sync.Mutex
 	servers     map[string]*http.Server
 
+	onionAddress string
+
 	// Dashboard-specific variables.
 	token     *jwtauth.JWTAuth
 	templates map[string]*template.Template
@@ -79,6 +81,13 @@ func (s *Server) Start() error {
 
 	if s.Config.Tailscale != nil {
 		err = s.startTailscaleServer(errCh)
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.Config.Tor != nil {
+		err = s.startTor(errCh)
 		if err != nil {
 			return err
 		}
