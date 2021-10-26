@@ -51,7 +51,7 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 		return
 	}
 
-	w.Header().Set("Content-type", "text/html; charset=urf-8")
+	w.Header().Set("Content-type", "text/html; charset=utf-8")
 	_, _ = w.Write(buf.Bytes())
 }
 
