@@ -13,10 +13,10 @@ import (
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	// NOTE: previously we'd do a staticFs read lock here. However, removing
 	// it increased performance dramatically. Hopefully there's no consequences.
-	nfrw := &notFoundResponseWriter{ResponseWriter: w}
-	s.staticFs.ServeHTTP(nfrw, r)
+	nfw := &notFoundResponseWriter{ResponseWriter: w}
+	s.staticFs.ServeHTTP(nfw, r)
 
-	if nfrw.status == http.StatusNotFound {
+	if nfw.status == http.StatusNotFound {
 		bytes, err := afero.ReadFile(s.staticFs.Fs, "404.html")
 		if err != nil {
 			s.serveError(w, http.StatusInternalServerError, err)
@@ -56,7 +56,8 @@ func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
 	if w.status != http.StatusNotFound {
 		return w.ResponseWriter.Write(p)
 	}
-	return len(p), nil // Lie that we successfully written it
+	// Lie that we successfully written it
+	return len(p), nil
 }
 
 // neuteredFs is a file system that returns 404 when a directory contains no index.html
