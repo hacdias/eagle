@@ -92,7 +92,8 @@ type staticFs struct {
 
 func newStaticFs(dir string) *staticFs {
 	fs := afero.NewBasePathFs(afero.NewOsFs(), dir)
-	handler := http.FileServer(neuteredFs{afero.NewHttpFs(fs).Dir("/")})
+	httpFs := neuteredFs{afero.NewHttpFs(fs).Dir("/")}
+	handler := http.FileServer(httpFs)
 
 	return &staticFs{
 		dir:     dir,
