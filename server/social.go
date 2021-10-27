@@ -37,8 +37,13 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 	}
 }
 
+// TODO: move this to eagle package. See how to retrieve the HTML there. After all,
+// the static directory is generated in eagle and not here.
 func (s *Server) getWebmentionTargets(entry *eagle.Entry) ([]string, error) {
 	s.staticFsLock.RLock()
+	// NOTE: instead of using .readHTML here, it would be very interesting to extract
+	// it directly from the markdown. However, there are things on the markdown, such as
+	// shortcodes that end up generating more HTML with possibly more links.
 	html, err := s.staticFs.readHTML(entry.ID)
 	s.staticFsLock.RUnlock()
 	if err != nil {
