@@ -8,27 +8,27 @@ import (
 )
 
 type Notifications struct {
-	b    *tb.Bot
-	conf *config.Telegram
+	chat int64
+	bot  *tb.Bot
 	log  *zap.SugaredLogger
 }
 
 func NewNotifications(c *config.Telegram) (*Notifications, error) {
 	n := &Notifications{
-		conf: c,
+		chat: c.ChatID,
 		log:  logging.S().Named("notify"),
 	}
-	b, err := tb.NewBot(tb.Settings{Token: n.conf.Token})
+	bot, err := tb.NewBot(tb.Settings{Token: c.Token})
 	if err != nil {
 		return nil, err
 	}
 
-	n.b = b
+	n.bot = bot
 	return n, nil
 }
 
 func (n *Notifications) Notify(msg string) {
-	_, err := n.b.Send(&tb.Chat{ID: n.conf.ChatID}, msg, &tb.SendOptions{
+	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
@@ -39,7 +39,7 @@ func (n *Notifications) Notify(msg string) {
 }
 
 func (n *Notifications) NotifyError(not error) {
-	_, err := n.b.Send(&tb.Chat{ID: n.conf.ChatID}, "An error occurred:\n"+not.Error(), &tb.SendOptions{
+	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, "An error occurred:\n"+not.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
