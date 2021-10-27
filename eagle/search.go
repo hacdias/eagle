@@ -8,6 +8,14 @@ const (
 	pageSize = 50
 )
 
+type SearchQuery struct {
+	Query    string
+	Sections []string // if empty, matches all sections
+	ByDate   bool
+	Draft    *bool
+	Deleted  *bool
+}
+
 type SearchIndex interface {
 	ResetIndex() error
 	Add(entries ...*Entry) error

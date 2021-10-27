@@ -65,7 +65,7 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	str, err := s.e.EntryToString(entry)
+	str, err := entry.String()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -122,7 +122,7 @@ func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	str, err := s.e.EntryToString(entry)
+	str, err := entry.String()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -156,7 +156,7 @@ func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	str, err := s.e.EntryToString(entry)
+	str, err := entry.String()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -186,7 +186,7 @@ func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	str, err := s.e.EntryToString(entry)
+	str, err := entry.String()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
