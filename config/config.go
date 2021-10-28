@@ -19,8 +19,8 @@ type Config struct {
 	Webhook     Webhook
 	Hugo        Hugo
 	XRay        XRay
-	BunnyCDN    BunnyCDN
 
+	BunnyCDN    *BunnyCDN
 	Telegram    *Telegram
 	Twitter     *Twitter
 	Miniflux    *Miniflux

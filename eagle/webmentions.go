@@ -221,6 +221,10 @@ func (e *Eagle) saveWebmentions(id, file string, mentions []XRay) (err error) {
 }
 
 func (e *Eagle) uploadWebmentionPhoto(url string) string {
+	if e.media == nil {
+		return url
+	}
+
 	ext := path.Ext(url)
 	base := fmt.Sprintf("%x", sha256.Sum256([]byte(url)))
 

@@ -26,15 +26,14 @@ type Eagle struct {
 	webmentionsClient *webmention.Client
 	webmentionsMu     sync.Mutex
 
-	media  *Media
-	search SearchIndex
-
+	Notifications
 	Config      *config.Config
 	PublicDirCh chan string
 
-	notifications
-
 	// Optional services
+	media  *Media
+	search SearchIndex
+
 	Miniflux *Miniflux
 	Twitter  *Twitter
 }
@@ -48,10 +47,13 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 		webmentionsClient: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
-		media: &Media{conf.BunnyCDN},
 
 		Config:      conf,
 		PublicDirCh: make(chan string),
+	}
+
+	if conf.BunnyCDN != nil {
+		eagle.media = &Media{conf.BunnyCDN}
 	}
 
 	if conf.Telegram != nil {
@@ -59,9 +61,9 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 		if err != nil {
 			return nil, err
 		}
-		eagle.notifications = notifications
+		eagle.Notifications = notifications
 	} else {
-		eagle.notifications = newLogNotifications()
+		eagle.Notifications = newLogNotifications()
 	}
 
 	if conf.MeiliSearch != nil {

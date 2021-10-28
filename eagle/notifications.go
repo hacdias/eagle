@@ -7,7 +7,7 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-type notifications interface {
+type Notifications interface {
 	// Notify should notify the administrator of a certain message.
 	Notify(msg string)
 	// NotifyError should notify the administrator of the error and log it.
@@ -15,12 +15,12 @@ type notifications interface {
 }
 
 type tgNotifications struct {
-	logNotifications notifications
+	logNotifications Notifications
 	chat             int64
 	bot              *tb.Bot
 }
 
-func newTgNotifications(c *config.Telegram) (notifications, error) {
+func newTgNotifications(c *config.Telegram) (Notifications, error) {
 	n := &tgNotifications{
 		chat:             c.ChatID,
 		logNotifications: newLogNotifications(),
@@ -62,7 +62,7 @@ type logNotifications struct {
 	*zap.SugaredLogger
 }
 
-func newLogNotifications() notifications {
+func newLogNotifications() Notifications {
 	return &logNotifications{
 		SugaredLogger: logging.S().Named("notify"),
 	}

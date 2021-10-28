@@ -12,7 +12,7 @@ import (
 )
 
 type Media struct {
-	config.BunnyCDN
+	*config.BunnyCDN
 }
 
 func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
