@@ -59,7 +59,7 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: add option for different types? Archetypes?
 	entry := &eagle.Entry{
 		Content: "Lorem ipsum...",
-		Metadata: eagle.EntryMetadata{
+		Metadata: eagle.Metadata{
 			Date: time.Now(),
 			Tags: []string{"example"},
 		},
@@ -143,14 +143,14 @@ func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	entry := &eagle.Entry{
 		Content: "Your reply here...",
-		Metadata: eagle.EntryMetadata{
+		Metadata: eagle.Metadata{
 			Date: time.Now(),
 			Tags: []string{"example"},
 		},
 	}
 
 	var err error
-	entry.Metadata.ReplyTo, err = s.e.GetEmbeddedEntry(reply)
+	entry.Metadata.ReplyTo, err = s.e.GetXRay(reply)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return

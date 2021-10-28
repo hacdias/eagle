@@ -13,7 +13,28 @@ import (
 	"github.com/araddon/dateparse"
 )
 
-func (e *Eagle) GetEmbeddedEntry(url string) (*EmbeddedEntry, error) {
+// XRay is an xray of an external post. This is the format used to store
+// Webmentions and ReplyTo context.
+type XRay struct {
+	// Specifically for webmentions received from https://webmention.io
+	// TODO: remove this and compare webmentions via URL.
+	WmID int `yaml:"wm-id,omitempty"`
+
+	Type    string    `yaml:"type,omitempty"`
+	URL     string    `yaml:"url,omitempty"`
+	Name    string    `yaml:"name,omitempty"`
+	Content string    `yaml:"content,omitempty"`
+	Date    time.Time `yaml:"date,omitempty"`
+	Author  *Author   `yaml:"author,omitempty"`
+}
+
+type Author struct {
+	Name  string `yaml:"name,omitempty" json:"name"`
+	URL   string `yaml:"url,omitempty" json:"url"`
+	Photo string `yaml:"photo,omitempty" json:"photo"`
+}
+
+func (e *Eagle) GetXRay(url string) (*XRay, error) {
 	data := urlpkg.Values{}
 	data.Set("url", url)
 
@@ -52,8 +73,8 @@ func (e *Eagle) GetEmbeddedEntry(url string) (*EmbeddedEntry, error) {
 	return ee, nil
 }
 
-func parseXRayResponse(xray *xrayResponse) *EmbeddedEntry {
-	ee := &EmbeddedEntry{}
+func parseXRayResponse(xray *xrayResponse) *XRay {
+	ee := &XRay{}
 
 	if xray.Data == nil {
 		return ee
@@ -91,7 +112,7 @@ func parseXRayResponse(xray *xrayResponse) *EmbeddedEntry {
 	}
 
 	if a, ok := xray.Data["author"].(map[string]interface{}); ok {
-		ee.Author = &EntryAuthor{}
+		ee.Author = &Author{}
 
 		if v, ok := a["name"].(string); ok {
 			ee.Author.Name = v

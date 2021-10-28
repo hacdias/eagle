@@ -32,7 +32,7 @@ type WebmentionPayload struct {
 	Target  string `json:"target"`
 	Post    struct {
 		Type       string            `json:"type"`
-		Author     EntryAuthor       `json:"author"`
+		Author     Author            `json:"author"`
 		URL        string            `json:"url"`
 		Published  string            `json:"published"`
 		WmReceived string            `json:"wm-received"`
@@ -105,7 +105,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	e.webmentionsMu.Lock()
 	defer e.webmentionsMu.Unlock()
 
-	mentions := []EmbeddedEntry{}
+	mentions := []XRay{}
 	raw, err := e.ReadFile(file)
 	if err != nil {
 		if !os.IsNotExist(err) {
@@ -119,7 +119,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	}
 
 	if payload.Deleted {
-		newMentions := []EmbeddedEntry{}
+		newMentions := []XRay{}
 		for _, mention := range mentions {
 			if mention.URL != payload.Source {
 				newMentions = append(newMentions, mention)
@@ -166,8 +166,8 @@ func (e *Eagle) parseWebmentionTarget(payload *WebmentionPayload) (id, file stri
 	return id, file, nil
 }
 
-func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*EmbeddedEntry, error) {
-	ee := &EmbeddedEntry{
+func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*XRay, error) {
+	ee := &XRay{
 		WmID:   payload.Post.WmID,
 		Author: &payload.Post.Author,
 	}
@@ -211,7 +211,7 @@ func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*EmbeddedEnt
 	return ee, nil
 }
 
-func (e *Eagle) saveWebmentions(id, file string, mentions []EmbeddedEntry) (err error) {
+func (e *Eagle) saveWebmentions(id, file string, mentions []XRay) (err error) {
 	bytes, err := yaml.Marshal(mentions)
 	if err != nil {
 		return err
