@@ -118,7 +118,7 @@ func (e *Eagle) DeleteEntry(entry *Entry) error {
 	return e.SaveEntry(entry)
 }
 
-func (e *Eagle) GetAll() ([]*Entry, error) {
+func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	e.entriesMu.RLock()
 	defer e.entriesMu.RUnlock()
 
@@ -149,33 +149,7 @@ func (e *Eagle) GetAll() ([]*Entry, error) {
 	return entries, err
 }
 
-func (e *Eagle) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
-	if e.search == nil {
-		return []*SearchEntry{}, nil
-	}
-
-	return e.search.Search(query, page)
-}
-
-func (e *Eagle) RebuildIndex() error {
-	if e.search == nil {
-		return nil
-	}
-
-	err := e.search.ResetIndex()
-	if err != nil {
-		return err
-	}
-
-	entries, err := e.GetAll()
-	if err != nil {
-		return err
-	}
-
-	return e.search.Add(entries...)
-}
-
-func (e *Eagle) MakeBundle(entry *Entry) error {
+func (e *Eagle) MakeEntryBundle(entry *Entry) error {
 	if entry.Path == "" {
 		return fmt.Errorf("entry %s does not contain a path", entry.ID)
 	}
@@ -233,7 +207,7 @@ func (e *Eagle) guessPath(id string) (string, error) {
 }
 
 func (e *Eagle) makePermalink(id string) (string, error) {
-	u, err := url.Parse(e.conf.BaseURL)
+	u, err := url.Parse(e.Config.BaseURL)
 	if err != nil {
 		return "", err
 	}

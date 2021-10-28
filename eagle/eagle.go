@@ -13,8 +13,7 @@ import (
 )
 
 type Eagle struct {
-	log  *zap.SugaredLogger
-	conf *config.Config
+	log *zap.SugaredLogger
 
 	srcFs     *afero.Afero
 	srcGit    *gitRepo
@@ -30,6 +29,7 @@ type Eagle struct {
 	media  *Media
 	search SearchIndex
 
+	Config      *config.Config
 	PublicDirCh chan string
 
 	*Notifications
@@ -59,7 +59,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	eagle := &Eagle{
 		log:    logging.S().Named("eagle"),
-		conf:   conf,
 		srcFs:  makeAfero(conf.Hugo.Source),
 		srcGit: &gitRepo{conf.Hugo.Source},
 		dstFs:  makeAfero(conf.Hugo.Destination),
@@ -69,6 +68,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		media:  &Media{conf.BunnyCDN},
 		search: search,
 
+		Config:        conf,
 		PublicDirCh:   make(chan string),
 		Notifications: notifications,
 		Crawler: &Crawler{

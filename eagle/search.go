@@ -44,3 +44,29 @@ func sanitizePost(content string) string {
 
 	return content
 }
+
+func (e *Eagle) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
+	if e.search == nil {
+		return []*SearchEntry{}, nil
+	}
+
+	return e.search.Search(query, page)
+}
+
+func (e *Eagle) RebuildIndex() error {
+	if e.search == nil {
+		return nil
+	}
+
+	err := e.search.ResetIndex()
+	if err != nil {
+		return err
+	}
+
+	entries, err := e.GetAllEntries()
+	if err != nil {
+		return err
+	}
+
+	return e.search.Add(entries...)
+}

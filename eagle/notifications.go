@@ -38,13 +38,13 @@ func (n *Notifications) Notify(msg string) {
 	}
 }
 
-func (n *Notifications) NotifyError(not error) {
-	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, "An error occurred:\n"+not.Error(), &tb.SendOptions{
+func (n *Notifications) NotifyError(err error) {
+	_, botErr := n.bot.Send(&tb.Chat{ID: n.chat}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
-	if err != nil {
-		n.log.Error(err)
+	if botErr != nil {
+		n.log.Error(botErr)
 	}
 }
