@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/config"
@@ -12,7 +13,12 @@ import (
 
 type Eagle struct {
 	// srcFs *Storage
-	// dstFs *Storage
+
+	conf *config.Config
+
+	dstFs            *afero.Afero
+	buildMu          sync.Mutex
+	currentPublicDir string
 
 	PublicDirCh chan string
 	Twitter     *Twitter
@@ -21,7 +27,6 @@ type Eagle struct {
 	*Notifications
 	*Webmentions
 	*EntryManager
-	*Hugo
 	*Crawler
 
 	*Storage
@@ -61,6 +66,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	eagle := &Eagle{
 		// srcFs: srcFs,
 
+		conf: conf,
+		dstFs: &afero.Afero{
+			Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.Hugo.Destination),
+		},
+
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			baseURL: conf.BaseURL,
@@ -68,14 +78,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			search:  search,
 		},
 		Notifications: notifications,
-		Hugo: &Hugo{
-			conf: conf.Hugo,
-			dstFs: &afero.Afero{
-				Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.Hugo.Destination),
-			},
-			publicDirCh: publicDirCh,
-		},
-		Storage: srcFs,
+		Storage:       srcFs,
 		Crawler: &Crawler{
 			xray:    conf.XRay,
 			twitter: conf.Twitter,
