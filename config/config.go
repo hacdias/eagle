@@ -19,9 +19,9 @@ type Config struct {
 	Webhook     Webhook
 	Hugo        Hugo
 	XRay        XRay
-	Telegram    Telegram
 	BunnyCDN    BunnyCDN
 
+	Telegram    *Telegram
 	Twitter     *Twitter
 	Miniflux    *Miniflux
 	MeiliSearch *MeiliSearch

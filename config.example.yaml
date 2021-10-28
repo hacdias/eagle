@@ -29,6 +29,9 @@ hugo:
   destination:
 xray:
   endpoint:
+# Enables notifications through Telegram, such as when the website receives webmentions.
+# It is also used to send errors that happen in the background that would otherwise go unseen
+# unless we inspected the logs. This is optional. Errors are always logged.
 telegram:
   token:
   chatId:

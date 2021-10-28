@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -44,8 +45,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) syncStorage() {
 	files, err := s.e.Sync()
 	if err != nil {
-		s.Error("sync storage: git pull", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("sync storage: %w", err))
 		return
 	}
 
@@ -57,15 +57,13 @@ func (s *Server) syncStorage() {
 		s.Infof("sync storage: files updated: %v", files)
 		err = s.e.RebuildIndex()
 		if err != nil {
-			s.Error("sync storage: rebuild index", err)
-			s.e.NotifyError(err)
+			s.e.NotifyError(fmt.Errorf("sync storage: rebuild index: %w", err))
 		}
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Error("sync storage: hugo build", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("sync storage: hugo build: %w", err))
 		return
 	}
 }

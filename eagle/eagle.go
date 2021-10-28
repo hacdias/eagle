@@ -32,7 +32,7 @@ type Eagle struct {
 	Config      *config.Config
 	PublicDirCh chan string
 
-	*Notifications
+	notifications
 	*Crawler
 
 	// Optional services
@@ -40,24 +40,8 @@ type Eagle struct {
 	Twitter  *Twitter
 }
 
-func NewEagle(conf *config.Config) (*Eagle, error) {
-	notifications, err := NewNotifications(&conf.Telegram)
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		search  SearchIndex
-		indexOk bool
-	)
-	if conf.MeiliSearch != nil {
-		search, indexOk, err = NewMeiliSearch(conf.MeiliSearch)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	eagle := &Eagle{
+func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
+	eagle = &Eagle{
 		log:    logging.S().Named("eagle"),
 		srcFs:  makeAfero(conf.Hugo.Source),
 		srcGit: &gitRepo{conf.Hugo.Source},
@@ -65,16 +49,39 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		webmentionsClient: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
-		media:  &Media{conf.BunnyCDN},
-		search: search,
+		media: &Media{conf.BunnyCDN},
 
-		Config:        conf,
-		PublicDirCh:   make(chan string),
-		Notifications: notifications,
+		Config:      conf,
+		PublicDirCh: make(chan string),
 		Crawler: &Crawler{
 			xray:    conf.XRay,
 			twitter: conf.Twitter,
 		},
+	}
+
+	if conf.Telegram != nil {
+		notifications, err := newTgNotifications(conf.Telegram)
+		if err != nil {
+			return nil, err
+		}
+		eagle.notifications = notifications
+	} else {
+		eagle.notifications = newLogNotifications()
+	}
+
+	if conf.MeiliSearch != nil {
+		search, indexOk, err := NewMeiliSearch(conf.MeiliSearch)
+		if err != nil {
+			return nil, err
+		}
+		eagle.search = search
+
+		if !indexOk {
+			defer func() {
+				logging.S().Info("building index for the first time")
+				err = eagle.RebuildIndex()
+			}()
+		}
 	}
 
 	if conf.Twitter != nil {
@@ -83,11 +90,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	if conf.Miniflux != nil {
 		eagle.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
-	}
-
-	if !indexOk {
-		logging.S().Info("building index for the first time")
-		err = eagle.RebuildIndex()
 	}
 
 	return eagle, err

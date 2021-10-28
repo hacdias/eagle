@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/hacdias/eagle/eagle"
@@ -39,8 +40,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := s.e.Build(false)
 		if err != nil {
-			s.Error("webmention: error hugo build", err)
-			s.e.NotifyError(err)
+			s.e.NotifyError(fmt.Errorf("webmention: error hugo build: %w", err))
 		} else {
 			if wm.Deleted {
 				s.e.Notify("💬 Deleted webmention at " + wm.Target)

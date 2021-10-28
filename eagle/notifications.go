@@ -7,16 +7,23 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
-type Notifications struct {
-	chat int64
-	bot  *tb.Bot
-	log  *zap.SugaredLogger
+type notifications interface {
+	// Notify should notify the administrator of a certain message.
+	Notify(msg string)
+	// NotifyError should notify the administrator of the error and log it.
+	NotifyError(err error)
 }
 
-func NewNotifications(c *config.Telegram) (*Notifications, error) {
-	n := &Notifications{
-		chat: c.ChatID,
-		log:  logging.S().Named("notify"),
+type tgNotifications struct {
+	logNotifications notifications
+	chat             int64
+	bot              *tb.Bot
+}
+
+func newTgNotifications(c *config.Telegram) (notifications, error) {
+	n := &tgNotifications{
+		chat:             c.ChatID,
+		logNotifications: newLogNotifications(),
 	}
 	bot, err := tb.NewBot(tb.Settings{Token: c.Token})
 	if err != nil {
@@ -27,24 +34,44 @@ func NewNotifications(c *config.Telegram) (*Notifications, error) {
 	return n, nil
 }
 
-func (n *Notifications) Notify(msg string) {
+func (n *tgNotifications) Notify(msg string) {
 	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {
-		n.log.Error(err)
+		n.logNotifications.NotifyError(err)
 	}
 }
 
-func (n *Notifications) NotifyError(err error) {
+func (n *tgNotifications) NotifyError(err error) {
+	n.logNotifications.NotifyError(err)
+
 	_, botErr := n.bot.Send(&tb.Chat{ID: n.chat}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if botErr != nil {
-		n.log.Error(botErr)
+		n.logNotifications.NotifyError(err)
 	}
+}
+
+type logNotifications struct {
+	*zap.SugaredLogger
+}
+
+func newLogNotifications() notifications {
+	return &logNotifications{
+		SugaredLogger: logging.S().Named("notify"),
+	}
+}
+
+func (n *logNotifications) Notify(msg string) {
+	n.Info(msg)
+}
+
+func (n *logNotifications) NotifyError(err error) {
+	n.Error(err)
 }

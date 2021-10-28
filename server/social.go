@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"fmt"
 	"net/url"
 	"path"
 	"strings"
@@ -17,23 +18,20 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 
 	url, err := s.e.Twitter.Syndicate(entry)
 	if err != nil {
-		s.Error("failed to syndicate", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
 		return
 	}
 
 	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
 	err = s.e.SaveEntry(entry)
 	if err != nil {
-		s.Error("failed to save entry", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("failed to save entry: %w", err))
 		return
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Error("failed to build", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("failed to build: %w", err))
 	}
 }
 
@@ -66,16 +64,16 @@ func (s *Server) getWebmentionTargets(entry *eagle.Entry) ([]string, error) {
 
 func (s *Server) goWebmentions(entry *eagle.Entry) {
 	var err error
+
 	defer func() {
 		if err != nil {
-			s.e.NotifyError(err)
-			s.Warn("webmentions", err)
+			s.e.NotifyError(fmt.Errorf("webmentions: %w", err))
 		}
 	}()
 
 	targets, err := s.getWebmentionTargets(entry)
 	if err != nil {
-		s.Error("could not fetch webmention targets", entry.ID, err)
+		err = fmt.Errorf("could not fetch webmention targets for %s: %w", entry.ID, err)
 		return
 	}
 
