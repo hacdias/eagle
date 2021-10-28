@@ -29,7 +29,7 @@ func main() {
 	}
 
 	quit := make(chan os.Signal, 1)
-	server, err := server.NewServer(c, e)
+	server, err := server.NewServer(e)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -15,7 +15,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r.Use(s.headers)
 
 	if !noDashboard {
-		if s.c.Auth != nil {
+		if s.Config.Auth != nil {
 			r.Use(jwtauth.Verifier(s.token))
 		}
 
@@ -36,14 +36,14 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 
 	r.Route(dashboardPath, func(r chi.Router) {
 		fs := http.FS(static.FS)
-		if s.c.Development {
+		if s.Config.Development {
 			fs = http.FS(afero.NewIOFS(afero.NewBasePathFs(afero.NewOsFs(), "./dashboard/static")))
 		}
 
 		httpdir := http.FileServer(neuteredFs{fs})
 
 		r.Group(func(r chi.Router) {
-			if s.c.Auth != nil {
+			if s.Config.Auth != nil {
 				r.Use(s.mustAuthenticate)
 			}
 
@@ -69,7 +69,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
 	})
 
-	if s.c.Auth != nil {
+	if s.Config.Auth != nil {
 		r.Get("/logout", s.logoutGetHandler)
 		r.Get("/login", s.loginGetHandler)
 		r.Post("/login", s.loginPostHandler)

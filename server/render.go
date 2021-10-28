@@ -42,7 +42,7 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 		return
 	}
 
-	data.HasAuth = s.c.Auth != nil
+	data.HasAuth = s.Config.Auth != nil
 	data.BasePath = dashboardPath
 
 	var buf bytes.Buffer
@@ -63,7 +63,7 @@ func (s *Server) renderAdminBar(path string) ([]byte, error) {
 	}
 
 	data := &dashboardData{
-		HasAuth:  s.c.Auth != nil,
+		HasAuth:  s.Config.Auth != nil,
 		BasePath: dashboardPath,
 		ID:       url.QueryEscape(path),
 	}
@@ -89,7 +89,7 @@ func (s *Server) getTemplates() (map[string]*template.Template, error) {
 
 	var fs readDirFileFS
 
-	if s.c.Development {
+	if s.Config.Development {
 		fs = afero.NewIOFS(afero.NewBasePathFs(afero.NewOsFs(), "./dashboard/templates"))
 	} else {
 		fs = templates.FS
@@ -133,7 +133,7 @@ func (s *Server) getTemplates() (map[string]*template.Template, error) {
 		}
 	}
 
-	if !s.c.Development {
+	if !s.Config.Development {
 		s.templates = parsed
 	}
 

@@ -13,7 +13,7 @@ import (
 )
 
 func (s *Server) getTailscaleListener() (net.Listener, error) {
-	c := s.c.Tailscale
+	c := s.Config.Tailscale
 	addr := ":" + strconv.Itoa(c.Port)
 
 	_ = os.Setenv("TS_AUTHKEY", c.AuthKey)
@@ -58,7 +58,7 @@ func (s *Server) startTailscaleServer(errCh chan error) error {
 	}
 
 	go func() {
-		s.Infof("tailscale listening on %s", ln.Addr().String())
+		s.log.Infof("tailscale listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)
 	}()
 

@@ -27,9 +27,9 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.Auth.Password), []byte(password)) == nil
+	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
 
-	if username != s.c.Auth.Username || !correctPassword {
+	if username != s.Config.Auth.Username || !correctPassword {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.renderDashboard(w, "login", &dashboardData{IsLogin: true, Content: "wrong credentials"})
 		return
@@ -83,7 +83,7 @@ func (s *Server) isAuthenticated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var isAuthd bool
 
-		if s.c.Auth != nil {
+		if s.Config.Auth != nil {
 			token, _, err := jwtauth.FromContext(r.Context())
 			isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil)
 		} else {

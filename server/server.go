@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth"
-	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/logging"
 	"github.com/hashicorp/go-multierror"
@@ -23,10 +22,8 @@ import (
 )
 
 type Server struct {
-	*zap.SugaredLogger
-
-	c *config.Config
-	e *eagle.Eagle
+	*eagle.Eagle
+	log *zap.SugaredLogger
 
 	serversLock sync.Mutex
 	servers     map[string]*http.Server
@@ -40,16 +37,15 @@ type Server struct {
 	staticFs     *staticFs
 }
 
-func NewServer(c *config.Config, e *eagle.Eagle) (*Server, error) {
+func NewServer(e *eagle.Eagle) (*Server, error) {
 	s := &Server{
-		SugaredLogger: logging.S().Named("server"),
-		servers:       map[string]*http.Server{},
-		e:             e,
-		c:             c,
+		Eagle:   e,
+		log:     logging.S().Named("server"),
+		servers: map[string]*http.Server{},
 	}
 
-	if c.Auth != nil {
-		secret := base64.StdEncoding.EncodeToString([]byte(c.Auth.Secret))
+	if e.Config.Auth != nil {
+		secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
 		s.token = jwtauth.New("HS256", []byte(secret), nil)
 	}
 
@@ -61,13 +57,13 @@ func (s *Server) Start() error {
 	go s.publicDirWorker()
 
 	// Make sure we have a built version to serve
-	should, err := s.e.ShouldBuild()
+	should, err := s.ShouldBuild()
 	if err != nil {
 		return err
 	}
 
 	if should {
-		err = s.e.Build(false)
+		err = s.Build(false)
 		if err != nil {
 			return err
 		}
@@ -81,7 +77,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	if s.c.Tailscale != nil {
+	if s.Config.Tailscale != nil {
 		err = s.startTailscaleServer(errCh)
 		if err != nil {
 			return err
@@ -102,7 +98,7 @@ func (s *Server) Stop() error {
 
 	var errs *multierror.Error
 	for name, srv := range s.servers {
-		s.Infof("shutting down %s", name)
+		s.log.Infof("shutting down %s", name)
 		errs = multierror.Append(errs, srv.Shutdown(ctx))
 	}
 	return errs.ErrorOrNil()
@@ -121,15 +117,15 @@ func (s *Server) registerServer(srv *http.Server, name string) error {
 }
 
 func (s *Server) startRegularServer(errCh chan error) error {
-	addr := ":" + strconv.Itoa(s.c.Port)
+	addr := ":" + strconv.Itoa(s.Config.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
 	noDashboard := false
-	if s.c.Tailscale != nil {
-		noDashboard = s.c.Tailscale.ExclusiveDashboard
+	if s.Config.Tailscale != nil {
+		noDashboard = s.Config.Tailscale.ExclusiveDashboard
 	}
 
 	router := s.makeRouter(noDashboard)
@@ -141,7 +137,7 @@ func (s *Server) startRegularServer(errCh chan error) error {
 	}
 
 	go func() {
-		s.Infof("listening on %s", ln.Addr().String())
+		s.log.Infof("listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)
 	}()
 
@@ -149,9 +145,9 @@ func (s *Server) startRegularServer(errCh chan error) error {
 }
 
 func (s *Server) publicDirWorker() {
-	s.Info("waiting for new directories")
-	for dir := range s.e.PublicDirCh {
-		s.Infof("received new public directory: %s", dir)
+	s.log.Info("waiting for new directories")
+	for dir := range s.PublicDirCh {
+		s.log.Infof("received new public directory: %s", dir)
 
 		s.staticFsLock.Lock()
 		oldFs := s.staticFs
@@ -161,11 +157,11 @@ func (s *Server) publicDirWorker() {
 		if oldFs != nil {
 			err := os.RemoveAll(oldFs.dir)
 			if err != nil {
-				s.e.NotifyError(fmt.Errorf("could not delete old directory: %w", err))
+				s.NotifyError(fmt.Errorf("could not delete old directory: %w", err))
 			}
 		}
 	}
-	s.Info("stopped waiting for new directories, channel closed")
+	s.log.Info("stopped waiting for new directories, channel closed")
 }
 
 func (s *Server) recoverer(next http.Handler) http.Handler {
@@ -173,7 +169,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				err := fmt.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
-				s.e.NotifyError(err)
+				s.NotifyError(err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
@@ -200,7 +196,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		s.Error("error while serving json", err)
+		s.log.Error("error while serving json", err)
 	}
 }
 

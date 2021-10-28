@@ -89,10 +89,10 @@ func (w *adminBarResponseWriter) WriteHeader(status int) {
 			w.ResponseWriter.WriteHeader(status)
 			_, err = w.Write(html)
 			if err != nil {
-				w.s.Warn("could not write admin bar", err)
+				w.s.log.Warn("could not write admin bar", err)
 			}
 		} else {
-			w.s.Warn("could not render admin bar", err)
+			w.s.log.Warn("could not render admin bar", err)
 		}
 
 		return

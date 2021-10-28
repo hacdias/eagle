@@ -12,26 +12,26 @@ import (
 )
 
 func (s *Server) goSyndicate(entry *eagle.Entry) {
-	if s.e.Twitter == nil {
+	if s.Twitter == nil {
 		return
 	}
 
-	url, err := s.e.Twitter.Syndicate(entry)
+	url, err := s.Twitter.Syndicate(entry)
 	if err != nil {
-		s.e.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
+		s.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
 		return
 	}
 
 	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
-	err = s.e.SaveEntry(entry)
+	err = s.SaveEntry(entry)
 	if err != nil {
-		s.e.NotifyError(fmt.Errorf("failed to save entry: %w", err))
+		s.NotifyError(fmt.Errorf("failed to save entry: %w", err))
 		return
 	}
 
-	err = s.e.Build(false)
+	err = s.Build(false)
 	if err != nil {
-		s.e.NotifyError(fmt.Errorf("failed to build: %w", err))
+		s.NotifyError(fmt.Errorf("failed to build: %w", err))
 	}
 }
 
@@ -67,7 +67,7 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 
 	defer func() {
 		if err != nil {
-			s.e.NotifyError(fmt.Errorf("webmentions: %w", err))
+			s.NotifyError(fmt.Errorf("webmentions: %w", err))
 		}
 	}()
 
@@ -77,8 +77,8 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 		return
 	}
 
-	s.Infow("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
-	err = s.e.SendWebmention(entry.Permalink, targets...)
+	s.log.Infow("webmentions: found targets", "entry", entry.ID, "permalink", entry.Permalink, "targets", targets)
+	err = s.SendWebmention(entry.Permalink, targets...)
 }
 
 func sanitizeReplyURL(replyUrl string) string {

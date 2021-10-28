@@ -13,17 +13,17 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&wm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		s.Warnf("error when decoding webmention: %s", err.Error())
+		s.log.Warnf("error when decoding webmention: %s", err.Error())
 		return
 	}
 
-	if wm.Secret != s.c.Webmentions.Secret {
+	if wm.Secret != s.Config.Webmentions.Secret {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	wm.Secret = ""
-	err = s.e.ReceiveWebmentions(wm)
+	err = s.ReceiveWebmentions(wm)
 	if err != nil {
 		if err == eagle.ErrDuplicatedWebmention {
 			w.WriteHeader(http.StatusOK)
@@ -31,21 +31,21 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusInternalServerError)
-		s.Error("could not parse webmention", err)
+		s.log.Error("could not parse webmention", err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
 	go func() {
-		err := s.e.Build(false)
+		err := s.Build(false)
 		if err != nil {
-			s.e.NotifyError(fmt.Errorf("webmention: error hugo build: %w", err))
+			s.NotifyError(fmt.Errorf("webmention: error hugo build: %w", err))
 		} else {
 			if wm.Deleted {
-				s.e.Notify("💬 Deleted webmention at " + wm.Target)
+				s.Notify("💬 Deleted webmention at " + wm.Target)
 			} else {
-				s.e.Notify("💬 Received webmention at " + wm.Target)
+				s.Notify("💬 Received webmention at " + wm.Target)
 			}
 		}
 	}()

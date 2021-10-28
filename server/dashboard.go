@@ -34,7 +34,7 @@ func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query.ByDate = true
-	entries, err := s.e.Search(query, page)
+	entries, err := s.Search(query, page)
 	if err != nil {
 		data.Content = err.Error()
 	}
@@ -89,7 +89,7 @@ func (s *Server) webmentionsGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.e.GetEntry(id)
+	entry, err := s.GetEntry(id)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -116,7 +116,7 @@ func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.e.GetEntry(id)
+	entry, err := s.GetEntry(id)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -150,7 +150,7 @@ func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err error
-	entry.Metadata.ReplyTo, err = s.e.GetXRay(reply)
+	entry.Metadata.ReplyTo, err = s.GetXRay(reply)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -180,7 +180,7 @@ func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.e.GetEntry(id)
+	entry, err := s.GetEntry(id)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -199,12 +199,12 @@ func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) blogrollGetHandler(w http.ResponseWriter, r *http.Request) {
-	if s.e.Miniflux == nil {
+	if s.Miniflux == nil {
 		s.dashboardError(w, r, errors.New("miniflux integration is disabled"))
 		return
 	}
 
-	feeds, err := s.e.Miniflux.Fetch()
+	feeds, err := s.Miniflux.Fetch()
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -235,7 +235,7 @@ func (s *Server) geditGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := s.e.ReadFile(path)
+	data, err := s.ReadFile(path)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -266,13 +266,13 @@ func (s *Server) geditPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.e.Persist(path, []byte(content), "edit: update "+path)
+	err = s.Persist(path, []byte(content), "edit: update "+path)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	err = s.e.Build(true)
+	err = s.Build(true)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -282,7 +282,7 @@ func (s *Server) geditPostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) syncGetHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := s.e.Sync()
+	_, err := s.Sync()
 	if err != nil {
 		s.dashboardError(w, r, err)
 	} else {
@@ -292,7 +292,7 @@ func (s *Server) syncGetHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) buildGetHandler(w http.ResponseWriter, r *http.Request) {
 	clean := r.URL.Query().Get("mode") == "clean"
-	err := s.e.Build(clean)
+	err := s.Build(clean)
 	if err != nil {
 		s.dashboardError(w, r, err)
 	} else {
@@ -301,7 +301,7 @@ func (s *Server) buildGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) rebuildIndexGetHandler(w http.ResponseWriter, r *http.Request) {
-	err := s.e.RebuildIndex()
+	err := s.RebuildIndex()
 	if err != nil {
 		s.dashboardError(w, r, err)
 	} else {
@@ -322,9 +322,9 @@ func (s *Server) webmentionsPostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	entry, err := s.e.GetEntry(id)
+	entry, err := s.GetEntry(id)
 	if err != nil {
-		s.e.NotifyError(err)
+		s.NotifyError(err)
 		return
 	}
 
@@ -350,19 +350,19 @@ func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.e.GetEntry(id)
+	entry, err := s.GetEntry(id)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	err = s.e.DeleteEntry(entry)
+	err = s.DeleteEntry(entry)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	err = s.e.Build(true)
+	err = s.Build(true)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -397,7 +397,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.e.ParseEntry(id, content)
+	entry, err := s.ParseEntry(id, content)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -444,13 +444,13 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = s.e.GetEntry(id)
+	_, err = s.GetEntry(id)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	entry, err := s.e.ParseEntry(id, content)
+	entry, err := s.ParseEntry(id, content)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -481,12 +481,12 @@ func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err erro
 }
 
 func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
-	err := s.e.SaveEntry(entry)
+	err := s.SaveEntry(entry)
 	if err != nil {
 		return err
 	}
 
-	err = s.e.Build(false)
+	err = s.Build(false)
 	if err != nil {
 		return err
 	}

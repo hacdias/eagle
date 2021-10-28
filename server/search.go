@@ -27,7 +27,7 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	query.Deleted = &f
 
 	// Search!
-	res, err := s.e.Search(query, page)
+	res, err := s.Search(query, page)
 	if err != nil {
 		s.serveError(w, http.StatusInternalServerError, err)
 		return
