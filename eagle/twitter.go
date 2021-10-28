@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
+	urlpkg "net/url"
 	"reflect"
 	"strings"
 	"time"
@@ -36,16 +36,16 @@ func (t *Twitter) Syndicate(entry *Entry) (string, error) {
 		status = strings.TrimSpace(status[0:270-len(entry.Permalink)]) + "... " + entry.Permalink
 	}
 
-	u, err := url.Parse("https://api.twitter.com/1.1/statuses/update.json")
+	url, err := urlpkg.Parse("https://api.twitter.com/1.1/statuses/update.json")
 	if err != nil {
 		return "", err
 	}
 
-	q := u.Query()
-	q.Set("status", status)
+	query := url.Query()
+	query.Set("status", status)
 
 	if entry.Metadata.ReplyTo != nil {
-		replyTo, err := url.Parse(entry.Metadata.ReplyTo.URL)
+		replyTo, err := urlpkg.Parse(entry.Metadata.ReplyTo.URL)
 		if err != nil {
 			return "", err
 		}
@@ -54,16 +54,16 @@ func (t *Twitter) Syndicate(entry *Entry) (string, error) {
 		user = strings.TrimPrefix(user, "/")
 		parts := strings.Split(user, "/")
 
-		q.Set("in_reply_to_status_id", parts[0])
-		q.Set("auto_populate_reply_metadata", "true")
+		query.Set("in_reply_to_status_id", parts[0])
+		query.Set("auto_populate_reply_metadata", "true")
 		// TODO: add attachment_url for retweet with status
 	}
 
-	u.RawQuery = q.Encode()
+	url.RawQuery = query.Encode()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), nil)
 	if err != nil {
 		return "", err
 	}

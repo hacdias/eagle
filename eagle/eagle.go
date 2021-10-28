@@ -2,82 +2,81 @@ package eagle
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/logging"
 	"github.com/spf13/afero"
+	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
 )
 
 type Eagle struct {
+	log *zap.SugaredLogger
+
+	srcFs     *afero.Afero
+	srcGit    *gitRepo
+	entriesMu sync.RWMutex
+
+	dstFs            *afero.Afero
+	buildMu          sync.Mutex
+	currentPublicDir string
+
+	webmentionsClient *webmention.Client
+	webmentionsMu     sync.Mutex
+
+	media  *Media
+	search SearchIndex
+
+	Config      *config.Config
 	PublicDirCh chan string
-	Twitter     *Twitter
-	Miniflux    *Miniflux
 
-	*Notifications
-	*Webmentions
-	*EntryManager
-	*Hugo
-	*Crawler
+	notifications
 
-	*Storage
+	// Optional services
+	Miniflux *Miniflux
+	Twitter  *Twitter
 }
 
-func NewEagle(conf *config.Config) (*Eagle, error) {
-	publicDirCh := make(chan string)
-
-	notifications, err := NewNotifications(&conf.Telegram)
-	if err != nil {
-		return nil, err
-	}
-
-	storage := NewStorage(conf.Hugo.Source, &GitStorage{
-		dir: conf.Hugo.Source,
-	})
-
-	webmentions := &Webmentions{
-		log:    logging.S().Named("webmentions"),
-		media:  &Media{conf.BunnyCDN},
-		notify: notifications,
-		store:  storage.Sub("content"),
-		client: webmention.New(&http.Client{
+func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
+	eagle = &Eagle{
+		log:    logging.S().Named("eagle"),
+		srcFs:  makeAfero(conf.Hugo.Source),
+		srcGit: &gitRepo{conf.Hugo.Source},
+		dstFs:  makeAfero(conf.Hugo.Destination),
+		webmentionsClient: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
+		media: &Media{conf.BunnyCDN},
+
+		Config:      conf,
+		PublicDirCh: make(chan string),
 	}
 
-	var (
-		search  SearchIndex
-		indexOk bool
-	)
+	if conf.Telegram != nil {
+		notifications, err := newTgNotifications(conf.Telegram)
+		if err != nil {
+			return nil, err
+		}
+		eagle.notifications = notifications
+	} else {
+		eagle.notifications = newLogNotifications()
+	}
+
 	if conf.MeiliSearch != nil {
-		search, indexOk, err = NewMeiliSearch(conf.MeiliSearch)
-	}
-	if err != nil {
-		return nil, err
-	}
+		search, indexOk, err := NewMeiliSearch(conf.MeiliSearch)
+		if err != nil {
+			return nil, err
+		}
+		eagle.search = search
 
-	eagle := &Eagle{
-		PublicDirCh: publicDirCh,
-		EntryManager: &EntryManager{
-			baseURL: conf.BaseURL,
-			store:   storage.Sub("content"),
-			search:  search,
-		},
-		Notifications: notifications,
-		Hugo: &Hugo{
-			conf: conf.Hugo,
-			dstFs: &afero.Afero{
-				Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.Hugo.Destination),
-			},
-			publicDirCh: publicDirCh,
-		},
-		Storage: storage,
-		Crawler: &Crawler{
-			xray:    conf.XRay,
-			twitter: conf.Twitter,
-		},
-		Webmentions: webmentions,
+		if !indexOk {
+			defer func() {
+				logging.S().Info("building index for the first time")
+				err = eagle.RebuildIndex()
+			}()
+		}
 	}
 
 	if conf.Twitter != nil {
@@ -88,10 +87,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		eagle.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
-	if !indexOk {
-		logging.S().Info("building index for the first time")
-		err = eagle.RebuildIndex()
-	}
-
 	return eagle, err
+}
+
+func makeAfero(path string) *afero.Afero {
+	return &afero.Afero{
+		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
+	}
 }

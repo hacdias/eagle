@@ -2,7 +2,8 @@ package server
 
 import (
 	"bytes"
-	"net/url"
+	"fmt"
+	urlpkg "net/url"
 	"path"
 	"strings"
 
@@ -17,23 +18,20 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 
 	url, err := s.e.Twitter.Syndicate(entry)
 	if err != nil {
-		s.Errorf("failed to syndicate: %w", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
 		return
 	}
 
 	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
 	err = s.e.SaveEntry(entry)
 	if err != nil {
-		s.Errorf("failed to save entry: %w", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("failed to save entry: %w", err))
 		return
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Errorf("failed to build: %w", err)
-		s.e.NotifyError(err)
+		s.e.NotifyError(fmt.Errorf("failed to build: %w", err))
 	}
 }
 
@@ -66,16 +64,16 @@ func (s *Server) getWebmentionTargets(entry *eagle.Entry) ([]string, error) {
 
 func (s *Server) goWebmentions(entry *eagle.Entry) {
 	var err error
+
 	defer func() {
 		if err != nil {
-			s.e.NotifyError(err)
-			s.Warnf("webmentions: %w", err)
+			s.e.NotifyError(fmt.Errorf("webmentions: %w", err))
 		}
 	}()
 
 	targets, err := s.getWebmentionTargets(entry)
 	if err != nil {
-		s.Errorf("could not fetch webmention targets %s: %w", entry.ID, err)
+		err = fmt.Errorf("could not fetch webmention targets for %s: %w", entry.ID, err)
 		return
 	}
 
@@ -83,29 +81,29 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 	err = s.e.SendWebmention(entry.Permalink, targets...)
 }
 
-func sanitizeReplyURL(iu string) string {
-	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
-		u, err := url.Parse(iu)
+func sanitizeReplyURL(replyUrl string) string {
+	if strings.HasPrefix(replyUrl, "https://twitter.com") && strings.Contains(replyUrl, "/status/") {
+		url, err := urlpkg.Parse(replyUrl)
 		if err != nil {
-			return iu
+			return replyUrl
 		}
 
-		u.RawQuery = ""
-		u.Fragment = ""
+		url.RawQuery = ""
+		url.Fragment = ""
 
-		return u.String()
+		return url.String()
 	}
 
-	return iu
+	return replyUrl
 }
 
 func sanitizeID(id string) (string, error) {
 	if id != "" {
-		u, err := url.Parse(id)
+		url, err := urlpkg.Parse(id)
 		if err != nil {
 			return "", err
 		}
-		id = path.Clean(u.Path)
+		id = path.Clean(url.Path)
 	}
 	return id, nil
 }

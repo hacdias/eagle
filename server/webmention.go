@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/hacdias/eagle/eagle"
@@ -12,7 +13,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&wm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		s.Warnf("error when decoding webmention: %w", err)
+		s.Warnf("error when decoding webmention: %s", err.Error())
 		return
 	}
 
@@ -30,7 +31,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusInternalServerError)
-		s.Errorf("could not parse webmention: %w", err)
+		s.Error("could not parse webmention", err)
 		return
 	}
 
@@ -39,8 +40,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := s.e.Build(false)
 		if err != nil {
-			s.Errorf("webmention: error hugo build: %w", err)
-			s.e.NotifyError(err)
+			s.e.NotifyError(fmt.Errorf("webmention: error hugo build: %w", err))
 		} else {
 			if wm.Deleted {
 				s.e.Notify("💬 Deleted webmention at " + wm.Target)

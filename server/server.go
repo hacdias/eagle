@@ -161,8 +161,7 @@ func (s *Server) publicDirWorker() {
 		if oldFs != nil {
 			err := os.RemoveAll(oldFs.dir)
 			if err != nil {
-				s.Warnf("could not delete old directory: %w", err)
-				s.e.NotifyError(err)
+				s.e.NotifyError(fmt.Errorf("could not delete old directory: %w", err))
 			}
 		}
 	}
@@ -173,8 +172,8 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				s.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
-				s.e.NotifyError(fmt.Errorf(fmt.Sprint(rvr)))
+				err := fmt.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
+				s.e.NotifyError(err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
@@ -201,7 +200,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		s.Errorf("error while serving json: %w", err)
+		s.Error("error while serving json", err)
 	}
 }
 

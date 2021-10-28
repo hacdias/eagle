@@ -7,33 +7,20 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sync"
 	"time"
-
-	"github.com/hacdias/eagle/config"
-	"github.com/spf13/afero"
 )
 
-type Hugo struct {
-	sync.Mutex
+// ShouldBuild indicates if the website should be built. This should only
+// return true after initialization.
+func (e *Eagle) ShouldBuild() (bool, error) {
+	e.buildMu.Lock()
+	defer e.buildMu.Unlock()
 
-	conf          config.Hugo
-	dstFs         *afero.Afero
-	publicDirCh   chan string
-	currentSubDir string
-}
-
-// ShouldBuild should only be called on startup to make sure there's
-// a built public directory to serve.
-func (h *Hugo) ShouldBuild() (bool, error) {
-	h.Lock()
-	defer h.Unlock()
-
-	if h.currentSubDir != "" {
+	if e.currentPublicDir != "" {
 		return false, nil
 	}
 
-	content, err := h.dstFs.ReadFile("last")
+	content, err := e.dstFs.ReadFile("last")
 	if err != nil {
 		if os.IsNotExist(err) {
 			return true, nil
@@ -42,34 +29,35 @@ func (h *Hugo) ShouldBuild() (bool, error) {
 		return true, err
 	}
 
-	h.currentSubDir = string(content)
-	h.publicDirCh <- filepath.Join(h.conf.Destination, h.currentSubDir)
+	e.currentPublicDir = string(content)
+	e.PublicDirCh <- filepath.Join(e.Config.Hugo.Destination, e.currentPublicDir)
 	return false, nil
 }
 
-func (h *Hugo) Build(clean bool) error {
-	if h.currentSubDir == "" {
-		_, err := h.ShouldBuild()
+func (e *Eagle) Build(clean bool) error {
+	// TODO: maybe this is not actually needed and can be removed.
+	if e.currentPublicDir == "" {
+		_, err := e.ShouldBuild()
 		if err != nil {
 			return err
 		}
 	}
 
-	h.Lock()
-	defer h.Unlock()
+	e.buildMu.Lock()
+	defer e.buildMu.Unlock()
 
-	dir := h.currentSubDir
+	dir := e.currentPublicDir
 	new := dir == "" || clean
 
 	if new {
 		dir = generateHash()
 	}
 
-	destination := filepath.Join(h.conf.Destination, dir)
+	destination := filepath.Join(e.Config.Hugo.Destination, dir)
 	args := []string{"--minify", "--destination", destination}
 
 	cmd := exec.Command("hugo", args...)
-	cmd.Dir = h.conf.Source
+	cmd.Dir = e.Config.Hugo.Source
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -79,13 +67,13 @@ func (h *Hugo) Build(clean bool) error {
 	if new {
 		// We build to a different sub directory so we can change the directory
 		// we are serving seamlessly without users noticing. Check server/satic.go!
-		err = h.dstFs.WriteFile("last", []byte(dir), 0644)
+		err = e.dstFs.WriteFile("last", []byte(dir), 0644)
 		if err != nil {
 			return fmt.Errorf("could not write last dir: %w", err)
 		}
 
-		h.currentSubDir = dir
-		h.publicDirCh <- filepath.Join(h.conf.Destination, h.currentSubDir)
+		e.currentPublicDir = dir
+		e.PublicDirCh <- destination
 	}
 
 	return nil
