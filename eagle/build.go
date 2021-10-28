@@ -30,7 +30,7 @@ func (e *Eagle) ShouldBuild() (bool, error) {
 	}
 
 	e.currentPublicDir = string(content)
-	e.PublicDirCh <- filepath.Join(e.Config.Hugo.Destination, e.currentPublicDir)
+	e.PublicDirCh <- filepath.Join(e.Config.PublicDirectory, e.currentPublicDir)
 	return false, nil
 }
 
@@ -53,11 +53,11 @@ func (e *Eagle) Build(clean bool) error {
 		dir = generateHash()
 	}
 
-	destination := filepath.Join(e.Config.Hugo.Destination, dir)
+	destination := filepath.Join(e.Config.PublicDirectory, dir)
 	args := []string{"--minify", "--destination", destination}
 
 	cmd := exec.Command("hugo", args...)
-	cmd.Dir = e.Config.Hugo.Source
+	cmd.Dir = e.Config.SourceDirectory
 	out, err := cmd.CombinedOutput()
 
 	if err != nil {

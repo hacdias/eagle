@@ -41,9 +41,9 @@ type Eagle struct {
 func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 	eagle = &Eagle{
 		log:    logging.S().Named("eagle"),
-		srcFs:  makeAfero(conf.Hugo.Source),
-		srcGit: &gitRepo{conf.Hugo.Source},
-		dstFs:  makeAfero(conf.Hugo.Destination),
+		srcFs:  makeAfero(conf.SourceDirectory),
+		srcGit: &gitRepo{conf.SourceDirectory},
+		dstFs:  makeAfero(conf.PublicDirectory),
 		webmentionsClient: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),

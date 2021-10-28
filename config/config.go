@@ -8,23 +8,21 @@ import (
 )
 
 type Config struct {
-	Development bool
-
-	Port      int
-	BaseURL   string
-	Auth      *Auth
-	Tailscale *Tailscale
-
-	Webmentions Webmentions
-	Webhook     Webhook
-	Hugo        Hugo
-	XRay        XRay
-
-	BunnyCDN    *BunnyCDN
-	Telegram    *Telegram
-	Twitter     *Twitter
-	Miniflux    *Miniflux
-	MeiliSearch *MeiliSearch
+	Development       bool
+	Port              int
+	BaseURL           string
+	SourceDirectory   string
+	PublicDirectory   string
+	WebhookSecret     string
+	XRayEndpoint      string
+	WebmentionsSecret string
+	Auth              *Auth
+	Tailscale         *Tailscale
+	BunnyCDN          *BunnyCDN
+	Telegram          *Telegram
+	Twitter           *Twitter
+	Miniflux          *Miniflux
+	MeiliSearch       *MeiliSearch
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -35,6 +33,9 @@ func Parse() (*Config, error) {
 
 	viper.SetDefault("port", 8080)
 	viper.SetDefault("baseUrl", "http://localhost:8080")
+	viper.SetDefault("sourceDirectory", "/app/source")
+	viper.SetDefault("publicDirectory", "/app/public")
+	viper.SetDefault("xrayEndpoint", "https://xray.p3k.app")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -52,12 +53,12 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	conf.Hugo.Source, err = filepath.Abs(conf.Hugo.Source)
+	conf.SourceDirectory, err = filepath.Abs(conf.SourceDirectory)
 	if err != nil {
 		return nil, err
 	}
 
-	conf.Hugo.Destination, err = filepath.Abs(conf.Hugo.Destination)
+	conf.PublicDirectory, err = filepath.Abs(conf.PublicDirectory)
 	if err != nil {
 		return nil, err
 	}
@@ -89,22 +90,6 @@ type Tailscale struct {
 	AuthKey            string
 }
 
-type Webmentions struct {
-	Secret string
-}
-
-type Webhook struct {
-	Secret string
-}
-
-type Hugo struct {
-	Source      string
-	Destination string
-}
-
-type XRay struct {
-	Endpoint string
-}
 type Telegram struct {
 	Token  string
 	ChatID int64

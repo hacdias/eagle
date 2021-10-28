@@ -23,8 +23,14 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	}
 
 	r.Get("/search.json", s.searchHandler)
-	r.Post("/webhook", s.webhookHandler)
-	r.Post("/webmention", s.webmentionHandler)
+
+	if s.Config.WebhookSecret != "" {
+		r.Post("/webhook", s.webhookHandler)
+	}
+
+	if s.Config.WebmentionsSecret != "" {
+		r.Post("/webmention", s.webmentionHandler)
+	}
 
 	r.Get("/*", s.staticHandler)
 	r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.

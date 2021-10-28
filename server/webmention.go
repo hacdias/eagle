@@ -17,7 +17,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if wm.Secret != s.Config.Webmentions.Secret {
+	if wm.Secret != s.Config.WebmentionsSecret {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}

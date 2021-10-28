@@ -48,7 +48,7 @@ func (e *Eagle) GetXRay(url string) (*XRay, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.Config.XRay.Endpoint+"/parse", strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.Config.XRayEndpoint+"/parse", strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}

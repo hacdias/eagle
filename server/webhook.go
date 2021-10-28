@@ -24,7 +24,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mac := hmac.New(sha1.New, []byte(s.Config.Webhook.Secret))
+	mac := hmac.New(sha1.New, []byte(s.Config.WebhookSecret))
 	_, err = mac.Write(payload)
 	if err != nil {
 		s.log.Error("webook: could not write mac", err)
