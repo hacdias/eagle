@@ -86,8 +86,8 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 				return err
 
 			}
-			// Default path for new files is {slug}/index.md
-			path = filepath.Join(entry.ID, "index.md")
+			// Default path for new files is content/{slug}/index.md
+			path = filepath.Join("content", entry.ID, "index.md")
 		}
 		entry.Path = path
 	}
@@ -131,7 +131,7 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	defer m.RUnlock()
 
 	entries := []*Entry{}
-	err := m.store.Walk(".", func(p string, info os.FileInfo, err error) error {
+	err := m.store.Walk("content/", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -140,7 +140,8 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 			return nil
 		}
 
-		id := strings.TrimSuffix(p, ".md")
+		id := strings.TrimPrefix(p, "content/")
+		id = strings.TrimSuffix(id, ".md")
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")
 
@@ -217,21 +218,21 @@ func (m *EntryManager) cleanID(id string) string {
 }
 
 func (m *EntryManager) guessPath(id string) (string, error) {
-	path := id + ".md"
+	path := filepath.Join("content", id+".md")
 	if _, err := m.store.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
-	path = filepath.Join(id, "index.md")
+	path = filepath.Join("content", id, "index.md")
 	if _, err := m.store.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
-	path = filepath.Join(id, "_index.md")
+	path = filepath.Join("content", id, "_index.md")
 	if _, err := m.store.Stat(path); err == nil {
 		return path, nil
 	} else {

@@ -166,7 +166,7 @@ func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, 
 	}
 
 	id = filepath.Clean(url.Path)
-	dir := id
+	dir := filepath.Join("content", id)
 
 	if stat, err := w.store.Stat(dir); err != nil || !stat.IsDir() {
 		if !stat.IsDir() {

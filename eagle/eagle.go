@@ -35,15 +35,13 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	srcFs := NewStorage(conf.Hugo.Source, &gitRepo{
-		dir: conf.Hugo.Source,
-	})
+	srcFs := NewStorage(conf.Hugo.Source)
 
 	webmentions := &Webmentions{
 		log:    logging.S().Named("webmentions"),
 		media:  &Media{conf.BunnyCDN},
 		notify: notifications,
-		store:  srcFs.Sub("content"),
+		store:  srcFs,
 		client: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
@@ -66,7 +64,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			baseURL: conf.BaseURL,
-			store:   srcFs.Sub("content"),
+			store:   srcFs,
 			search:  search,
 		},
 		Notifications: notifications,
