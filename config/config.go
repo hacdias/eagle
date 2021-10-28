@@ -1,7 +1,7 @@
 package config
 
 import (
-	"net/url"
+	urlpkg "net/url"
 	"path/filepath"
 
 	"github.com/spf13/viper"
@@ -65,8 +65,8 @@ func Parse() (*Config, error) {
 	return conf, nil
 }
 
-func validateBaseURL(s string) (string, error) {
-	baseUrl, err := url.Parse(s)
+func validateBaseURL(url string) (string, error) {
+	baseUrl, err := urlpkg.Parse(url)
 	if err != nil {
 		return "", err
 	}

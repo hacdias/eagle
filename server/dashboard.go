@@ -150,7 +150,7 @@ func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err error
-	entry.Metadata.ReplyTo, err = s.e.Crawl(reply)
+	entry.Metadata.ReplyTo, err = s.e.GetEmbeddedEntry(reply)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return

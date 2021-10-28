@@ -33,7 +33,6 @@ type Eagle struct {
 	PublicDirCh chan string
 
 	notifications
-	*Crawler
 
 	// Optional services
 	Miniflux *Miniflux
@@ -53,10 +52,6 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 
 		Config:      conf,
 		PublicDirCh: make(chan string),
-		Crawler: &Crawler{
-			xray:    conf.XRay,
-			twitter: conf.Twitter,
-		},
 	}
 
 	if conf.Telegram != nil {

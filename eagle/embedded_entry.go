@@ -4,36 +4,30 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/url"
+	urlpkg "net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/config"
 )
 
-type Crawler struct {
-	xray    config.XRay
-	twitter *config.Twitter
-}
+func (e *Eagle) GetEmbeddedEntry(url string) (*EmbeddedEntry, error) {
+	data := urlpkg.Values{}
+	data.Set("url", url)
 
-func (c *Crawler) Crawl(u string) (*EmbeddedEntry, error) {
-	data := url.Values{}
-	data.Set("url", u)
-
-	if strings.Contains(u, "twitter.com") && c.twitter != nil {
-		data.Set("twitter_api_key", c.twitter.Key)
-		data.Set("twitter_api_secret", c.twitter.Secret)
-		data.Set("twitter_access_token", c.twitter.Token)
-		data.Set("twitter_access_token_secret", c.twitter.TokenSecret)
+	if strings.Contains(url, "twitter.com") && e.Config.Twitter != nil {
+		data.Set("twitter_api_key", e.Config.Twitter.Key)
+		data.Set("twitter_api_secret", e.Config.Twitter.Secret)
+		data.Set("twitter_access_token", e.Config.Twitter.Token)
+		data.Set("twitter_access_token_secret", e.Config.Twitter.TokenSecret)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.xray.Endpoint+"/parse", strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.Config.XRay.Endpoint+"/parse", strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +47,12 @@ func (c *Crawler) Crawl(u string) (*EmbeddedEntry, error) {
 		return nil, err
 	}
 
-	ee := c.parse(&xray)
-	ee.URL = u
+	ee := parseXRayResponse(&xray)
+	ee.URL = url
 	return ee, nil
 }
 
-func (c *Crawler) parse(xray *xrayResponse) *EmbeddedEntry {
+func parseXRayResponse(xray *xrayResponse) *EmbeddedEntry {
 	ee := &EmbeddedEntry{}
 
 	if xray.Data == nil {

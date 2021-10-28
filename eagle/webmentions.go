@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
+	urlpkg "net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -146,7 +146,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 }
 
 func (e *Eagle) parseWebmentionTarget(payload *WebmentionPayload) (id, file string, err error) {
-	url, err := url.Parse(payload.Target)
+	url, err := urlpkg.Parse(payload.Target)
 	if err != nil {
 		return "", "", err
 	}

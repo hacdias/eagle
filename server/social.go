@@ -3,7 +3,7 @@ package server
 import (
 	"bytes"
 	"fmt"
-	"net/url"
+	urlpkg "net/url"
 	"path"
 	"strings"
 
@@ -81,29 +81,29 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 	err = s.e.SendWebmention(entry.Permalink, targets...)
 }
 
-func sanitizeReplyURL(iu string) string {
-	if strings.HasPrefix(iu, "https://twitter.com") && strings.Contains(iu, "/status/") {
-		u, err := url.Parse(iu)
+func sanitizeReplyURL(replyUrl string) string {
+	if strings.HasPrefix(replyUrl, "https://twitter.com") && strings.Contains(replyUrl, "/status/") {
+		url, err := urlpkg.Parse(replyUrl)
 		if err != nil {
-			return iu
+			return replyUrl
 		}
 
-		u.RawQuery = ""
-		u.Fragment = ""
+		url.RawQuery = ""
+		url.Fragment = ""
 
-		return u.String()
+		return url.String()
 	}
 
-	return iu
+	return replyUrl
 }
 
 func sanitizeID(id string) (string, error) {
 	if id != "" {
-		u, err := url.Parse(id)
+		url, err := urlpkg.Parse(id)
 		if err != nil {
 			return "", err
 		}
-		id = path.Clean(u.Path)
+		id = path.Clean(url.Path)
 	}
 	return id, nil
 }
