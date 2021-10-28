@@ -1,24 +1,22 @@
 package eagle
 
 import (
-	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
+	"willnorris.com/go/webmention"
 )
 
 var ErrDuplicatedWebmention = errors.New("duplicated webmention")
@@ -58,46 +56,42 @@ type WebmentionContent struct {
 type Webmentions struct {
 	sync.Mutex
 
-	telegraphToken string
-	media          *Media
-	notify         *Notifications
-	store          *Storage
-	log            *zap.SugaredLogger
+	client *webmention.Client
+
+	media  *Media
+	notify *Notifications
+	store  *Storage
+	log    *zap.SugaredLogger
 }
 
 func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 	var errors *multierror.Error
 
 	for _, target := range targets {
-		func() {
-			data := url.Values{}
-			data.Set("token", w.telegraphToken)
-			data.Set("source", source)
-			data.Set("target", target)
-
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-			defer cancel()
-
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://telegraph.p3k.io/webmention", strings.NewReader(data.Encode()))
-			if err != nil {
-				errors = multierror.Append(errors, err)
-				w.log.Errorf("error creating request: %w", err)
-				return
-			}
-
-			req.Header.Set("Accept", "application/json")
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-			req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-
-			_, err = http.DefaultClient.Do(req)
-			if err != nil {
-				w.log.Warnf("could not post telegraph: %s ==> %s: %s", source, target, err)
-				errors = multierror.Append(errors, err)
-			}
-		}()
+		err := w.sendWebmention(source, target)
+		if err != nil {
+			err = fmt.Errorf("webmention error %s: %w", target, err)
+			errors = multierror.Append(errors, err)
+		}
 	}
 
 	return errors.ErrorOrNil()
+}
+
+func (w *Webmentions) sendWebmention(source, target string) error {
+	endpoint, err := w.client.DiscoverEndpoint(target)
+	if err != nil {
+		return err
+	}
+
+	res, err := w.client.SendWebmention(endpoint, source, target)
+	if err != nil {
+		return err
+	}
+	_, _ = io.Copy(io.Discard, res.Body)
+	defer res.Body.Close()
+
+	return nil
 }
 
 func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
