@@ -14,6 +14,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
+	"willnorris.com/go/webmention"
 )
 
 var ErrDuplicatedWebmention = errors.New("duplicated webmention")
@@ -51,17 +52,17 @@ type WebmentionContent struct {
 }
 
 func (e *Eagle) SendWebmention(source string, targets ...string) error {
-	var errors *multierror.Error
+	var errs *multierror.Error
 
 	for _, target := range targets {
 		err := e.sendWebmention(source, target)
-		if err != nil {
+		if err != nil && !errors.Is(err, webmention.ErrNoEndpointFound) {
 			err = fmt.Errorf("webmention error %s: %w", target, err)
-			errors = multierror.Append(errors, err)
+			errs = multierror.Append(errs, err)
 		}
 	}
 
-	return errors.ErrorOrNil()
+	return errs.ErrorOrNil()
 }
 
 func (e *Eagle) sendWebmention(source, target string) error {

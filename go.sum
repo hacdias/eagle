@@ -1370,3 +1370,5 @@ tailscale.com v1.16.1 h1:kvTCjY+ZXUJDJ6o2DxX6xEDubL6IPgRGIyZEZrIhmO0=
 tailscale.com v1.16.1/go.mod h1:+dISSbd6iiY6F6/dRGQRgshjYXMkhMzVvRd9En8RLfQ=
 willnorris.com/go/webmention v0.0.0-20211028160034-7d22f9fcfafd h1:gNSUkl5SWUw8cnibvcJvH+uKnPKHm252vsNFN//Inig=
 willnorris.com/go/webmention v0.0.0-20211028160034-7d22f9fcfafd/go.mod h1:DgeruqKIsZtcDXVXNbBHa0YYEm88oAnK7PahkDtuCvw=
+willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0 h1:3/ozQ2qGZat82ON3AYMTot3gCg/vU7tgn/LYSJbkVPM=
+willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0/go.mod h1:DgeruqKIsZtcDXVXNbBHa0YYEm88oAnK7PahkDtuCvw=

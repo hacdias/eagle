@@ -22,5 +22,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	miniflux.app v0.0.0-20211024044718-d6ad9a471bb9
 	tailscale.com v1.16.1
-	willnorris.com/go/webmention v0.0.0-20211028160034-7d22f9fcfafd
+	willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0
 )
