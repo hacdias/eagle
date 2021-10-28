@@ -12,7 +12,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&wm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		s.Warnf("error when decoding webmention: %w", err)
+		s.Warnf("error when decoding webmention: %s", err.Error())
 		return
 	}
 
@@ -30,7 +30,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusInternalServerError)
-		s.Errorf("could not parse webmention: %w", err)
+		s.Error("could not parse webmention", err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err := s.e.Build(false)
 		if err != nil {
-			s.Errorf("webmention: error hugo build: %w", err)
+			s.Error("webmention: error hugo build", err)
 			s.e.NotifyError(err)
 		} else {
 			if wm.Deleted {

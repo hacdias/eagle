@@ -17,7 +17,7 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 
 	url, err := s.e.Twitter.Syndicate(entry)
 	if err != nil {
-		s.Errorf("failed to syndicate: %w", err)
+		s.Error("failed to syndicate", err)
 		s.e.NotifyError(err)
 		return
 	}
@@ -25,14 +25,14 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
 	err = s.e.SaveEntry(entry)
 	if err != nil {
-		s.Errorf("failed to save entry: %w", err)
+		s.Error("failed to save entry", err)
 		s.e.NotifyError(err)
 		return
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Errorf("failed to build: %w", err)
+		s.Error("failed to build", err)
 		s.e.NotifyError(err)
 	}
 }
@@ -69,13 +69,13 @@ func (s *Server) goWebmentions(entry *eagle.Entry) {
 	defer func() {
 		if err != nil {
 			s.e.NotifyError(err)
-			s.Warnf("webmentions: %w", err)
+			s.Warn("webmentions", err)
 		}
 	}()
 
 	targets, err := s.getWebmentionTargets(entry)
 	if err != nil {
-		s.Errorf("could not fetch webmention targets %s: %w", entry.ID, err)
+		s.Error("could not fetch webmention targets", entry.ID, err)
 		return
 	}
 

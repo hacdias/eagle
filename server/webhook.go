@@ -26,7 +26,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 	mac := hmac.New(sha1.New, []byte(s.c.Webhook.Secret))
 	_, err = mac.Write(payload)
 	if err != nil {
-		s.Errorf("webook: could not write mac: %w", err)
+		s.Error("webook: could not write mac", err)
 		return
 	}
 	expectedMAC := hex.EncodeToString(mac.Sum(nil))
@@ -44,7 +44,7 @@ func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) syncStorage() {
 	files, err := s.e.Sync()
 	if err != nil {
-		s.Errorf("sync storage: git pull: %w", err)
+		s.Error("sync storage: git pull", err)
 		s.e.NotifyError(err)
 		return
 	}
@@ -57,14 +57,14 @@ func (s *Server) syncStorage() {
 		s.Infof("sync storage: files updated: %v", files)
 		err = s.e.RebuildIndex()
 		if err != nil {
-			s.Errorf("sync storage: rebuild index: %w", err)
+			s.Error("sync storage: rebuild index", err)
 			s.e.NotifyError(err)
 		}
 	}
 
 	err = s.e.Build(false)
 	if err != nil {
-		s.Errorf("sync storage: hugo build: %w", err)
+		s.Error("sync storage: hugo build", err)
 		s.e.NotifyError(err)
 		return
 	}

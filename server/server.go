@@ -161,7 +161,7 @@ func (s *Server) publicDirWorker() {
 		if oldFs != nil {
 			err := os.RemoveAll(oldFs.dir)
 			if err != nil {
-				s.Warnf("could not delete old directory: %w", err)
+				s.Warn("could not delete old directory", err)
 				s.e.NotifyError(err)
 			}
 		}
@@ -201,7 +201,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		s.Errorf("error while serving json: %w", err)
+		s.Error("error while serving json", err)
 	}
 }
 
