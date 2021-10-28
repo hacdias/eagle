@@ -8,36 +8,28 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/yaml"
 )
 
-type EntryManager struct {
-	sync.RWMutex
+func (e *Eagle) GetEntry(id string) (*Entry, error) {
+	e.entriesMu.RLock()
 
-	search  SearchIndex
-	store   *Storage
-	baseURL string
-}
+	defer e.entriesMu.RUnlock()
 
-func (m *EntryManager) GetEntry(id string) (*Entry, error) {
-	m.RLock()
-	defer m.RUnlock()
-
-	id = m.cleanID(id)
-	filepath, err := m.guessPath(id)
+	id = e.cleanID(id)
+	filepath, err := e.guessPath(id)
 	if err != nil {
 		return nil, err
 	}
 
-	raw, err := m.store.ReadFile(filepath)
+	raw, err := e.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	entry, err := m.ParseEntry(id, string(raw))
+	entry, err := e.ParseEntry(id, string(raw))
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +38,14 @@ func (m *EntryManager) GetEntry(id string) (*Entry, error) {
 	return entry, nil
 }
 
-func (m *EntryManager) ParseEntry(id, raw string) (*Entry, error) {
-	id = m.cleanID(id)
+func (e *Eagle) ParseEntry(id, raw string) (*Entry, error) {
+	id = e.cleanID(id)
 	splits := strings.SplitN(raw, "\n---", 2)
 	if len(splits) != 2 {
 		return nil, errors.New("could not parse file: splits !== 2")
 	}
 
-	permalink, err := m.makePermalink(id)
+	permalink, err := e.makePermalink(id)
 	if err != nil {
 		return nil, err
 	}
@@ -74,13 +66,13 @@ func (m *EntryManager) ParseEntry(id, raw string) (*Entry, error) {
 	return entry, nil
 }
 
-func (m *EntryManager) SaveEntry(entry *Entry) error {
-	m.Lock()
-	defer m.Unlock()
+func (e *Eagle) SaveEntry(entry *Entry) error {
+	e.entriesMu.Lock()
+	defer e.entriesMu.Unlock()
 
-	entry.ID = m.cleanID(entry.ID)
+	entry.ID = e.cleanID(entry.ID)
 	if entry.Path == "" {
-		path, err := m.guessPath(entry.ID)
+		path, err := e.guessPath(entry.ID)
 		if err != nil {
 			if !os.IsNotExist(err) {
 				return err
@@ -92,7 +84,7 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 		entry.Path = path
 	}
 
-	err := m.store.MkdirAll(filepath.Dir(entry.Path), 0777)
+	err := e.srcFs.MkdirAll(filepath.Dir(entry.Path), 0777)
 	if err != nil {
 		return err
 	}
@@ -102,36 +94,36 @@ func (m *EntryManager) SaveEntry(entry *Entry) error {
 		return err
 	}
 
-	err = m.store.Persist(entry.Path, []byte(str), "hugo: update "+entry.ID)
+	err = e.Persist(entry.Path, []byte(str), "hugo: update "+entry.ID)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
 
-	if m.search != nil {
-		_ = m.search.Add(entry)
+	if e.search != nil {
+		_ = e.search.Add(entry)
 	}
 
 	return nil
 }
 
-func (m *EntryManager) DeleteEntry(entry *Entry) error {
+func (e *Eagle) DeleteEntry(entry *Entry) error {
 	entry.Metadata.ExpiryDate = time.Now()
 
-	if m.search != nil {
+	if e.search != nil {
 		// We update the search index so it knows the post is expired.
 		// Only remove posts that actually do not exist in disk.
-		_ = m.search.Add(entry)
+		_ = e.search.Add(entry)
 	}
 
-	return m.SaveEntry(entry)
+	return e.SaveEntry(entry)
 }
 
-func (m *EntryManager) GetAll() ([]*Entry, error) {
-	m.RLock()
-	defer m.RUnlock()
+func (e *Eagle) GetAll() ([]*Entry, error) {
+	e.entriesMu.RLock()
+	defer e.entriesMu.RUnlock()
 
 	entries := []*Entry{}
-	err := m.store.Walk("content/", func(p string, info os.FileInfo, err error) error {
+	err := e.srcFs.Walk("content/", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -145,7 +137,7 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")
 
-		entry, err := m.GetEntry(id)
+		entry, err := e.GetEntry(id)
 		if err != nil {
 			return err
 		}
@@ -157,33 +149,33 @@ func (m *EntryManager) GetAll() ([]*Entry, error) {
 	return entries, err
 }
 
-func (m *EntryManager) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
-	if m.search == nil {
+func (e *Eagle) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
+	if e.search == nil {
 		return []*SearchEntry{}, nil
 	}
 
-	return m.search.Search(query, page)
+	return e.search.Search(query, page)
 }
 
-func (m *EntryManager) RebuildIndex() error {
-	if m.search == nil {
+func (e *Eagle) RebuildIndex() error {
+	if e.search == nil {
 		return nil
 	}
 
-	err := m.search.ResetIndex()
+	err := e.search.ResetIndex()
 	if err != nil {
 		return err
 	}
 
-	entries, err := m.GetAll()
+	entries, err := e.GetAll()
 	if err != nil {
 		return err
 	}
 
-	return m.search.Add(entries...)
+	return e.search.Add(entries...)
 }
 
-func (m *EntryManager) MakeBundle(entry *Entry) error {
+func (e *Eagle) MakeBundle(entry *Entry) error {
 	if entry.Path == "" {
 		return fmt.Errorf("entry %s does not contain a path", entry.ID)
 	}
@@ -196,12 +188,12 @@ func (m *EntryManager) MakeBundle(entry *Entry) error {
 	dir := strings.TrimSuffix(entry.Path, filepath.Ext(entry.Path))
 	file := filepath.Join(dir, "index.md")
 
-	err := m.store.MkdirAll(dir, 0777)
+	err := e.srcFs.MkdirAll(dir, 0777)
 	if err != nil {
 		return err
 	}
 
-	err = m.store.Rename(entry.Path, file)
+	err = e.srcFs.Rename(entry.Path, file)
 	if err != nil {
 		return err
 	}
@@ -210,38 +202,38 @@ func (m *EntryManager) MakeBundle(entry *Entry) error {
 	return nil
 }
 
-func (m *EntryManager) cleanID(id string) string {
+func (e *Eagle) cleanID(id string) string {
 	id = path.Clean(id)
 	id = strings.TrimSuffix(id, "/")
 	id = strings.TrimPrefix(id, "/")
 	return "/" + id
 }
 
-func (m *EntryManager) guessPath(id string) (string, error) {
+func (e *Eagle) guessPath(id string) (string, error) {
 	path := filepath.Join("content", id+".md")
-	if _, err := m.store.Stat(path); err == nil {
+	if _, err := e.srcFs.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
 	path = filepath.Join("content", id, "index.md")
-	if _, err := m.store.Stat(path); err == nil {
+	if _, err := e.srcFs.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
 	path = filepath.Join("content", id, "_index.md")
-	if _, err := m.store.Stat(path); err == nil {
+	if _, err := e.srcFs.Stat(path); err == nil {
 		return path, nil
 	} else {
 		return "", err
 	}
 }
 
-func (m *EntryManager) makePermalink(id string) (string, error) {
-	u, err := url.Parse(m.baseURL)
+func (e *Eagle) makePermalink(id string) (string, error) {
+	u, err := url.Parse(e.conf.BaseURL)
 	if err != nil {
 		return "", err
 	}

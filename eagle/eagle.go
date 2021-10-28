@@ -8,48 +8,42 @@ import (
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/logging"
 	"github.com/spf13/afero"
+	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
 )
 
 type Eagle struct {
-	// srcFs *Storage
-
+	log  *zap.SugaredLogger
 	conf *config.Config
+
+	srcFs     *afero.Afero
+	srcGit    *gitRepo
+	entriesMu sync.RWMutex
 
 	dstFs            *afero.Afero
 	buildMu          sync.Mutex
 	currentPublicDir string
 
+	webmentionsClient *webmention.Client
+	webmentionsMu     sync.Mutex
+
+	media  *Media
+	search SearchIndex
+
 	PublicDirCh chan string
-	Twitter     *Twitter
-	Miniflux    *Miniflux
 
 	*Notifications
-	*Webmentions
-	*EntryManager
 	*Crawler
 
-	*Storage
+	// Optional services
+	Miniflux *Miniflux
+	Twitter  *Twitter
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
-	publicDirCh := make(chan string)
-
 	notifications, err := NewNotifications(&conf.Telegram)
 	if err != nil {
 		return nil, err
-	}
-
-	srcFs := NewStorage(conf.Hugo.Source)
-
-	webmentions := &Webmentions{
-		log:    logging.S().Named("webmentions"),
-		media:  &Media{conf.BunnyCDN},
-		notify: notifications,
-		store:  srcFs,
-		client: webmention.New(&http.Client{
-			Timeout: time.Minute,
-		}),
 	}
 
 	var (
@@ -64,26 +58,23 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	eagle := &Eagle{
-		// srcFs: srcFs,
+		log:    logging.S().Named("eagle"),
+		conf:   conf,
+		srcFs:  makeAfero(conf.Hugo.Source),
+		srcGit: &gitRepo{conf.Hugo.Source},
+		dstFs:  makeAfero(conf.Hugo.Destination),
+		webmentionsClient: webmention.New(&http.Client{
+			Timeout: time.Minute,
+		}),
+		media:  &Media{conf.BunnyCDN},
+		search: search,
 
-		conf: conf,
-		dstFs: &afero.Afero{
-			Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.Hugo.Destination),
-		},
-
-		PublicDirCh: publicDirCh,
-		EntryManager: &EntryManager{
-			baseURL: conf.BaseURL,
-			store:   srcFs,
-			search:  search,
-		},
+		PublicDirCh:   make(chan string),
 		Notifications: notifications,
-		Storage:       srcFs,
 		Crawler: &Crawler{
 			xray:    conf.XRay,
 			twitter: conf.Twitter,
 		},
-		Webmentions: webmentions,
 	}
 
 	if conf.Twitter != nil {
@@ -100,4 +91,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	return eagle, err
+}
+
+func makeAfero(path string) *afero.Afero {
+	return &afero.Afero{
+		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
+	}
 }

@@ -10,13 +10,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
-	"go.uber.org/zap"
-	"willnorris.com/go/webmention"
 )
 
 var ErrDuplicatedWebmention = errors.New("duplicated webmention")
@@ -53,22 +50,11 @@ type WebmentionContent struct {
 	HTML string `json:"html"`
 }
 
-type Webmentions struct {
-	sync.Mutex
-
-	client *webmention.Client
-
-	media  *Media
-	notify *Notifications
-	store  *Storage
-	log    *zap.SugaredLogger
-}
-
-func (w *Webmentions) SendWebmention(source string, targets ...string) error {
+func (e *Eagle) SendWebmention(source string, targets ...string) error {
 	var errors *multierror.Error
 
 	for _, target := range targets {
-		err := w.sendWebmention(source, target)
+		err := e.sendWebmention(source, target)
 		if err != nil {
 			err = fmt.Errorf("webmention error %s: %w", target, err)
 			errors = multierror.Append(errors, err)
@@ -78,13 +64,13 @@ func (w *Webmentions) SendWebmention(source string, targets ...string) error {
 	return errors.ErrorOrNil()
 }
 
-func (w *Webmentions) sendWebmention(source, target string) error {
-	endpoint, err := w.client.DiscoverEndpoint(target)
+func (e *Eagle) sendWebmention(source, target string) error {
+	endpoint, err := e.webmentionsClient.DiscoverEndpoint(target)
 	if err != nil {
 		return err
 	}
 
-	res, err := w.client.SendWebmention(endpoint, source, target)
+	res, err := e.webmentionsClient.SendWebmention(endpoint, source, target)
 	if err != nil {
 		return err
 	}
@@ -94,12 +80,12 @@ func (w *Webmentions) sendWebmention(source, target string) error {
 	return nil
 }
 
-func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
-	w.log.Infow("received webmention", "webmention", payload)
+func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
+	e.log.Infow("received webmention", "webmention", payload)
 
 	// If it's a private notification, simply notify.
 	if payload.Post.WmPrivate {
-		w.notify.Notify(
+		e.Notify(
 			fmt.Sprintf(
 				"Received private webmention from %s at %s to %s: %s",
 				payload.Post.Author.Name,
@@ -111,16 +97,16 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return nil
 	}
 
-	id, file, err := w.parseTarget(payload)
+	id, file, err := e.parseWebmentionTarget(payload)
 	if err != nil {
 		return err
 	}
 
-	w.Lock()
-	defer w.Unlock()
+	e.webmentionsMu.Lock()
+	defer e.webmentionsMu.Unlock()
 
 	mentions := []EmbeddedEntry{}
-	raw, err := w.store.ReadFile(file)
+	raw, err := e.ReadFile(file)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -140,26 +126,26 @@ func (w *Webmentions) ReceiveWebmentions(payload *WebmentionPayload) error {
 			}
 		}
 
-		return w.save(id, file, newMentions)
+		return e.saveWebmentions(id, file, newMentions)
 	}
 
 	for _, mention := range mentions {
 		if mention.WmID == payload.Post.WmID {
-			w.log.Infof("duplicated webmention for %s: %d", id, payload.Post.WmID)
+			e.log.Infof("duplicated webmention for %s: %d", id, payload.Post.WmID)
 			return ErrDuplicatedWebmention
 		}
 	}
 
-	ee, err := w.parsePayload(payload)
+	ee, err := e.parseWebmentionPayload(payload)
 	if err != nil {
 		return err
 	}
 
 	mentions = append(mentions, *ee)
-	return w.save(id, file, mentions)
+	return e.saveWebmentions(id, file, mentions)
 }
 
-func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, err error) {
+func (e *Eagle) parseWebmentionTarget(payload *WebmentionPayload) (id, file string, err error) {
 	url, err := url.Parse(payload.Target)
 	if err != nil {
 		return "", "", err
@@ -168,7 +154,7 @@ func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, 
 	id = filepath.Clean(url.Path)
 	dir := filepath.Join("content", id)
 
-	if stat, err := w.store.Stat(dir); err != nil || !stat.IsDir() {
+	if stat, err := e.srcFs.Stat(dir); err != nil || !stat.IsDir() {
 		if !stat.IsDir() {
 			err = fmt.Errorf("entry is not a bundle")
 		}
@@ -180,16 +166,7 @@ func (w *Webmentions) parseTarget(payload *WebmentionPayload) (id, file string, 
 	return id, file, nil
 }
 
-func (w *Webmentions) save(id, file string, mentions []EmbeddedEntry) (err error) {
-	bytes, err := yaml.Marshal(mentions)
-	if err != nil {
-		return err
-	}
-
-	return w.store.Persist(file, bytes, "webmentions: update "+id)
-}
-
-func (w *Webmentions) parsePayload(payload *WebmentionPayload) (*EmbeddedEntry, error) {
+func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*EmbeddedEntry, error) {
 	ee := &EmbeddedEntry{
 		WmID:   payload.Post.WmID,
 		Author: &payload.Post.Author,
@@ -228,26 +205,35 @@ func (w *Webmentions) parsePayload(payload *WebmentionPayload) (*EmbeddedEntry, 
 	}
 
 	if ee.Author.Photo != "" {
-		ee.Author.Photo = w.uploadPhoto(ee.Author.Photo)
+		ee.Author.Photo = e.uploadWebmentionPhoto(ee.Author.Photo)
 	}
 
 	return ee, nil
 }
 
-func (w *Webmentions) uploadPhoto(url string) string {
+func (e *Eagle) saveWebmentions(id, file string, mentions []EmbeddedEntry) (err error) {
+	bytes, err := yaml.Marshal(mentions)
+	if err != nil {
+		return err
+	}
+
+	return e.Persist(file, bytes, "webmentions: update "+id)
+}
+
+func (e *Eagle) uploadWebmentionPhoto(url string) string {
 	ext := path.Ext(url)
 	base := fmt.Sprintf("%x", sha256.Sum256([]byte(url)))
 
 	resp, err := http.Get(url)
 	if err != nil {
-		w.log.Warnf("could not fetch author photo: %s", url)
+		e.log.Warnf("could not fetch author photo: %s", url)
 		return url
 	}
 	defer resp.Body.Close()
 
-	newURL, err := w.media.UploadMedia("/wm/"+base+ext, resp.Body)
+	newURL, err := e.media.UploadMedia("/wm/"+base+ext, resp.Body)
 	if err != nil {
-		w.log.Errorf("could not upload photo to cdn: %s", url)
+		e.log.Errorf("could not upload photo to cdn: %s", url)
 		return url
 	}
 	return newURL
