@@ -11,6 +11,9 @@ import (
 )
 
 type Eagle struct {
+	// srcFs *Storage
+	// dstFs *Storage
+
 	PublicDirCh chan string
 	Twitter     *Twitter
 	Miniflux    *Miniflux
@@ -32,7 +35,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	storage := NewStorage(conf.Hugo.Source, &GitStorage{
+	srcFs := NewStorage(conf.Hugo.Source, &gitRepo{
 		dir: conf.Hugo.Source,
 	})
 
@@ -40,7 +43,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		log:    logging.S().Named("webmentions"),
 		media:  &Media{conf.BunnyCDN},
 		notify: notifications,
-		store:  storage.Sub("content"),
+		store:  srcFs.Sub("content"),
 		client: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
@@ -58,10 +61,12 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	eagle := &Eagle{
+		// srcFs: srcFs,
+
 		PublicDirCh: publicDirCh,
 		EntryManager: &EntryManager{
 			baseURL: conf.BaseURL,
-			store:   storage.Sub("content"),
+			store:   srcFs.Sub("content"),
 			search:  search,
 		},
 		Notifications: notifications,
@@ -72,7 +77,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			},
 			publicDirCh: publicDirCh,
 		},
-		Storage: storage,
+		Storage: srcFs,
 		Crawler: &Crawler{
 			xray:    conf.XRay,
 			twitter: conf.Twitter,
