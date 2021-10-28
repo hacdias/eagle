@@ -78,43 +78,30 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) webmentionsGetHandler(w http.ResponseWriter, r *http.Request) {
-	entries, err := s.e.GetAll()
+	id, err := sanitizeID(r.URL.Query().Get("url"))
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
 	}
 
-	for _, entry := range entries {
-		_, err := s.getWebmentionTargets(entry)
-		if err != nil {
-			fmt.Println(err)
-		}
+	if id == "" {
+		s.renderDashboard(w, "webmentions", &dashboardData{})
+		return
 	}
 
-	// id, err := sanitizeID(r.URL.Query().Get("url"))
-	// if err != nil {
-	// 	s.dashboardError(w, r, err)
-	// 	return
-	// }
+	entry, err := s.e.GetEntry(id)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
 
-	// if id == "" {
-	// 	s.renderDashboard(w, "webmentions", &dashboardData{})
-	// 	return
-	// }
+	targets, err := s.getWebmentionTargets(entry)
+	if err != nil {
+		s.dashboardError(w, r, err)
+		return
+	}
 
-	// entry, err := s.e.GetEntry(id)
-	// if err != nil {
-	// 	s.dashboardError(w, r, err)
-	// 	return
-	// }
-
-	// targets, err := s.getWebmentionTargets(entry)
-	// if err != nil {
-	// 	s.dashboardError(w, r, err)
-	// 	return
-	// }
-
-	s.renderDashboard(w, "webmentions", &dashboardData{Targets: []string{}, ID: ""})
+	s.renderDashboard(w, "webmentions", &dashboardData{Targets: targets, ID: id})
 }
 
 func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
