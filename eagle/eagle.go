@@ -1,9 +1,13 @@
 package eagle
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/hacdias/eagle/config"
 	"github.com/hacdias/eagle/logging"
 	"github.com/spf13/afero"
+	"willnorris.com/go/webmention"
 )
 
 type Eagle struct {
@@ -33,11 +37,13 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	})
 
 	webmentions := &Webmentions{
-		log:            logging.S().Named("webmentions"),
-		media:          &Media{conf.BunnyCDN},
-		notify:         notifications,
-		store:          storage.Sub("content"),
-		telegraphToken: conf.Webmentions.TelegraphToken,
+		log:    logging.S().Named("webmentions"),
+		media:  &Media{conf.BunnyCDN},
+		notify: notifications,
+		store:  storage.Sub("content"),
+		client: webmention.New(&http.Client{
+			Timeout: time.Minute,
+		}),
 	}
 
 	var (

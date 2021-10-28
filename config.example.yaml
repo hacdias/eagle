@@ -20,8 +20,6 @@ tailscale:
   # The authentication key for Tailscale. Please note that this is not an API key.
   authKey: tskey-...
 webmentions:
-  # https://telegraph.p3k.io/ token to send webmentions
-  telegraphToken:
   # https://webmention.io/ secret to receive webmentions
   secret:
 webhook:

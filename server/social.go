@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/hacdias/eagle/eagle"
+	"willnorris.com/go/webmention"
 )
 
 func (s *Server) goSyndicate(entry *eagle.Entry) {
@@ -50,37 +50,16 @@ func (s *Server) getWebmentionTargets(entry *eagle.Entry) ([]string, error) {
 		return nil, err
 	}
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+	r := bytes.NewReader(html)
+
+	targets, err := webmention.DiscoverLinksFromReader(r, entry.Permalink, ".h-entry .e-content a")
 	if err != nil {
 		return nil, err
 	}
 
-	targets := []string{}
-
 	if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
 		targets = append(targets, entry.Metadata.ReplyTo.URL)
 	}
-
-	doc.Find(".h-entry .e-content a").Each(func(i int, q *goquery.Selection) {
-		val, ok := q.Attr("href")
-		if !ok {
-			return
-		}
-
-		u, err := url.Parse(val)
-		if err != nil {
-			targets = append(targets, val)
-			return
-		}
-
-		base, err := url.Parse(entry.Permalink)
-		if err != nil {
-			targets = append(targets, val)
-			return
-		}
-
-		targets = append(targets, base.ResolveReference(u).String())
-	})
 
 	return targets, nil
 }

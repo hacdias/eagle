@@ -90,8 +90,7 @@ type Tailscale struct {
 }
 
 type Webmentions struct {
-	TelegraphToken string
-	Secret         string
+	Secret string
 }
 
 type Webhook struct {
