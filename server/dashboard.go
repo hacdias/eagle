@@ -95,7 +95,7 @@ func (s *Server) webmentionsGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	targets, err := s.GetWebmentionTargets(entry)
+	targets, _, _, err := s.GetWebmentionTargets(entry)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return

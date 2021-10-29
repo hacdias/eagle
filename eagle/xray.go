@@ -16,22 +16,18 @@ import (
 // XRay is an xray of an external post. This is the format used to store
 // Webmentions and ReplyTo context.
 type XRay struct {
-	// Specifically for webmentions received from https://webmention.io
-	// TODO: remove this and compare webmentions via URL.
-	WmID int `yaml:"wm-id,omitempty"`
-
-	Type    string    `yaml:"type,omitempty"`
-	URL     string    `yaml:"url,omitempty"`
-	Name    string    `yaml:"name,omitempty"`
-	Content string    `yaml:"content,omitempty"`
-	Date    time.Time `yaml:"date,omitempty"`
-	Author  *Author   `yaml:"author,omitempty"`
+	Type    string    `yaml:"type,omitempty" json:"type,omitempty"`
+	URL     string    `yaml:"url,omitempty" json:"url,omitempty"`
+	Name    string    `yaml:"name,omitempty" json:"name,omitempty"`
+	Content string    `yaml:"content,omitempty" json:"content,omitempty"`
+	Date    time.Time `yaml:"date,omitempty" json:"date,omitempty"`
+	Author  *Author   `yaml:"author,omitempty" json:"author,omitempty"`
 }
 
 type Author struct {
-	Name  string `yaml:"name,omitempty" json:"name"`
-	URL   string `yaml:"url,omitempty" json:"url"`
-	Photo string `yaml:"photo,omitempty" json:"photo"`
+	Name  string `yaml:"name,omitempty" json:"name,omitempty"`
+	URL   string `yaml:"url,omitempty" json:"url,omitempty"`
+	Photo string `yaml:"photo,omitempty" json:"photo,omitempty"`
 }
 
 func (e *Eagle) GetXRay(url string) (*XRay, error) {
