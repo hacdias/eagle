@@ -368,6 +368,12 @@ func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !entry.Metadata.Draft {
+		go func() {
+			s.goWebmentions(entry)
+		}()
+	}
+
 	http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
 }
 
