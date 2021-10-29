@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -36,19 +37,27 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	s.staticFs.ServeHTTP(nfw, r)
 
 	if nfw.status == http.StatusNotFound {
-		bytes, err := s.staticFs.ReadFile("404.html")
-		if err != nil {
+		s.notFoundHandler(w, r)
+	}
+}
+
+func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	bytes, err := s.staticFs.ReadFile("404.html")
+	if err != nil {
+		if os.IsNotExist(err) {
+			bytes = []byte(http.StatusText(http.StatusNotFound))
+		} else {
 			s.serveError(w, http.StatusInternalServerError, err)
 			return
 		}
-
-		w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Del("Cache-Control")
-
-		w.WriteHeader(http.StatusNotFound)
-		_, _ = w.Write(bytes)
 	}
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Del("Cache-Control")
+
+	w.WriteHeader(http.StatusNotFound)
+	_, _ = w.Write(bytes)
 }
 
 // notFoundResponseWriter wraps a Response Writer to capture 404 requests.
