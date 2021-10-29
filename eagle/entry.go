@@ -177,6 +177,10 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 		entry.Path = path
 	}
 
+	if entry.Metadata.DataID == "" {
+		entry.Metadata.DataID = e.makeDataID(entry.ID)
+	}
+
 	err := e.srcFs.MkdirAll(filepath.Dir(entry.Path), 0777)
 	if err != nil {
 		return err
