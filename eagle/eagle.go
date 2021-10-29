@@ -15,16 +15,18 @@ import (
 type Eagle struct {
 	log *zap.SugaredLogger
 
-	srcFs     *afero.Afero
-	srcGit    *gitRepo
-	entriesMu sync.RWMutex
+	srcFs  *afero.Afero
+	srcGit *gitRepo
 
 	dstFs            *afero.Afero
 	buildMu          sync.Mutex
 	currentPublicDir string
 
+	// TODO: make this key'ed mutexes by entry.ID
+	entriesMu     sync.RWMutex
+	entriesDataMu sync.RWMutex
+
 	webmentionsClient *webmention.Client
-	webmentionsMu     sync.Mutex
 
 	Notifications
 	Config      *config.Config

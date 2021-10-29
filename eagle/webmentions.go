@@ -10,11 +10,9 @@ import (
 	urlpkg "net/url"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/yaml"
 	"github.com/hashicorp/go-multierror"
 	"willnorris.com/go/webmention"
 )
@@ -26,6 +24,13 @@ var webmentionTypes = map[string]string{
 	"repost-of":   "repost",
 	"mention-of":  "mention",
 	"in-reply-to": "reply",
+}
+
+type Webmention struct {
+	XRay `yaml:",inline"`
+	// Specifically for webmentions received from https://webmention.io
+	// TODO: remove this and compare webmentions via URL.
+	WmID int `yaml:"wm-id,omitempty" json:"wm-id,omitempty"`
 }
 
 type WebmentionPayload struct {
@@ -54,14 +59,14 @@ type WebmentionContent struct {
 }
 
 func (e *Eagle) SendWebmentions(entry *Entry) error {
-	targets, err := e.GetWebmentionTargets(entry)
+	all, curr, _, err := e.GetWebmentionTargets(entry)
 	if err != nil {
 		return err
 	}
 
 	var errs *multierror.Error
 
-	for _, target := range targets {
+	for _, target := range all {
 		if strings.HasPrefix(target, e.Config.BaseURL) {
 			// TODO: it is a self-mention
 			e.log.Infof("TODO: self-mention from %s to %s", entry.Permalink, target)
@@ -74,25 +79,44 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 		}
 	}
 
+	if !entry.Deleted() {
+		// If it's not a deleted entry, update the targets list.
+		err = e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+			data.Targets = curr
+			return data, nil
+		})
+
+		errs = multierror.Append(errs, err)
+	}
+
 	return errs.ErrorOrNil()
 }
 
-func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, error) {
-	targets, err := e.getTargetsFromHTML(entry)
+func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string, error) {
+	currentTargets, err := e.getTargetsFromHTML(entry)
 	if err != nil {
 		if os.IsNotExist(err) {
 			if entry.Deleted() {
-				targets = []string{}
+				currentTargets = []string{}
 			} else {
-				return nil, fmt.Errorf("entry should exist as it is not deleted %s: %w", entry.ID, err)
+				return nil, nil, nil, fmt.Errorf("entry should exist as it is not deleted %s: %w", entry.ID, err)
 			}
 		} else {
-			return nil, err
+			return nil, nil, nil, err
 		}
 	}
 
-	// TODO: get targets from "previous edit"
-	return targets, nil
+	entryData, err := e.GetEntryData(entry)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	oldTargets := entryData.Targets
+
+	targets := append(currentTargets, oldTargets...)
+	targets = uniqString(targets)
+
+	return targets, currentTargets, oldTargets, nil
 }
 
 func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
@@ -148,79 +172,51 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return nil
 	}
 
-	id, file, err := e.parseWebmentionTarget(payload)
+	url, err := urlpkg.Parse(payload.Target)
+	if err != nil {
+		return fmt.Errorf("invalid target: %s", payload.Target)
+	}
+
+	entry, err := e.GetEntry(url.Path)
 	if err != nil {
 		return err
 	}
 
-	e.webmentionsMu.Lock()
-	defer e.webmentionsMu.Unlock()
-
-	mentions := []XRay{}
-	raw, err := e.ReadFile(file)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
+	return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+		if payload.Deleted {
+			webmentions := []*Webmention{}
+			for _, mention := range data.Webmentions {
+				if mention.URL != payload.Source {
+					webmentions = append(webmentions, mention)
+				}
+			}
+			data.Webmentions = webmentions
+			return data, nil
 		}
-	}
 
-	err = yaml.Unmarshal(raw, &mentions)
-	if err != nil {
-		return err
-	}
+		ee, err := e.parseWebmentionPayload(payload)
+		if err != nil {
+			return nil, err
+		}
 
-	if payload.Deleted {
-		newMentions := []XRay{}
-		for _, mention := range mentions {
-			if mention.URL != payload.Source {
-				newMentions = append(newMentions, mention)
+		for i, mention := range data.Webmentions {
+			if mention.URL == ee.URL {
+				data.Webmentions[i] = ee
+				return data, nil
 			}
 		}
 
-		return e.saveWebmentions(id, file, newMentions)
-	}
-
-	for _, mention := range mentions {
-		if mention.WmID == payload.Post.WmID {
-			e.log.Infof("duplicated webmention for %s: %d", id, payload.Post.WmID)
-			return ErrDuplicatedWebmention
-		}
-	}
-
-	ee, err := e.parseWebmentionPayload(payload)
-	if err != nil {
-		return err
-	}
-
-	mentions = append(mentions, *ee)
-	return e.saveWebmentions(id, file, mentions)
+		data.Webmentions = append(data.Webmentions, ee)
+		return data, nil
+	})
 }
 
-func (e *Eagle) parseWebmentionTarget(payload *WebmentionPayload) (id, file string, err error) {
-	url, err := urlpkg.Parse(payload.Target)
-	if err != nil {
-		return "", "", err
-	}
-
-	id = filepath.Clean(url.Path)
-	dir := filepath.Join("content", id)
-
-	if stat, err := e.srcFs.Stat(dir); err != nil || !stat.IsDir() {
-		if !stat.IsDir() {
-			err = fmt.Errorf("entry is not a bundle")
-		}
-		return id, file, err
-	}
-
-	file = filepath.Join(dir, "interactions.yaml")
-
-	return id, file, nil
-}
-
-func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*XRay, error) {
-	ee := &XRay{
-		WmID:   payload.Post.WmID,
-		Author: &payload.Post.Author,
+func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*Webmention, error) {
+	ee := &Webmention{
+		WmID: payload.Post.WmID,
+		XRay: XRay{
+			Author: &payload.Post.Author,
+		},
 	}
 
 	if payload.Post.Content.Text != "" {
@@ -260,15 +256,6 @@ func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*XRay, error
 	}
 
 	return ee, nil
-}
-
-func (e *Eagle) saveWebmentions(id, file string, mentions []XRay) (err error) {
-	bytes, err := yaml.Marshal(mentions)
-	if err != nil {
-		return err
-	}
-
-	return e.Persist(file, bytes, "webmentions: update "+id)
 }
 
 func (e *Eagle) uploadWebmentionPhoto(url string) string {

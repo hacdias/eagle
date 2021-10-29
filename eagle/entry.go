@@ -1,6 +1,8 @@
 package eagle
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	urlpkg "net/url"
@@ -23,6 +25,7 @@ type Entry struct {
 }
 
 type Metadata struct {
+	DataID      string           `yaml:"dataId,omitempty"`
 	Title       string           `yaml:"title,omitempty"`
 	Description string           `yaml:"description,omitempty"`
 	Tags        []string         `yaml:"tags,omitempty"`
@@ -91,28 +94,41 @@ type Menu struct {
 }
 
 func (e *Eagle) GetEntry(id string) (*Entry, error) {
-	e.entriesMu.RLock()
+	fn := func() (*Entry, error) {
+		e.entriesMu.RLock()
+		defer e.entriesMu.RUnlock()
 
-	defer e.entriesMu.RUnlock()
+		id = e.cleanID(id)
+		filepath, err := e.guessPath(id)
+		if err != nil {
+			return nil, err
+		}
 
-	id = e.cleanID(id)
-	filepath, err := e.guessPath(id)
+		raw, err := e.ReadFile(filepath)
+		if err != nil {
+			return nil, err
+		}
+
+		entry, err := e.ParseEntry(id, string(raw))
+		if err != nil {
+			return nil, err
+		}
+
+		entry.Path = filepath
+		return entry, nil
+	}
+
+	entry, err := fn()
 	if err != nil {
 		return nil, err
 	}
 
-	raw, err := e.ReadFile(filepath)
-	if err != nil {
-		return nil, err
+	if entry.Metadata.DataID == "" {
+		entry.Metadata.DataID = e.makeDataID(entry.ID)
+		err = e.SaveEntry(entry)
 	}
 
-	entry, err := e.ParseEntry(id, string(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	entry.Path = filepath
-	return entry, nil
+	return entry, err
 }
 
 func (e *Eagle) ParseEntry(id, raw string) (*Entry, error) {
@@ -196,9 +212,6 @@ func (e *Eagle) DeleteEntry(entry *Entry) error {
 }
 
 func (e *Eagle) GetAllEntries() ([]*Entry, error) {
-	e.entriesMu.RLock()
-	defer e.entriesMu.RUnlock()
-
 	entries := []*Entry{}
 	err := e.srcFs.Walk("content/", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -231,8 +244,8 @@ func (e *Eagle) MakeEntryBundle(entry *Entry) error {
 		return fmt.Errorf("entry %s does not contain a path", entry.ID)
 	}
 
-	if strings.HasSuffix(entry.Path, "index.md") {
-		// already a page bundle
+	if strings.HasSuffix(entry.Path, "index.md") || strings.HasSuffix(entry.Path, "_index.md") {
+		// Already a page bundle.
 		return nil
 	}
 
@@ -290,4 +303,10 @@ func (e *Eagle) makePermalink(id string) (string, error) {
 	}
 	url.Path = id
 	return url.String(), nil
+}
+
+func (e *Eagle) makeDataID(id string) string {
+	toHash := id + time.Now().String()
+	hash := sha256.Sum256([]byte(toHash))
+	return hex.EncodeToString(hash[:])
 }
