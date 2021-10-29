@@ -1,6 +1,7 @@
 package eagle
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/yaml"
@@ -51,11 +53,21 @@ type WebmentionContent struct {
 	HTML string `json:"html"`
 }
 
-func (e *Eagle) SendWebmention(source string, targets ...string) error {
+func (e *Eagle) SendWebmentions(entry *Entry) error {
+	targets, err := e.GetWebmentionTargets(entry)
+	if err != nil {
+		return err
+	}
+
 	var errs *multierror.Error
 
 	for _, target := range targets {
-		err := e.sendWebmention(source, target)
+		if strings.HasPrefix(target, e.Config.BaseURL) {
+			// TODO: it is a self-mention
+			e.log.Infof("TODO: self-mention from %s to %s", entry.Permalink, target)
+		}
+
+		err := e.sendWebmention(entry.Permalink, target)
 		if err != nil && !errors.Is(err, webmention.ErrNoEndpointFound) {
 			err = fmt.Errorf("webmention error %s: %w", target, err)
 			errs = multierror.Append(errs, err)
@@ -63,6 +75,44 @@ func (e *Eagle) SendWebmention(source string, targets ...string) error {
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, error) {
+	targets, err := e.getTargetsFromHTML(entry)
+	if err != nil {
+		if os.IsNotExist(err) {
+			if entry.Deleted() {
+				targets = []string{}
+			} else {
+				return nil, fmt.Errorf("entry should exist as it is not deleted %s: %w", entry.ID, err)
+			}
+		} else {
+			return nil, err
+		}
+	}
+
+	// TODO: get targets from "previous edit"
+	return targets, nil
+}
+
+func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
+	html, err := e.getEntryHTML(entry)
+	if err != nil {
+		return nil, err
+	}
+
+	r := bytes.NewReader(html)
+
+	targets, err := webmention.DiscoverLinksFromReader(r, entry.Permalink, ".h-entry .e-content a")
+	if err != nil {
+		return nil, err
+	}
+
+	if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
+		targets = append(targets, entry.Metadata.ReplyTo.URL)
+	}
+
+	return targets, nil
 }
 
 func (e *Eagle) sendWebmention(source, target string) error {

@@ -6,7 +6,9 @@ import (
 	"hash/fnv"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -77,6 +79,19 @@ func (e *Eagle) Build(clean bool) error {
 	}
 
 	return nil
+}
+
+func (e *Eagle) getEntryHTML(entry *Entry) ([]byte, error) {
+	filename := entry.ID
+	if !strings.HasSuffix(filename, ".html") {
+		filename = path.Join(filename, "index.html")
+	}
+
+	e.buildMu.Lock()
+	defer e.buildMu.Unlock()
+
+	filename = filepath.Join(e.currentPublicDir, filename)
+	return e.dstFs.ReadFile(filename)
 }
 
 func generateHash() string {

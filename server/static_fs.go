@@ -2,9 +2,7 @@ package server
 
 import (
 	"net/http"
-	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/afero"
 )
@@ -25,14 +23,6 @@ func newStaticFs(dir string) *staticFs {
 		Afero:   afero.Afero{Fs: fs},
 		dir:     dir,
 	}
-}
-
-func (s *staticFs) readHTML(filepath string) ([]byte, error) {
-	if !strings.HasSuffix(filepath, ".html") {
-		filepath = path.Join(filepath, "index.html")
-	}
-
-	return s.ReadFile(filepath)
 }
 
 // neuteredFs is a file system that returns 404 when a directory contains
