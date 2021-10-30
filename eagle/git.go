@@ -1,10 +1,13 @@
 package eagle
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"strings"
 )
+
+var nothingToCommit = []byte("nothing to commit, working tree clean")
 
 type gitRepo struct {
 	dir string
@@ -24,7 +27,7 @@ func (g *gitRepo) addAndCommit(msg string, file string) error {
 	cmd = exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err = cmd.CombinedOutput()
-	if err != nil {
+	if err != nil && !bytes.Contains(out, nothingToCommit) {
 		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 	return nil
