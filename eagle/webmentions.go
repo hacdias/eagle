@@ -145,6 +145,10 @@ func (e *Eagle) sendWebmention(source, target string) error {
 		return err
 	}
 
+	if isPrivate(endpoint) {
+		return fmt.Errorf("webmention endpoint is a private address: %s", endpoint)
+	}
+
 	res, err := e.webmentionsClient.SendWebmention(endpoint, source, target)
 	if err != nil {
 		return err

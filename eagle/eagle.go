@@ -47,6 +47,7 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 		srcGit: &gitRepo{conf.SourceDirectory},
 		dstFs:  makeAfero(conf.PublicDirectory),
 		webmentionsClient: webmention.New(&http.Client{
+			// TODO: custom user agent.
 			Timeout: time.Minute,
 		}),
 
