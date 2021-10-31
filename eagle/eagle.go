@@ -42,12 +42,12 @@ type Eagle struct {
 	Twitter  *Twitter
 }
 
-func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
+func NewEagle(conf *config.Config) (*Eagle, error) {
 	httpClient := &http.Client{
 		Timeout: time.Minute * 2,
 	}
 
-	eagle = &Eagle{
+	e := &Eagle{
 		log:               logging.S().Named("eagle"),
 		httpClient:        httpClient,
 		srcFs:             makeAfero(conf.SourceDirectory),
@@ -59,7 +59,7 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 	}
 
 	if conf.BunnyCDN != nil {
-		eagle.media = &Media{
+		e.media = &Media{
 			BunnyCDN: conf.BunnyCDN,
 			httpClient: &http.Client{
 				Timeout: time.Minute * 10,
@@ -72,35 +72,45 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 		if err != nil {
 			return nil, err
 		}
-		eagle.Notifications = notifications
+		e.Notifications = notifications
 	} else {
-		eagle.Notifications = newLogNotifications()
+		e.Notifications = newLogNotifications()
 	}
 
 	if conf.MeiliSearch != nil {
-		search, indexOk, err := NewMeiliSearch(conf.MeiliSearch)
-		if err != nil {
-			return nil, err
-		}
-		eagle.search = search
-
-		if !indexOk {
-			defer func() {
-				logging.S().Info("building index for the first time")
-				err = eagle.RebuildIndex()
-			}()
-		}
+		go e.setupMeiliSearch()
 	}
 
 	if conf.Twitter != nil {
-		eagle.Twitter = NewTwitter(conf.Twitter)
+		e.Twitter = NewTwitter(conf.Twitter)
 	}
 
 	if conf.Miniflux != nil {
-		eagle.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
+		e.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
-	return eagle, err
+	return e, nil
+}
+
+func (e *Eagle) setupMeiliSearch() {
+	search, ok, err := NewMeiliSearch(e.Config.MeiliSearch)
+	if err != nil {
+		err = fmt.Errorf("could not start meilisearch: %w", err)
+		e.log.Error(err)
+		return
+	}
+
+	e.search = search
+	if ok {
+		return
+	}
+
+	e.log.Info("building index for the first time")
+	err = e.RebuildIndex()
+	if err != nil {
+		err = fmt.Errorf("error building index: %w", err)
+		e.log.Error(err)
+	}
 }
 
 func (e *Eagle) userAgent(comment string) string {
