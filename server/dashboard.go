@@ -63,11 +63,10 @@ func recentlyTemplate() (*eagle.Entry, string) {
 	entry := &eagle.Entry{
 		Content: "How was last month?",
 		Metadata: eagle.Metadata{
-			Draft:   true,
-			Title:   fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
-			Date:    t,
-			Tags:    []string{"recently"},
-			Aliases: []string{"/now"},
+			Draft: true,
+			Title: fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+			Date:  t,
+			Tags:  []string{"recently"},
 		},
 	}
 
