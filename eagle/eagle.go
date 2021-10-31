@@ -62,7 +62,6 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 		eagle.media = &Media{
 			BunnyCDN: conf.BunnyCDN,
 			httpClient: &http.Client{
-				// TODO: custom user agent.
 				Timeout: time.Minute * 10,
 			},
 		}
