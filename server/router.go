@@ -22,6 +22,11 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Use(s.isAuthenticated)
 	}
 
+	if s.Config.Tor != nil {
+		r.Use(s.onionHeader)
+		r.Get("/onion", s.onionRedirHandler)
+	}
+
 	r.Get("/search.json", s.searchHandler)
 
 	if s.Config.WebhookSecret != "" {

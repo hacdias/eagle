@@ -44,6 +44,14 @@ tailscale:
   # The authentication key for Tailscale. Please note that this is not an API key.
   authKey: tskey-...
 
+tor:
+  # The configuration directory of the Tor service. You don't need to create anything
+  # beforehand. All required keys will be generated automatically. 'tor' needs to be
+  # available on your PATH.
+  confDir: /path/to/conf/dir
+  # Whether or not to enable tor logging.
+  logging: false
+
 # Enables notifications through Telegram, such as when the website receives webmentions.
 # It is also used to send errors that happen in the background that would otherwise go unseen
 # unless we inspected the logs. This is optional. Errors are always logged.

@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
+	github.com/cretz/bine v0.2.0
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/go-chi/chi/v5 v5.0.4
 	github.com/go-chi/jwtauth v1.2.0
