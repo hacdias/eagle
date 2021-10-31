@@ -7,7 +7,7 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cretz/bine v0.2.0
 	github.com/dghubble/oauth1 v0.7.0
-	github.com/go-chi/chi/v5 v5.0.4
+	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lestrrat-go/jwx v1.2.9
@@ -23,6 +23,6 @@ require (
 	gopkg.in/tucnak/telebot.v2 v2.4.0
 	gopkg.in/yaml.v2 v2.4.0
 	miniflux.app v0.0.0-20211024044718-d6ad9a471bb9
-	tailscale.com v1.16.1
+	tailscale.com v1.16.2
 	willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0
 )

@@ -53,6 +53,7 @@ var rootCmd = &cobra.Command{
 		<-quit
 
 		log.Info("stopping server")
-		return server.Stop()
+		_ = server.Stop()
+		return nil
 	},
 }

@@ -187,6 +187,8 @@ github.com/go-chi/chi v1.5.1 h1:kfTK3Cxd/dkMu/rKs5ZceWYp+t5CtiE7vmaTv3LjC6w=
 github.com/go-chi/chi v1.5.1/go.mod h1:REp24E+25iKvxgeTfHmdUoL5x15kBiDBlnIl5bCwe2k=
 github.com/go-chi/chi/v5 v5.0.4 h1:5e494iHzsYBiyXQAHHuI4tyJS9M3V84OuX3ufIIGHFo=
 github.com/go-chi/chi/v5 v5.0.4/go.mod h1:DslCQbL2OYiznFReuXYUmQ2hGd1aDpCnlMNITLSKoi8=
+github.com/go-chi/chi/v5 v5.0.5 h1:l3RJ8T8TAqLsXFfah+RA6N4pydMbPwSdvNM+AFWvLUM=
+github.com/go-chi/chi/v5 v5.0.5/go.mod h1:DslCQbL2OYiznFReuXYUmQ2hGd1aDpCnlMNITLSKoi8=
 github.com/go-chi/jwtauth v1.2.0 h1:Z116SPpevIABBYsv8ih/AHYBHmd4EufKSKsLUnWdrTM=
 github.com/go-chi/jwtauth v1.2.0/go.mod h1:NTUpKoTQV6o25UwYE6w/VaLUu83hzrVKYTVo+lE6qDA=
 github.com/go-critic/go-critic v0.5.2/go.mod h1:cc0+HvdE3lFpqLecgqMaJcvWWH77sLdBp+wLGPM1Yyo=
@@ -1379,5 +1381,7 @@ software.sslmate.com/src/go-pkcs12 v0.0.0-20180114231543-2291e8f0f237 h1:iAEkCBP
 software.sslmate.com/src/go-pkcs12 v0.0.0-20180114231543-2291e8f0f237/go.mod h1:/xvNRWUqm0+/ZMiF4EX00vrSCMsE4/NHb+Pt3freEeQ=
 tailscale.com v1.16.1 h1:kvTCjY+ZXUJDJ6o2DxX6xEDubL6IPgRGIyZEZrIhmO0=
 tailscale.com v1.16.1/go.mod h1:+dISSbd6iiY6F6/dRGQRgshjYXMkhMzVvRd9En8RLfQ=
+tailscale.com v1.16.2 h1:4zm8is0imruZM5y40tZ0WeOgto7/RoHwA/+TJhuC2A4=
+tailscale.com v1.16.2/go.mod h1:+dISSbd6iiY6F6/dRGQRgshjYXMkhMzVvRd9En8RLfQ=
 willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0 h1:3/ozQ2qGZat82ON3AYMTot3gCg/vU7tgn/LYSJbkVPM=
 willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0/go.mod h1:DgeruqKIsZtcDXVXNbBHa0YYEm88oAnK7PahkDtuCvw=
