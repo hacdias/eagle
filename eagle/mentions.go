@@ -53,6 +53,7 @@ func (e *Eagle) isActivityPub(user, domain string) (string, error) {
 	}
 
 	req.Header.Add("Accept", "application/json")
+	req.Header.Add("User-Agent", e.userAgent("ActivityPub"))
 
 	res, err := e.httpClient.Do(req)
 	if err != nil {

@@ -47,6 +47,7 @@ func (e *Eagle) GetXRay(url string) (*XRay, error) {
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	req.Header.Add("User-Agent", e.userAgent("XRay"))
 
 	res, err := e.httpClient.Do(req)
 	if err != nil {

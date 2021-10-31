@@ -1,6 +1,7 @@
 package eagle
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -43,7 +44,6 @@ type Eagle struct {
 
 func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 	httpClient := &http.Client{
-		// TODO: custom user agent.
 		Timeout: time.Minute * 2,
 	}
 
@@ -101,6 +101,10 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 	}
 
 	return eagle, err
+}
+
+func (e *Eagle) userAgent(comment string) string {
+	return fmt.Sprintf("Eagle/0.0 %s", comment)
 }
 
 func makeAfero(path string) *afero.Afero {
