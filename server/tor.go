@@ -20,17 +20,6 @@ func (s *Server) startTor(errCh chan error) error {
 		return err
 	}
 
-	srv := &http.Server{
-		Handler:      s.makeRouter(true),
-		ReadTimeout:  5 * time.Minute,
-		WriteTimeout: 5 * time.Minute,
-	}
-
-	err = s.registerServer(srv, "tor")
-	if err != nil {
-		return err
-	}
-
 	s.log.Info("starting a Tor instance")
 	cfg := &tor.StartConf{
 		TempDataDirBase: os.TempDir(),
@@ -66,7 +55,19 @@ func (s *Server) startTor(errCh chan error) error {
 
 	s.onionAddress = "http://" + ln.String()
 
+	srv := &http.Server{
+		Handler:      s.makeRouter(true),
+		ReadTimeout:  5 * time.Minute,
+		WriteTimeout: 5 * time.Minute,
+	}
+
 	go func() {
+		err = s.registerServer(srv, "tor")
+		if err != nil {
+			errCh <- err
+			return
+		}
+
 		defer t.Close()
 		s.log.Infof("tor listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)

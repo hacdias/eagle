@@ -89,7 +89,8 @@ func (s *Server) Start() error {
 	if s.Config.Tor != nil {
 		err = s.startTor(errCh)
 		if err != nil {
-			return err
+			err = fmt.Errorf("onion service failed to start: %w", err)
+			s.log.Error(err)
 		}
 	}
 
