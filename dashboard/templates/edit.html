@@ -21,7 +21,7 @@
 
     <a class="nl" title="Webmentions" href="{{ .BasePath }}/webmentions{{ .Data.Entry.ID }}"><button>Webmentions</button></a>
 
-    <form method=POST action="{{ .BasePath }}/edit">
+    <form method=POST>
       <input required readonly name=id id=id type=hidden value="{{ .Data.Entry.ID }}" />
 
       <textarea required id=content name=content data-lang=markdown>{{ .Data.Content }}</textarea>
