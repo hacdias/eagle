@@ -70,6 +70,9 @@ func (s *Server) startTor(errCh chan error) error {
 		defer t.Close()
 		s.log.Infof("tor listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)
+
+		// Clear onion address in case this error happens during runtime.
+		s.onionAddress = ""
 	}()
 
 	return nil
@@ -107,7 +110,7 @@ func generateTorKey(keyPath string) (crypto.PrivateKey, error) {
 		Bytes: x509Encoded,
 	})
 
-	return key, os.WriteFile(keyPath, pemEncoded, 0666)
+	return key, os.WriteFile(keyPath, pemEncoded, 0644)
 }
 
 func readTorKey(keyPath string) (crypto.PrivateKey, error) {
@@ -130,10 +133,12 @@ func getTorKey(path string) (crypto.PrivateKey, error) {
 		err    error
 	)
 
-	if _, statErr := os.Stat(keyPath); os.IsNotExist(statErr) {
+	if _, statErr := os.Stat(keyPath); statErr == nil {
+		torKey, err = readTorKey(keyPath)
+	} else if os.IsNotExist(statErr) {
 		torKey, err = generateTorKey(keyPath)
 	} else {
-		torKey, err = readTorKey(keyPath)
+		return nil, statErr
 	}
 
 	return torKey, err
