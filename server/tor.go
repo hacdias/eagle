@@ -61,13 +61,9 @@ func (s *Server) startTor(errCh chan error) error {
 		WriteTimeout: 5 * time.Minute,
 	}
 
-	go func() {
-		err = s.registerServer(srv, "tor")
-		if err != nil {
-			errCh <- err
-			return
-		}
+	s.registerServer(srv, "tor")
 
+	go func() {
 		defer t.Close()
 		s.log.Infof("tor listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)

@@ -21,12 +21,17 @@ import (
 	"go.uber.org/zap"
 )
 
+type httpServer struct {
+	Name string
+	*http.Server
+}
+
 type Server struct {
 	*eagle.Eagle
 	log *zap.SugaredLogger
 
 	serversLock sync.Mutex
-	servers     map[string]*http.Server
+	servers     []*httpServer
 
 	onionAddress string
 
@@ -43,7 +48,7 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 	s := &Server{
 		Eagle:   e,
 		log:     logging.S().Named("server"),
-		servers: map[string]*http.Server{},
+		servers: []*httpServer{},
 	}
 
 	if e.Config.Auth != nil {
@@ -107,23 +112,21 @@ func (s *Server) Stop() error {
 	defer cancel()
 
 	var errs *multierror.Error
-	for name, srv := range s.servers {
-		s.log.Infof("shutting down %s", name)
+	for _, srv := range s.servers {
+		s.log.Infof("shutting down %s", srv.Name)
 		errs = multierror.Append(errs, srv.Shutdown(ctx))
 	}
 	return errs.ErrorOrNil()
 }
 
-func (s *Server) registerServer(srv *http.Server, name string) error {
+func (s *Server) registerServer(srv *http.Server, name string) {
 	s.serversLock.Lock()
 	defer s.serversLock.Unlock()
 
-	if _, ok := s.servers[name]; ok {
-		return fmt.Errorf("server %s already registered", name)
-	}
-
-	s.servers[name] = srv
-	return nil
+	s.servers = append(s.servers, &httpServer{
+		Server: srv,
+		Name:   name,
+	})
 }
 
 func (s *Server) startRegularServer(errCh chan error) error {
@@ -141,10 +144,7 @@ func (s *Server) startRegularServer(errCh chan error) error {
 	router := s.makeRouter(noDashboard)
 	srv := &http.Server{Handler: router}
 
-	err = s.registerServer(srv, "public")
-	if err != nil {
-		return err
-	}
+	s.registerServer(srv, "public")
 
 	go func() {
 		s.log.Infof("listening on %s", ln.Addr().String())

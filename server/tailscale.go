@@ -52,10 +52,7 @@ func (s *Server) startTailscaleServer(errCh chan error) error {
 	router := s.makeRouter(false)
 	srv := &http.Server{Handler: router}
 
-	err = s.registerServer(srv, "tailscale")
-	if err != nil {
-		return err
-	}
+	s.registerServer(srv, "tailscale")
 
 	go func() {
 		s.log.Infof("tailscale listening on %s", ln.Addr().String())
