@@ -25,11 +25,6 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	wm.Secret = ""
 	err = s.ReceiveWebmentions(wm)
 	if err != nil {
-		if err == eagle.ErrDuplicatedWebmention {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
 		w.WriteHeader(http.StatusInternalServerError)
 		s.log.Error("could not parse webmention", err)
 		return

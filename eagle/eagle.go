@@ -52,7 +52,7 @@ func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
 		}),
 
 		Config:      conf,
-		PublicDirCh: make(chan string),
+		PublicDirCh: make(chan string, 2),
 	}
 
 	if conf.BunnyCDN != nil {

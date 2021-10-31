@@ -17,8 +17,6 @@ import (
 	"willnorris.com/go/webmention"
 )
 
-var ErrDuplicatedWebmention = errors.New("duplicated webmention")
-
 var webmentionTypes = map[string]string{
 	"like-of":     "like",
 	"repost-of":   "repost",
@@ -115,6 +113,7 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 	}
 
 	oldTargets := entryData.Targets
+	oldTargets = uniqString(oldTargets)
 
 	targets := append(currentTargets, oldTargets...)
 	targets = uniqString(targets)
@@ -135,13 +134,28 @@ func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
 		return nil, err
 	}
 
-	// TODO; filter by scheme, http(s)
+	targets = e.filterTargets(targets)
 
 	if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
 		targets = append(targets, entry.Metadata.ReplyTo.URL)
 	}
 
-	return targets, nil
+	return uniqString(targets), nil
+}
+
+func (e *Eagle) filterTargets(targets []string) []string {
+	filteredTargets := []string{}
+	for _, target := range targets {
+		url, err := urlpkg.Parse(target)
+		if err != nil {
+			continue
+		}
+
+		if url.Scheme == "http" || url.Scheme == "https" {
+			filteredTargets = append(filteredTargets, target)
+		}
+	}
+	return filteredTargets
 }
 
 func (e *Eagle) sendWebmention(source, target string) error {
@@ -162,6 +176,26 @@ func (e *Eagle) sendWebmention(source, target string) error {
 	defer res.Body.Close()
 
 	return nil
+}
+
+func (e *Eagle) UpdateTargets(entry *Entry) error {
+	if entry.Deleted() {
+		return nil
+	}
+
+	_, curr, _, err := e.GetWebmentionTargets(entry)
+	if err != nil {
+		return err
+	}
+
+	if len(curr) == 0 {
+		return nil
+	}
+
+	return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+		data.Targets = curr
+		return data, nil
+	})
 }
 
 func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
