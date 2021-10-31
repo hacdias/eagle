@@ -104,6 +104,16 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 		entry, id = defaultTemplate()
 	}
 
+	reply := sanitizeReplyURL(r.URL.Query().Get("reply"))
+	if reply != "" {
+		var err error
+		entry.Metadata.ReplyTo, err = s.GetXRay(reply)
+		if err != nil {
+			s.dashboardError(w, r, err)
+			return
+		}
+	}
+
 	str, err := entry.String()
 	if err != nil {
 		s.dashboardError(w, r, err)
@@ -174,37 +184,7 @@ func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
-	reply := sanitizeReplyURL(r.URL.Query().Get("url"))
-	if reply == "" {
-		s.renderDashboard(w, "reply", &dashboardData{})
-		return
-	}
-
-	entry := &eagle.Entry{
-		Content: "Your reply here...",
-		Metadata: eagle.Metadata{
-			Date: time.Now(),
-			Tags: []string{"example"},
-		},
-	}
-
-	var err error
-	entry.Metadata.ReplyTo, err = s.GetXRay(reply)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	str, err := entry.String()
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	s.renderDashboard(w, "reply", &dashboardData{
-		Content: str,
-		ID:      fmt.Sprintf("micro/%s/SLUG", time.Now().Format("2006/01")),
-	})
+	s.renderDashboard(w, "reply", &dashboardData{})
 }
 
 func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {

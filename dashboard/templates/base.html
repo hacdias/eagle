@@ -30,22 +30,3 @@
   </body>
 </html>
 {{ end }}
-
-{{ define "new-form" }}
-<form method=POST action="{{ .BasePath }}/new">
-  <input required name=id id=id type=text value="{{ .ID }}" />
-  <textarea required id=content name=content>{{ .Content }}</textarea>
-  <div id="editor"></div>
-
-  <div class=inline>
-    <input type=checkbox name=twitter id=twitter />
-    <label for=twitter>Publish on Twitter</label>
-  </div>
-
-  <input required type=hidden id=action name=action value=create />
-  <input required hidden name=defaultid id=defaultid type=text value="{{ .ID }}" />
-  <button>Create</button>
-</form>
-
-<script src="{{ .BasePath }}/js/editor.bundle.js"></script>
-{{ end }}
