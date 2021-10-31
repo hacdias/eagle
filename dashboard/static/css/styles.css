@@ -6,6 +6,7 @@
   --blue: #2980b9;
   --blue-darker: #19608f;
   --red: #c0392b;
+  --green: #27ae60;
   --black: #111;
   --dark-gray: #333;
   --light-white: #ddd;
@@ -73,8 +74,8 @@ textarea {
 
 button,
 input[type="submit"] {
-  background-color: var(--black);
-  border: 1px solid var(--black);
+  background-color: var(--blue);
+  border: 1px solid var(--blue);
   font-weight: 700;
   padding: 0.5rem 1rem;
   color: var(--white);
@@ -86,8 +87,20 @@ input[type="submit"] {
 
 button:hover,
 input[type="submit"]:hover {
-  background-color: var(--dark-gray);
-  border-color: var(--dark-gray);
+  background-color: var(--blue-darker);
+  border-color: var(--blue-darker);
+}
+
+button.red,
+input[type="submit"].red {
+  background-color: var(--red);
+  border-color: var(--red);
+}
+
+button.green,
+input[type="submit"].green {
+  background-color: var(--green);
+  border-color: var(--green);
 }
 
 textarea:read-only,
@@ -192,16 +205,6 @@ table tr:nth-child(2n) {
 
 table#posts span {
   font-weight: bold;
-}
-
-table#posts td:last-child {
-  text-align: right;
-  width: 7.5rem;
-}
-
-table#posts div {
-  display: flex;
-  justify-content: space-between;
 }
 
 .eagle-menu:not(.fixed) {

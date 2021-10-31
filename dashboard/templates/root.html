@@ -7,16 +7,6 @@
   </div>
 
   <details class="eagle-menu">
-    <summary>More</summary>
-
-    <ul>
-      <li><a title="Edit" href="{{ .BasePath }}/edit">Edit</a></li>
-      <li><a title="Delete" href="{{ .BasePath }}/delete">Delete</a></li>
-      <li><a title="Resend Webmentions" href="{{ .BasePath }}/webmentions">Resend Webmentions</a></li>
-    </ul>
-  </details>
-
-  <details class="eagle-menu">
     <summary>Tools</summary>
 
     <ul>
@@ -32,46 +22,35 @@
 
   <form method=GET>
     <div class=inline>
-      <input type=checkbox name=drafts id=drafts {{ if .Drafts }}checked{{ end }}/>
+      <input type=checkbox name=drafts id=drafts {{ if .Data.Drafts }}checked{{ end }}/>
       <label for=drafts>Drafts only</label>
     </div>
 
     <div class=inline-form>
-      <input name=q type=text placeholder='Search posts...' {{ with .Query }}value="{{ . }}"{{ end }}/>
+      <input name=q type=text placeholder='Search posts...' {{ with .Data.Query }}value="{{ . }}"{{ end }}/>
       <button>Search</button>
     </div>
   </form>
 
   <table id=posts>
     <tr>
-      <th>Title</th>
-      <th>Actions</th>
+      <th>Post</th>
     </tr>
 
-    {{ range .Entries }}
+    {{ range .Data.Entries }}
       <tr>
         <td>
           {{ if .Draft }}<span>*</span>{{ else if .Deleted }}<span>-</span>{{ end }}
-          {{ if and (not .Draft) (not .Deleted) }}<a href="{{ .Permalink }}" target="_blank">{{ end }}
-            {{ or .Title .ID }}
-          {{ if and (not .Draft) (not .Deleted) }}</a>{{ end }}
-        </td>
-        <td>
-          <div>
-            <a class="nl" title="Edit" href="{{ $.BasePath }}/edit?url={{ .ID }}">✏️</a>
-            {{ if and (not .Draft) (not .Deleted) }}
-              <a class="nl" title="Delete" href="{{ $.BasePath }}/delete?url={{ .ID }}">❌</a>
-              <a class="nl" title="Webmentions" href="{{ $.BasePath }}/webmentions?url={{ .ID }}">👥</a>
-            {{ end }}
-          </div>
+          <a href="{{ $.BasePath }}/edit{{ .ID }}">{{ or .Title .ID }}</a>
+          {{ if and (not .Draft) (not .Deleted) }}<a href="{{ .Permalink }}" target="_blank">🔗</a>{{ end }}
         </td>
       </tr>
     {{ end }}
   </table>
 
   <div id=nextprev>
-    {{ with .PreviousPage }}<a href="{{ . }}"><button>Previous</button></a>{{ end }}
-    {{ with .NextPage }}<a href="{{ . }}"><button>Next</button></a>{{ end }}
+    {{ with .Data.PreviousPage }}<a class="nl" href="{{ . }}"><button>Previous</button></a>{{ end }}
+    {{ with .Data.NextPage }}<a class="nl" href="{{ . }}"><button>Next</button></a>{{ end }}
   </div>
 {{ end }}
 

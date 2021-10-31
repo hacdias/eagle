@@ -5,12 +5,10 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"strings"
 
 	"github.com/hacdias/eagle/dashboard/templates"
-	"github.com/hacdias/eagle/eagle"
 	"github.com/spf13/afero"
 )
 
@@ -19,6 +17,7 @@ type dashboardData struct {
 	HasAuth  bool
 	IsLogin  bool
 	BasePath string
+	Data     interface{}
 
 	// Cleanup
 	Content string
@@ -26,13 +25,6 @@ type dashboardData struct {
 
 	// Webmentions Page Only
 	Targets []string
-
-	// Root Page Only
-	Entries      []*eagle.SearchEntry
-	Drafts       bool
-	Query        string
-	NextPage     string
-	PreviousPage string
 }
 
 func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashboardData) {
@@ -65,7 +57,9 @@ func (s *Server) renderAdminBar(path string) ([]byte, error) {
 	data := &dashboardData{
 		HasAuth:  s.Config.Auth != nil,
 		BasePath: dashboardPath,
-		ID:       url.QueryEscape(path),
+		Data: map[string]interface{}{
+			"ID": path,
+		},
 	}
 
 	var buf bytes.Buffer

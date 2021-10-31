@@ -6,10 +6,7 @@
     <li><a title="Dashboard" href="{{ .BasePath }}/" class="fancy">Dsh</a></li>
     <li><a title="Home" href="/" class="fancy">Hm</a></li>
     <li><a href="{{ .BasePath }}/new">+</a></li>
-
-    <li><a title="Edit" href="{{ .BasePath }}/edit?url={{ .ID }}">e</a></li>
-    <li><a title="Delete" href="{{ .BasePath }}/delete?url={{ .ID }}">d</a></li>
-
+    <li><a title="Edit" href="{{ .BasePath }}/edit{{ .Data.ID }}">e</a></li>
     <li>{{ if .HasAuth }}<a title="Logout" href="/logout">Logout</a>{{ end }}</li>
   </ul>
 </div>

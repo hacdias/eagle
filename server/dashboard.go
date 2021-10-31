@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/eagle"
 )
 
@@ -16,6 +17,14 @@ const dashboardPath = "/dashboard"
 
 func (s *Server) redirectWithStatus(w http.ResponseWriter, status string) {
 	s.renderDashboard(w, "status", &dashboardData{Content: status})
+}
+
+type rootPageData struct {
+	Entries      []*eagle.SearchEntry
+	Drafts       bool
+	Query        string
+	NextPage     string
+	PreviousPage string
 }
 
 func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,10 +37,12 @@ func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dd := &rootPageData{}
+
 	if r.URL.Query().Get("drafts") == "on" {
 		t := true
 		query.Draft = &t
-		data.Drafts = true
+		dd.Drafts = true
 	}
 
 	query.ByDate = true
@@ -40,19 +51,20 @@ func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 		data.Content = err.Error()
 	}
 
-	data.Entries = entries
-	data.Query = query.Query
+	dd.Entries = entries
+	dd.Query = query.Query
 
 	if page > 0 {
 		p := r.URL.Query()
 		p.Set("p", strconv.Itoa(page-1))
-		data.PreviousPage = dashboardPath + "/?" + p.Encode()
+		dd.PreviousPage = dashboardPath + "/?" + p.Encode()
 	}
 
 	n := r.URL.Query()
 	n.Set("p", strconv.Itoa(page+1))
-	data.NextPage = dashboardPath + "/?" + n.Encode()
+	dd.NextPage = dashboardPath + "/?" + n.Encode()
 
+	data.Data = dd
 	s.renderDashboard(w, "root", data)
 }
 
@@ -127,7 +139,7 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) webmentionsGetHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := sanitizeID(r.URL.Query().Get("url"))
+	id, err := sanitizeID(chi.URLParam(r, "*"))
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -154,7 +166,7 @@ func (s *Server) webmentionsGetHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := sanitizeID(r.URL.Query().Get("url"))
+	id, err := sanitizeID(chi.URLParam(r, "*"))
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -178,43 +190,15 @@ func (s *Server) editGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.renderDashboard(w, "edit", &dashboardData{
-		ID:      entry.ID,
-		Content: str,
+		Data: map[string]interface{}{
+			"Entry":   entry,
+			"Content": str,
+		},
 	})
 }
 
 func (s *Server) replyGetHandler(w http.ResponseWriter, r *http.Request) {
 	s.renderDashboard(w, "reply", &dashboardData{})
-}
-
-func (s *Server) deleteGetHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := sanitizeID(r.URL.Query().Get("url"))
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	if id == "" {
-		s.renderDashboard(w, "delete", &dashboardData{})
-		return
-	}
-
-	entry, err := s.GetEntry(id)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	str, err := entry.String()
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	s.renderDashboard(w, "delete", &dashboardData{
-		ID:      entry.ID,
-		Content: str,
-	})
 }
 
 func (s *Server) blogrollGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -351,51 +335,6 @@ func (s *Server) webmentionsPostHandler(w http.ResponseWriter, r *http.Request) 
 	s.redirectWithStatus(w, "Webmentions scheduled! 💭")
 }
 
-func (s *Server) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	id, err := sanitizeID(r.FormValue("url"))
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	if id == "" {
-		s.dashboardError(w, r, errors.New("no ID provided"))
-		return
-	}
-
-	entry, err := s.GetEntry(id)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	err = s.DeleteEntry(entry)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	err = s.Build(true)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
-	if !entry.Metadata.Draft {
-		go func() {
-			s.goWebmentions(entry)
-		}()
-	}
-
-	http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
-}
-
 func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -404,7 +343,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	content := r.FormValue("content")
-	twitter := r.FormValue("twitter")
+	twitter := r.FormValue("twitter") == "on"
 
 	id, err := sanitizeID(r.FormValue("id"))
 	if err != nil {
@@ -428,7 +367,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.newEditPostSaver(entry)
+	err = s.newEditPostSaver(entry, false, twitter)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -438,12 +377,6 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		s.redirectWithStatus(w, entry.ID+" updated successfullyl! ⚡️")
 		return
 	}
-
-	go func() {
-		if twitter == "on" {
-			s.goSyndicate(entry)
-		}
-	}()
 
 	http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
 }
@@ -457,8 +390,10 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	content := r.FormValue("content")
 	lastmod := r.FormValue("lastmod")
+	action := r.FormValue("action")
+	twitter := r.FormValue("twitter") == "on"
 
-	id, err := sanitizeID(r.FormValue("id"))
+	id, err := sanitizeID(chi.URLParam(r, "*"))
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -485,7 +420,18 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 		entry.Metadata.Lastmod = time.Now()
 	}
 
-	err = s.newEditPostSaver(entry)
+	switch action {
+	case "delete":
+		entry.Metadata.ExpiryDate = time.Now()
+	case "undelete":
+		entry.Metadata.ExpiryDate = time.Time{}
+	case "publish":
+		entry.Metadata.Draft = false
+	case "update":
+		// Nothing else.
+	}
+
+	err = s.newEditPostSaver(entry, action == "delete", twitter)
 	if err != nil {
 		s.dashboardError(w, r, err)
 		return
@@ -498,20 +444,13 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err error) {
-	w.WriteHeader(http.StatusInternalServerError)
-	s.renderDashboard(w, "error", &dashboardData{
-		Content: err.Error(),
-	})
-}
-
-func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
+func (s *Server) newEditPostSaver(entry *eagle.Entry, clean, twitter bool) error {
 	err := s.SaveEntry(entry)
 	if err != nil {
 		return err
 	}
 
-	err = s.Build(false)
+	err = s.Build(clean)
 	if err != nil {
 		return err
 	}
@@ -522,7 +461,18 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry) error {
 
 	go func() {
 		s.goWebmentions(entry)
+
+		if twitter {
+			s.goSyndicate(entry)
+		}
 	}()
 
 	return nil
+}
+
+func (s *Server) dashboardError(w http.ResponseWriter, r *http.Request, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	s.renderDashboard(w, "error", &dashboardData{
+		Content: err.Error(),
+	})
 }

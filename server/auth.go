@@ -21,7 +21,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.renderDashboard(w, "login", &dashboardData{Content: err.Error()})
+		s.renderDashboard(w, "login", &dashboardData{Data: err.Error()})
 		return
 	}
 
@@ -31,7 +31,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if username != s.Config.Auth.Username || !correctPassword {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.renderDashboard(w, "login", &dashboardData{IsLogin: true, Content: "wrong credentials"})
+		s.renderDashboard(w, "login", &dashboardData{IsLogin: true, Data: "wrong credentials"})
 		return
 	}
 
@@ -44,7 +44,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.renderDashboard(w, "login", &dashboardData{IsLogin: true, Content: err.Error()})
+		s.renderDashboard(w, "login", &dashboardData{IsLogin: true, Data: err.Error()})
 		return
 	}
 

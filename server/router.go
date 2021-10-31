@@ -60,10 +60,9 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 
 			r.Get("/", s.dashboardGetHandler)
 			r.Get("/new", s.newGetHandler)
-			r.Get("/edit", s.editGetHandler)
 			r.Get("/reply", s.replyGetHandler)
-			r.Get("/delete", s.deleteGetHandler)
-			r.Get("/webmentions", s.webmentionsGetHandler)
+			r.Get("/edit*", s.editGetHandler)
+			r.Get("/webmentions*", s.webmentionsGetHandler)
 			r.Get("/blogroll", s.blogrollGetHandler)
 			r.Get("/gedit", s.geditGetHandler)
 			r.Get("/sync", s.syncGetHandler)
@@ -71,8 +70,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 			r.Get("/rebuild-index", s.rebuildIndexGetHandler)
 
 			r.Post("/new", s.newPostHandler)
-			r.Post("/edit", s.editPostHandler)
-			r.Post("/delete", s.deletePostHandler)
+			r.Post("/edit*", s.editPostHandler)
 			r.Post("/webmentions", s.webmentionsPostHandler)
 			r.Post("/gedit", s.geditPostHandler)
 		})
