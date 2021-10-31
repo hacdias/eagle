@@ -1,17 +1,16 @@
 package eagle
 
 import (
-	"context"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/hacdias/eagle/config"
 )
 
 type Media struct {
+	httpClient *http.Client
 	*config.BunnyCDN
 }
 
@@ -20,20 +19,18 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 		filename = "/" + filename
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "https://storage.bunnycdn.com/"+m.Zone+filename, data)
+	req, err := http.NewRequest(http.MethodPut, "https://storage.bunnycdn.com/"+m.Zone+filename, data)
 	if err != nil {
 		return "", err
 	}
 
 	req.Header.Set("AccessKey", m.Key)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := m.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusCreated {
 		return "", errors.New("status code is not ok")
