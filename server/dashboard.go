@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hacdias/eagle/eagle"
@@ -55,14 +56,53 @@ func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
 	s.renderDashboard(w, "root", data)
 }
 
-func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: add option for different types? Archetypes?
+func recentlyTemplate() (*eagle.Entry, string) {
+	t := time.Now()
+	month := t.Format("January")
+
+	entry := &eagle.Entry{
+		Content: "How was last month?",
+		Metadata: eagle.Metadata{
+			Draft:   true,
+			Title:   fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+			Date:    t,
+			Tags:    []string{"recently"},
+			Aliases: []string{"/now"},
+		},
+	}
+
+	id := fmt.Sprintf("/articles/%s-%s/", strings.ToLower(month), t.Format("2006"))
+	return entry, id
+}
+
+func defaultTemplate() (*eagle.Entry, string) {
+	t := time.Now()
+
 	entry := &eagle.Entry{
 		Content: "Lorem ipsum...",
 		Metadata: eagle.Metadata{
-			Date: time.Now(),
+			Date: t,
 			Tags: []string{"example"},
 		},
+	}
+
+	id := fmt.Sprintf("micro/%s/SLUG", t.Format("2006/01"))
+	return entry, id
+}
+
+func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
+	template := r.URL.Query().Get("template")
+
+	var (
+		entry *eagle.Entry
+		id    string
+	)
+
+	switch template {
+	case "recently":
+		entry, id = recentlyTemplate()
+	default:
+		entry, id = defaultTemplate()
 	}
 
 	str, err := entry.String()
@@ -73,7 +113,7 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	s.renderDashboard(w, "new", &dashboardData{
 		Content: str,
-		ID:      fmt.Sprintf("micro/%s/SLUG", time.Now().Format("2006/01")),
+		ID:      id,
 	})
 }
 
