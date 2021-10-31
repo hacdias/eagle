@@ -1,13 +1,11 @@
 package eagle
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 )
 
 // AutoLinkMentions mentions replaces all Twitter and ActivityPub @mentions in a
@@ -23,7 +21,7 @@ func (e *Eagle) AutoLinkMentions(entry *Entry) {
 			user := split[0]
 			domain := split[1]
 
-			href, err := isActivityPub(user, domain)
+			href, err := e.isActivityPub(user, domain)
 			if err != nil || href == "" {
 				return s
 			}
@@ -45,24 +43,22 @@ func (e *Eagle) AutoLinkMentions(entry *Entry) {
 // isActivityPub checks if a certain user exists in a certain
 // domain and returns its profile link. If an error occurrs, or
 // the user does not exist, returns an empty string
-func isActivityPub(user, domain string) (string, error) {
+func (e *Eagle) isActivityPub(user, domain string) (string, error) {
 	acct := user + "@" + domain
 	url := "https://" + domain + "/.well-known/webfinger?resource=acct:" + acct
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return "", fmt.Errorf("error while creating request: %w", err)
 	}
 
 	req.Header.Add("Accept", "application/json")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := e.httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("webfinger request failed: %w", err)
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode >= 400 {
 		return "", fmt.Errorf("unexpected status code for webfinger: %w", err)

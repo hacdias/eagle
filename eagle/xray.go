@@ -1,7 +1,6 @@
 package eagle
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	urlpkg "net/url"
@@ -41,10 +40,7 @@ func (e *Eagle) GetXRay(url string) (*XRay, error) {
 		data.Set("twitter_access_token_secret", e.Config.Twitter.TokenSecret)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, e.Config.XRayEndpoint+"/parse", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(http.MethodPost, e.Config.XRayEndpoint+"/parse", strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +48,7 @@ func (e *Eagle) GetXRay(url string) (*XRay, error) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := e.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

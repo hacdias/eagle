@@ -13,7 +13,8 @@ import (
 )
 
 type Eagle struct {
-	log *zap.SugaredLogger
+	log        *zap.SugaredLogger
+	httpClient *http.Client
 
 	srcFs  *afero.Afero
 	srcGit *gitRepo
@@ -41,22 +42,30 @@ type Eagle struct {
 }
 
 func NewEagle(conf *config.Config) (eagle *Eagle, err error) {
-	eagle = &Eagle{
-		log:    logging.S().Named("eagle"),
-		srcFs:  makeAfero(conf.SourceDirectory),
-		srcGit: &gitRepo{conf.SourceDirectory},
-		dstFs:  makeAfero(conf.PublicDirectory),
-		webmentionsClient: webmention.New(&http.Client{
-			// TODO: custom user agent.
-			Timeout: time.Minute,
-		}),
+	httpClient := &http.Client{
+		// TODO: custom user agent.
+		Timeout: time.Minute * 2,
+	}
 
-		Config:      conf,
-		PublicDirCh: make(chan string, 2),
+	eagle = &Eagle{
+		log:               logging.S().Named("eagle"),
+		httpClient:        httpClient,
+		srcFs:             makeAfero(conf.SourceDirectory),
+		srcGit:            &gitRepo{conf.SourceDirectory},
+		dstFs:             makeAfero(conf.PublicDirectory),
+		webmentionsClient: webmention.New(httpClient),
+		Config:            conf,
+		PublicDirCh:       make(chan string, 2),
 	}
 
 	if conf.BunnyCDN != nil {
-		eagle.media = &Media{conf.BunnyCDN}
+		eagle.media = &Media{
+			BunnyCDN: conf.BunnyCDN,
+			httpClient: &http.Client{
+				// TODO: custom user agent.
+				Timeout: time.Minute * 10,
+			},
+		}
 	}
 
 	if conf.Telegram != nil {
