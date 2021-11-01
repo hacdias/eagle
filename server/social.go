@@ -10,22 +10,22 @@ import (
 )
 
 func (s *Server) goSyndicate(entry *eagle.Entry) {
-	if s.Twitter == nil {
-		return
-	}
+	// if s.Twitter == nil {
+	// 	return
+	// }
 
-	url, err := s.Twitter.Syndicate(entry)
-	if err != nil {
-		s.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
-		return
-	}
+	// url, err := s.Twitter.Syndicate(entry)
+	// if err != nil {
+	// 	s.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
+	// 	return
+	// }
 
-	entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
-	err = s.SaveEntry(entry)
-	if err != nil {
-		s.NotifyError(fmt.Errorf("failed to save entry: %w", err))
-		return
-	}
+	// entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
+	// err = s.SaveEntry(entry)
+	// if err != nil {
+	// 	s.NotifyError(fmt.Errorf("failed to save entry: %w", err))
+	// 	return
+	// }
 
 	// INVALIDATE CACHE OR STH
 }

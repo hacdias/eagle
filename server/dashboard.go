@@ -74,11 +74,13 @@ func recentlyTemplate() (*eagle.Entry, string) {
 
 	entry := &eagle.Entry{
 		Content: "How was last month?",
-		Metadata: eagle.Metadata{
-			Draft: true,
-			Title: fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
-			Date:  t,
-			Tags:  []string{"recently"},
+		Frontmatter: eagle.Frontmatter{
+			Draft:     true,
+			Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+			Published: t,
+			Properties: map[string]interface{}{
+				"categories": []string{"recently"},
+			},
 		},
 	}
 
@@ -91,9 +93,12 @@ func defaultTemplate() (*eagle.Entry, string) {
 
 	entry := &eagle.Entry{
 		Content: "Lorem ipsum...",
-		Metadata: eagle.Metadata{
-			Date: t,
-			Tags: []string{"example"},
+		Frontmatter: eagle.Frontmatter{
+			Draft:     true,
+			Published: t,
+			Properties: map[string]interface{}{
+				"categories": []string{"example"},
+			},
 		},
 	}
 
@@ -118,12 +123,12 @@ func (s *Server) newGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	reply := sanitizeReplyURL(r.URL.Query().Get("reply"))
 	if reply != "" {
-		var err error
-		entry.Metadata.ReplyTo, err = s.GetXRay(reply)
-		if err != nil {
-			s.dashboardError(w, r, err)
-			return
-		}
+		// var err error
+		// entry.Metadata.ReplyTo, err = s.GetXRay(reply)
+		// if err != nil {
+		// 	s.dashboardError(w, r, err)
+		// 	return
+		// }
 	}
 
 	str, err := entry.String()
@@ -358,7 +363,7 @@ func (s *Server) newPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if entry.Metadata.Draft {
+	if entry.Draft {
 		s.redirectWithStatus(w, entry.ID+" updated successfullyl! ⚡️")
 		return
 	}
@@ -402,16 +407,16 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if lastmod == "on" {
-		entry.Metadata.Lastmod = time.Now()
+		entry.Updated = time.Now()
 	}
 
 	switch action {
 	case "delete":
-		entry.Metadata.ExpiryDate = time.Now()
+		entry.Deleted = true
 	case "undelete":
-		entry.Metadata.ExpiryDate = time.Time{}
+		entry.Deleted = false
 	case "publish":
-		entry.Metadata.Draft = false
+		entry.Draft = false
 	case "update":
 		// Nothing else.
 	}
@@ -422,7 +427,7 @@ func (s *Server) editPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if entry.Metadata.Draft {
+	if entry.Draft {
 		s.redirectWithStatus(w, entry.ID+" updated successfullyl! ⚡️")
 	} else {
 		http.Redirect(w, r, entry.Permalink, http.StatusTemporaryRedirect)
@@ -437,7 +442,7 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry, clean, twitter bool) error
 
 	// INVALIDAED CACHE OR STH
 
-	if entry.Metadata.Draft {
+	if entry.Draft {
 		return nil
 	}
 

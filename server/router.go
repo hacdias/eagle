@@ -22,6 +22,15 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Use(s.isAuthenticated)
 	}
 
+	// if s.c.Development {
+	r.Get("/micropub", s.getMicropubHandler)
+	r.Post("/micropub", s.postMicropubHandler)
+	// } else {
+	// 	auth := indieauth.With(&s.c.IndieAuth, s.Named("indieauth"))
+	// 	r.With(auth).Get("/micropub", s.getMicropubHandler)
+	// 	r.With(auth).Post("/micropub", s.postMicropubHandler)
+	// }
+
 	if s.Config.Tor != nil {
 		r.Use(s.onionHeader)
 		r.Get("/onion", s.onionRedirHandler)
