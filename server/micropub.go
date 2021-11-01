@@ -39,16 +39,16 @@ func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 	id, err := s.micropubParseURL(r.URL.Query().Get("url"))
 	if err != nil {
-		s.serveError(w, http.StatusBadRequest, err)
+		s.serveErrorJSON(w, http.StatusBadRequest, err)
 		return
 	}
 
 	entry, err := s.GetEntry(id)
 	if err != nil {
 		if os.IsNotExist(err) {
-			s.serveError(w, http.StatusNotFound, fmt.Errorf("post not found: %s", id))
+			s.serveErrorJSON(w, http.StatusNotFound, fmt.Errorf("post not found: %s", id))
 		} else {
-			s.serveError(w, http.StatusInternalServerError, err)
+			s.serveErrorJSON(w, http.StatusInternalServerError, err)
 		}
 		return
 	}
@@ -64,7 +64,7 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
 	mr, err := micropub.ParseRequest(r)
 	if err != nil {
-		s.serveError(w, http.StatusBadRequest, err)
+		s.serveErrorJSON(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 	} else if code >= 400 {
 		s.log.Errorf("micropub: error on post: %s", err)
-		s.serveError(w, code, err)
+		s.serveErrorJSON(w, code, err)
 	}
 }
 

@@ -1,12 +1,40 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"os"
-	"strconv"
+
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
-func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) withEntry(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		entry, err := s.GetEntry(r.URL.Path)
+		if err == nil {
+			ctx := context.WithValue(r.Context(), entryContextKey, entry)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else if os.IsNotExist(err) {
+			s.serveError(w, http.StatusNotFound, nil)
+		} else {
+			s.serveErrorJSON(w, http.StatusInternalServerError, err)
+		}
+	})
+}
+
+func (s *Server) getEntry(w http.ResponseWriter, r *http.Request) *eagle.Entry {
+	return r.Context().Value(entryContextKey).(*eagle.Entry)
+}
+
+func (s *Server) entryHandler(w http.ResponseWriter, r *http.Request) {
+	entry := s.getEntry(w, r)
+
+	str, err := entry.String()
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	w.Write([]byte(`
 <html>
 <head>
@@ -16,83 +44,33 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 <link rel=micropub href=/micropub>
 </head>
 
-<body>
-Test
+<body><pre>` + str + `</pre>
 </body>
 	
 </html>`))
-	// // NOTE: previously we'd do a staticFs read lock here. However, removing
-	// // it increased performance dramatically. Hopefully there's no consequences.
-
-	// // TODO: somehow improve the detection of whether or not the page is HTML.
-	// // We cannot do it on a response writer wrapper because we need to know before
-	// // it reaches the http.FileServer.
-	// ext := path.Ext(r.URL.Path)
-	// isHTML := ext == "" || ext == ".html"
-	// setCacheHeaders(w, isHTML)
-
-	// if isAuthd, ok := r.Context().Value(&authContextKey).(bool); ok && isAuthd {
-	// 	if isHTML {
-	// 		// Ensure that authenticated requests to HTML files do not trigger
-	// 		// a Not Modified responnse from http.FileServer.
-	// 		delEtagHeaders(r)
-	// 	}
-
-	// 	w = &adminBarResponseWriter{
-	// 		ResponseWriter: w,
-	// 		s:              s,
-	// 		p:              r.URL.Path,
-	// 	}
-	// }
-
-	// nfw := &notFoundResponseWriter{ResponseWriter: w}
-	// s.staticFs.ServeHTTP(nfw, r)
-
-	// if nfw.status == http.StatusNotFound {
-	// 	s.notFoundHandler(w, r)
-	// }
 }
 
-func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	bytes, err := s.staticFs.ReadFile("404.html")
-	if err != nil {
-		if os.IsNotExist(err) {
-			bytes = []byte(http.StatusText(http.StatusNotFound))
-		} else {
-			s.serveError(w, http.StatusInternalServerError, err)
-			return
-		}
-	}
+// // notFoundResponseWriter wraps a Response Writer to capture 404 requests.
+// // In case it is a 404 request, then we do not write the body.
+// type notFoundResponseWriter struct {
+// 	http.ResponseWriter
+// 	status int
+// }
 
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Del("Cache-Control")
+// func (w *notFoundResponseWriter) WriteHeader(status int) {
+// 	w.status = status
+// 	if status != http.StatusNotFound {
+// 		w.ResponseWriter.WriteHeader(status)
+// 	}
+// }
 
-	w.WriteHeader(http.StatusNotFound)
-	_, _ = w.Write(bytes)
-}
-
-// notFoundResponseWriter wraps a Response Writer to capture 404 requests.
-// In case it is a 404 request, then we do not write the body.
-type notFoundResponseWriter struct {
-	http.ResponseWriter
-	status int
-}
-
-func (w *notFoundResponseWriter) WriteHeader(status int) {
-	w.status = status
-	if status != http.StatusNotFound {
-		w.ResponseWriter.WriteHeader(status)
-	}
-}
-
-func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
-	if w.status != http.StatusNotFound {
-		return w.ResponseWriter.Write(p)
-	}
-	// Lie that we successfully written it
-	return len(p), nil
-}
+// func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
+// 	if w.status != http.StatusNotFound {
+// 		return w.ResponseWriter.Write(p)
+// 	}
+// 	// Lie that we successfully written it
+// 	return len(p), nil
+// }
 
 // type adminBarResponseWriter struct {
 // 	http.ResponseWriter

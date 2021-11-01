@@ -11,7 +11,7 @@ import (
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	query, page, err := getSearchQuery(r)
 	if err != nil {
-		s.serveError(w, http.StatusBadRequest, err)
+		s.serveErrorJSON(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -29,7 +29,7 @@ func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
 	// Search!
 	res, err := s.Search(query, page)
 	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
+		s.serveErrorJSON(w, http.StatusInternalServerError, err)
 		return
 	}
 

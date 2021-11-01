@@ -30,7 +30,7 @@ type dashboardData struct {
 func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashboardData) {
 	tpls, err := s.getTemplates()
 	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
+		s.serveErrorJSON(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashbo
 	var buf bytes.Buffer
 	err = tpls[tpl].ExecuteTemplate(&buf, tpl, data)
 	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
+		s.serveErrorJSON(w, http.StatusInternalServerError, err)
 		return
 	}
 
