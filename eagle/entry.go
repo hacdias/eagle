@@ -16,12 +16,13 @@ import (
 )
 
 type Entry struct {
-	Path       string // The original path of the file. Might be empty.
+	// Frontmatter
+	Path       string // REMOVE The original path of the file. Might be empty.
 	ID         string
 	Permalink  string
 	Content    string
-	RawContent string
-	Metadata   Metadata
+	RawContent string   // REMOVE
+	Metadata   Metadata // REMOVE
 }
 
 type Metadata struct {
@@ -51,6 +52,22 @@ type Metadata struct {
 	PhotoClass  string           `yaml:"photoClass,omitempty"`
 }
 
+type Frontmatter struct {
+	Title          string                 `yaml:"title,omitempty"`
+	Description    string                 `yaml:"description,omitempty"`
+	Draft          bool                   `yaml:"draft,omitempty"`
+	Deleted        bool                   `yaml:"deleted,omitempty"`
+	Private        bool                   `yaml:"private,omitempty"`
+	NoInteractions bool                   `yaml:"noInteractions,omitempty"`
+	Emoji          string                 `yaml:"emoji,omitempty"`
+	Published      time.Time              `yaml:"published,omitempty"`
+	Updated        time.Time              `yaml:"updated,omitempty"`
+	Properties     map[string]interface{} `yaml:"properties,omitempty"`
+
+	// In case I do not separate the sections per directory.
+	Section string `yaml:"section,omitempty"`
+}
+
 func (e *Entry) Section() string {
 	cleanID := strings.TrimPrefix(e.ID, "/")
 	cleanID = strings.TrimSuffix(cleanID, "/")
@@ -70,9 +87,9 @@ func (e *Entry) Deleted() bool {
 	return e.Metadata.ExpiryDate.Before(time.Now())
 }
 
-func (e *Entry) Date() string {
-	return e.Metadata.Date.Format(time.RFC3339)
-}
+// func (e *Entry) Date() string {
+// 	return e.Metadata.Date.Format(time.RFC3339)
+// }
 
 func (e *Entry) String() (string, error) {
 	val, err := yaml.Marshal(&e.Metadata)
@@ -205,17 +222,17 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 	return nil
 }
 
-func (e *Eagle) DeleteEntry(entry *Entry) error {
-	entry.Metadata.ExpiryDate = time.Now()
+// func (e *Eagle) DeleteEntry(entry *Entry) error {
+// 	entry.Metadata.ExpiryDate = time.Now()
 
-	if e.search != nil {
-		// We update the search index so it knows the post is expired.
-		// Only remove posts that actually do not exist in disk.
-		_ = e.search.Add(entry)
-	}
+// 	if e.search != nil {
+// 		// We update the search index so it knows the post is expired.
+// 		// Only remove posts that actually do not exist in disk.
+// 		_ = e.search.Add(entry)
+// 	}
 
-	return e.SaveEntry(entry)
-}
+// 	return e.SaveEntry(entry)
+// }
 
 func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	entries := []*Entry{}
@@ -245,32 +262,32 @@ func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	return entries, err
 }
 
-func (e *Eagle) MakeEntryBundle(entry *Entry) error {
-	if entry.Path == "" {
-		return fmt.Errorf("entry %s does not contain a path", entry.ID)
-	}
+// func (e *Eagle) MakeEntryBundle(entry *Entry) error {
+// 	if entry.Path == "" {
+// 		return fmt.Errorf("entry %s does not contain a path", entry.ID)
+// 	}
 
-	if strings.HasSuffix(entry.Path, "index.md") || strings.HasSuffix(entry.Path, "_index.md") {
-		// Already a page bundle.
-		return nil
-	}
+// 	if strings.HasSuffix(entry.Path, "index.md") || strings.HasSuffix(entry.Path, "_index.md") {
+// 		// Already a page bundle.
+// 		return nil
+// 	}
 
-	dir := strings.TrimSuffix(entry.Path, filepath.Ext(entry.Path))
-	file := filepath.Join(dir, "index.md")
+// 	dir := strings.TrimSuffix(entry.Path, filepath.Ext(entry.Path))
+// 	file := filepath.Join(dir, "index.md")
 
-	err := e.srcFs.MkdirAll(dir, 0777)
-	if err != nil {
-		return err
-	}
+// 	err := e.srcFs.MkdirAll(dir, 0777)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	err = e.srcFs.Rename(entry.Path, file)
-	if err != nil {
-		return err
-	}
+// 	err = e.srcFs.Rename(entry.Path, file)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	entry.Path = file
-	return nil
-}
+// 	entry.Path = file
+// 	return nil
+// }
 
 func (e *Eagle) cleanID(id string) string {
 	id = path.Clean(id)
