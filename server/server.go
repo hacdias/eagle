@@ -63,23 +63,10 @@ func (s *Server) Start() error {
 	// Start public dir worker
 	go s.publicDirWorker()
 
-	// Make sure we have a built version to serve
-	should, err := s.ShouldBuild()
-	if err != nil {
-		return err
-	}
-
-	if should {
-		err = s.Build(false)
-		if err != nil {
-			return err
-		}
-	}
-
 	errCh := make(chan error)
 
 	// Start server(s)
-	err = s.startRegularServer(errCh)
+	err := s.startRegularServer(errCh)
 	if err != nil {
 		return err
 	}

@@ -275,12 +275,7 @@ func (s *Server) geditPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.Build(true)
-	if err != nil {
-		s.dashboardError(w, r, err)
-		return
-	}
-
+	// INVALDIATE CACHE OR STH
 	s.redirectWithStatus(w, path+" updated! 🗄")
 }
 
@@ -290,16 +285,6 @@ func (s *Server) syncGetHandler(w http.ResponseWriter, r *http.Request) {
 		s.dashboardError(w, r, err)
 	} else {
 		s.redirectWithStatus(w, "Sync was successfull! ⚡️")
-	}
-}
-
-func (s *Server) buildGetHandler(w http.ResponseWriter, r *http.Request) {
-	clean := r.URL.Query().Get("mode") == "clean"
-	err := s.Build(clean)
-	if err != nil {
-		s.dashboardError(w, r, err)
-	} else {
-		s.redirectWithStatus(w, "Build was successfull! 💪")
 	}
 }
 
@@ -450,10 +435,7 @@ func (s *Server) newEditPostSaver(entry *eagle.Entry, clean, twitter bool) error
 		return err
 	}
 
-	err = s.Build(clean)
-	if err != nil {
-		return err
-	}
+	// INVALIDAED CACHE OR STH
 
 	if entry.Metadata.Draft {
 		return nil

@@ -27,10 +27,7 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 		return
 	}
 
-	err = s.Build(false)
-	if err != nil {
-		s.NotifyError(fmt.Errorf("failed to build: %w", err))
-	}
+	// INVALIDATE CACHE OR STH
 }
 
 func (s *Server) goWebmentions(entry *eagle.Entry) {

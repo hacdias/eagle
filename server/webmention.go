@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/hacdias/eagle/v2/eagle"
@@ -33,15 +32,11 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	go func() {
-		err := s.Build(false)
-		if err != nil {
-			s.NotifyError(fmt.Errorf("webmention: error hugo build: %w", err))
+		// INVALIDATE CACHE OR STH
+		if wm.Deleted {
+			s.Notify("💬 Deleted webmention at " + wm.Target)
 		} else {
-			if wm.Deleted {
-				s.Notify("💬 Deleted webmention at " + wm.Target)
-			} else {
-				s.Notify("💬 Received webmention at " + wm.Target)
-			}
+			s.Notify("💬 Received webmention at " + wm.Target)
 		}
 	}()
 }
