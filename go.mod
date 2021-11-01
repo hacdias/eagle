@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/karlseguin/typed v1.1.7
 	github.com/lestrrat-go/jwx v1.2.9
 	github.com/meilisearch/meilisearch-go v0.16.2
 	github.com/mitchellh/mapstructure v1.4.2
@@ -46,6 +47,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/josharian/native v0.0.0-20200817173448-b6b71def0850 // indirect
 	github.com/jsimonetti/rtnetlink v0.0.0-20210525051524-4cc836578190 // indirect
+	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
