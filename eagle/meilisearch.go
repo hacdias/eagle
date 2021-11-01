@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/meilisearch/meilisearch-go"
@@ -108,7 +109,7 @@ func (ms *MeiliSearch) Add(entries ...*Entry) error {
 			SearchID:  hex.EncodeToString([]byte(entry.ID)),
 			ID:        entry.ID,
 			Permalink: entry.Permalink,
-			Date:      entry.Date(),
+			Date:      entry.Metadata.Date.Format(time.RFC3339),
 			// Searcheable Attributes
 			Title:   entry.Metadata.Title,
 			Tags:    entry.Metadata.Tags,

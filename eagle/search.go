@@ -1,12 +1,24 @@
 package eagle
 
 import (
+	"time"
+
 	stripMarkdown "github.com/writeas/go-strip-markdown"
 )
 
 const (
 	pageSize = 50
 )
+
+type NewSearchQuery struct {
+	Query    string
+	Sections []string // if empty, matches all sections
+	Tags     []string // if empty, matches all tags
+	ByDate   bool
+	Before   time.Time
+	Draft    *bool
+	Deleted  *bool
+}
 
 type SearchQuery struct {
 	Query    string

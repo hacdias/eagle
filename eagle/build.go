@@ -1,5 +1,7 @@
 package eagle
 
+// TODO: remove this.
+
 import (
 	"encoding/hex"
 	"fmt"

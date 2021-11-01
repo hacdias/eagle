@@ -8,12 +8,12 @@ import (
 )
 
 type Config struct {
-	Development       bool
-	Port              int
-	BaseURL           string
-	SourceDirectory   string
-	PublicDirectory   string
-	WebhookSecret     string
+	Development     bool
+	Port            int
+	BaseURL         string
+	SourceDirectory string
+	PublicDirectory string
+	// WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
 	Auth              *Auth
