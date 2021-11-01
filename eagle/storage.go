@@ -14,10 +14,10 @@ func (e *Eagle) Persist(filename string, data []byte, message string) error {
 		return err
 	}
 
-	err = e.srcGit.addAndCommit(message, filename)
-	if err != nil {
-		return err
-	}
+	// err = e.srcGit.addAndCommit(message, filename)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }

@@ -61,7 +61,7 @@ func Deflatten(data interface{}) interface{} {
 	}
 
 	if kind == reflect.Map {
-		parsed := map[string][]interface{}{}
+		parsed := map[string]interface{}{}
 
 		for _, k := range value.MapKeys() {
 			v := value.MapIndex(k)

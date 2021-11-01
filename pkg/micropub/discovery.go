@@ -19,6 +19,7 @@ const (
 	TypeFollow   Type = "follow"
 	TypeRead     Type = "read"
 	TypeWatch    Type = "watch"
+	TypeListen   Type = "listen"
 	TypeCheckin  Type = "checkin"
 	TypeVideo    Type = "video"
 	TypeAudio    Type = "audio"
@@ -39,6 +40,7 @@ var propertyToType = map[string]Type{
 	"follow-of":   TypeFollow,
 	"read-of":     TypeRead,
 	"watch-of":    TypeWatch,
+	"listen-of":   TypeListen,
 	"checkin":     TypeCheckin,
 	"video":       TypeVideo,
 	"audio":       TypeAudio,
@@ -52,7 +54,9 @@ var propertyToType = map[string]Type{
 //
 // This is a slightly modified version of @aaronpk's code to include reads and watches.
 // Original code: https://github.com/aaronpk/XRay/blob/master/lib/XRay/PostType.php
-func DiscoverType(properties typed.Typed) Type {
+func DiscoverType(props map[string]interface{}) Type {
+	properties := typed.New(props)
+
 	if typ, ok := properties.StringIf("type"); ok {
 		switch typ {
 		case "event", "recipe", "review":

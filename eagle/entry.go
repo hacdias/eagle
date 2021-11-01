@@ -30,22 +30,8 @@ type Frontmatter struct {
 	Emoji          string                 `yaml:"emoji,omitempty"`
 	Published      time.Time              `yaml:"published,omitempty"`
 	Updated        time.Time              `yaml:"updated,omitempty"`
+	Section        string                 `yaml:"section,omitempty"`
 	Properties     map[string]interface{} `yaml:"properties,omitempty"`
-
-	// In case I do not separate the sections per directory.
-	Section string `yaml:"section,omitempty"`
-}
-
-// TODO: or section in frontmatter?
-func (e *Entry) Section() string {
-	cleanID := strings.TrimPrefix(e.ID, "/")
-	cleanID = strings.TrimSuffix(cleanID, "/")
-
-	section := ""
-	if strings.Count(cleanID, "/") >= 1 {
-		section = strings.Split(cleanID, "/")[0]
-	}
-	return section
 }
 
 func (e *Entry) Tags() []string {
@@ -138,7 +124,7 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 
 		}
 		// Default path for new files is content/{slug}/index.md
-		path = filepath.Join("content", entry.ID, "index.md")
+		path = filepath.Join(ContentDirectory, entry.ID, "index.md")
 	}
 
 	err = e.srcFs.MkdirAll(filepath.Dir(path), 0777)
@@ -161,6 +147,21 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 	}
 
 	return nil
+}
+
+func (e *Eagle) TransformEntry(id string, t func(*Entry) (*Entry, error)) (*Entry, error) {
+	oldEntry, err := e.GetEntry(id)
+	if err != nil {
+		return nil, err
+	}
+
+	newEntry, err := t(oldEntry)
+	if err != nil {
+		return nil, err
+	}
+
+	err = e.SaveEntry(newEntry)
+	return newEntry, err
 }
 
 func (e *Eagle) GetAllEntries() ([]*Entry, error) {

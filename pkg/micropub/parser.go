@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/karlseguin/typed"
 )
 
 type Action string
@@ -29,8 +27,8 @@ type Request struct {
 	Action     Action
 	URL        string
 	Type       string
-	Properties typed.Typed
-	Commands   typed.Typed
+	Properties map[string]interface{}
+	Commands   map[string]interface{}
 	Updates    *RequestUpdates
 }
 
@@ -59,6 +57,9 @@ func parseFormEncodeed(body url.Values) (*Request, error) {
 			if strings.HasPrefix(key, "mp-") {
 				req.Commands[key] = val
 			} else {
+				if strings.HasSuffix(key, "[]") {
+					key = strings.TrimSuffix(key, "[]")
+				}
 				req.Properties[key] = val
 			}
 		}
