@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"net"
 	"net/http"
-	"os"
 	"runtime/debug"
 	"strconv"
 	"sync"
@@ -40,8 +39,7 @@ type Server struct {
 	templates map[string]*template.Template
 
 	// Website-specific variables.
-	staticFsLock sync.RWMutex
-	staticFs     *staticFs
+	staticFs *staticFs
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
@@ -60,9 +58,6 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 }
 
 func (s *Server) Start() error {
-	// Start public dir worker
-	go s.publicDirWorker()
-
 	errCh := make(chan error)
 
 	// Start server(s)
@@ -139,26 +134,6 @@ func (s *Server) startRegularServer(errCh chan error) error {
 	}()
 
 	return nil
-}
-
-func (s *Server) publicDirWorker() {
-	s.log.Info("waiting for new directories")
-	for dir := range s.PublicDirCh {
-		s.log.Infof("received new public directory: %s", dir)
-
-		s.staticFsLock.Lock()
-		oldFs := s.staticFs
-		s.staticFs = newStaticFs(dir)
-		s.staticFsLock.Unlock()
-
-		if oldFs != nil {
-			err := os.RemoveAll(oldFs.dir)
-			if err != nil {
-				s.NotifyError(fmt.Errorf("could not delete old directory: %w", err))
-			}
-		}
-	}
-	s.log.Info("stopped waiting for new directories, channel closed")
 }
 
 func (s *Server) recoverer(next http.Handler) http.Handler {

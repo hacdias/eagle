@@ -30,6 +30,7 @@ var (
 		"section",
 		"draft",
 		"deleted",
+		"private",
 	}
 
 	cropAttributes = []string{
@@ -109,15 +110,16 @@ func (ms *MeiliSearch) Add(entries ...*Entry) error {
 			SearchID:  hex.EncodeToString([]byte(entry.ID)),
 			ID:        entry.ID,
 			Permalink: entry.Permalink,
-			Date:      entry.Metadata.Date.Format(time.RFC3339),
+			Date:      entry.Published.Format(time.RFC3339),
 			// Searcheable Attributes
-			Title:   entry.Metadata.Title,
-			Tags:    entry.Metadata.Tags,
+			Title:   entry.Title,
+			Tags:    entry.Tags(),
 			Content: sanitizePost(entry.Content),
 			// Filterable Attributes
 			Section: entry.Section(),
-			Draft:   entry.Metadata.Draft,
-			Deleted: entry.Deleted(),
+			Draft:   entry.Draft,
+			Deleted: entry.Deleted,
+			Private: entry.Private,
 		})
 	}
 

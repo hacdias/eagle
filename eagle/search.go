@@ -18,6 +18,7 @@ type NewSearchQuery struct {
 	Before   time.Time
 	Draft    *bool
 	Deleted  *bool
+	Private  *bool
 }
 
 type SearchQuery struct {
@@ -47,6 +48,7 @@ type SearchEntry struct {
 	Section   string   `json:"section" mapstructure:"section"`
 	Draft     bool     `json:"draft" mapstructure:"draft"`
 	Deleted   bool     `json:"deleted" mapstructure:"deleted"`
+	Private   bool     `json:"private" mapstructure:"private"`
 	Date      string   `json:"date" mapstructure:"date"`
 }
 

@@ -10,7 +10,6 @@ import (
 type staticFs struct {
 	http.Handler
 	afero.Afero
-	dir string
 }
 
 func newStaticFs(dir string) *staticFs {
@@ -21,7 +20,6 @@ func newStaticFs(dir string) *staticFs {
 	return &staticFs{
 		Handler: handler,
 		Afero:   afero.Afero{Fs: fs},
-		dir:     dir,
 	}
 }
 
