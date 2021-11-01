@@ -11,8 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var authContextKey = "auth"
-
 func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
 	s.renderDashboard(w, "login", &dashboardData{IsLogin: true})
 }
@@ -90,14 +88,14 @@ func (s *Server) isAuthenticated(next http.Handler) http.Handler {
 			isAuthd = true
 		}
 
-		ctx := context.WithValue(r.Context(), &authContextKey, isAuthd)
+		ctx := context.WithValue(r.Context(), authContextKey, isAuthd)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (s *Server) mustAuthenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		isAuthd := r.Context().Value(&authContextKey).(bool)
+		isAuthd := r.Context().Value(authContextKey).(bool)
 		if !isAuthd {
 			newPath := "/login?redirect=" + url.PathEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)

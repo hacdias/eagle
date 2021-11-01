@@ -58,6 +58,9 @@ func parseFormEncodeed(body url.Values) (*Request, error) {
 				req.Commands[key] = val
 			} else {
 				if strings.HasSuffix(key, "[]") {
+					// TODO: some wild micropub clients seem to be posting stuff
+					// such as properties[checkin][location]. It'd be great to have
+					// a way to parse that easily. Look into libraries.
 					key = strings.TrimSuffix(key, "[]")
 				}
 				req.Properties[key] = val

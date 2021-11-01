@@ -137,7 +137,7 @@ func (s *Server) startRegularServer(errCh chan error) error {
 }
 
 func (s *Server) recoverer(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				err := fmt.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
@@ -147,20 +147,16 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
+	})
 }
 
-func (s *Server) headers(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
+	})
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
@@ -172,9 +168,26 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	}
 }
 
-func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
+func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err error) {
 	s.serveJSON(w, code, map[string]interface{}{
 		"error":             http.StatusText(code),
 		"error_description": err.Error(),
 	})
+}
+
+func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
+	// TODO: render error template.
+
+	if err != nil {
+		// Do something
+	}
+
+	bytes := []byte(http.StatusText(code))
+
+	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Del("Cache-Control")
+
+	w.WriteHeader(http.StatusNotFound)
+	_, _ = w.Write(bytes)
 }

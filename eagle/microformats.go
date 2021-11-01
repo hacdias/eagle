@@ -18,6 +18,7 @@ var typeToSection = map[micropub.Type]string{
 	micropub.TypeLike:     "likes",
 	micropub.TypeRepost:   "reposts",
 	micropub.TypeBookmark: "bookmarks",
+	micropub.TypeCheckin:  "checkins",
 }
 
 func (e *Eagle) FromMicroformats(id string, data typed.Typed) (*Entry, error) {
@@ -41,7 +42,8 @@ func (e *Eagle) fromMicroformats(entry *Entry, data typed.Typed) error {
 	postType := micropub.DiscoverType(data)
 	switch postType {
 	case micropub.TypeReply, micropub.TypeNote, micropub.TypeArticle,
-		micropub.TypeLike, micropub.TypeRepost, micropub.TypeBookmark:
+		micropub.TypeLike, micropub.TypeRepost, micropub.TypeBookmark,
+		micropub.TypeCheckin:
 		if entry.Section == "" {
 			entry.Section = typeToSection[postType]
 		}
