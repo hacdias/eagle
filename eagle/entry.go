@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/v2/yaml"
+	"github.com/hacdias/eagle/v2/pkg/yaml"
 )
 
 type Entry struct {
