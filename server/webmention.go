@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
 func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {

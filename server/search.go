@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
 func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {

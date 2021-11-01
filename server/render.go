@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/dashboard/templates"
+	"github.com/hacdias/eagle/v2/dashboard/templates"
 	"github.com/spf13/afero"
 )
 

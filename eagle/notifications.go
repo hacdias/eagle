@@ -1,8 +1,8 @@
 package eagle
 
 import (
-	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/logging"
+	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/logging"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
 )

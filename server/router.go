@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth"
-	"github.com/hacdias/eagle/dashboard/static"
+	"github.com/hacdias/eagle/v2/dashboard/static"
 	"github.com/spf13/afero"
 )
 
