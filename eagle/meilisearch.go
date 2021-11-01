@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/v2/config"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/mitchellh/mapstructure"
 )

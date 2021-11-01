@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
 const dashboardPath = "/dashboard"

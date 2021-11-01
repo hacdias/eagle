@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hacdias/eagle/config"
-	"github.com/hacdias/eagle/logging"
+	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/logging"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"

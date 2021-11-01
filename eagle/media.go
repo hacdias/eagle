@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hacdias/eagle/config"
+	"github.com/hacdias/eagle/v2/config"
 )
 
 type Media struct {

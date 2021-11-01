@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/logging"
+	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/logging"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 )

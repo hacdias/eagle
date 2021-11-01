@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/hacdias/eagle/logging"
+	"github.com/hacdias/eagle/v2/logging"
 	"tailscale.com/client/tailscale"
 	"tailscale.com/tsnet"
 )

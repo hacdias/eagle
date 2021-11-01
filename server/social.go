@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
 func (s *Server) goSyndicate(entry *eagle.Entry) {
