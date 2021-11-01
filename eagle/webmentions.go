@@ -80,7 +80,7 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 		}
 	}
 
-	if !entry.Deleted() {
+	if !entry.Deleted {
 		// If it's not a deleted entry, update the targets list.
 		err = e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
 			data.Targets = curr
@@ -97,7 +97,7 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 	currentTargets, err := e.getTargetsFromHTML(entry)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if entry.Deleted() {
+			if entry.Deleted {
 				currentTargets = []string{}
 			} else {
 				return nil, nil, nil, fmt.Errorf("entry should exist as it is not deleted %s: %w", entry.ID, err)
@@ -136,9 +136,9 @@ func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
 
 	targets = e.filterTargets(targets)
 
-	if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
-		targets = append(targets, entry.Metadata.ReplyTo.URL)
-	}
+	// if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
+	// 	targets = append(targets, entry.Metadata.ReplyTo.URL)
+	// }
 
 	return uniqString(targets), nil
 }
@@ -179,7 +179,7 @@ func (e *Eagle) sendWebmention(source, target string) error {
 }
 
 func (e *Eagle) UpdateTargets(entry *Entry) error {
-	if entry.Deleted() {
+	if entry.Deleted {
 		return nil
 	}
 

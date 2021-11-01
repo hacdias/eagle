@@ -13,6 +13,13 @@ import (
 	"willnorris.com/go/webmention"
 )
 
+const (
+	AssetsDirectory    string = "assets"
+	ContentDirectory   string = "content2" // TODO: change this back to content
+	TemplatesDirectory string = "templates"
+	StaticDirectory    string = "static"
+)
+
 type Eagle struct {
 	log        *zap.SugaredLogger
 	httpClient *http.Client
