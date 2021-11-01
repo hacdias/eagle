@@ -7,7 +7,20 @@ import (
 )
 
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(r.URL.Path))
+	w.Write([]byte(`
+<html>
+<head>
+<link rel=authorization_endpoint href=https://indieauth.com/auth>
+<link rel=token_endpoint href=https://tokens.indieauth.com/token>
+<link href="mailto:hacdias@gmail.com" rel="me">
+<link rel=micropub href=/micropub>
+</head>
+
+<body>
+Test
+</body>
+	
+</html>`))
 	// // NOTE: previously we'd do a staticFs read lock here. However, removing
 	// // it increased performance dramatically. Hopefully there's no consequences.
 

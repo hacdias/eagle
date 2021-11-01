@@ -2,9 +2,15 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 
+	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/pkg/micropub"
+	"github.com/karlseguin/typed"
 )
 
 func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
@@ -31,58 +37,28 @@ func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
-	s.serveError(w, http.StatusNotImplemented, errors.New("not implemented"))
+	id, err := s.micropubParseURL(r.URL.Query().Get("url"))
+	if err != nil {
+		s.serveError(w, http.StatusBadRequest, err)
+		return
+	}
 
-	// s.Debug("micropub: source request received")
-	// id, err := s.micropubParseURL(r.URL.Query().Get("url"))
-	// if err != nil {
-	// 	s.Errorf("micropub: cannot parse url: %s", err)
-	// 	s.serveError(w, http.StatusBadRequest, err)
-	// 	return
-	// }
+	entry, err := s.GetEntry(id)
+	if err != nil {
+		if os.IsNotExist(err) {
+			s.serveError(w, http.StatusNotFound, fmt.Errorf("post not found: %s", id))
+		} else {
+			s.serveError(w, http.StatusInternalServerError, err)
+		}
+		return
+	}
 
-	// post, err := s.Hugo.GetEntry(id)
-	// if err != nil {
-	// 	if os.IsNotExist(err) {
-	// 		s.Errorf("micropub: post not found: %s", err)
-	// 		s.serveError(w, http.StatusNotFound, fmt.Errorf("post not found: %s", id))
-	// 	} else {
-	// 		s.Errorf("micropub: cannot get hugo entry: %s", err)
-	// 		s.serveError(w, http.StatusBadRequest, err)
-	// 	}
-	// 	return
-	// }
+	mf2 := map[string]interface{}{
+		"type":       []string{"h-entry"},
+		"properties": s.ToMicroformats(entry),
+	}
 
-	// entry := map[string]interface{}{
-	// 	"type": []string{"h-entry"},
-	// }
-
-	// props := post.Metadata["properties"].(map[string][]interface{})
-
-	// if title, ok := post.Metadata.StringIf("title"); ok {
-	// 	props["name"] = []interface{}{title}
-	// }
-
-	// if tags, ok := post.Metadata.StringsIf("tags"); ok {
-	// 	props["category"] = []interface{}{}
-	// 	for _, tag := range tags {
-	// 		props["category"] = append(props["category"], tag)
-	// 	}
-	// }
-
-	// if date, ok := post.Metadata.StringIf("lastmod"); ok {
-	// 	props["published"] = []interface{}{date}
-	// } else if date, ok := post.Metadata.StringIf("date"); ok {
-	// 	props["published"] = []interface{}{date}
-	// }
-
-	// if post.Content != "" {
-	// 	props["content"] = []interface{}{post.Content}
-	// }
-
-	// entry["properties"] = props
-	// s.serveJSON(w, http.StatusOK, entry)
-	// s.Debug("micropub: source request ok")
+	s.serveJSON(w, http.StatusOK, mf2)
 }
 
 func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,190 +89,120 @@ func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
 		s.log.Errorf("micropub: error on post: %s", err)
 		s.serveError(w, code, err)
 	}
-
-	switch mr.Action {
-	case micropub.ActionCreate:
-	case micropub.ActionUpdate:
-		return
-	}
-
-	// err = s.Hugo.Build(mr.Action == micropub.ActionDelete)
-	// if err != nil {
-	// 	s.Errorf("micropub: error hugo build: %s", err)
-	// 	s.Notify.Error(err)
-	// }
 }
 
 func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	// s.Debug("micropub: create request received")
-	// entry, synd, err := s.Hugo.FromMicropub(mr)
-	// if err != nil {
-	// 	return http.StatusBadRequest, err
-	// }
-	// s.Debugw("micropub: create request", "entry", entry, "synd", synd)
+	year := time.Now().Year()
+	month := time.Now().Month()
+	day := time.Now().Day()
+	id := fmt.Sprintf("/%04d/%02d/%02d", year, month, day)
 
-	// err = s.Hugo.SaveEntry(entry)
-	// if err != nil {
-	// 	return http.StatusInternalServerError, err
-	// }
+	cmds := typed.New(mr.Commands)
 
-	// for _, rel := range synd.Related {
-	// 	err = s.XRay.RequestAndSave(rel)
-	// 	if err != nil {
-	// 		s.Warnf("could not xray %s: %s", rel, err)
-	// 		s.Notify.Error(err)
-	// 	}
-	// }
+	if slugSlice, ok := cmds.StringsIf("mp-slug"); ok && len(slugSlice) == 1 {
+		slug := strings.TrimSpace(strings.Join(slugSlice, "\n"))
+		id += "/" + slug
+	} else {
+		// TODO: generate something
+		return http.StatusBadRequest, errors.New("slug is required")
+	}
 
-	// err = s.Store.Persist("add " + entry.ID)
-	// if err != nil {
-	// 	s.Errorf("micropub: error git commit: %s", err)
-	// 	s.Notify.Error(err)
-	// }
+	entry, err := s.FromMicroformats(id, mr.Properties)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
-	// err = s.Hugo.Build(false)
-	// if err != nil {
-	// 	s.Errorf("micropub: error hugo build: %s", err)
-	// 	s.Notify.Error(err)
+	err = s.SaveEntry(entry)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
+	// 	synd.Targets = targets
 	// }
 
-	// url := s.c.Domain + entry.ID
-	// http.Redirect(w, r, url, http.StatusAccepted)
+	// TODO: xray related, syndicate, webmentions.
 
-	// go func() {
-	// 	s.sendWebmentions(entry, synd.Related...)
-	// 	s.syndicate(entry, synd)
-	// 	s.activity(entry)
-	// 	err := s.MeiliSearch.Add(entry)
-	// 	if err != nil {
-	// 		s.Warnf("could not add to meilisearch: %s", err)
-	// 		s.Notify.Error(err)
-	// 	}
-	// }()
-
-	// s.Debug("micropub: create request ok")
-
-	http.Redirect(w, r, "https://example.com", http.StatusAccepted)
+	http.Redirect(w, r, s.Config.BaseURL+entry.ID, http.StatusAccepted)
 	return 0, nil
 }
 
 func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	// s.Debug("micropub: update request received")
-	// id := strings.Replace(mr.URL, s.c.Domain, "", 1)
-	// entry, err := s.Hugo.GetEntry(id)
-	// if err != nil {
-	// 	s.Errorf("micropub: cannot get entry: %s", err)
-	// 	return http.StatusBadRequest, err
-	// }
+	id, err := s.micropubParseURL(mr.URL)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
-	// err = entry.Update(mr)
-	// if err != nil {
-	// 	s.Errorf("micropub: cannot update entry: %s", err)
-	// 	return http.StatusBadRequest, err
-	// }
+	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		mf := s.ToMicroformats(entry)
 
-	// err = s.Hugo.SaveEntry(entry)
-	// if err != nil {
-	// 	s.Errorf("micropub: cannot save entry: %s", err)
-	// 	return http.StatusInternalServerError, err
-	// }
+		newMf, err := micropub.Update(mf, mr)
+		if err != nil {
+			return nil, err
+		}
 
-	// err = s.Store.Persist("update " + entry.ID)
-	// if err != nil {
-	// 	s.Errorf("micropub: cannot git commit: %s", err)
-	// 	return http.StatusInternalServerError, err
-	// }
+		err = s.UpdateEntry(entry, newMf)
+		if err != nil {
+			return nil, err
+		}
 
-	// err = s.Hugo.Build(false)
-	// if err != nil {
-	// 	s.Errorf("micropub: error hugo build: %s", err)
-	// 	s.Notify.Error(err)
-	// }
+		return entry, nil
+	})
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
-	// http.Redirect(w, r, mr.URL, http.StatusOK)
-	// s.Debug("micropub: update request ok")
-
-	// go func() {
-	// 	s.sendWebmentions(entry)
-	// 	s.activity(entry)
-	// 	err := s.MeiliSearch.Add(entry)
-	// 	if err != nil {
-	// 		s.Warnf("could not update meilisearch: %s", err)
-	// 		s.Notify.Error(err)
-	// 	}
-	// }()
-
+	http.Redirect(w, r, entry.Permalink, http.StatusOK)
+	// TODO: cache, xray related, syndicate, webmentions.
 	return 0, nil
 }
 
 func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	// s.Debug("micropub: unremove request received")
-	// id, err := s.micropubParseURL(mr.URL)
-	// if err != nil {
-	// 	return http.StatusBadRequest, err
-	// }
+	id, err := s.micropubParseURL(mr.URL)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
-	// entry, err := s.Hugo.GetEntry(id)
-	// if err != nil {
-	// 	return http.StatusBadRequest, err
-	// }
+	_, err = s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		entry.Deleted = false
+		return entry, nil
+	})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	// delete(entry.Metadata, "expiryDate")
+	// TODO: syndicate, webmentions.
 
-	// err = s.Hugo.SaveEntry(entry)
-	// if err != nil {
-	// 	return http.StatusInternalServerError, err
-	// }
-
-	// err = s.Store.Persist("undelete " + id)
-	// if err != nil {
-	// 	return http.StatusInternalServerError, err
-	// }
-
-	// go func() {
-	// 	err := s.MeiliSearch.Add(entry)
-	// 	if err != nil {
-	// 		s.Warnf("could not add to meilisearch: %s", err)
-	// 		s.Notify.Error(err)
-	// 	}
-	// }()
-
-	// s.Debug("micropub: unremove request ok")
 	return http.StatusOK, nil
 }
 
 func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	// s.Debug("micropub: remove request received")
-	// id, err := s.micropubParseURL(mr.URL)
-	// if err != nil {
-	// 	return http.StatusBadRequest, err
-	// }
+	id, err := s.micropubParseURL(mr.URL)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
-	// entry, err := s.Hugo.GetEntry(id)
-	// if err != nil {
-	// 	return http.StatusInternalServerError, err
-	// }
+	_, err = s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		entry.Deleted = true
+		return entry, nil
+	})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	// entry.Metadata["expiryDate"] = time.Now().Format(time.RFC3339)
+	// TODO: syndicate, webmentions.
 
-	// err = s.Hugo.SaveEntry(entry)
-	// if err != nil {
-	// 	return http.StatusInternalServerError, err
-	// }
-
-	// err = s.Store.Persist("delete " + id)
-	// if err != nil {
-	// 	return http.StatusInternalServerError, err
-	// }
-
-	// go func() {
-	// 	err := s.MeiliSearch.Delete(entry)
-	// 	if err != nil {
-	// 		s.Warnf("could not remove from meilisearch: %s", err)
-	// 		s.Notify.Error(err)
-	// 	}
-	// }()
-
-	// s.Debug("micropub: remove request ok")
 	return http.StatusOK, nil
+}
+
+func (s *Server) micropubParseURL(url string) (string, error) {
+	if url == "" {
+		return "", errors.New("url must be set")
+	}
+
+	if !strings.HasPrefix(url, s.Config.BaseURL) {
+		return "", errors.New("invalid domain in url")
+	}
+
+	return strings.Replace(url, s.Config.BaseURL, "", 1), nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // Update updates a set of existing properties with the new request.
-func Update(properties map[string][]interface{}, req *Request) (map[string][]interface{}, error) {
+func Update(properties map[string]interface{}, req *Request) (map[string]interface{}, error) {
 	if req.Updates.Replace != nil {
 		for key, value := range req.Updates.Replace {
 			properties[key] = value
@@ -34,7 +34,13 @@ func Update(properties map[string][]interface{}, req *Request) (map[string][]int
 					properties[key] = []interface{}{}
 				}
 
-				properties[key] = append(properties[key], value...)
+				v, ok := properties[key].([]interface{})
+				if !ok {
+					return nil, errors.New("value must be slice of interfaces")
+				}
+
+				v = append(v, value...)
+				properties[key] = v
 			}
 		}
 	}

@@ -116,7 +116,7 @@ func (ms *MeiliSearch) Add(entries ...*Entry) error {
 			Tags:    entry.Tags(),
 			Content: sanitizePost(entry.Content),
 			// Filterable Attributes
-			Section: entry.Section(),
+			Section: entry.Section,
 			Draft:   entry.Draft,
 			Deleted: entry.Deleted,
 			Private: entry.Private,
