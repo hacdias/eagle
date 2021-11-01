@@ -280,14 +280,14 @@ func (e *Eagle) cleanID(id string) string {
 }
 
 func (e *Eagle) guessPath(id string) (string, error) {
-	path := filepath.Join("content", id+".md")
-	if _, err := e.srcFs.Stat(path); err == nil {
-		return path, nil
-	} else if !os.IsNotExist(err) {
-		return "", err
-	}
+	// path := filepath.Join("content", id+".md")
+	// if _, err := e.srcFs.Stat(path); err == nil {
+	// 	return path, nil
+	// } else if !os.IsNotExist(err) {
+	// 	return "", err
+	// }
 
-	path = filepath.Join("content", id, "index.md")
+	path := filepath.Join("content", id, "index.md")
 	if _, err := e.srcFs.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
