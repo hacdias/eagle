@@ -85,7 +85,7 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 // }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
-	s.listingGet(w, r, &eagle.SearchQuery{})
+	s.listingGet(w, r, &eagle.SearchQuery{}, nil)
 }
 
 func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +97,8 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 
 	s.listingGet(w, r, &eagle.SearchQuery{
 		Tags: []string{tag},
+	}, &eagle.Frontmatter{
+		Title: "#" + tag,
 	})
 }
 
@@ -104,6 +106,9 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s.listingGet(w, r, &eagle.SearchQuery{
 			Sections: []string{section},
+		}, &eagle.Frontmatter{
+			Title:   section,
+			Section: section,
 		})
 	}
 }
@@ -128,10 +133,30 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var title strings.Builder
+	if year != 0 {
+		ys := fmt.Sprintf("%0004d", year)
+		title.WriteString(ys)
+	} else {
+		title.WriteString("XXXX")
+	}
+
+	if month != 0 {
+		title.WriteString(fmt.Sprintf("-%02d", month))
+	} else if day != 0 {
+		title.WriteString("-XX")
+	}
+
+	if day != 0 {
+		title.WriteString(fmt.Sprintf("-%02d", day))
+	}
+
 	s.listingGet(w, r, &eagle.SearchQuery{
 		Year:  year,
 		Month: month,
 		Day:   day,
+	}, &eagle.Frontmatter{
+		Title: title.String(),
 	})
 }
 
@@ -153,29 +178,53 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &eagle.SearchQuery{
 		Query:    query,
 		Sections: sections,
+	}, &eagle.Frontmatter{
+		Title: "Search",
 	})
 }
 
-type listingData struct {
-	eagle.Entry
-	Entries []*eagle.Entry
-}
-
-func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, q *eagle.SearchQuery) {
-	// If logged in, q.Private = q.Draft = q.Deleted = true
-
-	feed := chi.URLParam(r, "feed")
-	if feed != "" {
-		fmt.Println(feed)
-	}
-
+func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, q *eagle.SearchQuery, overrides *eagle.Frontmatter) {
 	q.ByDate = true
-
 	q.Private = false // TODO true if logged in
 	q.Draft = false   // TODO true if logged in
 	q.Deleted = false // TODO true if logged in
 
-	s.render(w, &eagle.RenderData{
-		Data: nil,
-	}, []string{"list"})
+	rd := &eagle.RenderData{}
+
+	if entry, err := s.GetEntry(r.URL.Path); err == nil {
+		rd.Entry = entry
+	} else {
+		rd.Entry = &eagle.Entry{
+			Frontmatter: eagle.Frontmatter{},
+		}
+	}
+
+	if overrides != nil {
+		if rd.Entry.Title == "" {
+			rd.Entry.Title = overrides.Title
+		}
+
+		if rd.Entry.Section == "" {
+			rd.Entry.Section = overrides.Section
+		}
+	}
+
+	entries, err := s.Search(q, 0)
+	if err != nil {
+		s.serveError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	rd.Entries = entries
+
+	switch chi.URLParam(r, "feed") {
+	case "json":
+
+	case "xml":
+
+	default:
+
+	}
+
+	s.render(w, rd, []string{"list"})
 }

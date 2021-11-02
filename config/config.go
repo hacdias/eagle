@@ -25,7 +25,7 @@ type Config struct {
 	Telegram          *Telegram
 	Twitter           *Twitter
 	Miniflux          *Miniflux
-	MeiliSearch       *MeiliSearch
+	MeiliSearch       MeiliSearch
 }
 
 // Parse parses the configuration from the default files and paths.

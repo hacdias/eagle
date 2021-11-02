@@ -77,11 +77,26 @@ var migrateCmd = &cobra.Command{
 				aliases += entry.ID + " " + id + "\n"
 			}
 
+			if entry.Metadata.Tags != nil && len(entry.Metadata.Tags) > 0 {
+				newEntry.Properties["category"] = entry.Metadata.Tags
+			}
+
+			if entry.Metadata.Syndication != nil && len(entry.Metadata.Syndication) > 0 {
+				newEntry.Properties["syndication"] = entry.Metadata.Syndication
+			}
+
 			if entry.Metadata.Aliases != nil {
 				for _, alias := range entry.Metadata.Aliases {
 					aliases += alias + " " + id + "\n"
 				}
 			}
+
+			if entry.Metadata.ReplyTo != nil {
+				newEntry.Properties["in-reply-to"] = entry.Metadata.ReplyTo.URL
+			}
+
+			// Layout      string      `yaml:"layout,omitempty"`
+			// Cover       *eagle.Picture   `yaml:"cover,omitempty"`
 
 			newEntry.ID = id
 
@@ -120,14 +135,14 @@ type Metadata struct {
 	Aliases     []string    `yaml:"aliases,omitempty"`
 	Emoji       string      `yaml:"emoji,omitempty"`
 	Layout      string      `yaml:"layout,omitempty"`
-	NoIndex     bool        `yaml:"noIndex,omitempty"`
 	NoMentions  bool        `yaml:"noMentions,omitempty"`
-	Math        bool        `yaml:"math,omitempty"`
-	Mermaid     bool        `yaml:"mermaid,omitempty"`
-	// Pictures    []*eagle.Picture `yaml:"pictures,omitempty"`
-	// Cover       *eagle.Picture   `yaml:"cover,omitempty"`
-	Draft  bool   `yaml:"draft,omitempty"`
-	Growth string `yaml:"growth,omitempty"`
+	Cover       *Picture    `yaml:"cover,omitempty"`
+	Draft       bool        `yaml:"draft,omitempty"`
+	Growth      string      `yaml:"growth,omitempty"`
+}
+
+type Picture struct {
+	Slug string
 }
 
 func (e *Entry) Section() string {

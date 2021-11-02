@@ -19,6 +19,7 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/thoas/go-funk v0.9.1
 	github.com/writeas/go-strip-markdown v2.0.1+incompatible
+	github.com/yuin/goldmark v1.4.2
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	gopkg.in/tucnak/telebot.v2 v2.4.0

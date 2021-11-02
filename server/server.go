@@ -208,5 +208,11 @@ func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Del("Cache-Control")
 	w.WriteHeader(code)
-	s.render(w, &eagle.RenderData{}, []string{"error"})
+	s.render(w, &eagle.RenderData{
+		Entry: &eagle.Entry{
+			Frontmatter: eagle.Frontmatter{
+				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
+			},
+		},
+	}, []string{"error"})
 }
