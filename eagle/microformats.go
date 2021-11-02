@@ -9,6 +9,17 @@ import (
 	"github.com/karlseguin/typed"
 )
 
+var Sections = []string{
+	"micro",
+	"articles",
+	"likes",
+	"reposts",
+	"bookmarks",
+	"checkins",
+	"watches",
+	"reads",
+}
+
 var typeToSection = map[jf2.Type]string{
 	jf2.TypeReply:    "micro",
 	jf2.TypeNote:     "micro",

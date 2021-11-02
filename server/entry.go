@@ -1,9 +1,14 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+
 	// urlpkg "net/url"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 )
 
@@ -78,3 +83,92 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 // 	}
 // 	return id, nil
 // }
+
+func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &eagle.SearchQuery{})
+}
+
+func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
+	tag := chi.URLParam(r, "tag")
+	if tag == "" {
+		s.serveError(w, http.StatusNotFound, nil)
+		return
+	}
+
+	s.listingGet(w, r, &eagle.SearchQuery{
+		Tags: []string{tag},
+	})
+}
+
+func (s *Server) sectionGet(section string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.listingGet(w, r, &eagle.SearchQuery{
+			Sections: []string{section},
+		})
+	}
+}
+
+func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
+	var year, month, day int
+
+	if ys := chi.URLParam(r, "year"); ys != "" && ys != "x" {
+		year, _ = strconv.Atoi(ys)
+	}
+
+	if ms := chi.URLParam(r, "month"); ms != "" && ms != "x" {
+		month, _ = strconv.Atoi(ms)
+	}
+
+	if ds := chi.URLParam(r, "day"); ds != "" {
+		day, _ = strconv.Atoi(ds)
+	}
+
+	if year == 0 && month == 0 && day == 0 {
+		s.serveError(w, http.StatusNotFound, nil)
+		return
+	}
+
+	s.listingGet(w, r, &eagle.SearchQuery{
+		Year:  year,
+		Month: month,
+		Day:   day,
+	})
+}
+
+func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+
+	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
+	sectionsList := strings.Split(sectionsQuery, ",")
+	sections := []string{}
+
+	for _, s := range sectionsList {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		sections = append(sections, s)
+	}
+
+	s.listingGet(w, r, &eagle.SearchQuery{
+		Query:    query,
+		Sections: sections,
+	})
+}
+
+func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, q *eagle.SearchQuery) {
+	// If logged in, q.Private = q.Draft = q.Deleted = true
+
+	feed := chi.URLParam(r, "feed")
+	if feed != "" {
+		fmt.Println(feed)
+	}
+
+	q.ByDate = true
+
+	q.Private = false // TODO true if logged in
+	q.Draft = false   // TODO true if logged in
+	q.Deleted = false // TODO true if logged in
+
+	s.serveJSON(w, http.StatusOK, q)
+}

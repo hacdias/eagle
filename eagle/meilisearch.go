@@ -3,7 +3,6 @@ package eagle
 import (
 	"encoding/hex"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -140,12 +139,16 @@ func (ms *MeiliSearch) Remove(entries ...*Entry) error {
 func (ms *MeiliSearch) Search(query *SearchQuery, page int) ([]*SearchEntry, error) {
 	filters := []string{}
 
-	if query.Deleted != nil {
-		filters = append(filters, "(deleted="+strconv.FormatBool(*query.Deleted)+")")
+	if !query.Deleted {
+		filters = append(filters, "(deleted=false)")
 	}
 
-	if query.Draft != nil {
-		filters = append(filters, "(draft="+strconv.FormatBool(*query.Draft)+")")
+	if !query.Private {
+		filters = append(filters, "(private=false)")
+	}
+
+	if !query.Draft {
+		filters = append(filters, "(draft=false)")
 	}
 
 	sections := []string{}

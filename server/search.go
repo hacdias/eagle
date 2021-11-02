@@ -1,67 +1,59 @@
 package server
 
-import (
-	"net/http"
-	"strconv"
-	"strings"
+// func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
+// 	query, page, err := getSearchQuery(r)
+// 	if err != nil {
+// 		s.serveErrorJSON(w, http.StatusBadRequest, err)
+// 		return
+// 	}
 
-	"github.com/hacdias/eagle/v2/eagle"
-)
+// 	// Do not accept empty searches!
+// 	if query.Query == "" {
+// 		w.WriteHeader(http.StatusNotFound)
+// 		return
+// 	}
 
-func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
-	query, page, err := getSearchQuery(r)
-	if err != nil {
-		s.serveErrorJSON(w, http.StatusBadRequest, err)
-		return
-	}
+// 	// Do not get drafts, nor deleted posts!
+// 	f := false
+// 	query.Draft = &f
+// 	query.Deleted = &f
 
-	// Do not accept empty searches!
-	if query.Query == "" {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
+// 	// Search!
+// 	res, err := s.Search(query, page)
+// 	if err != nil {
+// 		s.serveErrorJSON(w, http.StatusInternalServerError, err)
+// 		return
+// 	}
 
-	// Do not get drafts, nor deleted posts!
-	f := false
-	query.Draft = &f
-	query.Deleted = &f
+// 	s.serveJSON(w, http.StatusOK, res)
+// }
 
-	// Search!
-	res, err := s.Search(query, page)
-	if err != nil {
-		s.serveErrorJSON(w, http.StatusInternalServerError, err)
-		return
-	}
+// func getSearchQuery(r *http.Request) (*eagle.SearchQuery, int, error) {
+// 	q := r.URL.Query().Get("q")
 
-	s.serveJSON(w, http.StatusOK, res)
-}
+// 	var err error
+// 	p := 0
+// 	if page := r.URL.Query().Get("p"); page != "" {
+// 		p, err = strconv.Atoi(page)
+// 		if err != nil {
+// 			return nil, -1, err
+// 		}
+// 	}
 
-func getSearchQuery(r *http.Request) (*eagle.SearchQuery, int, error) {
-	q := r.URL.Query().Get("q")
+// 	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
+// 	sectionsList := strings.Split(sectionsQuery, ",")
+// 	sections := []string{}
 
-	var err error
-	p := 0
-	if page := r.URL.Query().Get("p"); page != "" {
-		p, err = strconv.Atoi(page)
-		if err != nil {
-			return nil, -1, err
-		}
-	}
+// 	for _, s := range sectionsList {
+// 		s = strings.TrimSpace(s)
+// 		if s == "" {
+// 			continue
+// 		}
+// 		sections = append(sections, s)
+// 	}
 
-	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
-	sectionsList := strings.Split(sectionsQuery, ",")
-	sections := []string{}
-
-	for _, s := range sectionsList {
-		s = strings.TrimSpace(s)
-		if s == "" {
-			continue
-		}
-		sections = append(sections, s)
-	}
-
-	return &eagle.SearchQuery{
-		Query:    q,
-		Sections: sections,
-	}, p, nil
-}
+// 	return &eagle.SearchQuery{
+// 		Query:    q,
+// 		Sections: sections,
+// 	}, p, nil
+// }

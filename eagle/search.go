@@ -10,23 +10,18 @@ const (
 	pageSize = 50
 )
 
-type NewSearchQuery struct {
-	Query    string
-	Sections []string // if empty, matches all sections
-	Tags     []string // if empty, matches all tags
-	ByDate   bool
-	Before   time.Time
-	Draft    *bool
-	Deleted  *bool
-	Private  *bool
-}
-
 type SearchQuery struct {
 	Query    string
-	Sections []string // if empty, matches all sections
+	Sections []string // If empty, matches all sections
+	Tags     []string // If empty, matches all tags
+	Year     int
+	Month    int
+	Day      int
 	ByDate   bool
-	Draft    *bool
-	Deleted  *bool
+	Before   time.Time
+	Draft    bool
+	Deleted  bool
+	Private  bool
 }
 
 type SearchIndex interface {
