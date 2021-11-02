@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	AssetsDirectory    string = "assets"
-	ContentDirectory   string = "content2" // TODO: change this back to content
-	TemplatesDirectory string = "templates"
-	StaticDirectory    string = "static"
+	AssetsDirectory  string = "assets"
+	ContentDirectory string = "content2" // TODO: change this back to content
+
+	StaticDirectory string = "static"
 )
 
 type Eagle struct {

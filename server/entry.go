@@ -170,5 +170,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, q *eagle.Sea
 	q.Draft = false   // TODO true if logged in
 	q.Deleted = false // TODO true if logged in
 
-	s.serveJSON(w, http.StatusOK, q)
+	s.render(w, &eagle.RenderData{
+		Data: nil,
+	}, []string{"list"})
 }

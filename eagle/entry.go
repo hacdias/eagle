@@ -58,12 +58,6 @@ func (e *Entry) String() (string, error) {
 // 	Hide  bool   `yaml:"hide,omitempty"`
 // }
 
-// type Menu struct {
-// 	Weight int    `yaml:"weight,omitempty"`
-// 	Name   string `yaml:"name,omitempty"`
-// 	Pre    string `yaml:"pre,omitempty"`
-// }
-
 func (e *Eagle) GetEntry(id string) (*Entry, error) {
 	e.entriesMu.RLock()
 	defer e.entriesMu.RUnlock()

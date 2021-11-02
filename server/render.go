@@ -1,135 +1,17 @@
 package server
 
 import (
-	"bytes"
-	"html/template"
-	"io/fs"
 	"net/http"
-	"path/filepath"
-	"strings"
 
-	"github.com/hacdias/eagle/v2/dashboard/templates"
-	"github.com/spf13/afero"
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
-type dashboardData struct {
-	// Common To All Pages
-	HasAuth  bool
-	IsLogin  bool
-	BasePath string
-	Data     interface{}
+func (s *Server) render(w http.ResponseWriter, data *eagle.RenderData, tpls []string) {
+	// TODO: Fill data
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	// Cleanup
-	Content string
-	ID      string
-
-	// Webmentions Page Only
-	Targets []string
-}
-
-func (s *Server) renderDashboard(w http.ResponseWriter, tpl string, data *dashboardData) {
-	tpls, err := s.getTemplates()
+	err := s.Render(w, data, tpls)
 	if err != nil {
-		s.serveErrorJSON(w, http.StatusInternalServerError, err)
-		return
+		panic(err)
 	}
-
-	data.HasAuth = s.Config.Auth != nil
-	data.BasePath = dashboardPath
-
-	var buf bytes.Buffer
-	err = tpls[tpl].ExecuteTemplate(&buf, tpl, data)
-	if err != nil {
-		s.serveErrorJSON(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.Header().Set("Content-type", "text/html; charset=utf-8")
-	_, _ = w.Write(buf.Bytes())
-}
-
-func (s *Server) renderAdminBar(path string) ([]byte, error) {
-	tpls, err := s.getTemplates()
-	if err != nil {
-		return nil, err
-	}
-
-	data := &dashboardData{
-		HasAuth:  s.Config.Auth != nil,
-		BasePath: dashboardPath,
-		Data: map[string]interface{}{
-			"ID": path,
-		},
-	}
-
-	var buf bytes.Buffer
-	err = tpls["admin-bar"].ExecuteTemplate(&buf, "admin-bar", data)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-type readDirFileFS interface {
-	fs.ReadDirFS
-	fs.ReadFileFS
-}
-
-func (s *Server) getTemplates() (map[string]*template.Template, error) {
-	if s.templates != nil {
-		return s.templates, nil
-	}
-
-	var fs readDirFileFS
-
-	if s.Config.Development {
-		fs = afero.NewIOFS(afero.NewBasePathFs(afero.NewOsFs(), "./dashboard/templates"))
-	} else {
-		fs = templates.FS
-	}
-
-	baseRaw, err := fs.ReadFile("base.html")
-	if err != nil {
-		return nil, err
-	}
-
-	baseTpl := template.Must(template.New("base").Parse(string(baseRaw)))
-
-	files, err := fs.ReadDir(".")
-	if err != nil {
-		return nil, err
-	}
-
-	parsed := map[string]*template.Template{}
-	for _, info := range files {
-		if info.IsDir() {
-			continue
-		}
-
-		basename := filepath.Base(info.Name())
-		ext := filepath.Ext(basename)
-		id := strings.TrimSuffix(basename, ext)
-
-		if ext != ".html" || id == "base" {
-			continue
-		}
-
-		raw, err := fs.ReadFile(info.Name())
-		if err != nil {
-			return nil, err
-		}
-
-		if id == "admin-bar" {
-			parsed[id] = template.Must(template.New(id).Parse(string(raw)))
-		} else {
-			parsed[id] = template.Must(template.Must(baseTpl.Clone()).New(id).Parse(string(raw)))
-		}
-	}
-
-	if !s.Config.Development {
-		s.templates = parsed
-	}
-
-	return parsed, err
 }
