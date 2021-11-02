@@ -1,4 +1,4 @@
-package micropub
+package jf2
 
 import (
 	"regexp"
@@ -70,13 +70,8 @@ func DiscoverType(props map[string]interface{}) Type {
 		}
 	}
 
-	nameSlice, exists := properties.StringsIf("name")
-	if !exists {
-		return TypeNote
-	}
-
-	name := strings.TrimSpace(strings.Join(nameSlice, ""))
-	if name == "" {
+	name, exists := properties.StringIf("name")
+	if !exists || name == "" {
 		return TypeNote
 	}
 
