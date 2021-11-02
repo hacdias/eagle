@@ -8,11 +8,13 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"path"
 	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/logging"
@@ -142,6 +144,29 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func cleanPath(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+
+		routePath := rctx.RoutePath
+		if routePath == "" {
+			if r.URL.RawPath != "" {
+				routePath = r.URL.RawPath
+			} else {
+				routePath = r.URL.Path
+			}
+			routePath = path.Clean(routePath)
+		}
+
+		if r.URL.Path != routePath {
+			http.Redirect(w, r, routePath, http.StatusTemporaryRedirect)
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})
