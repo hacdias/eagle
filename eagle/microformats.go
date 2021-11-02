@@ -116,7 +116,7 @@ func (e *Eagle) fromMicroformats(entry *Entry, mf2Data map[string][]interface{})
 	return nil
 }
 
-func (e *Eagle) ToMicroformats(entry *Entry) map[string][]interface{} {
+func (entry *Entry) ToMicroformats() map[string][]interface{} {
 	properties := jf2.ToMicroformats(entry.Properties)
 
 	if !entry.Published.IsZero() {

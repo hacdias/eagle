@@ -9,7 +9,7 @@ func (e *Eagle) Sync() ([]string, error) {
 }
 
 func (e *Eagle) Persist(filename string, data []byte, message string) error {
-	err := e.srcFs.WriteFile(filename, data, 0644)
+	err := e.SrcFs.WriteFile(filename, data, 0644)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (e *Eagle) PersistJSON(filename string, data interface{}, msg string) error
 }
 
 func (e *Eagle) ReadFile(filename string) ([]byte, error) {
-	return e.srcFs.ReadFile(filename)
+	return e.SrcFs.ReadFile(filename)
 }
 
 func (e *Eagle) ReadJSON(filename string, v interface{}) error {

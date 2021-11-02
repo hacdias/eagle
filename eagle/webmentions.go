@@ -1,7 +1,6 @@
 package eagle
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -122,23 +121,25 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 }
 
 func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
-	html, err := e.getEntryHTML(entry)
-	if err != nil {
-		return nil, err
-	}
+	// html, err := e.getEntryHTML(entry)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	r := bytes.NewReader(html)
+	// r := bytes.NewReader(html)
 
-	targets, err := webmention.DiscoverLinksFromReader(r, entry.Permalink, ".h-entry .e-content a")
-	if err != nil {
-		return nil, err
-	}
+	// targets, err := webmention.DiscoverLinksFromReader(r, entry.Permalink, ".h-entry .e-content a")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	targets = e.filterTargets(targets)
+	// targets = e.filterTargets(targets)
 
 	// if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
 	// 	targets = append(targets, entry.Metadata.ReplyTo.URL)
 	// }
+
+	targets := []string{}
 
 	return uniqString(targets), nil
 }
