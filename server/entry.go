@@ -156,6 +156,11 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type listingData struct {
+	eagle.Entry
+	Entries []*eagle.Entry
+}
+
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, q *eagle.SearchQuery) {
 	// If logged in, q.Private = q.Draft = q.Deleted = true
 

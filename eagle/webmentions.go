@@ -13,6 +13,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/hashicorp/go-multierror"
+	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"
 )
 
@@ -112,10 +113,10 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 	}
 
 	oldTargets := entryData.Targets
-	oldTargets = uniqString(oldTargets)
+	oldTargets = funk.UniqString(oldTargets)
 
 	targets := append(currentTargets, oldTargets...)
-	targets = uniqString(targets)
+	targets = funk.UniqString(targets)
 
 	return targets, currentTargets, oldTargets, nil
 }
@@ -141,7 +142,7 @@ func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
 
 	targets := []string{}
 
-	return uniqString(targets), nil
+	return funk.UniqString(targets), nil
 }
 
 func (e *Eagle) filterTargets(targets []string) []string {

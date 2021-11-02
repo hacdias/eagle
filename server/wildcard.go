@@ -46,47 +46,18 @@ func (s *Server) wildcardGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tpls := []string{}
+	if entry.Section != "" {
+		tpls = append(tpls, eagle.TemplateSingle+"."+entry.Section)
+	}
+	tpls = append(tpls, eagle.TemplateSingle)
+
 	s.render(w, &eagle.RenderData{
 		Data: entry,
-	}, []string{"single"})
-
-	// 	w.Write([]byte(`
-	// <html>
-	// <head>
-	// <link rel=authorization_endpoint href=https://indieauth.com/auth>
-	// <link rel=token_endpoint href=https://tokens.indieauth.com/token>
-	// <link href="mailto:hacdias@gmail.com" rel="me">
-	// <link rel=micropub href=/micropub>
-	// </head>
-
-	// <body><pre>` + str + `</pre>
-	// </body>
-
-	// </html>`))
+	}, tpls)
 }
 
 func (s *Server) wildcardPost(w http.ResponseWriter, r *http.Request) {
-	// 	entry := s.getEntry(w, r)
-
-	// 	str, err := entry.String()
-	// 	if err != nil {
-	// 		s.serveErrorJSON(w, http.StatusInternalServerError, err)
-	// 		return
-	// 	}
-
-	// 	w.Write([]byte(`
-	// <html>
-	// <head>
-	// <link rel=authorization_endpoint href=https://indieauth.com/auth>
-	// <link rel=token_endpoint href=https://tokens.indieauth.com/token>
-	// <link href="mailto:hacdias@gmail.com" rel="me">
-	// <link rel=micropub href=/micropub>
-	// </head>
-
-	// <body><pre>` + str + `</pre>
-	// </body>
-
-	// </html>`))
 
 	w.Write([]byte("unsupported for now"))
 }

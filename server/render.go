@@ -7,7 +7,10 @@ import (
 )
 
 func (s *Server) render(w http.ResponseWriter, data *eagle.RenderData, tpls []string) {
-	// TODO: Fill data
+	data.TorUsed = false
+	data.OnionAddress = ""
+	data.LoggedIn = false
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	err := s.Render(w, data, tpls)
