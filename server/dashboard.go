@@ -15,59 +15,6 @@ package server
 
 const dashboardPath = "/dashboard"
 
-// func (s *Server) redirectWithStatus(w http.ResponseWriter, status string) {
-// 	s.renderDashboard(w, "status", &dashboardData{Content: status})
-// }
-
-// type rootPageData struct {
-// 	Entries      []*eagle.SearchEntry
-// 	Drafts       bool
-// 	Query        string
-// 	NextPage     string
-// 	PreviousPage string
-// }
-
-// func (s *Server) dashboardGetHandler(w http.ResponseWriter, r *http.Request) {
-// 	data := &dashboardData{}
-
-// 	query, page, err := getSearchQuery(r)
-// 	if err != nil {
-// 		data.Content = err.Error()
-// 		s.renderDashboard(w, "root", data)
-// 		return
-// 	}
-
-// 	dd := &rootPageData{}
-
-// 	if r.URL.Query().Get("drafts") == "on" {
-// 		t := true
-// 		query.Draft = &t
-// 		dd.Drafts = true
-// 	}
-
-// 	query.ByDate = true
-// 	entries, err := s.Search(query, page)
-// 	if err != nil {
-// 		data.Content = err.Error()
-// 	}
-
-// 	dd.Entries = entries
-// 	dd.Query = query.Query
-
-// 	if page > 0 {
-// 		p := r.URL.Query()
-// 		p.Set("p", strconv.Itoa(page-1))
-// 		dd.PreviousPage = dashboardPath + "/?" + p.Encode()
-// 	}
-
-// 	n := r.URL.Query()
-// 	n.Set("p", strconv.Itoa(page+1))
-// 	dd.NextPage = dashboardPath + "/?" + n.Encode()
-
-// 	data.Data = dd
-// 	s.renderDashboard(w, "root", data)
-// }
-
 // func recentlyTemplate() (*eagle.Entry, string) {
 // 	t := time.Now()
 // 	month := t.Format("January")

@@ -138,9 +138,7 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
 
-	if e.search != nil {
-		_ = e.search.Add(entry)
-	}
+	_ = e.IndexAdd(entry)
 
 	return nil
 }
@@ -162,7 +160,7 @@ func (e *Eagle) TransformEntry(id string, t func(*Entry) (*Entry, error)) (*Entr
 
 func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	entries := []*Entry{}
-	err := e.SrcFs.Walk("content/", func(p string, info os.FileInfo, err error) error {
+	err := e.SrcFs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -171,7 +169,7 @@ func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 			return nil
 		}
 
-		id := strings.TrimPrefix(p, "content/")
+		id := strings.TrimPrefix(p, ContentDirectory)
 		id = strings.TrimSuffix(id, ".md")
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")

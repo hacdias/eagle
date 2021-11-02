@@ -18,6 +18,7 @@ var Sections = []string{
 	"checkins",
 	"watches",
 	"reads",
+	"photos",
 }
 
 var typeToSection = map[jf2.Type]string{

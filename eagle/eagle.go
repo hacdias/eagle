@@ -8,7 +8,9 @@ import (
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/logging"
+	"github.com/meilisearch/meilisearch-go"
 	"github.com/spf13/afero"
+	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
 )
@@ -16,12 +18,12 @@ import (
 const (
 	AssetsDirectory  string = "assets"
 	ContentDirectory string = "content2" // TODO: change this back to content
-
-	StaticDirectory string = "static"
+	StaticDirectory  string = "static"
 )
 
 type Eagle struct {
 	log        *zap.SugaredLogger
+	ms         meilisearch.ClientInterface
 	httpClient *http.Client
 
 	// Maybe embed this one and ovveride WriteFile instead of persist?
@@ -43,9 +45,10 @@ type Eagle struct {
 	Config      *config.Config
 	PublicDirCh chan string
 
+	markdown goldmark.Markdown
+
 	// Optional services
-	media  *Media
-	search SearchIndex
+	media *Media
 
 	Miniflux *Miniflux
 	Twitter  *Twitter
@@ -57,11 +60,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	e := &Eagle{
-		log:        logging.S().Named("eagle"),
-		httpClient: httpClient,
-		SrcFs:      makeAfero(conf.SourceDirectory),
-		srcGit:     &gitRepo{conf.SourceDirectory},
-		// dstFs:             makeAfero(conf.PublicDirectory),
+		log:               logging.S().Named("eagle"),
+		httpClient:        httpClient,
+		SrcFs:             makeAfero(conf.SourceDirectory),
+		srcGit:            &gitRepo{conf.SourceDirectory},
 		webmentionsClient: webmention.New(httpClient),
 		Config:            conf,
 		PublicDirCh:       make(chan string, 2),
@@ -86,9 +88,12 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.Notifications = newLogNotifications()
 	}
 
-	if conf.MeiliSearch != nil {
-		go e.setupMeiliSearch()
+	err := e.setupMeiliSearch()
+	if err != nil {
+		return nil, err
 	}
+
+	e.markdown = goldmark.New(defaultGoldmarkOptions...)
 
 	if conf.Twitter != nil {
 		e.Twitter = NewTwitter(conf.Twitter)
@@ -99,27 +104,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	return e, nil
-}
-
-func (e *Eagle) setupMeiliSearch() {
-	search, ok, err := NewMeiliSearch(e.Config.MeiliSearch)
-	if err != nil {
-		err = fmt.Errorf("could not start meilisearch: %w", err)
-		e.log.Error(err)
-		return
-	}
-
-	e.search = search
-	if ok {
-		return
-	}
-
-	e.log.Info("building index for the first time")
-	err = e.RebuildIndex()
-	if err != nil {
-		err = fmt.Errorf("error building index: %w", err)
-		e.log.Error(err)
-	}
 }
 
 func (e *Eagle) userAgent(comment string) string {

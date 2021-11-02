@@ -3,6 +3,7 @@ package eagle
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"path"
@@ -37,6 +38,7 @@ func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 	return template.FuncMap{
 		"include": e.includeTemplate,
 		"now":     time.Now,
+		"md":      e.safeRenderMarkdownAsHTML,
 	}
 }
 
@@ -89,15 +91,47 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 	return parsed, err
 }
 
+// Title          string    `yaml:"title,omitempty"`
+// Description    string    `yaml:"description,omitempty"`
+// Draft          bool      `yaml:"draft,omitempty"`
+// Deleted        bool      `yaml:"deleted,omitempty"`
+// Private        bool      `yaml:"private,omitempty"`
+// NoInteractions bool      `yaml:"noInteractions,omitempty"`
+// Emoji          string    `yaml:"emoji,omitempty"`
+// Published      time.Time `yaml:"published,omitempty"`
+// Updated        time.Time `yaml:"updated,omitempty"`
+// Section        string    `yaml:"section,omitempty"`
+
 type RenderData struct {
+	// All pages must have some sort of Entry embedded.
+	// This allows us to set generic information about
+	// a page that may be needed.
+	*Entry
+
+	User *config.User
+	Site *config.Site
+
+	Entries []*Entry
+
+	RenderedContent template.HTML
+	// Data interface{}
+
 	IsHome       bool
 	LoggedIn     bool
 	TorUsed      bool
 	OnionAddress string
+}
 
-	User *config.User
-	Site *config.Site
-	Data interface{}
+func (rd *RenderData) HeadTitle() string {
+	if rd.ID == "/" {
+		return rd.Site.Title
+	}
+
+	if rd.Title != "" {
+		return fmt.Sprintf("%s - %s", rd.Title, rd.Site.Title)
+	}
+
+	return rd.Site.Title
 }
 
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
@@ -111,18 +145,37 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 		return err
 	}
 
-	var template *template.Template
+	var tpl *template.Template
 
-	for _, tpl := range tpls {
-		if t, ok := templates[tpl]; ok {
-			template = t
+	for _, t := range tpls {
+		if tt, ok := templates[t]; ok {
+			tpl = tt
 			break
 		}
 	}
 
-	if template == nil {
+	if tpl == nil {
 		return errors.New("unrecognized template")
 	}
 
-	return template.Execute(w, data)
+	return tpl.Execute(w, data)
+}
+
+func (e *Eagle) renderMarkdown(source string) ([]byte, error) {
+	var buffer bytes.Buffer
+	err := e.markdown.Convert([]byte(source), &buffer)
+	return buffer.Bytes(), err
+}
+
+func (e *Eagle) renderMarkdownAsHTML(source string) (rendered template.HTML, err error) {
+	b, err := e.renderMarkdown(source)
+	if err != nil {
+		return "", err
+	}
+	return template.HTML(b), nil
+}
+
+func (e *Eagle) safeRenderMarkdownAsHTML(source string) template.HTML {
+	h, _ := e.renderMarkdownAsHTML(source)
+	return h
 }

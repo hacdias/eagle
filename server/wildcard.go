@@ -53,7 +53,7 @@ func (s *Server) wildcardGet(w http.ResponseWriter, r *http.Request) {
 	tpls = append(tpls, eagle.TemplateSingle)
 
 	s.render(w, &eagle.RenderData{
-		Data: entry,
+		Entry: entry,
 	}, tpls)
 }
 
