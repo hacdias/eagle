@@ -27,15 +27,15 @@ type Request struct {
 	Action     Action
 	URL        string
 	Type       string
-	Properties map[string]interface{}
-	Commands   map[string]interface{}
+	Properties map[string][]interface{}
+	Commands   map[string][]interface{}
 	Updates    *RequestUpdates
 }
 
 func parseFormEncodeed(body url.Values) (*Request, error) {
 	req := &Request{
-		Properties: map[string]interface{}{},
-		Commands:   map[string]interface{}{},
+		Properties: map[string][]interface{}{},
+		Commands:   map[string][]interface{}{},
 	}
 
 	if typ := body.Get("h"); typ != "" {
@@ -55,7 +55,7 @@ func parseFormEncodeed(body url.Values) (*Request, error) {
 			}
 
 			if strings.HasPrefix(key, "mp-") {
-				req.Commands[key] = val
+				req.Commands[key] = toGenericArray(val)
 			} else {
 				if strings.HasSuffix(key, "[]") {
 					// TODO: some wild micropub clients seem to be posting stuff
@@ -63,7 +63,7 @@ func parseFormEncodeed(body url.Values) (*Request, error) {
 					// a way to parse that easily. Look into libraries.
 					key = strings.TrimSuffix(key, "[]")
 				}
-				req.Properties[key] = val
+				req.Properties[key] = toGenericArray(val)
 			}
 		}
 
@@ -101,8 +101,8 @@ type requestJSON struct {
 
 func parseJSON(body requestJSON) (*Request, error) {
 	req := &Request{
-		Properties: map[string]interface{}{},
-		Commands:   map[string]interface{}{},
+		Properties: map[string][]interface{}{},
+		Commands:   map[string][]interface{}{},
 	}
 
 	if body.Type != nil {
@@ -167,4 +167,12 @@ func ParseRequest(r *http.Request) (*Request, error) {
 	}
 
 	return parseFormEncodeed(r.Form)
+}
+
+func toGenericArray(str []string) []interface{} {
+	arr := []interface{}{}
+	for _, s := range str {
+		arr = append(arr, s)
+	}
+	return arr
 }

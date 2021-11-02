@@ -11,6 +11,7 @@ import (
 func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r := chi.NewRouter()
 
+	// r.Use(middleware.Logger)
 	r.Use(middleware.CleanPath)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(middleware.GetHead)

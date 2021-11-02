@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/pkg/jf2"
 	"github.com/hacdias/eagle/v2/pkg/micropub"
 	"github.com/karlseguin/typed"
 )
@@ -97,11 +98,12 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	day := time.Now().Day()
 	id := fmt.Sprintf("/%04d/%02d/%02d", year, month, day)
 
-	cmds := typed.New(mr.Commands)
+	cmds := typed.New(jf2.FromMicroformats(mr.Commands))
 
-	if slugSlice, ok := cmds.StringsIf("mp-slug"); ok && len(slugSlice) == 1 {
-		slug := strings.TrimSpace(strings.Join(slugSlice, "\n"))
-		id += "/" + slug
+	fmt.Println(mr.Commands)
+
+	if slug, ok := cmds.StringIf("mp-slug"); ok {
+		id += "/" + strings.TrimSpace(slug)
 	} else {
 		// TODO: generate something
 		return http.StatusBadRequest, errors.New("slug is required")
