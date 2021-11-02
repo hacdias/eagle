@@ -14,26 +14,14 @@ import (
 	"github.com/karlseguin/typed"
 )
 
-func (s *Server) getMicropubHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) micropubGet(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Query().Get("q") {
 	case "source":
 		s.micropubSource(w, r)
 	case "config", "syndicate-to":
-		// syndications := []map[string]string{}
-		// for id, service := range s.Syndicator {
-		// 	syndications = append(syndications, map[string]string{
-		// 		"uid":  id,
-		// 		"name": service.Name(),
-		// 	})
-		// }
-
-		config := map[string]interface{}{
-			// "syndicate-to": syndications,
-		}
-
-		s.serveJSON(w, http.StatusOK, config)
+		s.micropubConfig(w, r)
 	default:
-		w.WriteHeader(http.StatusNotFound)
+		s.serveError(w, http.StatusNotFound, nil)
 	}
 }
 
@@ -56,13 +44,29 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 
 	mf2 := map[string]interface{}{
 		"type":       []string{"h-entry"},
-		"properties": s.ToMicroformats(entry),
+		"properties": entry.ToMicroformats(),
 	}
 
 	s.serveJSON(w, http.StatusOK, mf2)
 }
 
-func (s *Server) postMicropubHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
+	// syndications := []map[string]string{}
+	// for id, service := range s.Syndicator {
+	// 	syndications = append(syndications, map[string]string{
+	// 		"uid":  id,
+	// 		"name": service.Name(),
+	// 	})
+	// }
+
+	config := map[string]interface{}{
+		// "syndicate-to": syndications,
+	}
+
+	s.serveJSON(w, http.StatusOK, config)
+}
+
+func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 	mr, err := micropub.ParseRequest(r)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, err)
@@ -136,7 +140,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		mf := s.ToMicroformats(entry)
+		mf := entry.ToMicroformats()
 
 		newMf, err := micropub.Update(mf, mr)
 		if err != nil {

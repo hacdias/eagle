@@ -37,9 +37,6 @@ type Server struct {
 	// Dashboard-specific variables.
 	token     *jwtauth.JWTAuth
 	templates map[string]*template.Template
-
-	// Website-specific variables.
-	staticFs *staticFs
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
@@ -180,6 +177,7 @@ func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
 
 	if err != nil {
 		// Do something
+		s.log.Error(err)
 	}
 
 	bytes := []byte(http.StatusText(code))

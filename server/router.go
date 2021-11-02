@@ -27,14 +27,19 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Use(s.isAuthenticated)
 	}
 
-	// if s.c.Development {
-	r.Get("/micropub", s.getMicropubHandler)
-	r.Post("/micropub", s.postMicropubHandler)
-	// } else {
-	// 	auth := indieauth.With(&s.c.IndieAuth, s.Named("indieauth"))
-	// 	r.With(auth).Get("/micropub", s.getMicropubHandler)
-	// 	r.With(auth).Post("/micropub", s.postMicropubHandler)
-	// }
+	r.Group(func(r chi.Router) {
+		// TODO: Protect with IndieAuth
+
+		r.Get("/micropub", s.micropubGet)
+		r.Post("/micropub", s.micropubPost)
+	})
+
+	r.Group(func(r chi.Router) {
+		// TODO: Protect with Login
+
+		r.Get("/new", s.newGet)
+		r.Post("/new", s.newPost)
+	})
 
 	if s.Config.Tor != nil {
 		r.Use(s.onionHeader)
@@ -51,7 +56,9 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Post("/webmention", s.webmentionHandler)
 	}
 
-	r.With(s.withEntry).Get("/*", s.entryHandler)
+	r.Get("/*", s.wildcardGet)
+	r.Post("/*", s.wildcardPost)
+
 	// r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
 	// r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
 

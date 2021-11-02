@@ -21,17 +21,19 @@ type Entry struct {
 }
 
 type Frontmatter struct {
-	Title          string                 `yaml:"title,omitempty"`
-	Description    string                 `yaml:"description,omitempty"`
-	Draft          bool                   `yaml:"draft,omitempty"`
-	Deleted        bool                   `yaml:"deleted,omitempty"`
-	Private        bool                   `yaml:"private,omitempty"`
-	NoInteractions bool                   `yaml:"noInteractions,omitempty"`
-	Emoji          string                 `yaml:"emoji,omitempty"`
-	Published      time.Time              `yaml:"published,omitempty"`
-	Updated        time.Time              `yaml:"updated,omitempty"`
-	Section        string                 `yaml:"section,omitempty"`
-	Properties     map[string]interface{} `yaml:"properties,omitempty"`
+	Title          string    `yaml:"title,omitempty"`
+	Description    string    `yaml:"description,omitempty"`
+	Draft          bool      `yaml:"draft,omitempty"`
+	Deleted        bool      `yaml:"deleted,omitempty"`
+	Private        bool      `yaml:"private,omitempty"`
+	NoInteractions bool      `yaml:"noInteractions,omitempty"`
+	Emoji          string    `yaml:"emoji,omitempty"`
+	Published      time.Time `yaml:"published,omitempty"`
+	Updated        time.Time `yaml:"updated,omitempty"`
+	Section        string    `yaml:"section,omitempty"`
+
+	// JF2 encoded properties.
+	Properties map[string]interface{} `yaml:"properties,omitempty"`
 }
 
 func (e *Entry) Tags() []string {
@@ -127,7 +129,7 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 		path = filepath.Join(ContentDirectory, entry.ID, "index.md")
 	}
 
-	err = e.srcFs.MkdirAll(filepath.Dir(path), 0777)
+	err = e.SrcFs.MkdirAll(filepath.Dir(path), 0777)
 	if err != nil {
 		return err
 	}
@@ -166,7 +168,7 @@ func (e *Eagle) TransformEntry(id string, t func(*Entry) (*Entry, error)) (*Entr
 
 func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	entries := []*Entry{}
-	err := e.srcFs.Walk("content/", func(p string, info os.FileInfo, err error) error {
+	err := e.SrcFs.Walk("content/", func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -192,6 +194,8 @@ func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	return entries, err
 }
 
+// TODO: put microformats conversions here too, cleanup function names.
+
 func (e *Eagle) cleanID(id string) string {
 	id = path.Clean(id)
 	id = strings.TrimSuffix(id, "/")
@@ -201,14 +205,14 @@ func (e *Eagle) cleanID(id string) string {
 
 func (e *Eagle) guessPath(id string) (string, error) {
 	path := filepath.Join(ContentDirectory, id, "index.md")
-	if _, err := e.srcFs.Stat(path); err == nil {
+	if _, err := e.SrcFs.Stat(path); err == nil {
 		return path, nil
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
 
 	path = filepath.Join(ContentDirectory, id, "_index.md")
-	if _, err := e.srcFs.Stat(path); err == nil {
+	if _, err := e.SrcFs.Stat(path); err == nil {
 		return path, nil
 	} else {
 		return "", err

@@ -24,12 +24,14 @@ type Eagle struct {
 	log        *zap.SugaredLogger
 	httpClient *http.Client
 
-	srcFs  *afero.Afero
+	// Maybe embed this one and ovveride WriteFile instead of persist?
+	SrcFs *afero.Afero
+
 	srcGit *gitRepo
 
-	dstFs            *afero.Afero
-	buildMu          sync.Mutex
-	currentPublicDir string
+	// dstFs            *afero.Afero
+	// buildMu          sync.Mutex
+	// currentPublicDir string
 
 	// TODO: make this key'ed mutexes by entry.ID
 	entriesMu     sync.RWMutex
@@ -55,11 +57,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	e := &Eagle{
-		log:               logging.S().Named("eagle"),
-		httpClient:        httpClient,
-		srcFs:             makeAfero(conf.SourceDirectory),
-		srcGit:            &gitRepo{conf.SourceDirectory},
-		dstFs:             makeAfero(conf.PublicDirectory),
+		log:        logging.S().Named("eagle"),
+		httpClient: httpClient,
+		SrcFs:      makeAfero(conf.SourceDirectory),
+		srcGit:     &gitRepo{conf.SourceDirectory},
+		// dstFs:             makeAfero(conf.PublicDirectory),
 		webmentionsClient: webmention.New(httpClient),
 		Config:            conf,
 		PublicDirCh:       make(chan string, 2),
