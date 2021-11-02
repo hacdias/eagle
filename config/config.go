@@ -13,6 +13,8 @@ type Config struct {
 	BaseURL         string
 	SourceDirectory string
 	PublicDirectory string
+	Author          User // TODO: change this to user what the hell
+	Site            Site
 	// WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
@@ -82,6 +84,27 @@ func validateBaseURL(url string) (string, error) {
 
 	baseUrl.Path = ""
 	return baseUrl.String(), nil
+}
+
+type Site struct {
+	Language    string
+	Title       string
+	Emoji       string
+	Description string
+	Menus       map[string][]MenuItem
+}
+
+type MenuItem struct {
+	Name  string
+	Emoji string
+	Link  string
+}
+
+type User struct {
+	Name     string   `mapstructure:"name"`
+	Nickname string   `mapstructure:"nickname"`
+	Rels     []string `mapstructure:"rels"`
+	PGP      string   `mapstructure:"pgp"`
 }
 
 type Auth struct {

@@ -205,12 +205,8 @@ func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
 		s.log.Error(err)
 	}
 
-	bytes := []byte(http.StatusText(code))
-
-	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Del("Cache-Control")
-
-	w.WriteHeader(http.StatusNotFound)
-	_, _ = w.Write(bytes)
+	w.WriteHeader(code)
+	s.render(w, &eagle.RenderData{}, []string{"error"})
 }
