@@ -5,7 +5,6 @@ import (
 	"errors"
 	"html/template"
 	"io"
-	"io/fs"
 	"path"
 	"path/filepath"
 	"strings"
@@ -14,19 +13,34 @@ import (
 	"github.com/hacdias/eagle/v2/config"
 )
 
-type readDirFileFS interface {
-	fs.ReadDirFS
-	fs.ReadFileFS
-}
-
 const (
 	TemplatesExtension string = ".html"
 	TemplatesDirectory string = "templates"
 
-	TemplateBase string = "base"
+	TemplateBase   string = "base"
+	TemplateSingle string = "single"
+	TemplateList   string = "list"
 )
 
-func (e *Eagle) GetTemplates() (map[string]*template.Template, error) {
+func (e *Eagle) includeTemplate(name string, data interface{}) (template.HTML, error) {
+	templates, err := e.getTemplates()
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	err = templates[name].ExecuteTemplate(&buf, name, data)
+	return template.HTML(buf.String()), err
+}
+
+func (e *Eagle) getTemplateFuncMap() template.FuncMap {
+	return template.FuncMap{
+		"include": e.includeTemplate,
+		"now":     time.Now,
+	}
+}
+
+func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 	// TODO: cache templates
 
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
@@ -35,10 +49,7 @@ func (e *Eagle) GetTemplates() (map[string]*template.Template, error) {
 		return nil, err
 	}
 
-	fns := template.FuncMap{
-		"include": e.includeTemplate,
-		"now":     time.Now,
-	}
+	fns := e.getTemplateFuncMap()
 
 	baseTemplate, err := template.New("base").Funcs(fns).Parse(string(baseTemplateData))
 	if err != nil {
@@ -79,6 +90,11 @@ func (e *Eagle) GetTemplates() (map[string]*template.Template, error) {
 }
 
 type RenderData struct {
+	IsHome       bool
+	LoggedIn     bool
+	TorUsed      bool
+	OnionAddress string
+
 	User *config.User
 	Site *config.Site
 	Data interface{}
@@ -90,7 +106,7 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.User = &e.Config.Author
 	data.Site = &e.Config.Site
 
-	templates, err := e.GetTemplates()
+	templates, err := e.getTemplates()
 	if err != nil {
 		return err
 	}
@@ -109,15 +125,4 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	}
 
 	return template.Execute(w, data)
-}
-
-func (e *Eagle) includeTemplate(name string, data interface{}) (template.HTML, error) {
-	templates, err := e.GetTemplates()
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
-	err = templates[name].ExecuteTemplate(&buf, name, data)
-	return template.HTML(buf.String()), err
 }
