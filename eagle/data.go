@@ -6,12 +6,12 @@ import (
 )
 
 type EntryData struct {
-	Targets     []string      `json:"targets"`
-	Webmentions []*Webmention `json:"webmentions"`
+	Targets     []string `json:"targets"`
+	Webmentions []string `json:"webmentions"`
 }
 
 func (e *Eagle) getEntryDataFilename(entry *Entry) string {
-	return filepath.Join(ContentDirectory, entry.ID, "data.json")
+	return filepath.Join(ContentDirectory, entry.ID, "_interactions.json")
 }
 
 func (e *Eagle) GetEntryData(entry *Entry) (*EntryData, error) {
@@ -25,10 +25,15 @@ func (e *Eagle) GetEntryData(entry *Entry) (*EntryData, error) {
 	if os.IsNotExist(err) {
 		return &EntryData{
 			Targets:     []string{},
-			Webmentions: []*Webmention{},
+			Webmentions: []string{},
 		}, nil
 	}
 	return entryData, err
+}
+
+func (e *Eagle) safeGetEntryData(entry *Entry) *EntryData {
+	ed, _ := e.GetEntryData(entry)
+	return ed
 }
 
 func (e *Eagle) SaveEntryData(entry *Entry, data *EntryData) error {
@@ -53,7 +58,7 @@ func (e *Eagle) TransformEntryData(entry *Entry, t func(*EntryData) (*EntryData,
 	} else if os.IsNotExist(err) {
 		oldData = &EntryData{
 			Targets:     []string{},
-			Webmentions: []*Webmention{},
+			Webmentions: []string{},
 		}
 	}
 

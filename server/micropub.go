@@ -93,6 +93,8 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 	} else if code >= 400 {
 		s.log.Errorf("micropub: error on post: %s", err)
 		s.serveErrorJSON(w, code, err)
+	} else if err != nil {
+		s.NotifyError(fmt.Errorf("micropub: %w", err))
 	}
 }
 
@@ -118,16 +120,15 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	err = s.SaveEntry(entry)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
+	// TODO: parse this to add twitter
 	// if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
 	// 	synd.Targets = targets
 	// }
 
-	// TODO: xray related, syndicate, webmentions.
+	err = s.savePost(entry, &saveOptions{})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	http.Redirect(w, r, s.Config.BaseURL+entry.ID, http.StatusAccepted)
 	return 0, nil
@@ -159,8 +160,10 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	http.Redirect(w, r, entry.Permalink, http.StatusOK)
-	// TODO: cache, xray related, syndicate, webmentions.
-	return 0, nil
+
+	return 0, s.savePost(entry, &saveOptions{
+		skipSave: true,
+	})
 }
 
 func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
@@ -169,7 +172,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusBadRequest, err
 	}
 
-	_, err = s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
 		entry.Deleted = false
 		return entry, nil
 	})
@@ -177,7 +180,12 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusInternalServerError, err
 	}
 
-	// TODO: syndicate, webmentions.
+	err = s.savePost(entry, &saveOptions{
+		skipSave: true,
+	})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	return http.StatusOK, nil
 }
@@ -188,7 +196,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	_, err = s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
 		entry.Deleted = true
 		return entry, nil
 	})
@@ -196,7 +204,12 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	// TODO: syndicate, webmentions.
+	err = s.savePost(entry, &saveOptions{
+		skipSave: true,
+	})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	return http.StatusOK, nil
 }

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
@@ -82,13 +83,18 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.SaveEntry(entry)
+	lastmod := r.FormValue("lastmod") == "on"
+	if lastmod {
+		entry.Updated = time.Now()
+	}
+
+	err = s.savePost(entry, &saveOptions{
+		twitter: r.FormValue("twitter") == "on",
+	})
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
-
-	// TODO: xray related, syndicate, webmentions.
 
 	s.serveEntry(w, r, entry)
 }
@@ -371,3 +377,25 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 // 	}
 // 	return id, nil
 // }
+
+type saveOptions struct {
+	twitter  bool
+	skipSave bool
+}
+
+func (s *Server) savePost(entry *eagle.Entry, opts *saveOptions) error {
+	if !opts.skipSave {
+		err := s.SaveEntry(entry)
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO
+	// get xray: from indieweb property
+	// syndicate
+	// webmentions
+	// invalidate cache
+
+	return nil
+}
