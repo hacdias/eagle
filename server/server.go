@@ -147,6 +147,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	})
 }
 
+// borrowed from chi + redirection.
 func cleanPath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rctx := chi.RouteContext(r.Context())

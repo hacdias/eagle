@@ -61,8 +61,8 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Post("/login", s.loginPostHandler)
 	}
 
-	r.Get("/*", s.wildcardGet)
-	r.Post("/*", s.wildcardPost)
+	r.With(s.withStaticFiles).Get("/*", s.entryGet)
+	r.With(s.mustAuthenticate).Post("/*", s.entryPost)
 
 	return r
 }
