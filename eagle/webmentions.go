@@ -11,7 +11,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/araddon/dateparse"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"
@@ -26,37 +25,14 @@ var webmentionTypes = map[string]string{
 	"rsvp":        "rsvp",
 }
 
-type Webmention struct {
-	XRay `yaml:",inline"`
-	// Specifically for webmentions received from https://webmention.io
-	// TODO: remove this and compare webmentions via URL.
-	WmID    int  `yaml:"wm-id,omitempty" json:"wm-id,omitempty"`
-	Private bool `json:"private,omitempty"`
-}
+// TODO: remove this
 
 type WebmentionPayload struct {
-	Source  string `json:"source"`
-	Secret  string `json:"secret"`
-	Deleted bool   `json:"deleted"`
-	Target  string `json:"target"`
-	Post    struct {
-		Type       string            `json:"type"`
-		Author     Author            `json:"author"`
-		URL        string            `json:"url"`
-		Published  string            `json:"published"`
-		WmReceived string            `json:"wm-received"`
-		WmID       int               `json:"wm-id"`
-		Content    WebmentionContent `json:"content"`
-		MentionOf  string            `json:"mention-of"`
-		WmProperty string            `json:"wm-property"`
-		WmSource   string            `json:"wm-source"`
-		WmPrivate  bool              `json:"wm-private"`
-	} `json:"post"`
-}
-
-type WebmentionContent struct {
-	Text string `json:"text"`
-	HTML string `json:"html"`
+	Source  string                 `json:"source"`
+	Secret  string                 `json:"secret"`
+	Deleted bool                   `json:"deleted"`
+	Target  string                 `json:"target"`
+	Post    map[string]interface{} `json:"post"`
 }
 
 func (e *Eagle) SendWebmentions(entry *Entry) error {
@@ -202,101 +178,52 @@ func (e *Eagle) UpdateTargets(entry *Entry) error {
 
 func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	e.log.Infow("received webmention", "webmention", payload)
+	// TODO: just save as xray and add line to wms
 
-	url, err := urlpkg.Parse(payload.Target)
-	if err != nil {
-		return fmt.Errorf("invalid target: %s", payload.Target)
-	}
+	// url, err := urlpkg.Parse(payload.Target)
+	// if err != nil {
+	// 	return fmt.Errorf("invalid target: %s", payload.Target)
+	// }
 
-	entry, err := e.GetEntry(url.Path)
-	if err != nil {
-		return err
-	}
+	// entry, err := e.GetEntry(url.Path)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if payload.Deleted {
-		return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
-			newWebmentions := []*Webmention{}
-			for _, mention := range data.Webmentions {
-				if mention.URL != payload.Source {
-					newWebmentions = append(newWebmentions, mention)
-				}
-			}
-			data.Webmentions = newWebmentions
-			return data, nil
-		})
-	}
+	// if payload.Deleted {
+	// 	return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+	// 		newWebmentions := []*Webmention{}
+	// 		for _, mention := range data.Webmentions {
+	// 			if mention.URL != payload.Source {
+	// 				newWebmentions = append(newWebmentions, mention)
+	// 			}
+	// 		}
+	// 		data.Webmentions = newWebmentions
+	// 		return data, nil
+	// 	})
+	// }
 
-	newWebmention, err := e.parseWebmentionPayload(payload)
-	if err != nil {
-		return err
-	}
+	// newWebmention, err := e.parseWebmentionPayload(payload)
+	// if err != nil {
+	// 	return err
+	// }
 
-	return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
-		for i, webmention := range data.Webmentions {
-			if webmention.URL == newWebmention.URL {
-				data.Webmentions[i] = newWebmention
-				return data, nil
-			}
-		}
+	// return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+	// 	for i, webmention := range data.Webmentions {
+	// 		if webmention.URL == newWebmention.URL {
+	// 			data.Webmentions[i] = newWebmention
+	// 			return data, nil
+	// 		}
+	// 	}
 
-		data.Webmentions = append(data.Webmentions, newWebmention)
-		return data, nil
-	})
+	// 	data.Webmentions = append(data.Webmentions, newWebmention)
+	// 	return data, nil
+	// })
+
+	return nil
 }
 
-func (e *Eagle) parseWebmentionPayload(payload *WebmentionPayload) (*Webmention, error) {
-	ee := &Webmention{
-		XRay: XRay{
-			Author: &payload.Post.Author,
-		},
-		WmID:    payload.Post.WmID,
-		Private: payload.Post.WmPrivate,
-	}
-
-	if payload.Post.Content.Text != "" {
-		ee.Content = payload.Post.Content.Text
-	} else if payload.Post.Content.HTML != "" {
-		ee.Content = payload.Post.Content.HTML
-	}
-
-	if ee.Content != "" {
-		ee.Content = cleanContent(ee.Content)
-	}
-
-	if payload.Post.WmProperty != "" {
-		if v, ok := webmentionTypes[payload.Post.WmProperty]; ok {
-			ee.Type = v
-		} else {
-			ee.Type = "mention"
-		}
-	} else {
-		ee.Type = "mention"
-	}
-
-	if payload.Post.URL != "" {
-		ee.URL = payload.Post.URL
-	} else {
-		ee.URL = payload.Post.WmSource
-	}
-
-	var err error
-	if payload.Post.Published != "" {
-		ee.Date, err = dateparse.ParseStrict(payload.Post.Published)
-	} else {
-		ee.Date, err = dateparse.ParseStrict(payload.Post.WmReceived)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if ee.Author.Photo != "" {
-		ee.Author.Photo = e.uploadWebmentionPhoto(ee.Author.Photo)
-	}
-
-	return ee, nil
-}
-
-func (e *Eagle) uploadWebmentionPhoto(url string) string {
+func (e *Eagle) uploadXRayAuthorPhoto(url string) string {
 	if e.media == nil {
 		return url
 	}

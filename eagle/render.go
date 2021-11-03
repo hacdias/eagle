@@ -56,6 +56,8 @@ func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 		"include": e.includeTemplate,
 		"now":     time.Now,
 		"md":      e.safeRenderMarkdownAsHTML,
+		"xray":    e.safeXRayFromDisk,
+		"data":    e.safeGetEntryData,
 	}
 }
 

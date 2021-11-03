@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -93,6 +95,16 @@ var migrateCmd = &cobra.Command{
 
 			if entry.Metadata.ReplyTo != nil {
 				newEntry.Properties["in-reply-to"] = entry.Metadata.ReplyTo.URL
+				newEntry.Section = "replies"
+
+				_, err = e.GetXRay(entry.Metadata.ReplyTo.URL)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+
+			if newEntry.Section == "micro" {
+				newEntry.Section = "notes"
 			}
 
 			// Layout      string      `yaml:"layout,omitempty"`
@@ -100,15 +112,70 @@ var migrateCmd = &cobra.Command{
 
 			newEntry.ID = id
 
-			err = e.SaveEntry(newEntry)
-			if err != nil {
-				return err
+			if false {
+				err = e.SaveEntry(newEntry)
+				if err != nil {
+					return err
+				}
+
+				// Moving files
+				dir := filepath.Dir(entry.Path)
+				files, err := os.ReadDir(dir)
+				if err != nil {
+					return err
+				}
+				for _, file := range files {
+					if file.Name() == "index.md" || file.Name() == "_index.md" || file.IsDir() {
+						continue
+					}
+
+					_, err = copy(filepath.Join(dir, file.Name()), filepath.Join(otherPath, newEntry.ID, file.Name()))
+					if err != nil {
+						return err
+					}
+				}
+			}
+
+			// Targets and webmentions
+			filename := filepath.Join(dataPath, entry.Metadata.DataID+".json")
+			if _, err := os.Stat(filename); err == nil {
+				data, err := os.ReadFile(filename)
+				if err != nil {
+					return err
+				}
+
+				var ed EntryData
+				err = json.Unmarshal(data, &ed)
+				if err != nil {
+					return err
+				}
+
+				for _, wm := range ed.Webmentions {
+					_, err = e.GetXRay(wm.URL)
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
+
+				err = e.TransformEntryData(newEntry, func(ned *eagle.EntryData) (*eagle.EntryData, error) {
+					ned.Targets = ed.Targets
+					ned.Webmentions = []string{}
+					for _, wm := range ed.Webmentions {
+						ned.Webmentions = append(ned.Webmentions, wm.URL)
+					}
+
+					return ned, nil
+				})
+				if err != nil {
+					return err
+				}
+
 			}
 
 			// fmt.Println(id)
 		}
 
-		fmt.Println(aliases)
+		// fmt.Println(aliases)
 
 		return nil
 	},
@@ -121,24 +188,53 @@ type Entry struct {
 	Metadata Metadata
 }
 
+type Webmention struct {
+	XRay `yaml:",inline"`
+	// Specifically for webmentions received from https://webmention.io
+	// TODO: remove this and compare webmentions via URL.
+	WmID    int  `yaml:"wm-id,omitempty" json:"wm-id,omitempty"`
+	Private bool `json:"private,omitempty"`
+}
+type EntryData struct {
+	Targets     []string      `json:"targets"`
+	Webmentions []*Webmention `json:"webmentions"`
+}
+
+// XRay is an xray of an external post. This is the format used to store
+// Webmentions and ReplyTo context.
+type XRay struct {
+	Type    string    `yaml:"type,omitempty" json:"type,omitempty"`
+	URL     string    `yaml:"url,omitempty" json:"url,omitempty"`
+	Name    string    `yaml:"name,omitempty" json:"name,omitempty"`
+	Content string    `yaml:"content,omitempty" json:"content,omitempty"`
+	Date    time.Time `yaml:"date,omitempty" json:"date,omitempty"`
+	Author  *Author   `yaml:"author,omitempty" json:"author,omitempty"`
+}
+
+type Author struct {
+	Name  string `yaml:"name,omitempty" json:"name,omitempty"`
+	URL   string `yaml:"url,omitempty" json:"url,omitempty"`
+	Photo string `yaml:"photo,omitempty" json:"photo,omitempty"`
+}
+
 type Metadata struct {
-	DataID      string      `yaml:"dataId,omitempty"`
-	Title       string      `yaml:"title,omitempty"`
-	Description string      `yaml:"description,omitempty"`
-	Tags        []string    `yaml:"tags,omitempty"`
-	Date        time.Time   `yaml:"date,omitempty"`
-	Lastmod     time.Time   `yaml:"lastmod,omitempty"`
-	ExpiryDate  time.Time   `yaml:"expiryDate,omitempty"`
-	Syndication []string    `yaml:"syndication,omitempty"`
-	ReplyTo     *eagle.XRay `yaml:"replyTo,omitempty"`
-	URL         string      `yaml:"url,omitempty"`
-	Aliases     []string    `yaml:"aliases,omitempty"`
-	Emoji       string      `yaml:"emoji,omitempty"`
-	Layout      string      `yaml:"layout,omitempty"`
-	NoMentions  bool        `yaml:"noMentions,omitempty"`
-	Cover       *Picture    `yaml:"cover,omitempty"`
-	Draft       bool        `yaml:"draft,omitempty"`
-	Growth      string      `yaml:"growth,omitempty"`
+	DataID      string    `yaml:"dataId,omitempty"`
+	Title       string    `yaml:"title,omitempty"`
+	Description string    `yaml:"description,omitempty"`
+	Tags        []string  `yaml:"tags,omitempty"`
+	Date        time.Time `yaml:"date,omitempty"`
+	Lastmod     time.Time `yaml:"lastmod,omitempty"`
+	ExpiryDate  time.Time `yaml:"expiryDate,omitempty"`
+	Syndication []string  `yaml:"syndication,omitempty"`
+	ReplyTo     *XRay     `yaml:"replyTo,omitempty"`
+	URL         string    `yaml:"url,omitempty"`
+	Aliases     []string  `yaml:"aliases,omitempty"`
+	Emoji       string    `yaml:"emoji,omitempty"`
+	Layout      string    `yaml:"layout,omitempty"`
+	NoMentions  bool      `yaml:"noMentions,omitempty"`
+	Cover       *Picture  `yaml:"cover,omitempty"`
+	Draft       bool      `yaml:"draft,omitempty"`
+	Growth      string    `yaml:"growth,omitempty"`
 }
 
 type Picture struct {
@@ -163,7 +259,9 @@ func (e *Entry) Slug() string {
 	return a[len(a)-1]
 }
 
+const dataPath = "testing/hacdias.com/data/content"
 const basePath = "testing/hacdias.com/content/"
+const otherPath = "testing/hacdias.com/content2/"
 
 func getAllEntries() ([]*Entry, error) {
 	entries := []*Entry{}
@@ -247,4 +345,29 @@ func guessPath(id string) (string, error) {
 	} else {
 		return "", err
 	}
+}
+
+func copy(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	nBytes, err := io.Copy(destination, source)
+	return nBytes, err
 }
