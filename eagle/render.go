@@ -51,13 +51,22 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	return template.HTML(buf.String()), err
 }
 
+func truncate(text string, size int) string {
+	if len(text) <= size {
+		return text
+	}
+
+	return strings.TrimSpace(text[:size]) + "..."
+}
+
 func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"include": e.includeTemplate,
-		"now":     time.Now,
-		"md":      e.safeRenderMarkdownAsHTML,
-		"xray":    e.safeXRayFromDisk,
-		"data":    e.safeGetEntryData,
+		"include":  e.includeTemplate,
+		"now":      time.Now,
+		"md":       e.safeRenderMarkdownAsHTML,
+		"xray":     e.safeXRayFromDisk,
+		"data":     e.safeGetEntryData,
+		"truncate": truncate,
 	}
 }
 

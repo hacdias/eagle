@@ -34,7 +34,7 @@ func (e *Eagle) UpdateEntry(entry *Entry, mf2Data map[string][]interface{}) erro
 func (e *Eagle) fromMicroformats(entry *Entry, mf2Data map[string][]interface{}) error {
 	data := typed.New(jf2.FromMicroformats(mf2Data))
 
-	postType := jf2.DiscoverType(data)
+	postType, _ := jf2.DiscoverType(data)
 
 	if funk.Contains(e.allowedTypes, postType) {
 		if entry.Section == "" {
