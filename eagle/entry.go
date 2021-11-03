@@ -3,6 +3,7 @@ package eagle
 import (
 	"errors"
 	"fmt"
+	"math"
 	urlpkg "net/url"
 	"os"
 	"path"
@@ -16,9 +17,12 @@ import (
 
 type Entry struct {
 	Frontmatter
-	ID        string
-	Permalink string
-	Content   string
+	ID           string
+	Permalink    string
+	RelPermalink string
+	Content      string
+
+	summary string
 }
 
 type Frontmatter struct {
@@ -49,6 +53,33 @@ func (e *Entry) Tags() []string {
 	}
 
 	return []string{}
+}
+
+func (e *Entry) Summary() string {
+	if e.summary != "" {
+		return e.summary
+	}
+
+	if strings.Contains(e.Content, "<!--more-->") {
+		e.summary = strings.Split(e.Content, "<!--more-->")[0]
+	} else {
+		e.summary = "TODO: define summary"
+	}
+
+	return e.summary
+}
+
+func (e *Entry) YearsOld() int {
+	t := e.Published
+	if !e.Updated.IsZero() {
+		t = e.Updated
+	}
+
+	if t.IsZero() {
+		return 0
+	}
+
+	return int(math.Floor(time.Since(t).Hours() / 8760))
 }
 
 func (e *Entry) String() (string, error) {
@@ -102,10 +133,11 @@ func (e *Eagle) ParseEntry(id, raw string) (*Entry, error) {
 	}
 
 	entry := &Entry{
-		ID:          id,
-		Permalink:   permalink,
-		Content:     strings.TrimSpace(splits[1]),
-		Frontmatter: Frontmatter{},
+		ID:           id,
+		Permalink:    permalink,
+		RelPermalink: id, // TODO: make sure this is correct.
+		Content:      strings.TrimSpace(splits[1]),
+		Frontmatter:  Frontmatter{},
 	}
 
 	err = yaml.Unmarshal([]byte(splits[0]), &entry.Frontmatter)
