@@ -21,7 +21,7 @@ func (s *Server) micropubGet(w http.ResponseWriter, r *http.Request) {
 	case "config", "syndicate-to":
 		s.micropubConfig(w, r)
 	default:
-		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 	}
 }
 

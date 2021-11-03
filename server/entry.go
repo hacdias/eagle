@@ -23,12 +23,12 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	entry, err := s.GetEntry(r.URL.Path)
 	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
 	}
 
 	if err != nil {
-		s.serveErrorHTML(w, http.StatusInternalServerError, err)
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -38,7 +38,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	}
 	tpls = append(tpls, eagle.TemplateSingle)
 
-	s.serveHTML(w, &eagle.RenderData{
+	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: entry,
 	}, tpls)
 }
@@ -60,7 +60,7 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 	tag := chi.URLParam(r, "tag")
 	if tag == "" {
-		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if year == 0 && month == 0 && day == 0 {
-		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
 	}
 
@@ -165,7 +165,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if query == "" {
-		s.serveHTML(w, &eagle.RenderData{
+		s.serveHTML(w, r, &eagle.RenderData{
 			Entry: entry,
 		}, []string{eagle.TemplateSearch})
 		return
@@ -236,7 +236,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	entries, err := s.Search(ls.query, page)
 	if err != nil {
-		s.serveErrorHTML(w, http.StatusInternalServerError, err)
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -255,7 +255,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		return
 	}
 
-	s.serveHTML(w, ls.rd, append(ls.templates, eagle.TemplateList))
+	s.serveHTML(w, r, ls.rd, append(ls.templates, eagle.TemplateList))
 }
 
 // func (s *Server) goSyndicate(entry *eagle.Entry) {
