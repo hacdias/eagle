@@ -19,12 +19,14 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r.Use(s.recoverer)
 	r.Use(s.securityHeaders)
 
-	if !noDashboard {
-		if s.Config.Auth != nil {
-			r.Use(jwtauth.Verifier(s.token))
-		}
+	if s.Config.Auth != nil {
+		r.Use(jwtauth.Verifier(s.token))
+	}
+	r.Use(s.withLoggedIn)
 
-		r.Use(s.isAuthenticated)
+	if s.Config.Tor != nil {
+		r.Use(s.onionHeader)
+		r.Get("/onion", s.onionRedirHandler)
 	}
 
 	r.Group(func(r chi.Router) {
@@ -35,18 +37,13 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	})
 
 	r.Group(func(r chi.Router) {
-		// TODO: Protect with Login
+		r.With(s.mustAuthenticate)
 
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
 	})
 
 	r.Group(s.listingRoutes)
-
-	if s.Config.Tor != nil {
-		r.Use(s.onionHeader)
-		r.Get("/onion", s.onionRedirHandler)
-	}
 
 	// if s.Config.WebhookSecret != "" {
 	// 	r.Post("/webhook", s.webhookHandler)
@@ -57,6 +54,12 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	}
 
 	// r.Get("/tags")
+
+	if s.Config.Auth != nil {
+		r.Get("/logout", s.logoutGetHandler)
+		r.Get("/login", s.loginGetHandler)
+		r.Post("/login", s.loginPostHandler)
+	}
 
 	r.Get("/*", s.wildcardGet)
 	r.Post("/*", s.wildcardPost)

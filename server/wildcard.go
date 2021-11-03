@@ -29,7 +29,7 @@ func (s *Server) wildcardGet(w http.ResponseWriter, r *http.Request) {
 
 	if stat, err := s.SrcFs.Stat(path); err == nil && stat.Mode().IsRegular() {
 		if strings.Contains(path, "/private/") {
-			s.serveErrorHTML(w, http.StatusNotFound, nil)
+			s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 			return
 		}
 		path = filepath.Join(s.Config.SourceDirectory, path)

@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net"
 	"net/http"
 	"path"
@@ -22,6 +21,8 @@ import (
 	"go.uber.org/zap"
 )
 
+type contextKey string
+
 type httpServer struct {
 	Name string
 	*http.Server
@@ -35,10 +36,7 @@ type Server struct {
 	servers     []*httpServer
 
 	onionAddress string
-
-	// Dashboard-specific variables.
-	token     *jwtauth.JWTAuth
-	templates map[string]*template.Template
+	token        *jwtauth.JWTAuth
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
@@ -198,12 +196,13 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err error) {
 	})
 }
 
-func (s *Server) serveHTML(w http.ResponseWriter, data *eagle.RenderData, tpls []string) {
-	data.TorUsed = false
-	data.OnionAddress = ""
-	data.LoggedIn = false
+func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
+	data.TorUsed = false   // TODO
+	data.OnionAddress = "" // TODO
+	data.LoggedIn = s.isLoggedIn(w, r)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(code)
 
 	err := s.Render(w, data, tpls)
 	if err != nil {
@@ -212,16 +211,18 @@ func (s *Server) serveHTML(w http.ResponseWriter, data *eagle.RenderData, tpls [
 	}
 }
 
-func (s *Server) serveErrorHTML(w http.ResponseWriter, code int, err error) {
+func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string) {
+	s.serveHTMLWithStatus(w, r, data, tpls, http.StatusOK)
+}
+
+func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, err error) {
 	if err != nil {
 		s.log.Error(err)
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Del("Cache-Control")
-	w.WriteHeader(code)
 
-	page := &eagle.RenderData{
+	data := &eagle.RenderData{
 		Entry: &eagle.Entry{
 			Frontmatter: eagle.Frontmatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
@@ -230,5 +231,5 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, code int, err error) {
 		},
 	}
 
-	s.serveHTML(w, page, []string{eagle.TemplateError})
+	s.serveHTMLWithStatus(w, r, data, []string{eagle.TemplateError}, code)
 }
