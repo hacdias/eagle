@@ -14,6 +14,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/karlseguin/typed"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // XRayDirectory is the directory where all the xrays will be stored
@@ -126,7 +127,7 @@ func (e *Eagle) fetchXRay(url *urlpkg.URL) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("no xray found for %s", url.String())
 	}
 
-	jf2 := e.parseXRayResponse(xray.Data)
+	jf2 := e.ParseXRayResponse(xray.Data)
 	if jf2 == nil {
 		return nil, fmt.Errorf("no xray found for %s", url.String())
 	}
@@ -149,7 +150,7 @@ func getXRayFilename(url *urlpkg.URL) (string, error) {
 }
 
 // TODO: call this for all things already so they upload pics
-func (e *Eagle) parseXRayResponse(xray map[string]interface{}) map[string]interface{} {
+func (e *Eagle) ParseXRayResponse(xray map[string]interface{}) map[string]interface{} {
 	data := typed.New(xray)
 
 	hasDate := false
@@ -181,16 +182,16 @@ func (e *Eagle) parseXRayResponse(xray map[string]interface{}) map[string]interf
 
 	if cmap, ok := data.MapIf("content"); ok && !hasContent {
 		content := typed.New(cmap)
-		if html, ok := content.StringIf("html"); ok {
-			hasContent = true
-			data["content"] = cleanContent(html)
-		} else if text, ok := content.StringIf("text"); ok {
+		if text, ok := content.StringIf("text"); ok {
 			hasContent = true
 			data["content"] = cleanContent(text)
+		} else if html, ok := content.StringIf("html"); ok {
+			hasContent = true
+			data["content"] = cleanContent(html)
 		}
 	}
 
-	if cauthor, ok := data.MapIf("author"); ok && !hasContent {
+	if cauthor, ok := data.MapIf("author"); ok {
 		author := typed.New(cauthor)
 
 		if photo, ok := author.StringIf("photo"); ok {
@@ -214,9 +215,13 @@ type xrayResponse struct {
 	Code int                    `json:"code"`
 }
 
-var spaceCollapser = regexp.MustCompile(`\s+`)
+var (
+	spaceCollapser = regexp.MustCompile(`\s+`)
+	sanitizer      = bluemonday.StrictPolicy()
+)
 
 func cleanContent(data string) string {
+	data = sanitizer.Sanitize(data)
 	data = strings.TrimSpace(data)
 	data = spaceCollapser.ReplaceAllString(data, " ") // Collapse whitespaces
 	return data

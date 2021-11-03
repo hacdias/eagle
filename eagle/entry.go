@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hacdias/eagle/v2/pkg/jf2"
 	"github.com/hacdias/eagle/v2/pkg/yaml"
 	"github.com/karlseguin/typed"
 )
@@ -80,6 +81,10 @@ func (e *Entry) YearsOld() int {
 	}
 
 	return int(math.Floor(time.Since(t).Hours() / 8760))
+}
+
+func (e *Entry) PropertiesAsJF2() *jf2.JF2 {
+	return jf2.NewJF2(e.Properties)
 }
 
 func (e *Entry) String() (string, error) {

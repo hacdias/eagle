@@ -54,25 +54,25 @@ var propertyToType = map[string]Type{
 //
 // This is a slightly modified version of @aaronpk's code to include reads and watches.
 // Original code: https://github.com/aaronpk/XRay/blob/master/lib/XRay/PostType.php
-func DiscoverType(props map[string]interface{}) Type {
+func DiscoverType(props map[string]interface{}) (Type, string) {
 	properties := typed.New(props)
 
 	if typ, ok := properties.StringIf("type"); ok {
 		switch typ {
 		case "event", "recipe", "review":
-			return Type(typ)
+			return Type(typ), ""
 		}
 	}
 
-	for key, val := range propertyToType {
-		if _, ok := properties[key]; ok {
-			return val
+	for prop, typ := range propertyToType {
+		if _, ok := properties[prop]; ok {
+			return typ, prop
 		}
 	}
 
 	name, exists := properties.StringIf("name")
 	if !exists || name == "" {
-		return TypeNote
+		return TypeNote, ""
 	}
 
 	content := ""
@@ -90,10 +90,10 @@ func DiscoverType(props map[string]interface{}) Type {
 	// If this processed "name" property value is NOT a prefix of the
 	// processed "content" property, then it is an article post.
 	if strings.Index(content, name) != 0 {
-		return TypeArticle
+		return TypeArticle, ""
 	}
 
-	return TypeNote
+	return TypeNote, ""
 }
 
 // IsType checks if the given type is a valid Microformats type.
