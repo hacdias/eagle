@@ -69,9 +69,9 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 
 const (
 	feedPath  = ".{feed:xml|json}"
-	yearPath  = `/{year:x|\d\d\d\d}` // TODO: fix
-	monthPath = yearPath + `/{month:x|\d\d}`
-	dayPath   = monthPath + `/{day:x|\d\d}`
+	yearPath  = `/{year:(x|\d\d\d\d)}`
+	monthPath = yearPath + `/{month:(x|\d\d)}`
+	dayPath   = monthPath + `/{day:(x|\d\d)}`
 )
 
 func (s *Server) listingRoutes(r chi.Router) {
@@ -95,22 +95,6 @@ func (s *Server) listingRoutes(r chi.Router) {
 	}
 }
 
-// r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
-// r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
-
-// if noDashboard {
-// 	return r
-// }
-
-// r.Route(dashboardPath, func(r chi.Router) {
-// 	fs := http.FS(static.FS)
-// 	if s.Config.Development {
-// 		fs = http.FS(afero.NewIOFS(afero.NewBasePathFs(afero.NewOsFs(), "./dashboard/static")))
-// 	}
-
-// 	httpdir := http.FileServer(neuteredFs{fs})
-
-// 	r.Group(func(r chi.Router) {
 // 		if s.Config.Auth != nil {
 // 			r.Use(s.mustAuthenticate)
 // 		}
@@ -118,24 +102,8 @@ func (s *Server) listingRoutes(r chi.Router) {
 // 		r.Get("/", s.dashboardGetHandler)
 // 		r.Get("/new", s.newGetHandler)
 // 		r.Get("/reply", s.replyGetHandler)
-// 		r.Get("/edit*", s.editGetHandler)
 // 		r.Get("/webmentions*", s.webmentionsGetHandler)
 // 		r.Get("/blogroll", s.blogrollGetHandler)
-// 		r.Get("/gedit", s.geditGetHandler)
 // 		r.Get("/sync", s.syncGetHandler)
 // 		r.Get("/rebuild-index", s.rebuildIndexGetHandler)
-
-// 		r.Post("/new", s.newPostHandler)
-// 		r.Post("/edit*", s.editPostHandler)
-// 		r.Post("/webmentions", s.webmentionsPostHandler)
-// 		r.Post("/gedit", s.geditPostHandler)
 // 	})
-
-// 	r.Get("/*", http.StripPrefix(dashboardPath, httpdir).ServeHTTP)
-// })
-
-// if s.Config.Auth != nil {
-// 	r.Get("/logout", s.logoutGetHandler)
-// 	r.Get("/login", s.loginGetHandler)
-// 	r.Post("/login", s.loginPostHandler)
-// }
