@@ -186,6 +186,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
+		// TODO: maybe notify as these are terminal errors kinda.
 		s.log.Error("error while serving json", err)
 	}
 }
@@ -197,22 +198,37 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err error) {
 	})
 }
 
-func (s *Server) serveError(w http.ResponseWriter, code int, err error) {
-	// TODO: render error template.
+func (s *Server) serveHTML(w http.ResponseWriter, data *eagle.RenderData, tpls []string) {
+	data.TorUsed = false
+	data.OnionAddress = ""
+	data.LoggedIn = false
 
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	err := s.Render(w, data, tpls)
 	if err != nil {
-		// Do something
+		// TODO: maybe notify as these are terminal errors kinda.
+		s.log.Error("error while serving HTML", err)
+	}
+}
+
+func (s *Server) serveErrorHTML(w http.ResponseWriter, code int, err error) {
+	if err != nil {
 		s.log.Error(err)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Del("Cache-Control")
 	w.WriteHeader(code)
-	s.render(w, &eagle.RenderData{
+
+	page := &eagle.RenderData{
 		Entry: &eagle.Entry{
 			Frontmatter: eagle.Frontmatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 			},
+			Content: strconv.Itoa(code),
 		},
-	}, []string{"error"})
+	}
+
+	s.serveHTML(w, page, []string{eagle.TemplateError})
 }

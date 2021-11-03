@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -21,7 +22,26 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
+	entry, err := s.GetEntry(r.URL.Path)
+	if os.IsNotExist(err) {
+		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		return
+	}
 
+	if err != nil {
+		s.serveErrorHTML(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	tpls := []string{}
+	if entry.Section != "" {
+		tpls = append(tpls, eagle.TemplateSingle+"."+entry.Section)
+	}
+	tpls = append(tpls, eagle.TemplateSingle)
+
+	s.serveHTML(w, &eagle.RenderData{
+		Entry: entry,
+	}, tpls)
 }
 
 func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
@@ -29,26 +49,224 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 	// or hiding a webmention.
 }
 
-func (s *Server) goSyndicate(entry *eagle.Entry) {
-	// if s.Twitter == nil {
-	// 	return
-	// }
-
-	// url, err := s.Twitter.Syndicate(entry)
-	// if err != nil {
-	// 	s.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
-	// 	return
-	// }
-
-	// entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
-	// err = s.SaveEntry(entry)
-	// if err != nil {
-	// 	s.NotifyError(fmt.Errorf("failed to save entry: %w", err))
-	// 	return
-	// }
-
-	// INVALIDATE CACHE OR STH
+func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		query: &eagle.SearchQuery{
+			Sections: s.Config.Site.IndexSections,
+		},
+		templates: []string{eagle.TemplateIndex},
+	})
 }
+
+func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
+	tag := chi.URLParam(r, "tag")
+	if tag == "" {
+		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		return
+	}
+
+	entry := s.getEntryOrEmpty(r.URL.Path)
+	if entry.Title == "" {
+		entry.Title = "#" + tag
+	}
+
+	s.listingGet(w, r, &listingSettings{
+		query: &eagle.SearchQuery{
+			Tags: []string{tag},
+		},
+		rd: &eagle.RenderData{
+			Entry: entry,
+		},
+	})
+}
+
+func (s *Server) sectionGet(section string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		entry := s.getEntryOrEmpty(r.URL.Path)
+		if entry.Title == "" {
+			entry.Title = section
+		}
+
+		if entry.Section == "" {
+			entry.Section = section
+		}
+
+		s.listingGet(w, r, &listingSettings{
+			query: &eagle.SearchQuery{
+				Sections: []string{section},
+			},
+			rd: &eagle.RenderData{
+				Entry: entry,
+			},
+			templates: []string{eagle.TemplateList + "." + section},
+		})
+	}
+}
+
+func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
+	var year, month, day int
+
+	if ys := chi.URLParam(r, "year"); ys != "" && ys != "x" {
+		year, _ = strconv.Atoi(ys)
+	}
+
+	if ms := chi.URLParam(r, "month"); ms != "" && ms != "x" {
+		month, _ = strconv.Atoi(ms)
+	}
+
+	if ds := chi.URLParam(r, "day"); ds != "" {
+		day, _ = strconv.Atoi(ds)
+	}
+
+	if year == 0 && month == 0 && day == 0 {
+		s.serveErrorHTML(w, http.StatusNotFound, nil)
+		return
+	}
+
+	var title strings.Builder
+	if year != 0 {
+		ys := fmt.Sprintf("%0004d", year)
+		title.WriteString(ys)
+	} else {
+		title.WriteString("XXXX")
+	}
+
+	if month != 0 {
+		title.WriteString(fmt.Sprintf("-%02d", month))
+	} else if day != 0 {
+		title.WriteString("-XX")
+	}
+
+	if day != 0 {
+		title.WriteString(fmt.Sprintf("-%02d", day))
+	}
+
+	s.listingGet(w, r, &listingSettings{
+		query: &eagle.SearchQuery{
+			Year:  year,
+			Month: month,
+			Day:   day,
+		},
+		rd: &eagle.RenderData{
+			Entry: &eagle.Entry{
+				Frontmatter: eagle.Frontmatter{
+					Title: title.String(),
+				},
+			},
+		},
+	})
+}
+
+func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+
+	entry := s.getEntryOrEmpty(r.URL.Path)
+	if entry.Title == "" {
+		entry.Title = "Search"
+	}
+
+	if query == "" {
+		s.serveHTML(w, &eagle.RenderData{
+			Entry: entry,
+		}, []string{eagle.TemplateSearch})
+		return
+	}
+
+	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
+	sectionsList := strings.Split(sectionsQuery, ",")
+	sections := []string{}
+
+	for _, s := range sectionsList {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		sections = append(sections, s)
+	}
+
+	s.listingGet(w, r, &listingSettings{
+		query: &eagle.SearchQuery{
+			Query:    query,
+			Sections: sections,
+		},
+		rd: &eagle.RenderData{
+			Entry:       entry,
+			SearchQuery: query,
+		},
+		templates: []string{eagle.TemplateSearch},
+	})
+}
+
+func (s *Server) getEntryOrEmpty(id string) *eagle.Entry {
+	if entry, err := s.GetEntry(id); err == nil {
+		return entry
+	} else {
+		return &eagle.Entry{
+			Frontmatter: eagle.Frontmatter{},
+		}
+	}
+}
+
+type listingSettings struct {
+	query     *eagle.SearchQuery
+	rd        *eagle.RenderData
+	templates []string
+}
+
+func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
+	ls.query.ByDate = true
+	ls.query.Private = false // TODO true if logged in
+	ls.query.Draft = false   // TODO true if logged in
+	ls.query.Deleted = false // TODO true if logged in
+
+	if ls.rd == nil {
+		ls.rd = &eagle.RenderData{}
+	}
+
+	if ls.rd.Entry == nil {
+		ls.rd.Entry = s.getEntryOrEmpty(r.URL.Path)
+	}
+
+	entries, err := s.Search(ls.query, 0)
+	if err != nil {
+		s.serveErrorHTML(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	ls.rd.Entries = entries
+
+	switch chi.URLParam(r, "feed") {
+	case "json":
+
+	case "xml":
+
+	default:
+
+	}
+
+	s.serveHTML(w, ls.rd, append(ls.templates, eagle.TemplateList))
+}
+
+// func (s *Server) goSyndicate(entry *eagle.Entry) {
+// if s.Twitter == nil {
+// 	return
+// }
+
+// url, err := s.Twitter.Syndicate(entry)
+// if err != nil {
+// 	s.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
+// 	return
+// }
+
+// entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
+// err = s.SaveEntry(entry)
+// if err != nil {
+// 	s.NotifyError(fmt.Errorf("failed to save entry: %w", err))
+// 	return
+// }
+
+// INVALIDATE CACHE OR STH
+// }
 
 // func (s *Server) goWebmentions(entry *eagle.Entry) {
 // 	err := s.SendWebmentions(entry)
@@ -83,148 +301,3 @@ func (s *Server) goSyndicate(entry *eagle.Entry) {
 // 	}
 // 	return id, nil
 // }
-
-func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
-	s.listingGet(w, r, &eagle.SearchQuery{}, nil)
-}
-
-func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
-	tag := chi.URLParam(r, "tag")
-	if tag == "" {
-		s.serveError(w, http.StatusNotFound, nil)
-		return
-	}
-
-	s.listingGet(w, r, &eagle.SearchQuery{
-		Tags: []string{tag},
-	}, &eagle.Frontmatter{
-		Title: "#" + tag,
-	})
-}
-
-func (s *Server) sectionGet(section string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		s.listingGet(w, r, &eagle.SearchQuery{
-			Sections: []string{section},
-		}, &eagle.Frontmatter{
-			Title:   section,
-			Section: section,
-		})
-	}
-}
-
-func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
-	var year, month, day int
-
-	if ys := chi.URLParam(r, "year"); ys != "" && ys != "x" {
-		year, _ = strconv.Atoi(ys)
-	}
-
-	if ms := chi.URLParam(r, "month"); ms != "" && ms != "x" {
-		month, _ = strconv.Atoi(ms)
-	}
-
-	if ds := chi.URLParam(r, "day"); ds != "" {
-		day, _ = strconv.Atoi(ds)
-	}
-
-	if year == 0 && month == 0 && day == 0 {
-		s.serveError(w, http.StatusNotFound, nil)
-		return
-	}
-
-	var title strings.Builder
-	if year != 0 {
-		ys := fmt.Sprintf("%0004d", year)
-		title.WriteString(ys)
-	} else {
-		title.WriteString("XXXX")
-	}
-
-	if month != 0 {
-		title.WriteString(fmt.Sprintf("-%02d", month))
-	} else if day != 0 {
-		title.WriteString("-XX")
-	}
-
-	if day != 0 {
-		title.WriteString(fmt.Sprintf("-%02d", day))
-	}
-
-	s.listingGet(w, r, &eagle.SearchQuery{
-		Year:  year,
-		Month: month,
-		Day:   day,
-	}, &eagle.Frontmatter{
-		Title: title.String(),
-	})
-}
-
-func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("q")
-
-	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
-	sectionsList := strings.Split(sectionsQuery, ",")
-	sections := []string{}
-
-	for _, s := range sectionsList {
-		s = strings.TrimSpace(s)
-		if s == "" {
-			continue
-		}
-		sections = append(sections, s)
-	}
-
-	s.listingGet(w, r, &eagle.SearchQuery{
-		Query:    query,
-		Sections: sections,
-	}, &eagle.Frontmatter{
-		Title: "Search",
-	})
-}
-
-func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, q *eagle.SearchQuery, overrides *eagle.Frontmatter) {
-	q.ByDate = true
-	q.Private = false // TODO true if logged in
-	q.Draft = false   // TODO true if logged in
-	q.Deleted = false // TODO true if logged in
-
-	rd := &eagle.RenderData{}
-
-	if entry, err := s.GetEntry(r.URL.Path); err == nil {
-		rd.Entry = entry
-	} else {
-		rd.Entry = &eagle.Entry{
-			Frontmatter: eagle.Frontmatter{},
-		}
-	}
-
-	if overrides != nil {
-		if rd.Entry.Title == "" {
-			rd.Entry.Title = overrides.Title
-		}
-
-		if rd.Entry.Section == "" {
-			rd.Entry.Section = overrides.Section
-		}
-	}
-
-	entries, err := s.Search(q, 0)
-	if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	rd.Entries = entries
-
-	switch chi.URLParam(r, "feed") {
-	case "json":
-
-	case "xml":
-
-	default:
-
-	}
-
-	s.render(w, rd, []string{"list"})
-}

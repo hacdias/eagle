@@ -43,6 +43,7 @@ func Parse() (*Config, error) {
 	viper.SetDefault("xrayEndpoint", "https://xray.p3k.app")
 
 	viper.SetDefault("site.language", "en")
+	viper.SetDefault("site.paginate", 15)
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -87,7 +88,7 @@ func Parse() (*Config, error) {
 
 	conf.Site.Sections = funk.UniqString(conf.Site.Sections)
 
-	// TODO; add more thorough verification
+	// TODO: add more thorough verification
 
 	return conf, nil
 }
@@ -110,6 +111,7 @@ type Site struct {
 	Sections      []string
 	MicropubTypes map[jf2.Type]string
 	IndexSections []string
+	Paginate      int
 	Menus         map[string][]MenuItem
 }
 
