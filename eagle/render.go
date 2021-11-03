@@ -129,6 +129,7 @@ type RenderData struct {
 
 	SearchQuery string
 	NextPage    string
+	IsListing   bool
 
 	IsHome       bool
 	LoggedIn     bool

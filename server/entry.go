@@ -234,14 +234,12 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	ls.rd.Entries = entries
+	ls.rd.IsListing = true
 
-	switch chi.URLParam(r, "feed") {
-	case "json":
-
-	case "xml":
-
-	default:
-
+	if feed := chi.URLParam(r, "feed"); feed != "" {
+		// https://github.com/jlelse/feeds
+		w.WriteHeader(http.StatusNotImplemented)
+		return
 	}
 
 	s.serveHTML(w, ls.rd, append(ls.templates, eagle.TemplateList))
