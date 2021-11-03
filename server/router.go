@@ -56,6 +56,8 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Post("/webmention", s.webmentionHandler)
 	}
 
+	// r.Get("/tags")
+
 	r.Get("/*", s.wildcardGet)
 	r.Post("/*", s.wildcardPost)
 
@@ -64,7 +66,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 
 const (
 	feedPath  = ".{feed:xml|json}"
-	yearPath  = `/{year:x|\d\d\d\d}`
+	yearPath  = `/{year:x|\d\d\d\d}` // TODO: fix
 	monthPath = yearPath + `/{month:x|\d\d}`
 	dayPath   = monthPath + `/{day:x|\d\d}`
 )

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,7 +14,8 @@ import (
 )
 
 const (
-	pageSize = 50
+	searchIndex = "IndexV7"
+	searchKey   = "idx"
 )
 
 type SearchQuery struct {
@@ -30,48 +32,30 @@ type SearchQuery struct {
 	Private  bool
 }
 
-type SearchIndex interface {
-	ResetIndex() error
-	Add(entries ...*Entry) error
-	Remove(entries ...*Entry) error
-	Search(query *SearchQuery, page int) ([]*Entry, error)
-}
-
 type SearchEntry struct {
-	// SearchID is for Meilisearch. See searchKey.
 	SearchID string `json:"idx" mapstructure:"idx"`
+	RawFile  string `json:"rawFile" mapstructure:"rawFile"`
 
-	RawFile string `json:"rawFile" mapstructure:"rawFile"`
+	Year  int `json:"year" mapstructure:"year"`
+	Month int `json:"month" mapstructure:"month"`
+	Day   int `json:"day" mapstructure:"day"`
 
 	ID      string   `json:"id" mapstructure:"id"`
 	Title   string   `json:"title" mapstructure:"title"`
 	Tags    []string `json:"tags" mapstructure:"tags"`
 	Content string   `json:"content" mapstructure:"content"`
 	Section string   `json:"section" mapstructure:"section"`
-	Date    string   `json:"date" mapstructure:"date"`
+	Date    int64    `json:"date" mapstructure:"date"`
 	Draft   bool     `json:"draft" mapstructure:"draft"`
 	Deleted bool     `json:"deleted" mapstructure:"deleted"`
 	Private bool     `json:"private" mapstructure:"private"`
 }
-
-func sanitizePost(content string) string {
-	content = shortcodeRegex.ReplaceAllString(content, "")
-	content = stripMarkdown.Strip(content)
-
-	return content
-}
-
-const (
-	searchIndex = "IndexV6"
-	searchKey   = "idx"
-)
 
 var (
 	shortcodeRegex = regexp.MustCompile(`{{<(.*?)>}}`)
 
 	searcheableAttributes = []string{
 		"title",
-
 		"content",
 	}
 
@@ -81,6 +65,9 @@ var (
 		"draft",
 		"deleted",
 		"private",
+		"year",
+		"month",
+		"day",
 	}
 
 	cropAttributes = []string{
@@ -91,6 +78,13 @@ var (
 		"date",
 	}
 )
+
+func sanitizePost(content string) string {
+	content = shortcodeRegex.ReplaceAllString(content, "")
+	content = stripMarkdown.Strip(content)
+
+	return content
+}
 
 func (e *Eagle) setupMeiliSearch() error {
 	ms := meilisearch.NewClient(meilisearch.ClientConfig{
@@ -179,11 +173,14 @@ func (e *Eagle) IndexAdd(entries ...*Entry) error {
 			SearchID: hex.EncodeToString([]byte(entry.ID)),
 			ID:       entry.ID,
 			RawFile:  raw,
-			Date:     entry.Published.Format(time.RFC3339),
+			Date:     entry.Published.Unix(),
 			// Searcheable Attributes
 			Title:   entry.Title,
 			Content: sanitizePost(entry.Content),
 			// Filterable Attributes
+			Year:    entry.Published.Year(),
+			Month:   int(entry.Published.Month()),
+			Day:     entry.Published.Day(),
 			Tags:    entry.Tags(),
 			Section: entry.Section,
 			Draft:   entry.Draft,
@@ -209,6 +206,18 @@ func (e *Eagle) Search(query *SearchQuery, page int) ([]*Entry, error) {
 
 	if !query.Draft {
 		filters = append(filters, "(draft=false)")
+	}
+
+	if query.Year > 0 {
+		filters = append(filters, "(year="+strconv.Itoa(query.Year)+")")
+	}
+
+	if query.Month > 0 {
+		filters = append(filters, "(month="+strconv.Itoa(query.Month)+")")
+	}
+
+	if query.Day > 0 {
+		filters = append(filters, "(day="+strconv.Itoa(query.Day)+")")
 	}
 
 	sections := []string{}
@@ -251,8 +260,8 @@ func (e *Eagle) Search(query *SearchQuery, page int) ([]*Entry, error) {
 	}
 
 	if page != -1 {
-		req.Offset = int64(page * pageSize)
-		req.Limit = pageSize
+		req.Offset = int64(page * e.Config.Site.Paginate)
+		req.Limit = int64(e.Config.Site.Paginate)
 	}
 
 	data, err := e.ms.Index(searchIndex).Search(query.Query, req)

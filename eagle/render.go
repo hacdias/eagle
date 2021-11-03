@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"path"
 	"path/filepath"
 	"strings"
@@ -28,14 +29,25 @@ const (
 	TemplateIndex  string = "index"
 )
 
-func (e *Eagle) includeTemplate(name string, data interface{}) (template.HTML, error) {
+func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML, error) {
 	templates, err := e.getTemplates()
 	if err != nil {
 		return "", err
 	}
 
 	var buf bytes.Buffer
-	err = templates[name].ExecuteTemplate(&buf, name, data)
+
+	if len(data) == 1 {
+		err = templates[name].ExecuteTemplate(&buf, name, data[0])
+	} else if len(data) == 2 {
+		// TODO: maybe some type verifications.
+		nrd := *data[0].(*RenderData)
+		nrd.Entry = data[1].(*Entry)
+		err = templates[name].ExecuteTemplate(&buf, name, nrd)
+	} else {
+		return "", errors.New("wrong parameters")
+	}
+
 	return template.HTML(buf.String()), err
 }
 
@@ -63,51 +75,46 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 		return nil, err
 	}
 
-	// TODO: fetch templates recursively and allow to have nested dirs
-
-	files, err := e.SrcFs.ReadDir(TemplatesDirectory)
-	if err != nil {
-		return nil, err
-	}
-
 	parsed := map[string]*template.Template{}
-	for _, info := range files {
+
+	err = e.SrcFs.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() {
-			continue
+			return nil
 		}
 
 		basename := filepath.Base(info.Name())
 		ext := filepath.Ext(basename)
-		id := strings.TrimSuffix(basename, ext)
+
+		id := strings.TrimPrefix(filename, TemplatesDirectory)
+		id = strings.TrimSuffix(id, ext)
+		id = strings.TrimSuffix(id, "/")
+		id = strings.TrimPrefix(id, "/")
 
 		if ext != TemplatesExtension || id == TemplateBase {
-			continue
+			return nil
 		}
 
-		raw, err := e.SrcFs.ReadFile(filepath.Join(TemplatesDirectory, info.Name()))
+		raw, err := e.SrcFs.ReadFile(filename)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(fns).Parse(string(raw))
-		if err != nil {
-			return nil, err
-		}
+		return err
+	})
+
+	for name := range parsed {
+		fmt.Println(name)
 	}
+
+	fmt.Println()
 
 	return parsed, err
 }
-
-// Title          string    `yaml:"title,omitempty"`
-// Description    string    `yaml:"description,omitempty"`
-// Draft          bool      `yaml:"draft,omitempty"`
-// Deleted        bool      `yaml:"deleted,omitempty"`
-// Private        bool      `yaml:"private,omitempty"`
-// NoInteractions bool      `yaml:"noInteractions,omitempty"`
-// Emoji          string    `yaml:"emoji,omitempty"`
-// Published      time.Time `yaml:"published,omitempty"`
-// Updated        time.Time `yaml:"updated,omitempty"`
-// Section        string    `yaml:"section,omitempty"`
 
 type RenderData struct {
 	// All pages must have some sort of Entry embedded.
@@ -120,8 +127,8 @@ type RenderData struct {
 
 	Entries []*Entry
 
-	RenderedContent template.HTML
-	// Data interface{}
+	SearchQuery string
+	NextPage    string
 
 	IsHome       bool
 	LoggedIn     bool

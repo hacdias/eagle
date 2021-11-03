@@ -157,6 +157,8 @@ func (e *Eagle) TransformEntry(id string, t func(*Entry) (*Entry, error)) (*Entr
 		return nil, err
 	}
 
+	// TODO: make this open the file for writing and avoid using locks.
+
 	newEntry, err := t(oldEntry)
 	if err != nil {
 		return nil, err

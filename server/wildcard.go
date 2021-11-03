@@ -29,7 +29,7 @@ func (s *Server) wildcardGet(w http.ResponseWriter, r *http.Request) {
 
 	if stat, err := s.SrcFs.Stat(path); err == nil && stat.Mode().IsRegular() {
 		if strings.Contains(path, "/private/") {
-			s.serveError(w, http.StatusNotFound, nil)
+			s.serveErrorHTML(w, http.StatusNotFound, nil)
 			return
 		}
 		path = filepath.Join(s.Config.SourceDirectory, path)
@@ -37,24 +37,7 @@ func (s *Server) wildcardGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.GetEntry(r.URL.Path)
-	if os.IsNotExist(err) {
-		s.serveError(w, http.StatusNotFound, nil)
-		return
-	} else if err != nil {
-		s.serveError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	tpls := []string{}
-	if entry.Section != "" {
-		tpls = append(tpls, eagle.TemplateSingle+"."+entry.Section)
-	}
-	tpls = append(tpls, eagle.TemplateSingle)
-
-	s.render(w, &eagle.RenderData{
-		Entry: entry,
-	}, tpls)
+	s.entryGet(w, r)
 }
 
 func (s *Server) wildcardPost(w http.ResponseWriter, r *http.Request) {
