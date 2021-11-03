@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
@@ -32,6 +33,67 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	loggedIn := s.isLoggedIn(w, r)
+	if entry.Deleted && !loggedIn {
+		s.serveErrorHTML(w, r, http.StatusGone, nil)
+		return
+	}
+
+	if (entry.Draft || entry.Private) && !loggedIn {
+		// Do not give away it exists!
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		return
+	}
+
+	if r.URL.Query().Get("edit") == "true" && loggedIn {
+		s.serveHTML(w, r, &eagle.RenderData{
+			Entry: entry,
+		}, []string{eagle.TemplateEditor})
+	} else {
+		s.serveEntry(w, r, entry)
+	}
+}
+
+func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
+	// TODO: request has action. Action can be editing the post itself
+	// or hiding a webmention.
+
+	_, err := s.GetEntry(r.URL.Path)
+	if os.IsNotExist(err) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	content := r.Form.Get("content")
+	if content == "" {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content cannot be empty"))
+		return
+	}
+
+	entry, err := s.ParseEntry(r.URL.Path, content)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	err = s.SaveEntry(entry)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	// TODO: xray related, syndicate, webmentions.
+
+	s.serveEntry(w, r, entry)
+}
+
+func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *eagle.Entry) {
 	tpls := []string{}
 	if entry.Section != "" {
 		tpls = append(tpls, eagle.TemplateSingle+"."+entry.Section)
@@ -41,11 +103,6 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: entry,
 	}, tpls)
-}
-
-func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
-	// TODO: request has action. Action can be editing the post itself
-	// or hiding a webmention.
 }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
@@ -213,10 +270,12 @@ type listingSettings struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
+	loggedIn := s.isLoggedIn(w, r)
+
 	ls.query.ByDate = true
-	ls.query.Private = false // TODO true if logged in
-	ls.query.Draft = false   // TODO true if logged in
-	ls.query.Deleted = false // TODO true if logged in
+	ls.query.Private = loggedIn
+	ls.query.Draft = loggedIn
+	ls.query.Deleted = loggedIn
 
 	if ls.rd == nil {
 		ls.rd = &eagle.RenderData{}
