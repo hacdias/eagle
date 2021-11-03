@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"sync"
 	"time"
@@ -49,6 +50,8 @@ type Eagle struct {
 	PublicDirCh chan string
 
 	markdown goldmark.Markdown
+
+	templates map[string]*template.Template
 
 	// Optional services
 	media *Media
