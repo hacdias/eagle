@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth"
-	"github.com/hacdias/eagle/v2/eagle"
 )
 
 func (s *Server) makeRouter(noDashboard bool) http.Handler {
@@ -85,7 +84,7 @@ func (s *Server) listingRoutes(r chi.Router) {
 	r.Get("/tags/{tag}"+feedPath, s.tagGet)
 	r.Get("/search", s.searchGet)
 
-	for _, section := range eagle.Sections {
+	for _, section := range s.Config.Site.Sections {
 		r.Get("/"+section, s.sectionGet(section))
 		r.Get("/"+section+feedPath, s.sectionGet(section))
 	}

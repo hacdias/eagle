@@ -13,6 +13,7 @@ var defaultGoldmarkOptions = []goldmark.Option{
 	),
 	goldmark.WithParserOptions(
 		parser.WithAutoHeadingID(),
+		parser.WithAttribute(),
 	),
 	goldmark.WithExtensions(
 		extension.Table,
@@ -24,11 +25,5 @@ var defaultGoldmarkOptions = []goldmark.Option{
 	),
 }
 
-// publicAddress := ""
-// if srv := a.cfg.Server; srv != nil {
-// 	publicAddress = srv.PublicAddress
-// }
-// a.md = goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(&customExtension{
-// 	absoluteLinks: false,
-// 	publicAddress: publicAddress,
-// }))...)
+// TODO: probably will want to render with absolute urls for feeds
+// and relative urls otherwise.

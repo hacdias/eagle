@@ -21,6 +21,11 @@ const (
 	TemplateBase   string = "base"
 	TemplateSingle string = "single"
 	TemplateList   string = "list"
+	TemplateError  string = "error"
+	TemplateLogin  string = "login"
+	TemplateSearch string = "search"
+	TemplateEditor string = "editor"
+	TemplateIndex  string = "index"
 )
 
 func (e *Eagle) includeTemplate(name string, data interface{}) (template.HTML, error) {
@@ -57,6 +62,8 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: fetch templates recursively and allow to have nested dirs
 
 	files, err := e.SrcFs.ReadDir(TemplatesDirectory)
 	if err != nil {
@@ -137,8 +144,8 @@ func (rd *RenderData) HeadTitle() string {
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	// TODO: fill data
 
-	data.User = &e.Config.Author
-	data.Site = &e.Config.Site
+	data.User = e.Config.User
+	data.Site = e.Config.Site
 
 	templates, err := e.getTemplates()
 	if err != nil {

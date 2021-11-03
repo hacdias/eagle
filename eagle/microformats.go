@@ -7,31 +7,8 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v2/pkg/jf2"
 	"github.com/karlseguin/typed"
+	"github.com/thoas/go-funk"
 )
-
-var Sections = []string{
-	"micro",
-	"articles",
-	"likes",
-	"reposts",
-	"bookmarks",
-	"checkins",
-	"watches",
-	"reads",
-	"photos",
-}
-
-var typeToSection = map[jf2.Type]string{
-	jf2.TypeReply:    "micro",
-	jf2.TypeNote:     "micro",
-	jf2.TypeArticle:  "articles",
-	jf2.TypeLike:     "likes",
-	jf2.TypeRepost:   "reposts",
-	jf2.TypeBookmark: "bookmarks",
-	jf2.TypeCheckin:  "checkins",
-	jf2.TypeWatch:    "watches",
-	jf2.TypeRead:     "reads",
-}
 
 func (e *Eagle) FromMicroformats(id string, mf2Data map[string][]interface{}) (*Entry, error) {
 	id = e.cleanID(id)
@@ -58,14 +35,12 @@ func (e *Eagle) fromMicroformats(entry *Entry, mf2Data map[string][]interface{})
 	data := typed.New(jf2.FromMicroformats(mf2Data))
 
 	postType := jf2.DiscoverType(data)
-	switch postType {
-	case jf2.TypeReply, jf2.TypeNote, jf2.TypeArticle,
-		jf2.TypeLike, jf2.TypeRepost, jf2.TypeBookmark,
-		jf2.TypeCheckin, jf2.TypeWatch, jf2.TypeRead:
+
+	if funk.Contains(e.allowedTypes, postType) {
 		if entry.Section == "" {
-			entry.Section = typeToSection[postType]
+			entry.Section = e.Config.Site.MicropubTypes[postType]
 		}
-	default:
+	} else {
 		return errors.New("type not supported " + string(postType))
 	}
 

@@ -1,10 +1,13 @@
 package config
 
 import (
+	"fmt"
 	urlpkg "net/url"
 	"path/filepath"
 
+	"github.com/hacdias/eagle/v2/pkg/jf2"
 	"github.com/spf13/viper"
+	"github.com/thoas/go-funk"
 )
 
 type Config struct {
@@ -13,8 +16,8 @@ type Config struct {
 	BaseURL         string
 	SourceDirectory string
 	PublicDirectory string
-	Author          User // TODO: change this to user what the hell
-	Site            Site
+	Site            *Site
+	User            *User
 	// WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
@@ -25,20 +28,21 @@ type Config struct {
 	Telegram          *Telegram
 	Twitter           *Twitter
 	Miniflux          *Miniflux
-	MeiliSearch       MeiliSearch
+	MeiliSearch       *MeiliSearch
 }
 
 // Parse parses the configuration from the default files and paths.
 func Parse() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
 
 	viper.SetDefault("port", 8080)
 	viper.SetDefault("baseUrl", "http://localhost:8080")
 	viper.SetDefault("sourceDirectory", "/app/source")
 	viper.SetDefault("publicDirectory", "/app/public")
 	viper.SetDefault("xrayEndpoint", "https://xray.p3k.app")
+
+	viper.SetDefault("site.language", "en")
 
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -73,6 +77,18 @@ func Parse() (*Config, error) {
 		}
 	}
 
+	for typ, section := range conf.Site.MicropubTypes {
+		if !jf2.IsType(typ) {
+			return nil, fmt.Errorf("%s is not a valid micropub type", typ)
+		}
+
+		conf.Site.Sections = append(conf.Site.Sections, section)
+	}
+
+	conf.Site.Sections = funk.UniqString(conf.Site.Sections)
+
+	// TODO; add more thorough verification
+
 	return conf, nil
 }
 
@@ -87,11 +103,14 @@ func validateBaseURL(url string) (string, error) {
 }
 
 type Site struct {
-	Language    string
-	Title       string
-	Emoji       string
-	Description string
-	Menus       map[string][]MenuItem
+	Language      string
+	Title         string
+	Emoji         string
+	Description   string
+	Sections      []string
+	MicropubTypes map[jf2.Type]string
+	IndexSections []string
+	Menus         map[string][]MenuItem
 }
 
 type MenuItem struct {
@@ -101,10 +120,10 @@ type MenuItem struct {
 }
 
 type User struct {
-	Name     string   `mapstructure:"name"`
-	Nickname string   `mapstructure:"nickname"`
-	Rels     []string `mapstructure:"rels"`
-	PGP      string   `mapstructure:"pgp"`
+	Name     string
+	Nickname string
+	Rels     []string
+	PGP      string
 }
 
 type Auth struct {

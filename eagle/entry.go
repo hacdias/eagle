@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v2/pkg/yaml"
+	"github.com/karlseguin/typed"
 )
 
 type Entry struct {
@@ -37,9 +38,16 @@ type Frontmatter struct {
 }
 
 func (e *Entry) Tags() []string {
-	if v, ok := e.Properties["category"].([]string); ok {
+	m := typed.New(e.Properties)
+
+	if v, ok := m.StringsIf("category"); ok {
 		return v
 	}
+
+	if v, ok := m.StringIf("category"); ok {
+		return []string{v}
+	}
+
 	return []string{}
 }
 
@@ -199,20 +207,20 @@ func (e *Eagle) guessPath(id string) (string, error) {
 	path := filepath.Join(ContentDirectory, id, "index.md")
 	if _, err := e.SrcFs.Stat(path); err == nil {
 		return path, nil
-	} else if !os.IsNotExist(err) {
-		return "", err
-	}
-
-	path = filepath.Join(ContentDirectory, id, "_index.md")
-	if _, err := e.SrcFs.Stat(path); err == nil {
-		return path, nil
 	} else {
 		return "", err
 	}
+
+	// path = filepath.Join(ContentDirectory, id, "_index.md")
+	// if _, err := e.SrcFs.Stat(path); err == nil {
+	// 	return path, nil
+	// } else {
+	// 	return "", err
+	// }
 }
 
 func (e *Eagle) makePermalink(id string) (string, error) {
-	url, err := urlpkg.Parse(e.Config.BaseURL)
+	url, err := urlpkg.Parse(e.Config.BaseURL) // Shouldn't this error be non-existent since we verify the BaseURL when parsing the conf?
 	if err != nil {
 		return "", err
 	}
