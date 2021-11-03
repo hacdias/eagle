@@ -60,7 +60,9 @@ func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 }
 
 func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
-	// TODO: cache templates
+	if e.templates != nil {
+		return e.templates, nil
+	}
 
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
 	baseTemplateData, err := e.SrcFs.ReadFile(baseTemplateFilename)
@@ -107,13 +109,15 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 		return err
 	})
 
-	for name := range parsed {
-		fmt.Println(name)
+	if err != nil {
+		return nil, err
 	}
 
-	fmt.Println()
+	if !e.Config.Development {
+		e.templates = parsed
+	}
 
-	return parsed, err
+	return parsed, nil
 }
 
 type RenderData struct {
