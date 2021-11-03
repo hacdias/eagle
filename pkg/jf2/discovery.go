@@ -95,3 +95,16 @@ func DiscoverType(props map[string]interface{}) Type {
 
 	return TypeNote
 }
+
+// IsType checks if the given type is a valid Microformats type.
+func IsType(typ Type) bool {
+	t := Type(typ)
+	switch t {
+	case TypeRsvp, TypeRepost, TypeLike, TypeReply, TypeBookmark,
+		TypeFollow, TypeRead, TypeWatch, TypeListen, TypeCheckin, TypeVideo,
+		TypeAudio, TypePhoto, TypeEvent, TypeRecipe, TypeReview, TypeNote, TypeArticle:
+		return true
+	default:
+		return false
+	}
+}
