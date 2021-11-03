@@ -3,11 +3,10 @@ package server
 import (
 	"fmt"
 	"net/http"
+	urlpkg "net/url"
 	"os"
 	"strconv"
 	"strings"
-
-	// urlpkg "net/url"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
@@ -227,7 +226,15 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.Entry = s.getEntryOrEmpty(r.URL.Path)
 	}
 
-	entries, err := s.Search(ls.query, 0)
+	page := 0
+	if v := r.URL.Query().Get("page"); v != "" {
+		vv, _ := strconv.Atoi(v)
+		if vv >= 0 {
+			page = vv
+		}
+	}
+
+	entries, err := s.Search(ls.query, page)
 	if err != nil {
 		s.serveErrorHTML(w, http.StatusInternalServerError, err)
 		return
@@ -235,6 +242,12 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	ls.rd.Entries = entries
 	ls.rd.IsListing = true
+
+	if len(entries) == s.Config.Site.Paginate {
+		url, _ := urlpkg.Parse(r.URL.String())
+		url.RawQuery = "page=" + strconv.Itoa(page+1)
+		ls.rd.NextPage = url.String()
+	}
 
 	if feed := chi.URLParam(r, "feed"); feed != "" {
 		// https://github.com/jlelse/feeds
