@@ -295,6 +295,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		vv, _ := strconv.Atoi(v)
 		if vv >= 0 {
 			ls.query.Page = vv
+			ls.rd.Page = vv
 		}
 	}
 
