@@ -1,52 +1,53 @@
-// Drop-in replacement for yaml to convert all maps to map[string]interface{}
-// instead of map[interface{}]interface{}
-//
-// Code taken from:
-// - https://github.com/gohugoio/hugo/blob/49972d0/parser/metadecoders/decoder.go
-package yaml
+package eagle
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/mitchellh/mapstructure"
+	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/spf13/cast"
 	yaml "gopkg.in/yaml.v2"
 )
 
-func Unmarshal(data []byte, v interface{}) error {
-	m := map[string]interface{}{}
+type Frontmatter struct {
+	entry *mf2.FlatHelper
 
-	err := yaml.Unmarshal(data, &m)
+	Title          string    `yaml:"title,omitempty"`
+	Description    string    `yaml:"description,omitempty"`
+	Draft          bool      `yaml:"draft,omitempty"`
+	Deleted        bool      `yaml:"deleted,omitempty"`
+	Private        bool      `yaml:"private,omitempty"`
+	NoInteractions bool      `yaml:"noInteractions,omitempty"`
+	Emoji          string    `yaml:"emoji,omitempty"`
+	Published      time.Time `yaml:"published,omitempty"`
+	Updated        time.Time `yaml:"updated,omitempty"`
+	Section        string    `yaml:"section,omitempty"`
+
+	// MF2 flattened properties.
+	Properties map[string]interface{} `yaml:"properties,omitempty"`
+}
+
+func unmarshalFrontmatter(data []byte) (*Frontmatter, error) {
+	f := &Frontmatter{}
+	err := yaml.Unmarshal(data, &f)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// To support boolean keys, the YAML package unmarshals maps to
 	// map[interface{}]interface{}. Here we recurse through the result
 	// and change all maps to map[string]interface{} like we would've
 	// gotten from `json`.
-	var ptr interface{}
-	switch v := v.(type) {
-	case *map[string]interface{}:
-		ptr = *v
-	case *interface{}:
-		ptr = *v
-	default:
-		// Not a map.
-	}
-
-	if ptr != nil {
-		if mm, changed := stringifyMapKeys(ptr); changed {
-			switch v := v.(type) {
-			case *map[string]interface{}:
-				*v = mm.(map[string]interface{})
-			case *interface{}:
-				*v = mm
-			}
+	//
+	// Code taken from:
+	// - https://github.com/gohugoio/hugo/blob/49972d0/parser/metadecoders/decoder.go
+	if f.Properties != nil {
+		if mm, changed := stringifyMapKeys(f.Properties); changed {
+			f.Properties = mm.(map[string]interface{})
 		}
 	}
 
-	return mapstructure.Decode(m, v)
+	return f, nil
 }
 
 // stringifyMapKeys recurses into in and changes all instances of
@@ -94,8 +95,4 @@ func stringifyMapKeys(in interface{}) (interface{}, bool) {
 	}
 
 	return nil, false
-}
-
-func Marshal(in interface{}) (out []byte, err error) {
-	return yaml.Marshal(in)
 }

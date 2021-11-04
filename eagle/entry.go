@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/hacdias/eagle/v2/pkg/yaml"
 	"github.com/karlseguin/typed"
 )
@@ -25,22 +26,12 @@ type Entry struct {
 	summary string
 }
 
-type Frontmatter struct {
-	// properties *jf2.JF2
+func (e *Entry) MF2() *mf2.FlatHelper {
+	if e.entry == nil {
+		e.entry = mf2.NewFlatHelper(e.ToFlatMF2())
+	}
 
-	Title          string    `yaml:"title,omitempty"`
-	Description    string    `yaml:"description,omitempty"`
-	Draft          bool      `yaml:"draft,omitempty"`
-	Deleted        bool      `yaml:"deleted,omitempty"`
-	Private        bool      `yaml:"private,omitempty"`
-	NoInteractions bool      `yaml:"noInteractions,omitempty"`
-	Emoji          string    `yaml:"emoji,omitempty"`
-	Published      time.Time `yaml:"published,omitempty"`
-	Updated        time.Time `yaml:"updated,omitempty"`
-	Section        string    `yaml:"section,omitempty"`
-
-	// JF2 encoded properties.
-	Properties map[string]interface{} `yaml:"properties,omitempty"`
+	return e.entry
 }
 
 func (e *Entry) Tags() []string {
@@ -90,10 +81,10 @@ func (e *Entry) Summary() string {
 	return e.summary
 }
 
-func (e *Entry) YearsOld() int {
-	t := e.Published
-	if !e.Updated.IsZero() {
-		t = e.Updated
+func (f *Frontmatter) YearsOld() int {
+	t := f.Published
+	if !f.Updated.IsZero() {
+		t = f.Updated
 	}
 
 	if t.IsZero() {
@@ -161,11 +152,12 @@ func (e *Eagle) ParseEntry(id, raw string) (*Entry, error) {
 		Frontmatter:  Frontmatter{},
 	}
 
-	err = yaml.Unmarshal([]byte(splits[0]), &entry.Frontmatter)
+	fr, err := unmarshalFrontmatter([]byte(splits[0]))
 	if err != nil {
 		return nil, err
 	}
 
+	entry.Frontmatter = *fr
 	return entry, nil
 }
 

@@ -124,6 +124,8 @@ type MenuItem struct {
 type User struct {
 	Name     string
 	Nickname string
+	Photo    string
+	URL      string
 	Rels     []string
 	PGP      string
 }
