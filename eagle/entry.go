@@ -27,6 +27,8 @@ type Entry struct {
 }
 
 type Frontmatter struct {
+	properties *jf2.JF2
+
 	Title          string    `yaml:"title,omitempty"`
 	Description    string    `yaml:"description,omitempty"`
 	Draft          bool      `yaml:"draft,omitempty"`
@@ -84,7 +86,10 @@ func (e *Entry) YearsOld() int {
 }
 
 func (e *Entry) PropertiesAsJF2() *jf2.JF2 {
-	return jf2.NewJF2(e.Properties)
+	if e.properties == nil {
+		e.properties = jf2.NewJF2(e.Properties)
+	}
+	return e.properties
 }
 
 func (e *Entry) String() (string, error) {
