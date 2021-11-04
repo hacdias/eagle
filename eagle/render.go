@@ -143,6 +143,7 @@ type RenderData struct {
 	Entries []*Entry
 
 	SearchQuery string
+	Page        int
 	NextPage    string
 	IsListing   bool
 
