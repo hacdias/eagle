@@ -30,12 +30,7 @@ func (jf2 *JF2) Property() string {
 	return jf2.prop
 }
 
-func (jf2 *JF2) PropertyURLs() []string {
-	prop := jf2.Property()
-	if prop == "" {
-		return []string{}
-	}
-
+func (jf2 *JF2) AsStrings(prop string) []string {
 	if val, ok := jf2.StringIf(prop); ok {
 		return []string{val}
 	}
@@ -47,11 +42,16 @@ func (jf2 *JF2) PropertyURLs() []string {
 	return []string{}
 }
 
-func (jf2 *JF2) PropertyURL() string {
-	urls := jf2.PropertyURLs()
+func (jf2 *JF2) AsString(prop string) string {
+	urls := jf2.AsStrings(prop)
 	if len(urls) > 0 {
 		return urls[0]
 	}
 
 	return ""
+}
+
+func (jf2 *JF2) Location() map[string]interface{} {
+	// TODO: try checkin location, then location
+	return nil
 }

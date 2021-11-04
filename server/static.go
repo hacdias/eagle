@@ -29,7 +29,8 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 		path = filepath.Clean(path)
 
 		if stat, err := s.SrcFs.Stat(path); err == nil && stat.Mode().IsRegular() {
-			if strings.Contains(path, "/private/") {
+			if strings.HasPrefix(stat.Name(), "_") {
+				// Do not serve _* files.
 				s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 				return
 			}
