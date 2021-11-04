@@ -153,7 +153,7 @@ func (e *Entry) ToFlatMF2() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"type":       []string{"h-entry"},
+		"type":       "h-entry",
 		"properties": properties,
 	}
 }
