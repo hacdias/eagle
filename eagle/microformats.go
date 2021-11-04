@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/araddon/dateparse"
@@ -10,20 +11,32 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func (e *Eagle) FromMicroformats(id string, mf2Data map[string][]interface{}) (*Entry, error) {
-	id = e.cleanID(id)
-	permalink, err := e.makePermalink(id)
+var allowedLetters = []rune("abcdefghijklmnopqrstuvwxyz")
+
+func (e *Eagle) FromMicroformats(mf2 map[string][]interface{}, slug string) (*Entry, error) {
+	entry := &Entry{
+		Frontmatter: Frontmatter{},
+	}
+
+	err := e.fromMicroformats(entry, mf2)
 	if err != nil {
 		return nil, err
 	}
 
-	entry := &Entry{
-		Frontmatter: Frontmatter{},
-		ID:          id,
-		Permalink:   permalink,
+	if slug == "" {
+		slug = funk.RandomString(5, allowedLetters)
 	}
 
-	err = e.fromMicroformats(entry, mf2Data)
+	t := entry.Published
+	if t.IsZero() {
+		t = time.Now()
+	}
+
+	id := fmt.Sprintf("/%04d/%02d/%02d/%s", t.Year(), t.Month(), t.Day(), slug)
+
+	entry.ID = e.cleanID(id)
+	entry.Permalink, err = e.makePermalink(id)
+
 	return entry, err
 }
 

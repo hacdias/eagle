@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/pkg/jf2"
@@ -99,23 +98,13 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	year := time.Now().Year()
-	month := time.Now().Month()
-	day := time.Now().Day()
-	id := fmt.Sprintf("/%04d/%02d/%02d", year, month, day)
-
 	cmds := typed.New(jf2.FromMicroformats(mr.Commands))
-
-	fmt.Println(mr.Commands)
-
-	if slug, ok := cmds.StringIf("mp-slug"); ok {
-		id += "/" + strings.TrimSpace(slug)
-	} else {
-		// TODO: generate something
-		return http.StatusBadRequest, errors.New("slug is required")
+	slug := ""
+	if s, ok := cmds.StringIf("mp-slug"); ok {
+		slug = s
 	}
 
-	entry, err := s.FromMicroformats(id, mr.Properties)
+	entry, err := s.FromMicroformats(mr.Properties, slug)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
