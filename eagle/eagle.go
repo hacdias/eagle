@@ -9,7 +9,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/logging"
-	"github.com/hacdias/eagle/v2/pkg/jf2"
+	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/spf13/afero"
 	"github.com/yuin/goldmark"
@@ -43,7 +43,7 @@ type Eagle struct {
 
 	webmentionsClient *webmention.Client
 
-	allowedTypes []jf2.Type
+	allowedTypes []mf2.Type
 
 	Notifications
 	Config      *config.Config
@@ -73,7 +73,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		webmentionsClient: webmention.New(httpClient),
 		Config:            conf,
 		PublicDirCh:       make(chan string, 2),
-		allowedTypes:      []jf2.Type{},
+		allowedTypes:      []mf2.Type{},
 	}
 
 	for typ := range conf.Site.MicropubTypes {

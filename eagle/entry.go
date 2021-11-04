@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/v2/pkg/jf2"
 	"github.com/hacdias/eagle/v2/pkg/yaml"
 	"github.com/karlseguin/typed"
 )
@@ -27,7 +26,7 @@ type Entry struct {
 }
 
 type Frontmatter struct {
-	properties *jf2.JF2
+	// properties *jf2.JF2
 
 	Title          string    `yaml:"title,omitempty"`
 	Description    string    `yaml:"description,omitempty"`
@@ -47,12 +46,31 @@ type Frontmatter struct {
 func (e *Entry) Tags() []string {
 	m := typed.New(e.Properties)
 
-	if v, ok := m.StringsIf("category"); ok {
-		return v
-	}
-
 	if v, ok := m.StringIf("category"); ok {
 		return []string{v}
+	}
+
+	// Slight modification of StringsIf so we capture
+	// all string elements instead of blocking when there is none.
+	// Tags can also be objects, such as tagged people as seen in
+	// here: https://ownyourswarm.p3k.io/docs
+	value, ok := m["category"]
+	if !ok {
+		return []string{}
+	}
+
+	if n, ok := value.([]string); ok {
+		return n
+	}
+
+	if a, ok := value.([]interface{}); ok {
+		n := []string{}
+		for i := 0; i < len(a); i++ {
+			if v, ok := a[i].(string); ok {
+				n = append(n, v)
+			}
+		}
+		return n
 	}
 
 	return []string{}
@@ -83,13 +101,6 @@ func (e *Entry) YearsOld() int {
 	}
 
 	return int(math.Floor(time.Since(t).Hours() / 8760))
-}
-
-func (e *Entry) PropertiesAsJF2() *jf2.JF2 {
-	if e.properties == nil {
-		e.properties = jf2.NewJF2(e.Properties)
-	}
-	return e.properties
 }
 
 func (e *Entry) String() (string, error) {

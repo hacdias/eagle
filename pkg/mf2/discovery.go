@@ -1,4 +1,4 @@
-package jf2
+package mf2
 
 import (
 	"regexp"
@@ -54,14 +54,18 @@ var propertyToType = map[string]Type{
 //
 // This is a slightly modified version of @aaronpk's code to include reads and watches.
 // Original code: https://github.com/aaronpk/XRay/blob/master/lib/XRay/PostType.php
-func DiscoverType(props map[string]interface{}) (Type, string) {
-	properties := typed.New(props)
+func DiscoverType(data map[string]interface{}) (Type, string) {
+	properties := typed.New(data)
+	typ := getType(properties)
 
-	if typ, ok := properties.StringIf("type"); ok {
-		switch typ {
-		case "event", "recipe", "review":
-			return Type(typ), ""
-		}
+	switch typ {
+	case "event", "recipe", "review":
+		return Type(typ), ""
+	}
+
+	// This ensures that we can either send a MF2 post, a JF2 post or even an XRay post.
+	if p, ok := properties.MapIf("properties"); ok {
+		properties = typed.New(p)
 	}
 
 	for prop, typ := range propertyToType {
@@ -70,8 +74,8 @@ func DiscoverType(props map[string]interface{}) (Type, string) {
 		}
 	}
 
-	name, exists := properties.StringIf("name")
-	if !exists || name == "" {
+	name, ok := properties.StringIf("name")
+	if !ok || name == "" {
 		return TypeNote, ""
 	}
 
@@ -107,4 +111,19 @@ func IsType(typ Type) bool {
 	default:
 		return false
 	}
+}
+
+func getType(data typed.Typed) string {
+	var typ string
+
+	if t, ok := data.StringIf("type"); ok {
+		typ = t
+	}
+
+	if ts, ok := data.StringsIf("type"); ok {
+		typ = strings.TrimSpace(strings.Join(ts, ""))
+	}
+
+	typ = strings.TrimPrefix(typ, "h-")
+	return typ
 }

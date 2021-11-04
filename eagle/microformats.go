@@ -6,33 +6,36 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v2/pkg/jf2"
+	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/karlseguin/typed"
 	"github.com/thoas/go-funk"
 )
 
 var allowedLetters = []rune("abcdefghijklmnopqrstuvwxyz")
 
-func (e *Eagle) FromMicroformats(mf2 map[string][]interface{}, slug string) (*Entry, error) {
-	entry := &Entry{
-		Frontmatter: Frontmatter{},
-	}
-
-	err := e.fromMicroformats(entry, mf2)
-	if err != nil {
-		return nil, err
+func (e *Eagle) NewPostID(slug string, t time.Time) string {
+	if t.IsZero() {
+		t = time.Now()
 	}
 
 	if slug == "" {
 		slug = funk.RandomString(5, allowedLetters)
 	}
 
-	t := entry.Published
-	if t.IsZero() {
-		t = time.Now()
+	return fmt.Sprintf("/%04d/%02d/%02d/%s", t.Year(), t.Month(), t.Day(), slug)
+}
+
+func (e *Eagle) EntryFromMF2(mf2 map[string][]interface{}, slug string) (*Entry, error) {
+	entry := &Entry{
+		Frontmatter: Frontmatter{},
 	}
 
-	id := fmt.Sprintf("/%04d/%02d/%02d/%s", t.Year(), t.Month(), t.Day(), slug)
+	err := e.UpdateEntryWithMF2(entry, mf2)
+	if err != nil {
+		return nil, err
+	}
+
+	id := e.NewPostID(slug, entry.Published)
 
 	entry.ID = e.cleanID(id)
 	entry.Permalink, err = e.makePermalink(id)
@@ -40,14 +43,9 @@ func (e *Eagle) FromMicroformats(mf2 map[string][]interface{}, slug string) (*En
 	return entry, err
 }
 
-func (e *Eagle) UpdateEntry(entry *Entry, mf2Data map[string][]interface{}) error {
-	return e.fromMicroformats(entry, mf2Data)
-}
-
-func (e *Eagle) fromMicroformats(entry *Entry, mf2Data map[string][]interface{}) error {
-	data := typed.New(jf2.FromMicroformats(mf2Data))
-
-	postType, _ := jf2.DiscoverType(data)
+func (e *Eagle) UpdateEntryWithMF2(entry *Entry, mf2Data map[string][]interface{}) error {
+	data := typed.New(mf2.Flatten(mf2Data))
+	postType, _ := mf2.DiscoverType(data)
 
 	if funk.Contains(e.allowedTypes, postType) {
 		if entry.Section == "" {
@@ -116,38 +114,50 @@ func (e *Eagle) fromMicroformats(entry *Entry, mf2Data map[string][]interface{})
 	return nil
 }
 
-func (entry *Entry) ToMicroformats() map[string][]interface{} {
-	properties := jf2.ToMicroformats(entry.Properties)
-
-	if !entry.Published.IsZero() {
-		properties["published"] = []interface{}{entry.Published.Format(time.RFC3339)}
+func (e *Entry) ToFlatMF2() map[string]interface{} {
+	// Shallow copy of the map because we are not changing
+	// the values inside.
+	properties := map[string]interface{}{}
+	for k, v := range e.Properties {
+		properties[k] = v
 	}
 
-	if !entry.Updated.IsZero() {
-		properties["updated"] = []interface{}{entry.Updated.Format(time.RFC3339)}
+	if !e.Published.IsZero() {
+		properties["published"] = e.Published.Format(time.RFC3339)
 	}
 
-	properties["content"] = []interface{}{entry.Content}
-
-	if entry.Title != "" {
-		properties["name"] = []interface{}{entry.Title}
+	if !e.Updated.IsZero() {
+		properties["updated"] = e.Updated.Format(time.RFC3339)
 	}
 
-	if entry.Description != "" {
-		properties["summary"] = []interface{}{entry.Description}
+	properties["content"] = e.Content
+
+	if e.Title != "" {
+		properties["name"] = e.Title
 	}
 
-	if entry.Draft {
-		properties["post-status"] = []interface{}{"draft"}
+	if e.Description != "" {
+		properties["summary"] = e.Description
+	}
+
+	if e.Draft {
+		properties["post-status"] = "draft"
 	} else {
-		properties["post-status"] = []interface{}{"published"}
+		properties["post-status"] = "published"
 	}
 
-	if entry.Private {
-		properties["visibility"] = []interface{}{"private"}
+	if e.Private {
+		properties["visibility"] = "private"
 	} else {
-		properties["visibility"] = []interface{}{"public"}
+		properties["visibility"] = "public"
 	}
 
-	return properties
+	return map[string]interface{}{
+		"type":       []string{"h-entry"},
+		"properties": properties,
+	}
+}
+
+func (e *Entry) ToMF2() map[string]interface{} {
+	return mf2.Deflatten(e.ToFlatMF2())
 }

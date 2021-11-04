@@ -1,21 +1,13 @@
-// Package jf2 provides functionality to convert between Multiformats2 and the JF2
-// simplified format.
-// 	- https://jf2.spec.indieweb.org/
-// 	- https://indieweb.org/jf2
-package jf2
+package mf2
 
 import (
 	"fmt"
 	"reflect"
-	"strings"
 )
 
-// FromMicroformats takes a Microformats map and flattens all arrays with
+// Flatten takes a Microformats map and flattens all arrays with
 // a single value to one element.
-//
-// TODO: handle reserved properties and ensure their format:
-// - https://jf2.spec.indieweb.org/#reservedproperties
-func FromMicroformats(data map[string][]interface{}) map[string]interface{} {
+func Flatten(data map[string][]interface{}) map[string]interface{} {
 	return flatten(data).(map[string]interface{})
 }
 
@@ -41,16 +33,8 @@ func flatten(data interface{}) interface{} {
 		parsed := map[string]interface{}{}
 
 		for _, k := range value.MapKeys() {
-			key := fmt.Sprint(k.Interface())
-			val := flatten(value.MapIndex(k).Interface())
-
-			if key == "type" {
-				if t, ok := val.(string); ok {
-					val = strings.TrimPrefix(t, "h-")
-				}
-			}
-
-			parsed[key] = val
+			v := value.MapIndex(k)
+			parsed[fmt.Sprint(k.Interface())] = flatten(v.Interface())
 		}
 
 		return parsed
@@ -59,9 +43,28 @@ func flatten(data interface{}) interface{} {
 	return data
 }
 
-// ToMicroformats takes a JF2 map and deflattens all single values to arrays.
-func ToMicroformats(data map[string]interface{}) map[string][]interface{} {
-	return deflatten(data).(map[string][]interface{})
+// Deflatten takes a flattened map and deflattens all single values to arrays.
+func Deflatten(data map[string]interface{}) map[string]interface{} {
+	return deflatten(data).(map[string]interface{})
+}
+
+func deflattenProperties(data interface{}) map[string][]interface{} {
+	value := reflect.ValueOf(data)
+	parsed := map[string][]interface{}{}
+
+	for _, k := range value.MapKeys() {
+		v := value.MapIndex(k)
+		key := fmt.Sprint(k.Interface())
+		vk := reflect.TypeOf(v.Interface()).Kind()
+
+		if vk == reflect.Slice || vk == reflect.Array {
+			parsed[key] = deflatten(v.Interface()).([]interface{})
+		} else {
+			parsed[key] = []interface{}{deflatten(v.Interface())}
+		}
+	}
+
+	return parsed
 }
 
 func deflatten(data interface{}) interface{} {
@@ -83,14 +86,18 @@ func deflatten(data interface{}) interface{} {
 	}
 
 	if kind == reflect.Map {
-		parsed := map[string][]interface{}{}
+		parsed := map[string]interface{}{}
 
 		for _, k := range value.MapKeys() {
 			v := value.MapIndex(k)
 			key := fmt.Sprint(k.Interface())
 			vk := reflect.TypeOf(v.Interface()).Kind()
 
-			if key == "properties" || key == "value" || vk == reflect.Slice || vk == reflect.Array {
+			if key == "properties" {
+				parsed[key] = deflattenProperties(v.Interface())
+			} else if key == "value" || key == "html" {
+				parsed[key] = deflatten(v.Interface())
+			} else if vk == reflect.Slice || vk == reflect.Array {
 				parsed[key] = deflatten(v.Interface()).([]interface{})
 			} else {
 				parsed[key] = []interface{}{deflatten(v.Interface())}

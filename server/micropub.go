@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v2/eagle"
-	"github.com/hacdias/eagle/v2/pkg/jf2"
+	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/hacdias/eagle/v2/pkg/micropub"
 	"github.com/karlseguin/typed"
 )
@@ -41,12 +41,7 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mf2 := map[string]interface{}{
-		"type":       []string{"h-entry"},
-		"properties": entry.ToMicroformats(),
-	}
-
-	s.serveJSON(w, http.StatusOK, mf2)
+	s.serveJSON(w, http.StatusOK, entry.ToMF2())
 }
 
 func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
@@ -98,13 +93,13 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	cmds := typed.New(jf2.FromMicroformats(mr.Commands))
+	cmds := typed.New(mf2.Flatten(mr.Commands))
 	slug := ""
 	if s, ok := cmds.StringIf("mp-slug"); ok {
 		slug = s
 	}
 
-	entry, err := s.FromMicroformats(mr.Properties, slug)
+	entry, err := s.EntryFromMF2(mr.Properties, slug)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -130,14 +125,14 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		mf := entry.ToMicroformats()
-
-		newMf, err := micropub.Update(mf, mr)
+		mf := entry.ToMF2()
+		props := mf["properties"].(map[string][]interface{})
+		newMf, err := micropub.Update(props, mr)
 		if err != nil {
 			return nil, err
 		}
 
-		err = s.UpdateEntry(entry, newMf)
+		err = s.UpdateEntryWithMF2(entry, newMf)
 		if err != nil {
 			return nil, err
 		}
