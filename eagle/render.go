@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
+	urlpkg "net/url"
 	"path"
 	"path/filepath"
 	"strings"
@@ -68,7 +69,21 @@ func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 		"xray":     e.safeXRayFromDisk,
 		"data":     e.safeGetEntryData,
 		"truncate": truncate,
+		"absURL":   e.absoluteURL,
+		"relURL":   e.relativeURL,
 	}
+}
+
+func (e *Eagle) absoluteURL(path string) string {
+	url, _ := urlpkg.Parse(path)
+	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
+	return base.ResolveReference(url).String()
+}
+
+func (e *Eagle) relativeURL(path string) string {
+	url, _ := urlpkg.Parse(path)
+	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
+	return base.ResolveReference(url).Path
 }
 
 func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
@@ -162,6 +177,8 @@ func (rd *RenderData) HeadTitle() string {
 	if rd.ID == "/" {
 		return rd.Site.Title
 	}
+
+	// TODO: it'd be nice if we could define a title based on tje post type.
 
 	if rd.Title != "" {
 		return fmt.Sprintf("%s - %s", rd.Title, rd.Site.Title)

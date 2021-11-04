@@ -33,6 +33,15 @@ func (e *Eagle) GetEntryData(entry *Entry) (*EntryData, error) {
 
 func (e *Eagle) safeGetEntryData(entry *Entry) *EntryData {
 	ed, _ := e.GetEntryData(entry)
+	if ed == nil {
+		ed = &EntryData{}
+	}
+	if ed.Targets == nil {
+		ed.Targets = []string{}
+	}
+	if ed.Webmentions == nil {
+		ed.Webmentions = []string{}
+	}
 	return ed
 }
 

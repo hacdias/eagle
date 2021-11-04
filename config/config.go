@@ -13,7 +13,6 @@ import (
 type Config struct {
 	Development     bool
 	Port            int
-	BaseURL         string
 	SourceDirectory string
 	PublicDirectory string
 	Site            *Site
@@ -37,11 +36,11 @@ func Parse() (*Config, error) {
 	viper.AddConfigPath(".")
 
 	viper.SetDefault("port", 8080)
-	viper.SetDefault("baseUrl", "http://localhost:8080")
 	viper.SetDefault("sourceDirectory", "/app/source")
 	viper.SetDefault("publicDirectory", "/app/public")
 	viper.SetDefault("xrayEndpoint", "https://xray.p3k.app")
 
+	viper.SetDefault("site.baseUrl", "http://localhost:8080")
 	viper.SetDefault("site.language", "en")
 	viper.SetDefault("site.paginate", 15)
 
@@ -52,11 +51,6 @@ func Parse() (*Config, error) {
 
 	conf := &Config{}
 	err = viper.Unmarshal(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	conf.BaseURL, err = validateBaseURL(conf.BaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +82,11 @@ func Parse() (*Config, error) {
 
 	conf.Site.Sections = funk.UniqString(conf.Site.Sections)
 
+	conf.Site.BaseURL, err = validateBaseURL(conf.Site.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: add more thorough verification
 
 	return conf, nil
@@ -106,6 +105,7 @@ func validateBaseURL(url string) (string, error) {
 type Site struct {
 	Language      string
 	Title         string
+	BaseURL       string
 	Emoji         string
 	Description   string
 	Sections      []string

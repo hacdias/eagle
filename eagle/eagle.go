@@ -29,15 +29,9 @@ type Eagle struct {
 	httpClient *http.Client
 
 	// Maybe embed this one and ovveride WriteFile instead of persist?
-	SrcFs *afero.Afero
+	SrcFs  *afero.Afero
+	srcGit *gitRepo // TODO: remove?
 
-	srcGit *gitRepo
-
-	// dstFs            *afero.Afero
-	// buildMu          sync.Mutex
-	// currentPublicDir string
-
-	// TODO: make this key'ed mutexes by entry.ID
 	entriesMu     sync.RWMutex
 	entriesDataMu sync.RWMutex
 

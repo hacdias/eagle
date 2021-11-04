@@ -18,10 +18,9 @@ import (
 
 type Entry struct {
 	Frontmatter
-	ID           string
-	Permalink    string
-	RelPermalink string
-	Content      string
+	ID        string
+	Permalink string
+	Content   string
 
 	summary string
 }
@@ -145,11 +144,10 @@ func (e *Eagle) ParseEntry(id, raw string) (*Entry, error) {
 	}
 
 	entry := &Entry{
-		ID:           id,
-		Permalink:    permalink,
-		RelPermalink: id, // TODO: make sure this is correct.
-		Content:      strings.TrimSpace(splits[1]),
-		Frontmatter:  Frontmatter{},
+		ID:          id,
+		Permalink:   permalink,
+		Content:     strings.TrimSpace(splits[1]),
+		Frontmatter: Frontmatter{},
 	}
 
 	fr, err := unmarshalFrontmatter([]byte(splits[0]))
@@ -267,7 +265,7 @@ func (e *Eagle) guessPath(id string) (string, error) {
 }
 
 func (e *Eagle) makePermalink(id string) (string, error) {
-	url, err := urlpkg.Parse(e.Config.BaseURL) // Shouldn't this error be non-existent since we verify the BaseURL when parsing the conf?
+	url, err := urlpkg.Parse(e.Config.Site.BaseURL) // Shouldn't this error be non-existent since we verify the BaseURL when parsing the conf?
 	if err != nil {
 		return "", err
 	}

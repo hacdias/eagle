@@ -25,8 +25,6 @@ var webmentionTypes = map[string]string{
 	"rsvp":        "rsvp",
 }
 
-// TODO: remove this
-
 type WebmentionPayload struct {
 	Source  string                 `json:"source"`
 	Secret  string                 `json:"secret"`
@@ -44,7 +42,7 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 	var errs *multierror.Error
 
 	for _, target := range all {
-		if strings.HasPrefix(target, e.Config.BaseURL) {
+		if strings.HasPrefix(target, e.Config.Site.BaseURL) {
 			// TODO: it is a self-mention
 			e.log.Infof("TODO: self-mention from %s to %s", entry.Permalink, target)
 		}
