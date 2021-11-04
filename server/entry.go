@@ -113,6 +113,9 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *eagle
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			IsHome: true,
+		},
 		query: &eagle.SearchQuery{
 			Sections: s.Config.Site.IndexSections,
 		},

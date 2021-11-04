@@ -5,7 +5,7 @@ import (
 	urlpkg "net/url"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/v2/pkg/jf2"
+	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/spf13/viper"
 	"github.com/thoas/go-funk"
 )
@@ -79,7 +79,7 @@ func Parse() (*Config, error) {
 	}
 
 	for typ, section := range conf.Site.MicropubTypes {
-		if !jf2.IsType(typ) {
+		if !mf2.IsType(typ) {
 			return nil, fmt.Errorf("%s is not a valid micropub type", typ)
 		}
 
@@ -109,7 +109,7 @@ type Site struct {
 	Emoji         string
 	Description   string
 	Sections      []string
-	MicropubTypes map[jf2.Type]string
+	MicropubTypes map[mf2.Type]string
 	IndexSections []string
 	Paginate      int
 	Menus         map[string][]MenuItem

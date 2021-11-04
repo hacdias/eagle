@@ -21,6 +21,7 @@ const (
 
 	TemplateBase   string = "base"
 	TemplateSingle string = "single"
+	TemplateFeed   string = "feed"
 	TemplateList   string = "list"
 	TemplateError  string = "error"
 	TemplateLogin  string = "login"
@@ -116,6 +117,10 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 			return err
 		}
 
+		if id == TemplateFeed {
+			// TODO: use slightly different set of functions that make URLs absolute.
+		}
+
 		parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(fns).Parse(string(raw))
 		return err
 	})
@@ -166,8 +171,6 @@ func (rd *RenderData) HeadTitle() string {
 }
 
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
-	// TODO: fill data
-
 	data.User = e.Config.User
 	data.Site = e.Config.Site
 
@@ -185,6 +188,24 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 		}
 	}
 
+	if tpl == nil {
+		return errors.New("unrecognized template")
+	}
+
+	return tpl.Execute(w, data)
+}
+
+// RenderForFeed renders an entry to be used within a feed.
+func (e *Eagle) RenderForFeed(w io.Writer, data *RenderData) error {
+	data.User = e.Config.User
+	data.Site = e.Config.Site
+
+	templates, err := e.getTemplates()
+	if err != nil {
+		return err
+	}
+
+	tpl := templates[TemplateFeed]
 	if tpl == nil {
 		return errors.New("unrecognized template")
 	}
