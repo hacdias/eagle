@@ -291,15 +291,14 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.Entry = s.getEntryOrEmpty(r.URL.Path)
 	}
 
-	page := 0
 	if v := r.URL.Query().Get("page"); v != "" {
 		vv, _ := strconv.Atoi(v)
 		if vv >= 0 {
-			page = vv
+			ls.query.Page = vv
 		}
 	}
 
-	entries, err := s.Search(ls.query, page)
+	entries, err := s.Search(ls.query)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
@@ -310,7 +309,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	if len(entries) == s.Config.Site.Paginate {
 		url, _ := urlpkg.Parse(r.URL.String())
-		url.RawQuery = "page=" + strconv.Itoa(page+1)
+		url.RawQuery = "page=" + strconv.Itoa(ls.query.Page+1)
 		ls.rd.NextPage = url.String()
 	}
 

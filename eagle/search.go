@@ -25,6 +25,7 @@ type SearchQuery struct {
 	Year     int
 	Month    int
 	Day      int
+	Page     int
 	ByDate   bool
 	Before   time.Time
 	Draft    bool
@@ -193,7 +194,7 @@ func (e *Eagle) IndexAdd(entries ...*Entry) error {
 	return err
 }
 
-func (e *Eagle) Search(query *SearchQuery, page int) ([]*Entry, error) {
+func (e *Eagle) Search(query *SearchQuery) ([]*Entry, error) {
 	filters := []string{}
 
 	if !query.Deleted {
@@ -259,8 +260,8 @@ func (e *Eagle) Search(query *SearchQuery, page int) ([]*Entry, error) {
 		req.Sort = []string{"date:desc"}
 	}
 
-	if page != -1 {
-		req.Offset = int64(page * e.Config.Site.Paginate)
+	if query.Page != -1 {
+		req.Offset = int64(query.Page * e.Config.Site.Paginate)
 		req.Limit = int64(e.Config.Site.Paginate)
 	}
 
