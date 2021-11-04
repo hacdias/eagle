@@ -114,7 +114,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	http.Redirect(w, r, s.Config.BaseURL+entry.ID, http.StatusAccepted)
+	http.Redirect(w, r, s.Config.Site.BaseURL+entry.ID, http.StatusAccepted)
 	return 0, nil
 }
 
@@ -203,9 +203,9 @@ func (s *Server) micropubParseURL(url string) (string, error) {
 		return "", errors.New("url must be set")
 	}
 
-	if !strings.HasPrefix(url, s.Config.BaseURL) {
+	if !strings.HasPrefix(url, s.Config.Site.BaseURL) {
 		return "", errors.New("invalid domain in url")
 	}
 
-	return strings.Replace(url, s.Config.BaseURL, "", 1), nil
+	return strings.Replace(url, s.Config.Site.BaseURL, "", 1), nil
 }
