@@ -12,6 +12,7 @@ require (
 	github.com/karlseguin/typed v1.1.7
 	github.com/lestrrat-go/jwx v1.2.9
 	github.com/meilisearch/meilisearch-go v0.16.2
+	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.1
@@ -63,7 +64,6 @@ require (
 	github.com/mdlayher/netlink v1.4.1 // indirect
 	github.com/mdlayher/sdnotify v0.0.0-20210228150836-ea3ec207d697 // indirect
 	github.com/mdlayher/socket v0.0.0-20210307095302-262dc9984e00 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.16 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
