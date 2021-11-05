@@ -35,7 +35,6 @@ type SearchQuery struct {
 
 type SearchEntry struct {
 	SearchID string `json:"idx" mapstructure:"idx"`
-	RawFile  string `json:"rawFile" mapstructure:"rawFile"`
 
 	Year  int `json:"year" mapstructure:"year"`
 	Month int `json:"month" mapstructure:"month"`
@@ -166,14 +165,9 @@ func (e *Eagle) IndexAdd(entries ...*Entry) error {
 	docs := []*SearchEntry{}
 
 	for _, entry := range entries {
-		raw, err := entry.String()
-		if err != nil {
-			return err
-		}
 		docs = append(docs, &SearchEntry{
 			SearchID: hex.EncodeToString([]byte(entry.ID)),
 			ID:       entry.ID,
-			RawFile:  raw,
 			Date:     entry.Published.Unix(),
 			// Searcheable Attributes
 			Title:   entry.Title,
@@ -279,7 +273,7 @@ func (e *Eagle) Search(query *SearchQuery) ([]*Entry, error) {
 	entries := make([]*Entry, len(res))
 
 	for i, se := range res {
-		entry, err := e.ParseEntry(se.ID, se.RawFile)
+		entry, err := e.GetEntry(se.ID)
 		if err != nil {
 			return nil, err
 		}
