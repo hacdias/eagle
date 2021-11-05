@@ -152,10 +152,19 @@ func moveFiles(oldEntry *Entry, newEntry *eagle.Entry) error {
 
 func convert(x *XRay) map[string]interface{} {
 	r := map[string]interface{}{
-		"content":   x.Content,
-		"type":      "entry",
-		"published": x.Date.Format(time.RFC3339),
-		"url":       x.URL,
+		"type": "entry",
+	}
+
+	if x.URL != "" {
+		r["url"] = x.URL
+	}
+
+	if x.Content != "" {
+		r["content"] = x.Content
+	}
+
+	if !x.Date.IsZero() {
+		r["published"] = x.Date.Format(time.RFC3339)
 	}
 
 	if x.Type != "" {
