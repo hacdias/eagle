@@ -57,6 +57,18 @@ func (m *FlatHelper) String(prop string) string {
 	return ""
 }
 
+func (m *FlatHelper) Strings(prop string) []string {
+	if v, ok := m.Properties.StringIf(prop); ok {
+		return []string{v}
+	}
+
+	if v, ok := m.Properties.StringsIf(prop); ok && len(v) > 0 {
+		return v
+	}
+
+	return []string{}
+}
+
 func (m *FlatHelper) Name() string {
 	return m.Properties.StringOr("name", "")
 }
