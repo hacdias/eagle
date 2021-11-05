@@ -16,6 +16,7 @@ import (
 	"willnorris.com/go/webmention"
 )
 
+// TODO: use this to parse "wm-property"
 var webmentionTypes = map[string]string{
 	"like-of":     "like",
 	"repost-of":   "repost",
@@ -56,7 +57,7 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 
 	if !entry.Deleted {
 		// If it's not a deleted entry, update the targets list.
-		err = e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+		err = e.UpdateSidecar(entry, func(data *Sidecar) (*Sidecar, error) {
 			data.Targets = curr
 			return data, nil
 		})
@@ -81,7 +82,7 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 		}
 	}
 
-	entryData, err := e.GetEntryData(entry)
+	entryData, err := e.GetSidecar(entry)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -96,6 +97,7 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 }
 
 func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
+	// TODO: render entry html.
 	// html, err := e.getEntryHTML(entry)
 	// if err != nil {
 	// 	return nil, err
@@ -168,7 +170,7 @@ func (e *Eagle) UpdateTargets(entry *Entry) error {
 		return nil
 	}
 
-	return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
+	return e.UpdateSidecar(entry, func(data *Sidecar) (*Sidecar, error) {
 		data.Targets = curr
 		return data, nil
 	})
@@ -201,6 +203,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	// 	})
 	// }
 
+	// TODO: use .parseXRay instead
 	// newWebmention, err := e.parseWebmentionPayload(payload)
 	// if err != nil {
 	// 	return err

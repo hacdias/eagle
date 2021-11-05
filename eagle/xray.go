@@ -3,10 +3,8 @@ package eagle
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	urlpkg "net/url"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,84 +12,19 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/karlseguin/typed"
-	"github.com/microcosm-cc/bluemonday"
 )
 
-// XRayDirectory is the directory where all the xrays will be stored
-// when retrieved by .GetXrayAndSave
-const XRayDirectory = "xrays"
+type xray struct {
+	Data map[string]interface{} `json:"data"`
+	Code int                    `json:"code"`
+}
 
-// TODO: maybe does not need to be exported
-func (e *Eagle) GetXRay(urlStr string) (map[string]interface{}, error) {
+func (e *Eagle) getXRay(urlStr string) (map[string]interface{}, error) {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
 
-	filename, err := getXRayFilename(url)
-	if err != nil {
-		return nil, err
-	}
-
-	jf2, err := e.xrayFromDisk(filename)
-	if err == nil {
-		return jf2, nil
-	}
-
-	jf2, err = e.fetchXRay(url)
-	if err != nil {
-		return nil, err
-	}
-
-	err = e.SrcFs.MkdirAll(filepath.Dir(filename), 0777)
-	if err != nil {
-		return nil, err
-	}
-
-	err = e.PersistJSON(filename, jf2, "xray: "+url.String())
-	if err != nil {
-		return nil, err
-	}
-
-	return jf2, nil
-}
-
-func (e *Eagle) safeXRayFromDisk(urlStr string) map[string]interface{} {
-	url, err := urlpkg.Parse(urlStr)
-	if err != nil {
-		return nil
-	}
-
-	filename, err := getXRayFilename(url)
-	if err != nil {
-		return nil
-	}
-
-	jf2, _ := e.xrayFromDisk(filename)
-	return jf2
-}
-
-func (e *Eagle) xrayFromDisk(filename string) (map[string]interface{}, error) {
-	_, err := e.SrcFs.Stat(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	var jf2 map[string]interface{}
-	data, err := e.SrcFs.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(data, &jf2)
-	if err != nil {
-		return nil, err
-	}
-
-	return jf2, nil
-}
-
-func (e *Eagle) fetchXRay(url *urlpkg.URL) (map[string]interface{}, error) {
 	data := urlpkg.Values{}
 	data.Set("url", url.String())
 
@@ -117,7 +50,7 @@ func (e *Eagle) fetchXRay(url *urlpkg.URL) (map[string]interface{}, error) {
 	}
 	defer res.Body.Close()
 
-	var xray xrayResponse
+	var xray xray
 	err = json.NewDecoder(res.Body).Decode(&xray)
 	if err != nil {
 		return nil, err
@@ -127,7 +60,7 @@ func (e *Eagle) fetchXRay(url *urlpkg.URL) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("no xray found for %s", url.String())
 	}
 
-	jf2 := e.ParseXRayResponse(xray.Data)
+	jf2 := e.parseXRay(xray.Data)
 	if jf2 == nil {
 		return nil, fmt.Errorf("no xray found for %s", url.String())
 	}
@@ -135,22 +68,8 @@ func (e *Eagle) fetchXRay(url *urlpkg.URL) (map[string]interface{}, error) {
 	return jf2, nil
 }
 
-func getXRayFilename(url *urlpkg.URL) (string, error) {
-	var err error
-
-	host := url.Host
-	if strings.Contains(host, ":") {
-		host, _, err = net.SplitHostPort(url.Host)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return filepath.Join(XRayDirectory, host, url.Path, "data.json"), nil
-}
-
-// TODO: call this for all things already so they upload pics
-func (e *Eagle) ParseXRayResponse(xray map[string]interface{}) map[string]interface{} {
+// TODO: merge parsing with https://github.com/hacdias/eagle/blob/main/eagle/webmentions.go#L245
+func (e *Eagle) parseXRay(xray map[string]interface{}) map[string]interface{} {
 	data := typed.New(xray)
 
 	hasDate := false
@@ -210,18 +129,11 @@ func (e *Eagle) ParseXRayResponse(xray map[string]interface{}) map[string]interf
 	return data
 }
 
-type xrayResponse struct {
-	Data map[string]interface{} `json:"data"`
-	Code int                    `json:"code"`
-}
-
 var (
 	spaceCollapser = regexp.MustCompile(`\s+`)
-	sanitizer      = bluemonday.StrictPolicy()
 )
 
 func cleanContent(data string) string {
-	data = sanitizer.Sanitize(data)
 	data = strings.TrimSpace(data)
 	data = spaceCollapser.ReplaceAllString(data, " ") // Collapse whitespaces
 	return data

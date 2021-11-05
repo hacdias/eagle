@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v2/config"
 )
 
@@ -61,16 +62,39 @@ func truncate(text string, size int) string {
 	return strings.TrimSpace(text[:size]) + "..."
 }
 
+func domain(text string) string {
+	u, err := urlpkg.Parse(text)
+	if err != nil {
+		return text
+	}
+
+	return u.Host
+}
+
+func safeHTML(text string) template.HTML {
+	return template.HTML(text)
+}
+
+func dateFormat(date, template string) string {
+	t, err := dateparse.ParseStrict(date)
+	if err != nil {
+		return date
+	}
+	return t.Format(template)
+}
+
 func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 	return template.FuncMap{
-		"include":  e.includeTemplate,
-		"now":      time.Now,
-		"md":       e.safeRenderMarkdownAsHTML,
-		"xray":     e.safeXRayFromDisk,
-		"data":     e.safeGetEntryData,
-		"truncate": truncate,
-		"absURL":   e.absoluteURL,
-		"relURL":   e.relativeURL,
+		"include":    e.includeTemplate,
+		"now":        time.Now,
+		"md":         e.safeRenderMarkdownAsHTML,
+		"data":       e.safeGetSidecar,
+		"truncate":   truncate,
+		"domain":     domain,
+		"safeHTML":   safeHTML,
+		"dateFormat": dateFormat,
+		"absURL":     e.absoluteURL,
+		"relURL":     e.relativeURL,
 	}
 }
 
