@@ -198,8 +198,8 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err error) {
 }
 
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
-	data.TorUsed = false   // TODO
-	data.OnionAddress = "" // TODO
+	data.TorUsed = false // TODO
+	data.OnionAddress = s.onionAddress
 	data.LoggedIn = s.isLoggedIn(w, r)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

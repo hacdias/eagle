@@ -30,7 +30,7 @@ type Eagle struct {
 
 	// Maybe embed this one and ovveride WriteFile instead of persist?
 	SrcFs  *afero.Afero
-	srcGit *gitRepo // TODO: remove?
+	srcGit *gitRepo
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -41,16 +41,13 @@ type Eagle struct {
 	sidecarsMu sync.Mutex
 
 	webmentionsClient *webmention.Client
-
-	allowedTypes []mf2.Type
+	allowedTypes      []mf2.Type
+	templates         map[string]*template.Template
+	markdown          goldmark.Markdown
 
 	Notifications
 	Config      *config.Config
 	PublicDirCh chan string
-
-	markdown goldmark.Markdown
-
-	templates map[string]*template.Template
 
 	// Optional services
 	media *Media

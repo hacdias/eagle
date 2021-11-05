@@ -83,8 +83,8 @@ func dateFormat(date, template string) string {
 	return t.Format(template)
 }
 
-func (e *Eagle) getTemplateFuncMap() template.FuncMap {
-	return template.FuncMap{
+func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
+	funcs := template.FuncMap{
 		"include":    e.includeTemplate,
 		"now":        time.Now,
 		"md":         e.safeRenderMarkdownAsHTML,
@@ -96,6 +96,12 @@ func (e *Eagle) getTemplateFuncMap() template.FuncMap {
 		"absURL":     e.absoluteURL,
 		"relURL":     e.relativeURL,
 	}
+
+	if alwaysAbsolute {
+		funcs["relURL"] = e.absoluteURL
+	}
+
+	return funcs
 }
 
 func (e *Eagle) absoluteURL(path string) string {
@@ -121,7 +127,7 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 		return nil, err
 	}
 
-	fns := e.getTemplateFuncMap()
+	fns := e.getTemplateFuncMap(false)
 
 	baseTemplate, err := template.New("base").Funcs(fns).Parse(string(baseTemplateData))
 	if err != nil {
@@ -157,10 +163,12 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 		}
 
 		if id == TemplateFeed {
-			// TODO: use slightly different set of functions that make URLs absolute.
+			absFns := e.getTemplateFuncMap(true)
+			parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(absFns).Parse(string(raw))
+		} else {
+			parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(fns).Parse(string(raw))
 		}
 
-		parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(fns).Parse(string(raw))
 		return err
 	})
 
@@ -229,24 +237,6 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 		}
 	}
 
-	if tpl == nil {
-		return errors.New("unrecognized template")
-	}
-
-	return tpl.Execute(w, data)
-}
-
-// RenderForFeed renders an entry to be used within a feed.
-func (e *Eagle) RenderForFeed(w io.Writer, data *RenderData) error {
-	data.User = e.Config.User
-	data.Site = e.Config.Site
-
-	templates, err := e.getTemplates()
-	if err != nil {
-		return err
-	}
-
-	tpl := templates[TemplateFeed]
 	if tpl == nil {
 		return errors.New("unrecognized template")
 	}

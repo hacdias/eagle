@@ -126,6 +126,14 @@ func (e *Eagle) parseXRay(xray map[string]interface{}) map[string]interface{} {
 		}
 	}
 
+	if wmProperty, ok := data.StringIf("wm-property"); ok {
+		if v, ok := webmentionTypes[wmProperty]; ok {
+			data["post-type"] = v
+		} else {
+			data["post-type"] = "mention"
+		}
+	}
+
 	return data
 }
 

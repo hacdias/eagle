@@ -88,27 +88,23 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 		entry.Updated = time.Now()
 	}
 
-	err = s.savePost(entry, &saveOptions{
-		twitter: r.FormValue("twitter") == "on",
-	})
+	err = s.SaveEntry(entry)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
+	go s.postSavePost(entry, &postSaveOptions{
+		twitter: r.FormValue("twitter") == "on",
+	})
+
 	s.serveEntry(w, r, entry)
 }
 
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *eagle.Entry) {
-	tpls := []string{}
-	if entry.Section != "" {
-		tpls = append(tpls, eagle.TemplateSingle+"."+entry.Section)
-	}
-	tpls = append(tpls, eagle.TemplateSingle)
-
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: entry,
-	}, tpls)
+	}, entry.Templates())
 }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
@@ -381,24 +377,11 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 // 	return id, nil
 // }
 
-type saveOptions struct {
-	twitter  bool
-	skipSave bool
+type postSaveOptions struct {
+	twitter bool
 }
 
-func (s *Server) savePost(entry *eagle.Entry, opts *saveOptions) error {
-	if !opts.skipSave {
-		err := s.SaveEntry(entry)
-		if err != nil {
-			return err
-		}
-	}
-
-	// TODO
-	// get xray: from indieweb property
-	// syndicate
-	// webmentions
-	// invalidate cache
-
-	return nil
+func (s *Server) postSavePost(entry *eagle.Entry, opts *postSaveOptions) {
+	// Invalidate cache
+	s.PostSaveEntry(entry)
 }
