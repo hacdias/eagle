@@ -8,6 +8,8 @@ import (
 	"github.com/go-chi/jwtauth"
 )
 
+// TODO: handle aliases.
+
 func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r := chi.NewRouter()
 
