@@ -3,13 +3,11 @@ package eagle
 import (
 	"errors"
 	"fmt"
-	"math"
 	urlpkg "net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/karlseguin/typed"
@@ -73,24 +71,13 @@ func (e *Entry) Summary() string {
 
 	if strings.Contains(e.Content, "<!--more-->") {
 		e.summary = strings.Split(e.Content, "<!--more-->")[0]
+	} else if e.Description != "" {
+		e.summary = e.Description
 	} else {
-		e.summary = "TODO: define summary"
+		e.summary = truncate(e.Content, 300)
 	}
 
 	return e.summary
-}
-
-func (f *Frontmatter) YearsOld() int {
-	t := f.Published
-	if !f.Updated.IsZero() {
-		t = f.Updated
-	}
-
-	if t.IsZero() {
-		return 0
-	}
-
-	return int(math.Floor(time.Since(t).Hours() / 8760))
 }
 
 func (e *Entry) String() (string, error) {
@@ -100,6 +87,21 @@ func (e *Entry) String() (string, error) {
 	}
 
 	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), e.Content), nil
+}
+
+func (e *Entry) Templates() []string {
+	tpls := []string{}
+	if e.Section != "" {
+		tpls = append(tpls, TemplateSingle+"."+e.Section)
+	}
+	tpls = append(tpls, TemplateSingle)
+	return tpls
+}
+
+func (e *Entry) ContextURL() string {
+	mf2 := e.MF2()
+	urlStr := mf2.String(mf2.TypeProperty())
+	return urlStr
 }
 
 // type Picture struct {
@@ -187,7 +189,6 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 	}
 
 	_ = e.IndexAdd(entry)
-
 	return nil
 }
 
@@ -236,8 +237,6 @@ func (e *Eagle) GetAllEntries() ([]*Entry, error) {
 	return entries, err
 }
 
-// TODO: put microformats conversions here too, cleanup function names.
-
 func (e *Eagle) cleanID(id string) string {
 	id = path.Clean(id)
 	id = strings.TrimSuffix(id, "/")
@@ -247,18 +246,12 @@ func (e *Eagle) cleanID(id string) string {
 
 func (e *Eagle) guessPath(id string) (string, error) {
 	path := filepath.Join(ContentDirectory, id, "index.md")
-	if _, err := e.SrcFs.Stat(path); err == nil {
+	_, err := e.SrcFs.Stat(path)
+	if err == nil {
 		return path, nil
-	} else {
-		return "", err
 	}
 
-	// path = filepath.Join(ContentDirectory, id, "_index.md")
-	// if _, err := e.SrcFs.Stat(path); err == nil {
-	// 	return path, nil
-	// } else {
-	// 	return "", err
-	// }
+	return "", err
 }
 
 func (e *Eagle) makePermalink(id string) (string, error) {
@@ -268,4 +261,53 @@ func (e *Eagle) makePermalink(id string) (string, error) {
 	}
 	url.Path = id
 	return url.String(), nil
+}
+
+func (e *Eagle) PostSaveEntry(entry *Entry) {
+	// 1. Check for context URL and fetch the data if needed.
+	mm := entry.MF2()
+	switch mm.PostType() {
+	case mf2.TypeLike, mf2.TypeRepost, mf2.TypeReply:
+		urlStr := entry.ContextURL()
+		if urlStr != "" {
+			err := e.fetchSaveContext(entry, urlStr)
+			if err != nil {
+				e.NotifyError(err)
+			}
+		}
+	}
+
+	// 2. Check if the post has a 'location' property and parse it
+	// if it is a string.
+
+	// 3. If it is a checkin, download map image.
+
+	// TODO 4. Syndicate
+
+	// 5. Webmentions
+	err := e.SendWebmentions(entry)
+	if err != nil {
+		e.NotifyError(err)
+	}
+}
+
+func (e *Eagle) fetchSaveContext(entry *Entry, urlStr string) error {
+	sidecar, err := e.GetSidecar(entry)
+	if err != nil {
+		return fmt.Errorf("could not fetch sidecar for %s: %w", entry.ID, err)
+	}
+
+	if sidecar.Context != nil {
+		return nil
+	}
+
+	context, err := e.getXRay(urlStr)
+	if err != nil {
+		return fmt.Errorf("could not fetch context xray for %s: %w", entry.ID, err)
+	}
+
+	return e.UpdateSidecar(entry, func(data *Sidecar) (*Sidecar, error) {
+		data.Context = context
+		return data, nil
+	})
 }

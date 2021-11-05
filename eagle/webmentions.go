@@ -1,6 +1,7 @@
 package eagle
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -50,7 +51,7 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 
 		err := e.sendWebmention(entry.Permalink, target)
 		if err != nil && !errors.Is(err, webmention.ErrNoEndpointFound) {
-			err = fmt.Errorf("webmention error %s: %w", target, err)
+			err = fmt.Errorf("send webmention error %s: %w", target, err)
 			errs = multierror.Append(errs, err)
 		}
 	}
@@ -65,7 +66,12 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 		errs = multierror.Append(errs, err)
 	}
 
-	return errs.ErrorOrNil()
+	err = errs.ErrorOrNil()
+	if err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("webmention errors for %s: %w", entry.ID, err)
 }
 
 func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string, error) {
@@ -97,26 +103,24 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 }
 
 func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
-	// TODO: render entry html.
-	// html, err := e.getEntryHTML(entry)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var buf bytes.Buffer
+	err := e.Render(&buf, &RenderData{
+		Entry: entry,
+	}, entry.Templates())
+	if err != nil {
+		return nil, err
+	}
 
-	// r := bytes.NewReader(html)
+	targets, err := webmention.DiscoverLinksFromReader(&buf, entry.Permalink, ".h-entry .e-content a")
+	if err != nil {
+		return nil, err
+	}
 
-	// targets, err := webmention.DiscoverLinksFromReader(r, entry.Permalink, ".h-entry .e-content a")
-	// if err != nil {
-	// 	return nil, err
-	// }
+	targets = e.filterTargets(targets)
 
-	// targets = e.filterTargets(targets)
-
-	// if entry.Metadata.ReplyTo != nil && entry.Metadata.ReplyTo.URL != "" {
-	// 	targets = append(targets, entry.Metadata.ReplyTo.URL)
-	// }
-
-	targets := []string{}
+	if urlStr := entry.ContextURL(); urlStr != "" {
+		targets = append(targets, urlStr)
+	}
 
 	return funk.UniqString(targets), nil
 }
@@ -156,72 +160,72 @@ func (e *Eagle) sendWebmention(source, target string) error {
 	return nil
 }
 
-func (e *Eagle) UpdateTargets(entry *Entry) error {
-	if entry.Deleted {
-		return nil
+// func (e *Eagle) UpdateTargets(entry *Entry) error {
+// 	if entry.Deleted {
+// 		return nil
+// 	}
+
+// 	_, curr, _, err := e.GetWebmentionTargets(entry)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if len(curr) == 0 {
+// 		return nil
+// 	}
+
+// 	return e.UpdateSidecar(entry, func(data *Sidecar) (*Sidecar, error) {
+// 		data.Targets = curr
+// 		return data, nil
+// 	})
+// }
+
+func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
+	e.log.Infow("received webmention", "webmention", payload)
+
+	url, err := urlpkg.Parse(payload.Target)
+	if err != nil {
+		return fmt.Errorf("invalid target: %s", payload.Target)
 	}
 
-	_, curr, _, err := e.GetWebmentionTargets(entry)
+	entry, err := e.GetEntry(url.Path)
 	if err != nil {
 		return err
 	}
 
-	if len(curr) == 0 {
-		return nil
+	if payload.Deleted {
+		return e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
+			for i, mention := range sidecar.Webmentions {
+				url, ok := mention["url"].(string)
+				if !ok {
+					continue
+				}
+				if url == payload.Source {
+					sidecar.Webmentions = append(sidecar.Webmentions[:i], sidecar.Webmentions[i+1:]...)
+					break
+				}
+			}
+			return sidecar, nil
+		})
 	}
 
-	return e.UpdateSidecar(entry, func(data *Sidecar) (*Sidecar, error) {
-		data.Targets = curr
-		return data, nil
+	data := e.parseXRay(payload.Post)
+	return e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
+		for i, mention := range sidecar.Webmentions {
+			url, ok := mention["url"].(string)
+			if !ok {
+				continue
+			}
+
+			if url == payload.Source {
+				sidecar.Webmentions[i] = data
+				return sidecar, nil
+			}
+		}
+
+		sidecar.Webmentions = append(sidecar.Webmentions, data)
+		return sidecar, nil
 	})
-}
-
-func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
-	e.log.Infow("received webmention", "webmention", payload)
-	// TODO: just save as xray and add line to wms
-
-	// url, err := urlpkg.Parse(payload.Target)
-	// if err != nil {
-	// 	return fmt.Errorf("invalid target: %s", payload.Target)
-	// }
-
-	// entry, err := e.GetEntry(url.Path)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if payload.Deleted {
-	// 	return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
-	// 		newWebmentions := []*Webmention{}
-	// 		for _, mention := range data.Webmentions {
-	// 			if mention.URL != payload.Source {
-	// 				newWebmentions = append(newWebmentions, mention)
-	// 			}
-	// 		}
-	// 		data.Webmentions = newWebmentions
-	// 		return data, nil
-	// 	})
-	// }
-
-	// TODO: use .parseXRay instead
-	// newWebmention, err := e.parseWebmentionPayload(payload)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// return e.TransformEntryData(entry, func(data *EntryData) (*EntryData, error) {
-	// 	for i, webmention := range data.Webmentions {
-	// 		if webmention.URL == newWebmention.URL {
-	// 			data.Webmentions[i] = newWebmention
-	// 			return data, nil
-	// 		}
-	// 	}
-
-	// 	data.Webmentions = append(data.Webmentions, newWebmention)
-	// 	return data, nil
-	// })
-
-	return nil
 }
 
 func (e *Eagle) uploadXRayAuthorPhoto(url string) string {

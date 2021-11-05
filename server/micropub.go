@@ -109,10 +109,12 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	// 	synd.Targets = targets
 	// }
 
-	err = s.savePost(entry, &saveOptions{})
+	err = s.SaveEntry(entry)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	go s.postSavePost(entry, &postSaveOptions{})
 
 	http.Redirect(w, r, s.Config.Site.BaseURL+entry.ID, http.StatusAccepted)
 	return 0, nil
@@ -143,11 +145,10 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	http.Redirect(w, r, entry.Permalink, http.StatusOK)
+	go s.postSavePost(entry, &postSaveOptions{})
 
-	return 0, s.savePost(entry, &saveOptions{
-		skipSave: true,
-	})
+	http.Redirect(w, r, entry.Permalink, http.StatusOK)
+	return 0, nil
 }
 
 func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
@@ -164,12 +165,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.savePost(entry, &saveOptions{
-		skipSave: true,
-	})
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
+	go s.postSavePost(entry, &postSaveOptions{})
 
 	return http.StatusOK, nil
 }
@@ -188,12 +184,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.savePost(entry, &saveOptions{
-		skipSave: true,
-	})
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
+	go s.postSavePost(entry, &postSaveOptions{})
 
 	return http.StatusOK, nil
 }

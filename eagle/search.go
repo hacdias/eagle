@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/meilisearch/meilisearch-go"
 	"github.com/mitchellh/mapstructure"
@@ -27,7 +26,6 @@ type SearchQuery struct {
 	Day      int
 	Page     int
 	ByDate   bool
-	Before   time.Time
 	Draft    bool
 	Deleted  bool
 	Private  bool

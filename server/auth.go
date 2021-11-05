@@ -35,6 +35,7 @@ func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
 	s.serveLoginPage(w, r, http.StatusOK, "")
 }
 
+// TODO(future): implement 2FA or Push Notification.
 func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -52,7 +53,6 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	expiration := time.Now().Add(time.Hour * 24 * 7)
-	// TODO: 2fa or push notification
 
 	_, signed, err := s.token.Encode(map[string]interface{}{
 		jwt.SubjectKey:    "Eagle",

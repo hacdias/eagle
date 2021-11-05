@@ -18,6 +18,7 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 			return
 		}
 
+		// TODO: build assets
 		// TODO: find better solution for this. Asset fioles may need to be built.
 		assetFile := filepath.Join(s.Config.SourceDirectory, eagle.AssetsDirectory, r.URL.Path)
 		if stat, err := os.Stat(assetFile); err == nil && stat.Mode().IsRegular() {
