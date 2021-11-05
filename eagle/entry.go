@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v2/pkg/mf2"
-	"github.com/hacdias/eagle/v2/pkg/yaml"
 	"github.com/karlseguin/typed"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Entry struct {
@@ -109,9 +109,6 @@ func (e *Entry) String() (string, error) {
 // }
 
 func (e *Eagle) GetEntry(id string) (*Entry, error) {
-	e.entriesMu.RLock()
-	defer e.entriesMu.RUnlock()
-
 	id = e.cleanID(id)
 	filepath, err := e.guessPath(id)
 	if err != nil {

@@ -12,7 +12,6 @@ require (
 	github.com/karlseguin/typed v1.1.7
 	github.com/lestrrat-go/jwx v1.2.9
 	github.com/meilisearch/meilisearch-go v0.16.2
-	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.1
@@ -34,7 +33,6 @@ require (
 	github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74 // indirect
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
-	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/coreos/go-iptables v0.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -44,7 +42,6 @@ require (
 	github.com/godbus/dbus/v5 v5.0.5 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
