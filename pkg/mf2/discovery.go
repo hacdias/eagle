@@ -31,20 +31,25 @@ const (
 	TypeArticle  Type = "article"
 )
 
-var propertyToType = map[string]Type{
-	"rsvp":        TypeRsvp,
-	"repost-of":   TypeRepost,
-	"like-of":     TypeLike,
-	"in-reply-to": TypeReply,
-	"bookmark-of": TypeBookmark,
-	"follow-of":   TypeFollow,
-	"read-of":     TypeRead,
-	"watch-of":    TypeWatch,
-	"listen-of":   TypeListen,
-	"checkin":     TypeCheckin,
-	"video":       TypeVideo,
-	"audio":       TypeAudio,
-	"photo":       TypePhoto,
+type propTyp struct {
+	prop string
+	typ  Type
+}
+
+var propertyToType = []propTyp{
+	{"rsvp", TypeRsvp},
+	{"repost-of", TypeRepost},
+	{"like-of", TypeLike},
+	{"in-reply-to", TypeReply},
+	{"bookmark-of", TypeBookmark},
+	{"follow-of", TypeFollow},
+	{"read-of", TypeRead},
+	{"watch-of", TypeWatch},
+	{"listen-of", TypeListen},
+	{"checkin", TypeCheckin},
+	{"video", TypeVideo},
+	{"audio", TypeAudio},
+	{"photo", TypePhoto},
 }
 
 // DiscoverType discovers a post type from its properties according to the algorithm
@@ -68,9 +73,9 @@ func DiscoverType(data map[string]interface{}) (Type, string) {
 		properties = typed.New(p)
 	}
 
-	for prop, typ := range propertyToType {
-		if _, ok := properties[prop]; ok {
-			return typ, prop
+	for _, v := range propertyToType {
+		if _, ok := properties[v.prop]; ok {
+			return v.typ, v.prop
 		}
 	}
 
