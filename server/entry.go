@@ -107,6 +107,12 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *eagle
 	}, entry.Templates())
 }
 
+func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		query: &eagle.SearchQuery{},
+	})
+}
+
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
