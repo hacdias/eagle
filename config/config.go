@@ -125,6 +125,7 @@ type User struct {
 	Name     string
 	Nickname string
 	Photo    string
+	Email    string
 	URL      string
 	Rels     []string
 	PGP      string

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/jlelse/feeds"
 )
 
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
@@ -319,13 +321,71 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.NextPage = url.String()
 	}
 
-	if feed := chi.URLParam(r, "feed"); feed != "" {
-		// https://github.com/jlelse/feeds
-		w.WriteHeader(http.StatusNotImplemented)
+	feedType := chi.URLParam(r, "feed")
+	if feedType == "" {
+		s.serveHTML(w, r, ls.rd, append(ls.templates, eagle.TemplateList))
 		return
 	}
 
-	s.serveHTML(w, r, ls.rd, append(ls.templates, eagle.TemplateList))
+	feed := &feeds.Feed{
+		Title:       ls.rd.Entry.Title,
+		Link:        &feeds.Link{Href: strings.TrimSuffix(s.AbsoluteURL(r.URL.Path), "."+feedType)},
+		Description: ls.rd.Entry.Summary(),
+		Author: &feeds.Author{
+			Name:  s.Config.User.Name,
+			Email: s.Config.User.Email,
+		},
+		Created: time.Now(),
+		Items:   []*feeds.Item{},
+	}
+
+	for _, entry := range entries {
+		var buf bytes.Buffer
+		err = s.Render(&buf, &eagle.RenderData{Entry: entry}, []string{eagle.TemplateFeed})
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		feed.Items = append(feed.Items, &feeds.Item{
+			Title:       entry.Title,
+			Link:        &feeds.Link{Href: entry.Permalink},
+			Description: entry.Description,
+			Content:     buf.String(),
+			Author: &feeds.Author{
+				Name:  s.Config.User.Name,
+				Email: s.Config.User.Email,
+			},
+			Created: entry.Published,
+		})
+	}
+
+	var feedString, feedMediaType string
+
+	switch feedType {
+	case "rss":
+		feedString, err = feed.ToRss()
+		feedMediaType = "application/rss+xml"
+
+	case "atom":
+		feedString, err = feed.ToAtom()
+		feedMediaType = "application/atom+xml"
+	case "json":
+		feedString, err = feed.ToJSON()
+		feedMediaType = "application/feed+json"
+	}
+
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", feedMediaType+"; charset=utf-8")
+	_, err = w.Write([]byte(feedString))
+	if err != nil {
+		// TODO: maybe notify as these are terminal errors kinda.
+		s.log.Error("error while serving feed", err)
+	}
 }
 
 // func (s *Server) goSyndicate(entry *eagle.Entry) {

@@ -93,18 +93,18 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"domain":     domain,
 		"safeHTML":   safeHTML,
 		"dateFormat": dateFormat,
-		"absURL":     e.absoluteURL,
+		"absURL":     e.AbsoluteURL,
 		"relURL":     e.relativeURL,
 	}
 
 	if alwaysAbsolute {
-		funcs["relURL"] = e.absoluteURL
+		funcs["relURL"] = e.AbsoluteURL
 	}
 
 	return funcs
 }
 
-func (e *Eagle) absoluteURL(path string) string {
+func (e *Eagle) AbsoluteURL(path string) string {
 	url, _ := urlpkg.Parse(path)
 	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
 	return base.ResolveReference(url).String()

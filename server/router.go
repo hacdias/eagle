@@ -70,7 +70,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 }
 
 const (
-	feedPath  = ".{feed:xml|json}"
+	feedPath  = ".{feed:rss|atom|json}"
 	yearPath  = `/{year:(x|\d\d\d\d)}`
 	monthPath = yearPath + `/{month:(x|\d\d)}`
 	dayPath   = monthPath + `/{day:(x|\d\d)}`
@@ -80,13 +80,15 @@ func (s *Server) listingRoutes(r chi.Router) {
 	r.Get("/", s.indexGet)
 	r.Get("/feed"+feedPath, s.indexGet)
 
-	// TODO: feed or not?
 	r.Get("/all", s.allGet)
+	r.Get("/all"+feedPath, s.allGet)
 
 	r.Get(yearPath, s.dateGet)
 	r.Get(yearPath+feedPath, s.dateGet)
+
 	r.Get(monthPath, s.dateGet)
 	r.Get(monthPath+feedPath, s.dateGet)
+
 	r.Get(dayPath, s.dateGet)
 	r.Get(dayPath+feedPath, s.dateGet)
 
