@@ -335,6 +335,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Name:  s.Config.User.Name,
 			Email: s.Config.User.Email,
 		},
+		// TODO: support .tags
 		Created: time.Now(),
 		Items:   []*feeds.Item{},
 	}
@@ -350,6 +351,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		feed.Items = append(feed.Items, &feeds.Item{
 			Title:       entry.Title,
 			Link:        &feeds.Link{Href: entry.Permalink},
+			Id:          entry.ID,
 			Description: entry.Description,
 			Content:     buf.String(),
 			Author: &feeds.Author{
@@ -357,6 +359,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 				Email: s.Config.User.Email,
 			},
 			Created: entry.Published,
+			Updated: entry.Updated,
 		})
 	}
 
