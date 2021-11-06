@@ -80,6 +80,9 @@ func (s *Server) listingRoutes(r chi.Router) {
 	r.Get("/", s.indexGet)
 	r.Get("/feed"+feedPath, s.indexGet)
 
+	// TODO: feed or not?
+	r.Get("/all", s.allGet)
+
 	r.Get(yearPath, s.dateGet)
 	r.Get(yearPath+feedPath, s.dateGet)
 	r.Get(monthPath, s.dateGet)
