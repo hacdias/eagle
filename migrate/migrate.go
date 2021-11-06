@@ -87,7 +87,7 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 		month := newEntry.Published.Month()
 		day := newEntry.Published.Day()
 
-		newEntry.ID = fmt.Sprintf("%04d/%02d/%02d/%s", year, month, day, oldEntry.Slug())
+		newEntry.ID = fmt.Sprintf("/%04d/%02d/%02d/%s", year, month, day, oldEntry.Slug())
 	}
 
 	if oldEntry.Metadata.Tags != nil && len(oldEntry.Metadata.Tags) > 0 {
