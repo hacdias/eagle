@@ -13,7 +13,7 @@ import (
 	"github.com/hacdias/eagle/v2/logging"
 )
 
-const dataPath = "testing/hacdias.com/data/content"
+const dataPath = "testing/hacdias.com/data"
 const oldContentPath = "testing/hacdias.com/content/"
 const newContentPath = "testing/hacdias.com/content2/"
 
@@ -28,6 +28,11 @@ func Migrate() error {
 	}()
 
 	e, err := eagle.NewEagle(c)
+	if err != nil {
+		return err
+	}
+
+	err = getReads(e)
 	if err != nil {
 		return err
 	}
@@ -186,7 +191,7 @@ func handleExternal(e *eagle.Eagle, oldEntry *Entry, newEntry *eagle.Entry) erro
 	}
 
 	// Targets and webmentions
-	filename := filepath.Join(dataPath, oldEntry.Metadata.DataID+".json")
+	filename := filepath.Join(dataPath, "content", oldEntry.Metadata.DataID+".json")
 	if _, err := os.Stat(filename); err == nil {
 		data, err := os.ReadFile(filename)
 		if err != nil {
