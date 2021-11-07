@@ -87,7 +87,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	funcs := template.FuncMap{
 		"include":    e.includeTemplate,
 		"now":        time.Now,
-		"md":         e.safeRenderMarkdownAsHTML,
+		"md":         e.getRenderMarkdown(alwaysAbsolute),
 		"data":       e.safeGetSidecar,
 		"truncate":   truncate,
 		"domain":     domain,
@@ -244,21 +244,18 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	return tpl.Execute(w, data)
 }
 
-func (e *Eagle) renderMarkdown(source string) ([]byte, error) {
-	var buffer bytes.Buffer
-	err := e.markdown.Convert([]byte(source), &buffer)
-	return buffer.Bytes(), err
-}
-
-func (e *Eagle) renderMarkdownAsHTML(source string) (rendered template.HTML, err error) {
-	b, err := e.renderMarkdown(source)
-	if err != nil {
-		return "", err
+func (e *Eagle) getRenderMarkdown(absoluteURLs bool) func(string) template.HTML {
+	if absoluteURLs {
+		return func(source string) template.HTML {
+			var buffer bytes.Buffer
+			_ = e.absoluteMarkdown.Convert([]byte(source), &buffer)
+			return template.HTML(buffer.Bytes())
+		}
+	} else {
+		return func(source string) template.HTML {
+			var buffer bytes.Buffer
+			_ = e.markdown.Convert([]byte(source), &buffer)
+			return template.HTML(buffer.Bytes())
+		}
 	}
-	return template.HTML(b), nil
-}
-
-func (e *Eagle) safeRenderMarkdownAsHTML(source string) template.HTML {
-	h, _ := e.renderMarkdownAsHTML(source)
-	return h
 }

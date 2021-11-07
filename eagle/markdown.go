@@ -31,30 +31,45 @@ var defaultGoldmarkOptions = []goldmark.Option{
 	),
 }
 
-// TODO: probably will want to render with absolute urls for feeds
-// and relative urls otherwise.
+func newMarkdown(absURLs bool, baseURL string) goldmark.Markdown {
+	return goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(
+		&links{
+			absURLs: absURLs,
+			baseURL: baseURL,
+		},
+	))...)
+}
+
+// TODO: image rendering and absURLs
+// TODO: figure rendering and absURLs
 
 type links struct {
+	baseURL string
+	absURLs bool
 }
 
 // Extend implements goldmark.Extender.
-func (e *links) Extend(m goldmark.Markdown) {
+func (l *links) Extend(m goldmark.Markdown) {
 	m.Renderer().AddOptions(renderer.WithNodeRenderers(
-		util.Prioritized(newLinkRenderer(), 100),
+		util.Prioritized(newLinkRenderer(l), 100),
 	))
 }
 
-func newLinkRenderer() renderer.NodeRenderer {
+func newLinkRenderer(l *links) renderer.NodeRenderer {
 	r := &hookedRenderer{
 		Config: html.Config{
 			Writer: html.DefaultWriter,
 		},
+		baseURL: l.baseURL,
+		absURLs: l.absURLs,
 	}
 	return r
 }
 
 type hookedRenderer struct {
 	html.Config
+	baseURL string
+	absURLs bool
 }
 
 func (r *hookedRenderer) SetOption(name renderer.OptionName, value interface{}) {
@@ -73,8 +88,12 @@ func (r *hookedRenderer) renderLink(w util.BufWriter, source []byte, node ast.No
 	n := node.(*ast.Link)
 	if entering {
 		_, _ = w.WriteString("<a href=\"")
-		if r.Unsafe || !html.IsDangerousURL(n.Destination) {
-			_, _ = w.Write(util.EscapeHTML(util.URLEscape(n.Destination, true)))
+		destination := util.URLEscape(n.Destination, true)
+		if r.absURLs && r.baseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
+			_, _ = w.Write(util.EscapeHTML([]byte(r.baseURL)))
+		}
+		if r.Unsafe || !html.IsDangerousURL(destination) {
+			_, _ = w.Write(util.EscapeHTML(destination))
 		}
 		_ = w.WriteByte('"')
 		if n.Title != nil {
@@ -82,7 +101,7 @@ func (r *hookedRenderer) renderLink(w util.BufWriter, source []byte, node ast.No
 			r.Writer.Write(w, n.Title)
 			_ = w.WriteByte('"')
 		}
-		if !bytes.HasPrefix(n.Destination, []byte("/")) {
+		if !bytes.HasPrefix(destination, []byte("/")) {
 			_, _ = w.WriteString(` rel="noopener noreferrer" target="_blank" `)
 		}
 		_ = w.WriteByte('>')
@@ -103,7 +122,11 @@ func (r *hookedRenderer) renderAutoLink(w util.BufWriter, source []byte, node as
 	if n.AutoLinkType == ast.AutoLinkEmail && !bytes.HasPrefix(bytes.ToLower(url), []byte("mailto:")) {
 		_, _ = w.WriteString("mailto:")
 	}
-	_, _ = w.Write(util.EscapeHTML(util.URLEscape(url, false)))
+	destination := util.URLEscape(url, false)
+	if r.absURLs && r.baseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(r.baseURL)))
+	}
+	_, _ = w.Write(util.EscapeHTML(destination))
 	if n.Attributes() != nil {
 		_ = w.WriteByte('"')
 		html.RenderAttributes(w, n, html.LinkAttributeFilter)
