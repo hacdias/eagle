@@ -8,6 +8,7 @@ require (
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/jwtauth v1.2.0
+	github.com/gosimple/slug v1.11.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jlelse/feeds v1.2.0
 	github.com/karlseguin/typed v1.1.7
@@ -43,6 +44,7 @@ require (
 	github.com/godbus/dbus/v5 v5.0.5 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/gosimple/unidecode v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
