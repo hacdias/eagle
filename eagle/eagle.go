@@ -44,6 +44,7 @@ type Eagle struct {
 	allowedTypes      []mf2.Type
 	templates         map[string]*template.Template
 	markdown          goldmark.Markdown
+	absoluteMarkdown  goldmark.Markdown
 
 	Notifications
 	Config      *config.Config
@@ -100,7 +101,8 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	e.markdown = goldmark.New(defaultGoldmarkOptions...)
+	e.markdown = newMarkdown(false, conf.Site.BaseURL)
+	e.absoluteMarkdown = newMarkdown(true, conf.Site.BaseURL)
 
 	if conf.Twitter != nil {
 		e.Twitter = NewTwitter(conf.Twitter)
