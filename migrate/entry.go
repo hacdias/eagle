@@ -105,6 +105,9 @@ func getAllEntries() ([]*Entry, error) {
 		id = strings.TrimSuffix(id, ".md")
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")
+		id = strings.TrimPrefix(id, "/")
+		id = strings.TrimSuffix(id, "/")
+		id = "/" + id
 
 		entry, err := getEntry(id)
 		if err != nil {
