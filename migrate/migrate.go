@@ -100,11 +100,6 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 
 	if oldEntry.Metadata.ReplyTo != nil {
 		newEntry.Properties["in-reply-to"] = oldEntry.Metadata.ReplyTo.URL
-		newEntry.Section = "replies"
-	}
-
-	if newEntry.Section == "micro" {
-		newEntry.Section = "notes"
 	}
 
 	// TODO: deal with cover image.
