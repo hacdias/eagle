@@ -2,6 +2,8 @@ package eagle
 
 import (
 	"bytes"
+	urlpkg "net/url"
+	"strings"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -27,36 +29,32 @@ var defaultGoldmarkOptions = []goldmark.Option{
 		extension.Typographer,
 		extension.Linkify,
 		extension.TaskList,
-		&links{},
+		&customMarkdown{},
 	),
 }
 
 func newMarkdown(absURLs bool, baseURL string) goldmark.Markdown {
 	return goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(
-		&links{
+		&customMarkdown{
 			absURLs: absURLs,
 			baseURL: baseURL,
 		},
 	))...)
 }
 
-// TODO: image rendering and absURLs
-// TODO: figure rendering and absURLs
-
-type links struct {
+type customMarkdown struct {
 	baseURL string
 	absURLs bool
 }
 
-// Extend implements goldmark.Extender.
-func (l *links) Extend(m goldmark.Markdown) {
+func (c *customMarkdown) Extend(m goldmark.Markdown) {
 	m.Renderer().AddOptions(renderer.WithNodeRenderers(
-		util.Prioritized(newLinkRenderer(l), 100),
+		util.Prioritized(newCustomRenderer(c), 100),
 	))
 }
 
-func newLinkRenderer(l *links) renderer.NodeRenderer {
-	r := &hookedRenderer{
+func newCustomRenderer(l *customMarkdown) renderer.NodeRenderer {
+	r := &customRenderer{
 		Config: html.Config{
 			Writer: html.DefaultWriter,
 		},
@@ -66,25 +64,26 @@ func newLinkRenderer(l *links) renderer.NodeRenderer {
 	return r
 }
 
-type hookedRenderer struct {
+type customRenderer struct {
 	html.Config
 	baseURL string
 	absURLs bool
 }
 
-func (r *hookedRenderer) SetOption(name renderer.OptionName, value interface{}) {
+func (r *customRenderer) SetOption(name renderer.OptionName, value interface{}) {
 	r.Config.SetOption(name, value)
 }
 
 // RegisterFuncs implements NodeRenderer.RegisterFuncs.
-func (r *hookedRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
+func (r *customRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(ast.KindLink, r.renderLink)
+	reg.Register(ast.KindImage, r.renderImage)
 	reg.Register(ast.KindAutoLink, r.renderAutoLink)
 }
 
 // https://github.com/yuin/goldmark/blob/5588d92a56fe1642791cf4aa8e9eae8227cfeecd/renderer/html/html.go#L439
 
-func (r *hookedRenderer) renderLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *customRenderer) renderLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.Link)
 	if entering {
 		_, _ = w.WriteString("<a href=\"")
@@ -111,7 +110,7 @@ func (r *hookedRenderer) renderLink(w util.BufWriter, source []byte, node ast.No
 	return ast.WalkContinue, nil
 }
 
-func (r *hookedRenderer) renderAutoLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+func (r *customRenderer) renderAutoLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	n := node.(*ast.AutoLink)
 	if !entering {
 		return ast.WalkContinue, nil
@@ -142,4 +141,104 @@ func (r *hookedRenderer) renderAutoLink(w util.BufWriter, source []byte, node as
 	_, _ = w.Write(util.EscapeHTML(label))
 	_, _ = w.WriteString(`</a>`)
 	return ast.WalkContinue, nil
+}
+
+// Hijack the image rendering and output <figure>!
+//
+// Syntax
+//	![Alt text](url "Title")
+//	url?class=my+class									--> Add class.
+//	url?id=someid												--> Add id.
+//	url?caption=false							  		--> Do not print "Title" as <figcaption>.
+//
+// URL should be either:
+//	- cdn:/slug-at-cdn									--> Renders <figure> with many <source>.
+// 	- /relative/to/image.jpeg						--> Renders an <img> by default.
+//	- http://example.com/example.jpg		-->	Renders an <img> by default.
+func (r *customRenderer) renderImage(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	if !entering {
+		return ast.WalkContinue, nil
+	}
+	n := node.(*ast.Image)
+
+	url, err := urlpkg.Parse(string(n.Destination))
+	if err != nil {
+		return ast.WalkStop, err
+	}
+
+	query := url.Query()
+
+	_, _ = w.WriteString("<figure")
+
+	if class := query.Get("class"); class != "" {
+		query.Del("class")
+		_, _ = w.WriteString(" class=\"")
+		_, _ = w.WriteString(class)
+		_ = w.WriteByte('"')
+	}
+
+	if id := query.Get("id"); id != "" {
+		query.Del("id")
+		_, _ = w.WriteString(" id=\"")
+		_, _ = w.WriteString(id)
+		_ = w.WriteByte('"')
+	}
+
+	caption := true
+	if c := query.Get("caption"); c != "" {
+		caption = c == "true"
+		query.Del("caption")
+	}
+
+	_ = w.WriteByte('>')
+
+	url.RawQuery = query.Encode()
+
+	var imgSrc []byte
+
+	_, _ = w.WriteString("<picture>")
+
+	if url.Scheme == "cdn" {
+		id := strings.TrimPrefix(url.Path, "/")
+		imgSrc = []byte("https://cdn.hacdias.com/i/t/" + id + "-2000x.jpeg")
+
+		_, _ = w.WriteString("<source srcset=\"")
+		_, _ = w.WriteString(makePictureSourceSet(id, "webp"))
+		_, _ = w.WriteString("\" type=\"image/webp\">")
+
+		_, _ = w.WriteString("<source srcset=\"")
+		_, _ = w.WriteString(makePictureSourceSet(id, "jpeg"))
+		_, _ = w.WriteString("\">")
+	} else {
+		imgSrc = []byte(url.String())
+	}
+
+	_, _ = w.WriteString("<img src=\"")
+	if r.absURLs && r.baseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(r.baseURL)))
+	}
+	if r.Unsafe || !html.IsDangerousURL(imgSrc) {
+		_, _ = w.Write(util.EscapeHTML(imgSrc))
+	}
+	_, _ = w.WriteString(`" alt="`)
+	_, _ = w.Write(util.EscapeHTML(n.Text(source)))
+	_, _ = w.WriteString("\" loading=\"lazy\">")
+
+	if caption && n.Title != nil {
+		_, _ = w.WriteString("<figcaption>")
+		_, _ = w.Write(util.EscapeHTML(n.Title))
+		_, _ = w.WriteString("</figcaption>")
+	}
+
+	_, _ = w.WriteString("</picture>")
+	_, _ = w.WriteString("</figure>")
+	return ast.WalkSkipChildren, nil
+}
+
+// TODO: make this custumizable.
+func makePictureSourceSet(id, format string) string {
+	return "https://cdn.hacdias.com/i/t/" + id + "-250x." + format + " 250w" +
+		", https://cdn.hacdias.com/i/t/" + id + "-500x." + format + " 500w" +
+		", https://cdn.hacdias.com/i/t/" + id + "-1000x." + format + " 1000w" +
+		", https://cdn.hacdias.com/i/t/" + id + "-2000x." + format + " 2000w"
 }
