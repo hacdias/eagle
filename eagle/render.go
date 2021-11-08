@@ -118,6 +118,7 @@ func (e *Eagle) relativeURL(path string) string {
 
 func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 	if e.templates != nil {
+		// TODO(v2): is this less performant than just accessing e.templates?
 		return e.templates, nil
 	}
 
