@@ -1,5 +1,7 @@
 package server
 
+// TODO(v2): reenable this or not?
+
 // import (
 // 	"crypto/hmac"
 // 	"crypto/sha1"

@@ -235,7 +235,7 @@ func (r *customRenderer) renderImage(w util.BufWriter, source []byte, node ast.N
 	return ast.WalkSkipChildren, nil
 }
 
-// TODO: make this custumizable.
+// TODO(future): perhaps make this customizable.
 func makePictureSourceSet(id, format string) string {
 	return "https://cdn.hacdias.com/i/t/" + id + "-250x." + format + " 250w" +
 		", https://cdn.hacdias.com/i/t/" + id + "-500x." + format + " 500w" +

@@ -14,7 +14,7 @@ func (e *Eagle) Persist(filename string, data []byte, message string) error {
 		return err
 	}
 
-	// TODO: reenable
+	// TODO(v2): reenable
 	// err = e.srcGit.addAndCommit(message, filename)
 	// if err != nil {
 	// 	return err

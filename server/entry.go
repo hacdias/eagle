@@ -58,7 +58,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
-	// TODO: request has action. Action can be editing the post itself
+	// TODO(v2): request has action. Action can be editing the post itself
 	// or hiding a webmention.
 
 	_, err := s.GetEntry(r.URL.Path)
@@ -335,7 +335,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Name:  s.Config.User.Name,
 			Email: s.Config.User.Email,
 		},
-		// TODO: support .tags
+		// TODO(future): support .Tags
 		Created: time.Now(),
 		Items:   []*feeds.Item{},
 	}

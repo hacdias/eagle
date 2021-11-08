@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/jwtauth"
 )
 
-// TODO: handle aliases.
+// TODO(v2): handle aliases.
 
 func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r := chi.NewRouter()
@@ -32,7 +32,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	}
 
 	r.Group(func(r chi.Router) {
-		// TODO: Protect with IndieAuth
+		// TODO(v2): Protect with IndieAuth
 
 		r.Get("/micropub", s.micropubGet)
 		r.Post("/micropub", s.micropubPost)

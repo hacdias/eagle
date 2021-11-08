@@ -29,6 +29,7 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 }
 
 func (t *Twitter) Syndicate(entry *Entry) (string, error) {
+	// TODO(v2): bring this logic back.
 	// status := entry.RawContent
 	// if len(status) > 280 {
 	// 	status = strings.TrimSpace(status[0:270-len(entry.Permalink)]) + "... " + entry.Permalink
