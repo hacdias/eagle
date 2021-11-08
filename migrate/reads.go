@@ -66,11 +66,11 @@ func makeDescription(r *read, status string) string {
 
 	switch status {
 	case "reading":
-		str += "Currently reading: "
+		str = "Currently reading: "
 	case "to-read":
-		str += "Want to read: "
-	case "read:":
-		str += "Finished reading: "
+		str = "Want to read: "
+	case "finished":
+		str = "Finished reading: "
 	}
 
 	str += r.Name + " by " + r.Author
