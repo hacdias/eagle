@@ -68,7 +68,6 @@ func (e *Eagle) getXRay(urlStr string) (map[string]interface{}, error) {
 	return jf2, nil
 }
 
-// TODO: merge parsing with https://github.com/hacdias/eagle/blob/main/eagle/webmentions.go#L245
 func (e *Eagle) parseXRay(xray map[string]interface{}) map[string]interface{} {
 	data := typed.New(xray)
 

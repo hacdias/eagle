@@ -19,7 +19,7 @@ import (
 
 const (
 	AssetsDirectory  string = "assets"
-	ContentDirectory string = "content2" // TODO: change this back to content
+	ContentDirectory string = "content2" // TODO(v2): change this back to content
 	StaticDirectory  string = "static"
 )
 

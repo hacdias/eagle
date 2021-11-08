@@ -1,6 +1,6 @@
 package server
 
-// TODO:
+// TODO(v2):
 // - s.Sync: Sync was successfull! ⚡️
 // - s.RebuildIndex: "Search index rebuilt! 🔎"
 // - resend webmentions

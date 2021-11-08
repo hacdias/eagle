@@ -11,15 +11,15 @@ import (
 
 func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: find better solution for this
+		// TODO(v2): find better solution for this
 		staticFile := filepath.Join(s.Config.SourceDirectory, eagle.StaticDirectory, r.URL.Path)
 		if stat, err := os.Stat(staticFile); err == nil && stat.Mode().IsRegular() {
 			http.ServeFile(w, r, staticFile)
 			return
 		}
 
-		// TODO: build assets
-		// TODO: find better solution for this. Asset fioles may need to be built.
+		// TODO(v2): build assets
+		// TODO(v2): find better solution for this. Asset fioles may need to be built.
 		assetFile := filepath.Join(s.Config.SourceDirectory, eagle.AssetsDirectory, r.URL.Path)
 		if stat, err := os.Stat(assetFile); err == nil && stat.Mode().IsRegular() {
 			http.ServeFile(w, r, assetFile)

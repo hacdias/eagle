@@ -107,7 +107,7 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 		newEntry.Properties["in-reply-to"] = oldEntry.Metadata.ReplyTo.URL
 	}
 
-	// TODO: deal with cover image.
+	// TODO(v2): deal with cover image.
 	return newEntry
 }
 

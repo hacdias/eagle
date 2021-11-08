@@ -43,7 +43,7 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	if len(data) == 1 {
 		err = templates[name].ExecuteTemplate(&buf, name, data[0])
 	} else if len(data) == 2 {
-		// TODO: maybe some type verifications.
+		// TODO(future): perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
 		nrd.Entry = data[1].(*Entry)
 		err = templates[name].ExecuteTemplate(&buf, name, nrd)
@@ -210,7 +210,7 @@ func (rd *RenderData) HeadTitle() string {
 		return rd.Site.Title
 	}
 
-	// TODO: it'd be nice if we could define a title based on tje post type.
+	// TODO(v2): give title based of content type.
 
 	if rd.Title != "" {
 		return fmt.Sprintf("%s - %s", rd.Title, rd.Site.Title)

@@ -20,9 +20,7 @@ type Entry struct {
 }
 
 type Webmention struct {
-	XRay `yaml:",inline"`
-	// Specifically for webmentions received from https://webmention.io
-	// TODO: remove this and compare webmentions via URL.
+	XRay    `yaml:",inline"`
 	WmID    int  `yaml:"wm-id,omitempty" json:"wm-id,omitempty"`
 	Private bool `json:"private,omitempty"`
 }

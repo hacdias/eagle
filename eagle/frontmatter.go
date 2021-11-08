@@ -22,6 +22,7 @@ type Frontmatter struct {
 	Published      time.Time `yaml:"published,omitempty"`
 	Updated        time.Time `yaml:"updated,omitempty"`
 	Section        string    `yaml:"section,omitempty"`
+	Template       string    `yaml:"template,omitempty"`
 
 	// MF2 flattened properties.
 	Properties map[string]interface{} `yaml:"properties,omitempty"`

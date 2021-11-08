@@ -91,6 +91,9 @@ func (e *Entry) String() (string, error) {
 
 func (e *Entry) Templates() []string {
 	tpls := []string{}
+	if e.Template != "" {
+		tpls = append(tpls, e.Template)
+	}
 	if e.Section != "" {
 		tpls = append(tpls, TemplateSingle+"."+e.Section)
 	}
@@ -198,7 +201,8 @@ func (e *Eagle) TransformEntry(id string, t func(*Entry) (*Entry, error)) (*Entr
 		return nil, err
 	}
 
-	// TODO: make this open the file for writing and avoid using locks.
+	// TODO(future): instead, I could keep the file open
+	// for writing and avoid the need for locks entirely.
 
 	newEntry, err := t(oldEntry)
 	if err != nil {
@@ -277,12 +281,14 @@ func (e *Eagle) PostSaveEntry(entry *Entry) {
 		}
 	}
 
+	// TODO(v2)
+
 	// 2. Check if the post has a 'location' property and parse it
 	// if it is a string.
 
 	// 3. If it is a checkin, download map image.
 
-	// TODO 4. Syndicate
+	// 4. Syndicate
 
 	// 5. Webmentions
 	err := e.SendWebmentions(entry)

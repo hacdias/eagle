@@ -17,7 +17,6 @@ import (
 	"willnorris.com/go/webmention"
 )
 
-// TODO: use this to parse "wm-property"
 var webmentionTypes = map[string]string{
 	"like-of":     "like",
 	"repost-of":   "repost",
@@ -45,8 +44,7 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 
 	for _, target := range all {
 		if strings.HasPrefix(target, e.Config.Site.BaseURL) {
-			// TODO: it is a self-mention
-			e.log.Infof("TODO: self-mention from %s to %s", entry.Permalink, target)
+			// TODO(future): it is a self-mention.
 		}
 
 		err := e.sendWebmention(entry.Permalink, target)

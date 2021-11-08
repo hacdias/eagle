@@ -104,7 +104,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	// TODO: parse this to add twitter
+	// TODO(v2): parse this to add twitter
 	// if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
 	// 	synd.Targets = targets
 	// }
