@@ -33,21 +33,19 @@ const (
 )
 
 func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML, error) {
-	templates, err := e.getTemplates()
-	if err != nil {
-		return "", err
-	}
-
-	var buf bytes.Buffer
+	var (
+		buf bytes.Buffer
+		err error
+	)
 
 	if len(data) == 1 {
-		err = templates[name].ExecuteTemplate(&buf, name, data[0])
+		err = e.templates[name].ExecuteTemplate(&buf, name, data[0])
 	} else if len(data) == 2 {
 		// TODO(future): perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
 		nrd.Entry = data[1].(*Entry)
 		nrd.sidecar = nil
-		err = templates[name].ExecuteTemplate(&buf, name, &nrd)
+		err = e.templates[name].ExecuteTemplate(&buf, name, &nrd)
 	} else {
 		return "", errors.New("wrong parameters")
 	}
@@ -76,6 +74,10 @@ func safeHTML(text string) template.HTML {
 	return template.HTML(text)
 }
 
+func safeCSS(text string) template.CSS {
+	return template.CSS(text)
+}
+
 func dateFormat(date, template string) string {
 	t, err := dateparse.ParseStrict(date)
 	if err != nil {
@@ -92,6 +94,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"truncate":   truncate,
 		"domain":     domain,
 		"safeHTML":   safeHTML,
+		"safeCSS":    safeCSS,
 		"dateFormat": dateFormat,
 		"absURL":     e.AbsoluteURL,
 		"relURL":     e.relativeURL,
@@ -116,23 +119,18 @@ func (e *Eagle) relativeURL(path string) string {
 	return base.ResolveReference(url).Path
 }
 
-func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
-	if e.templates != nil {
-		// TODO(v2): is this less performant than just accessing e.templates?
-		return e.templates, nil
-	}
-
+func (e *Eagle) updateTemplates() error {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
 	baseTemplateData, err := e.SrcFs.ReadFile(baseTemplateFilename)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	fns := e.getTemplateFuncMap(false)
 
 	baseTemplate, err := template.New("base").Funcs(fns).Parse(string(baseTemplateData))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	parsed := map[string]*template.Template{}
@@ -174,14 +172,11 @@ func (e *Eagle) getTemplates() (map[string]*template.Template, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if !e.Config.Development {
-		e.templates = parsed
-	}
-
-	return parsed, nil
+	e.templates = parsed
+	return nil
 }
 
 type RenderData struct {
@@ -233,20 +228,35 @@ func (rd *RenderData) GetSidecar() *Sidecar {
 	return rd.sidecar
 }
 
+func (rd *RenderData) GetJSON(path string) interface{} {
+	filename := filepath.Join(ContentDirectory, rd.ID, path)
+	var data interface{}
+	_ = rd.eagle.ReadJSON(filename, &data)
+	return data
+}
+
+func (rd *RenderData) GetFile(path string) string {
+	filename := filepath.Join(ContentDirectory, rd.ID, path)
+	v, _ := rd.eagle.ReadFile(filename)
+	return string(v)
+}
+
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.User = e.Config.User
 	data.Site = e.Config.Site
 	data.eagle = e
 
-	templates, err := e.getTemplates()
-	if err != nil {
-		return err
+	if e.Config.Development {
+		err := e.updateTemplates()
+		if err != nil {
+			return err
+		}
 	}
 
 	var tpl *template.Template
 
 	for _, t := range tpls {
-		if tt, ok := templates[t]; ok {
+		if tt, ok := e.templates[t]; ok {
 			tpl = tt
 			break
 		}
