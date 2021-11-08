@@ -41,11 +41,6 @@ func (e *Eagle) GetSidecar(entry *Entry) (*Sidecar, error) {
 	return sidecar, err
 }
 
-func (e *Eagle) safeGetSidecar(entry *Entry) *Sidecar {
-	sidecar, _ := e.GetSidecar(entry)
-	return sidecar
-}
-
 func (e *Eagle) UpdateSidecar(entry *Entry, t func(*Sidecar) (*Sidecar, error)) error {
 	e.sidecarsMu.Lock()
 	defer e.sidecarsMu.Unlock()
