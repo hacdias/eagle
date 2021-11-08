@@ -214,11 +214,13 @@ func (rd *RenderData) HeadTitle() string {
 		return rd.Site.Title
 	}
 
-	// TODO(v2): create entry.Title() that gives the entry title based on the
-	// content.
+	title := rd.Title
+	if title == "" {
+		title = truncate(rd.Summary(), 100)
+	}
 
-	if rd.Title != "" {
-		return fmt.Sprintf("%s - %s", rd.Title, rd.Site.Title)
+	if title != "" {
+		return fmt.Sprintf("%s - %s", title, rd.Site.Title)
 	}
 
 	return rd.Site.Title

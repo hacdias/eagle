@@ -70,8 +70,14 @@ func (e *Entry) Summary() string {
 	}
 
 	if strings.Contains(e.Content, "<!--more-->") {
-		e.summary = strings.Split(e.Content, "<!--more-->")[0]
-	} else if e.Description != "" {
+		e.summary = strings.TrimSpace(strings.Split(e.Content, "<!--more-->")[0])
+	}
+
+	if e.summary != "" {
+		return e.summary
+	}
+
+	if e.Description != "" {
 		e.summary = e.Description
 	} else {
 		e.summary = truncate(e.Content, 300)
