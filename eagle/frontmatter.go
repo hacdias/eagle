@@ -18,7 +18,6 @@ type Frontmatter struct {
 	Deleted        bool      `yaml:"deleted,omitempty"`
 	Private        bool      `yaml:"private,omitempty"`
 	NoInteractions bool      `yaml:"noInteractions,omitempty"`
-	Emoji          string    `yaml:"emoji,omitempty"`
 	Published      time.Time `yaml:"published,omitempty"`
 	Updated        time.Time `yaml:"updated,omitempty"`
 	Section        string    `yaml:"section,omitempty"`
