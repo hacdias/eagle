@@ -64,6 +64,19 @@ func Migrate() error {
 		}
 	}
 
+	_, err = copy(filepath.Join(dataPath, "blogroll.json"), filepath.Join(newContentPath, "links/_blogroll.json"))
+	if err != nil {
+		return err
+	}
+	_, err = copy(filepath.Join(dataPath, "music.json"), filepath.Join(newContentPath, "listens/_stats.json"))
+	if err != nil {
+		return err
+	}
+	_, err = copy(filepath.Join(dataPath, "watches.json"), filepath.Join(newContentPath, "watches/_stats.json"))
+	if err != nil {
+		return err
+	}
+
 	return saveAliases(aliases)
 }
 
