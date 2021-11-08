@@ -124,6 +124,18 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 		newEntry.Section = "notes"
 	}
 
+	if newEntry.Title == "Listens" {
+		newEntry.Template = "listens"
+	}
+
+	if newEntry.Title == "Links" {
+		newEntry.Template = "links"
+	}
+
+	if newEntry.Title == "Watches" {
+		newEntry.Template = "watches"
+	}
+
 	// TODO(v2): deal with cover image.
 	return newEntry
 }
