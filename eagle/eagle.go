@@ -112,6 +112,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
+	err = e.updateTemplates()
+	if err != nil {
+		return nil, err
+	}
+
 	return e, nil
 }
 
