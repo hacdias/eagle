@@ -3,7 +3,6 @@ package eagle
 import (
 	"encoding/hex"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -50,8 +49,6 @@ type SearchEntry struct {
 }
 
 var (
-	shortcodeRegex = regexp.MustCompile(`{{<(.*?)>}}`)
-
 	searcheableAttributes = []string{
 		"title",
 		"content",
@@ -78,9 +75,7 @@ var (
 )
 
 func sanitizePost(content string) string {
-	content = shortcodeRegex.ReplaceAllString(content, "")
 	content = stripMarkdown.Strip(content)
-
 	return content
 }
 

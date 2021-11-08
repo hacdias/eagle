@@ -80,7 +80,8 @@ func (e *Entry) Summary() string {
 	if e.Description != "" {
 		e.summary = e.Description
 	} else {
-		e.summary = truncate(e.Content, 300)
+		content := sanitizePost(e.Content)
+		e.summary = truncate(content, 300)
 	}
 
 	return e.summary

@@ -136,6 +136,10 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 		newEntry.Template = "watches"
 	}
 
+	if newEntry.Title == "Guestbook" {
+		newEntry.Template = "guestbook"
+	}
+
 	// TODO(v2): deal with cover image.
 	return newEntry
 }
