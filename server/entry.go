@@ -7,6 +7,7 @@ import (
 	"net/http"
 	urlpkg "net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -232,6 +233,9 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	entry := s.getEntryOrEmpty(r.URL.Path)
 	if entry.Title == "" {
 		entry.Title = "Search"
+	}
+	if entry.ID == "" {
+		entry.ID = strings.TrimSuffix(r.URL.Path, filepath.Ext(r.URL.Path))
 	}
 
 	if query == "" {
