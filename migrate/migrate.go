@@ -76,7 +76,6 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 			Deleted:        !oldEntry.Metadata.ExpiryDate.IsZero(),
 			Private:        false,
 			NoInteractions: oldEntry.Metadata.NoMentions,
-			Emoji:          oldEntry.Metadata.Emoji,
 			Published:      oldEntry.Metadata.Date,
 			Updated:        oldEntry.Metadata.Lastmod,
 			Section:        oldEntry.Section(),
