@@ -46,7 +46,8 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 		// TODO(future): perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
 		nrd.Entry = data[1].(*Entry)
-		err = templates[name].ExecuteTemplate(&buf, name, nrd)
+		nrd.sidecar = nil
+		err = templates[name].ExecuteTemplate(&buf, name, &nrd)
 	} else {
 		return "", errors.New("wrong parameters")
 	}
@@ -88,7 +89,6 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"include":    e.includeTemplate,
 		"now":        time.Now,
 		"md":         e.getRenderMarkdown(alwaysAbsolute),
-		"data":       e.safeGetSidecar,
 		"truncate":   truncate,
 		"domain":     domain,
 		"safeHTML":   safeHTML,
@@ -203,6 +203,9 @@ type RenderData struct {
 	LoggedIn     bool
 	TorUsed      bool
 	OnionAddress string
+
+	eagle   *Eagle
+	sidecar *Sidecar
 }
 
 func (rd *RenderData) HeadTitle() string {
@@ -210,7 +213,8 @@ func (rd *RenderData) HeadTitle() string {
 		return rd.Site.Title
 	}
 
-	// TODO(v2): give title based of content type.
+	// TODO(v2): create entry.Title() that gives the entry title based on the
+	// content.
 
 	if rd.Title != "" {
 		return fmt.Sprintf("%s - %s", rd.Title, rd.Site.Title)
@@ -219,9 +223,17 @@ func (rd *RenderData) HeadTitle() string {
 	return rd.Site.Title
 }
 
+func (rd *RenderData) GetSidecar() *Sidecar {
+	if rd.sidecar == nil {
+		rd.sidecar, _ = rd.eagle.GetSidecar(rd.Entry)
+	}
+	return rd.sidecar
+}
+
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.User = e.Config.User
 	data.Site = e.Config.Site
+	data.eagle = e
 
 	templates, err := e.getTemplates()
 	if err != nil {
