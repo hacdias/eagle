@@ -83,16 +83,16 @@ func Migrate() error {
 func convertEntry(oldEntry *Entry) *eagle.Entry {
 	newEntry := &eagle.Entry{
 		Frontmatter: eagle.Frontmatter{
-			Title:          oldEntry.Metadata.Title,
-			Description:    oldEntry.Metadata.Description,
-			Draft:          oldEntry.Metadata.Draft,
-			Deleted:        !oldEntry.Metadata.ExpiryDate.IsZero(),
-			Private:        false,
-			NoInteractions: oldEntry.Metadata.NoMentions,
-			Published:      oldEntry.Metadata.Date,
-			Updated:        oldEntry.Metadata.Lastmod,
-			Section:        oldEntry.Section(),
-			Properties:     map[string]interface{}{},
+			Title:              oldEntry.Metadata.Title,
+			Description:        oldEntry.Metadata.Description,
+			Draft:              oldEntry.Metadata.Draft,
+			Deleted:            !oldEntry.Metadata.ExpiryDate.IsZero(),
+			Private:            false,
+			NoShowInteractions: oldEntry.Metadata.NoMentions,
+			Published:          oldEntry.Metadata.Date,
+			Updated:            oldEntry.Metadata.Lastmod,
+			Section:            oldEntry.Section(),
+			Properties:         map[string]interface{}{},
 		},
 		Content: oldEntry.Content,
 	}
