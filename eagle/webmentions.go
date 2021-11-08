@@ -35,6 +35,10 @@ type WebmentionPayload struct {
 }
 
 func (e *Eagle) SendWebmentions(entry *Entry) error {
+	if entry.NoSendInteractions {
+		return nil
+	}
+
 	all, curr, _, err := e.GetWebmentionTargets(entry)
 	if err != nil {
 		return err

@@ -12,16 +12,17 @@ import (
 type Frontmatter struct {
 	entry *mf2.FlatHelper
 
-	Title          string    `yaml:"title,omitempty"`
-	Description    string    `yaml:"description,omitempty"`
-	Draft          bool      `yaml:"draft,omitempty"`
-	Deleted        bool      `yaml:"deleted,omitempty"`
-	Private        bool      `yaml:"private,omitempty"`
-	NoInteractions bool      `yaml:"noInteractions,omitempty"`
-	Published      time.Time `yaml:"published,omitempty"`
-	Updated        time.Time `yaml:"updated,omitempty"`
-	Section        string    `yaml:"section,omitempty"`
-	Template       string    `yaml:"template,omitempty"`
+	Title              string    `yaml:"title,omitempty"`
+	Description        string    `yaml:"description,omitempty"`
+	Draft              bool      `yaml:"draft,omitempty"`
+	Deleted            bool      `yaml:"deleted,omitempty"`
+	Private            bool      `yaml:"private,omitempty"`
+	Published          time.Time `yaml:"published,omitempty"`
+	Updated            time.Time `yaml:"updated,omitempty"`
+	Section            string    `yaml:"section,omitempty"`
+	Template           string    `yaml:"template,omitempty"`
+	NoShowInteractions bool      `yaml:"noShowInteractions,omitempty"`
+	NoSendInteractions bool      `yaml:"noSendInteractions,omitempty"`
 
 	// MF2 flattened properties.
 	Properties map[string]interface{} `yaml:"properties,omitempty"`
