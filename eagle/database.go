@@ -43,8 +43,10 @@ func (e *Eagle) IndexAdd(entries ...*Entry) error {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
 		}
 
-		if entry.Section != "" {
-			b.Queue("insert into sections(entry_id, section) values ($1, $2)", entry.ID, entry.Section)
+		if len(entry.Sections) > 0 {
+			for _, section := range entry.Sections {
+				b.Queue("insert into sections(entry_id, section) values ($1, $2)", entry.ID, section)
+			}
 		}
 	}
 

@@ -96,7 +96,7 @@ func convertRead(e *eagle.Eagle, r *read, status string, defDate time.Time) erro
 		Frontmatter: eagle.Frontmatter{
 			Description: makeDescription(r, status),
 			Published:   r.Date,
-			Section:     "reads",
+			Sections:    []string{"reads"},
 			Properties: map[string]interface{}{
 				"read-of": map[string]interface{}{
 					"properties": props,
