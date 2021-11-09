@@ -72,12 +72,12 @@ func Parse() (*Config, error) {
 		}
 	}
 
-	for typ, section := range conf.Site.MicropubTypes {
+	for typ, sections := range conf.Site.MicropubTypes {
 		if !mf2.IsType(typ) {
 			return nil, fmt.Errorf("%s is not a valid micropub type", typ)
 		}
 
-		conf.Site.Sections = append(conf.Site.Sections, section)
+		conf.Site.Sections = append(conf.Site.Sections, sections...)
 	}
 
 	conf.Site.Sections = funk.UniqString(conf.Site.Sections)
@@ -108,7 +108,7 @@ type Site struct {
 	Emoji         string
 	Description   string
 	Sections      []string
-	MicropubTypes map[mf2.Type]string
+	MicropubTypes map[mf2.Type][]string
 	IndexSections []string
 	Paginate      int
 	Menus         map[string][]MenuItem

@@ -95,9 +95,6 @@ func (e *Entry) Templates() []string {
 	if e.Template != "" {
 		tpls = append(tpls, e.Template)
 	}
-	if e.Section != "" {
-		tpls = append(tpls, TemplateSingle+"."+e.Section)
-	}
 	tpls = append(tpls, TemplateSingle)
 	return tpls
 }

@@ -91,10 +91,13 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 			NoShowInteractions: oldEntry.Metadata.NoMentions,
 			Published:          oldEntry.Metadata.Date,
 			Updated:            oldEntry.Metadata.Lastmod,
-			Section:            oldEntry.Section(),
 			Properties:         map[string]interface{}{},
 		},
 		Content: oldEntry.Content,
+	}
+
+	if oldEntry.Section() != "" && strings.Count(oldEntry.ID, "/") != 1 {
+		newEntry.Sections = append(newEntry.Sections, oldEntry.Section())
 	}
 
 	if newEntry.Published.IsZero() || strings.Count(oldEntry.ID, "/") == 1 {
@@ -117,11 +120,9 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 
 	if oldEntry.Metadata.ReplyTo != nil {
 		newEntry.Properties["in-reply-to"] = oldEntry.Metadata.ReplyTo.URL
-		newEntry.Section = "replies"
-	}
-
-	if newEntry.Section == "micro" {
-		newEntry.Section = "notes"
+		newEntry.Sections = append(newEntry.Sections, "replies")
+	} else if oldEntry.Section() == "micro" {
+		newEntry.Sections = append(newEntry.Sections, "notes")
 	}
 
 	if newEntry.Title == "Listens" {

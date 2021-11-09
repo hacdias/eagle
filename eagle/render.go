@@ -15,6 +15,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/thoas/go-funk"
 )
 
 const (
@@ -93,6 +94,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"now":        time.Now,
 		"md":         e.getRenderMarkdown(alwaysAbsolute),
 		"truncate":   truncate,
+		"contains":   funk.Contains,
 		"domain":     domain,
 		"safeHTML":   safeHTML,
 		"safeCSS":    safeCSS,

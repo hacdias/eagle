@@ -19,7 +19,7 @@ type Frontmatter struct {
 	Private            bool      `yaml:"private,omitempty"`
 	Published          time.Time `yaml:"published,omitempty"`
 	Updated            time.Time `yaml:"updated,omitempty"`
-	Section            string    `yaml:"section,omitempty"`
+	Sections           []string  `yaml:"section,omitempty"`
 	Template           string    `yaml:"template,omitempty"`
 	NoShowInteractions bool      `yaml:"noShowInteractions,omitempty"`
 	NoSendInteractions bool      `yaml:"noSendInteractions,omitempty"`

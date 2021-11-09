@@ -18,12 +18,12 @@ import (
 )
 
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	// TODO(v2)
 	w.Write([]byte("new post"))
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	// TODO(v2)
 	w.Write([]byte("new post"))
 }
 
@@ -161,8 +161,8 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 			entry.Title = section
 		}
 
-		if entry.Section == "" {
-			entry.Section = section
+		if len(entry.Sections) == 0 {
+			entry.Sections = []string{section}
 		}
 
 		s.listingGet(w, r, &listingSettings{
@@ -172,7 +172,7 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 			exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
 				return s.QuerySection([]string{section}, opts)
 			},
-			templates: []string{eagle.TemplateList + "." + section},
+			templates: []string{},
 		})
 	}
 }
@@ -317,7 +317,13 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	feedType := chi.URLParam(r, "feed")
 	if feedType == "" {
-		s.serveHTML(w, r, ls.rd, append(ls.templates, eagle.TemplateList))
+		templates := ls.templates
+		if ls.rd.Template != "" {
+			templates = append(templates, ls.rd.Template)
+		}
+		templates = append(templates, eagle.TemplateList)
+
+		s.serveHTML(w, r, ls.rd, templates)
 		return
 	}
 

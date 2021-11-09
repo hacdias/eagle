@@ -48,8 +48,8 @@ func (e *Eagle) UpdateEntryWithMF2(entry *Entry, mf2Data map[string][]interface{
 	postType, _ := mf2.DiscoverType(data)
 
 	if funk.Contains(e.allowedTypes, postType) {
-		if entry.Section == "" {
-			entry.Section = e.Config.Site.MicropubTypes[postType]
+		if len(entry.Sections) == 0 {
+			entry.Sections = e.Config.Site.MicropubTypes[postType]
 		}
 	} else {
 		return errors.New("type not supported " + string(postType))
