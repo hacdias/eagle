@@ -112,7 +112,9 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *eagle
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		query: &eagle.SearchQuery{},
+		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+			return s.QueryEntries(opts)
+		},
 	})
 }
 
@@ -121,8 +123,8 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 		rd: &eagle.RenderData{
 			IsHome: true,
 		},
-		query: &eagle.SearchQuery{
-			Sections: s.Config.Site.IndexSections,
+		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+			return s.QuerySection(s.Config.Site.IndexSections, opts)
 		},
 		templates: []string{eagle.TemplateIndex},
 	})
@@ -141,11 +143,11 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		query: &eagle.SearchQuery{
-			Tags: []string{tag},
-		},
 		rd: &eagle.RenderData{
 			Entry: entry,
+		},
+		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+			return s.QueryTag(tag, opts)
 		},
 	})
 }
@@ -162,11 +164,11 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 		}
 
 		s.listingGet(w, r, &listingSettings{
-			query: &eagle.SearchQuery{
-				Sections: []string{section},
-			},
 			rd: &eagle.RenderData{
 				Entry: entry,
+			},
+			exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+				return s.QuerySection([]string{section}, opts)
 			},
 			templates: []string{eagle.TemplateList + "." + section},
 		})
@@ -212,17 +214,15 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		query: &eagle.SearchQuery{
-			Year:  year,
-			Month: month,
-			Day:   day,
-		},
 		rd: &eagle.RenderData{
 			Entry: &eagle.Entry{
 				Frontmatter: eagle.Frontmatter{
 					Title: title.String(),
 				},
 			},
+		},
+		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+			return s.QueryDate(year, month, day, opts)
 		},
 	})
 }
@@ -245,26 +245,13 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sectionsQuery := strings.TrimSpace(r.URL.Query().Get("s"))
-	sectionsList := strings.Split(sectionsQuery, ",")
-	sections := []string{}
-
-	for _, s := range sectionsList {
-		s = strings.TrimSpace(s)
-		if s == "" {
-			continue
-		}
-		sections = append(sections, s)
-	}
-
 	s.listingGet(w, r, &listingSettings{
-		query: &eagle.SearchQuery{
-			Query:    query,
-			Sections: sections,
-		},
 		rd: &eagle.RenderData{
 			Entry:       entry,
 			SearchQuery: query,
+		},
+		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+			return s.SearchPostgres(query, opts)
 		},
 		templates: []string{eagle.TemplateSearch},
 	})
@@ -281,7 +268,7 @@ func (s *Server) getEntryOrEmpty(id string) *eagle.Entry {
 }
 
 type listingSettings struct {
-	query     *eagle.SearchQuery
+	exec      func(*eagle.QueryOptions) ([]*eagle.Entry, error)
 	rd        *eagle.RenderData
 	templates []string
 }
@@ -289,10 +276,11 @@ type listingSettings struct {
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
 	loggedIn := s.isLoggedIn(w, r)
 
-	ls.query.ByDate = true
-	ls.query.Private = loggedIn
-	ls.query.Draft = loggedIn
-	ls.query.Deleted = loggedIn
+	opts := &eagle.QueryOptions{
+		Draft:   loggedIn,
+		Deleted: loggedIn,
+		Private: loggedIn,
+	}
 
 	if ls.rd == nil {
 		ls.rd = &eagle.RenderData{}
@@ -305,12 +293,12 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	if v := r.URL.Query().Get("page"); v != "" {
 		vv, _ := strconv.Atoi(v)
 		if vv >= 0 {
-			ls.query.Page = vv
+			opts.Page = vv
 			ls.rd.Page = vv
 		}
 	}
 
-	entries, err := s.Search(ls.query)
+	entries, err := ls.exec(opts)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
@@ -321,7 +309,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	if len(entries) == s.Config.Site.Paginate {
 		url, _ := urlpkg.Parse(r.URL.String())
-		url.RawQuery = "page=" + strconv.Itoa(ls.query.Page+1)
+		url.RawQuery = "page=" + strconv.Itoa(opts.Page+1)
 		ls.rd.NextPage = url.String()
 	}
 

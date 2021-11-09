@@ -27,7 +27,7 @@ type Config struct {
 	Telegram          *Telegram
 	Twitter           *Twitter
 	Miniflux          *Miniflux
-	MeiliSearch       *MeiliSearch
+	PostgreSQL        *PostgreSQL
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -173,7 +173,9 @@ type Miniflux struct {
 	Key      string
 }
 
-type MeiliSearch struct {
-	Endpoint string
-	Key      string
+type PostgreSQL struct {
+	User     string
+	Password string
+	Host     string
+	Database string
 }

@@ -31,6 +31,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		defer e.Close()
 
 		quit := make(chan os.Signal, 1)
 		server, err := server.NewServer(e)

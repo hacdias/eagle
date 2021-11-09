@@ -71,13 +71,7 @@ func (e *Entry) Summary() string {
 
 	if strings.Contains(e.Content, "<!--more-->") {
 		e.summary = strings.TrimSpace(strings.Split(e.Content, "<!--more-->")[0])
-	}
-
-	if e.summary != "" {
-		return e.summary
-	}
-
-	if e.Description != "" {
+	} else if e.Description != "" {
 		e.summary = e.Description
 	} else {
 		content := sanitizePost(e.Content)
