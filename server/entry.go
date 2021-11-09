@@ -18,10 +18,12 @@ import (
 )
 
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
+	// TODO
 	w.Write([]byte("new post"))
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
+	// TODO
 	w.Write([]byte("new post"))
 }
 

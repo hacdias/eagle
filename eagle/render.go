@@ -30,6 +30,7 @@ const (
 	TemplateSearch string = "search"
 	TemplateEditor string = "editor"
 	TemplateIndex  string = "index"
+	TemplateTags   string = "tags"
 )
 
 func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML, error) {
@@ -194,6 +195,7 @@ type RenderData struct {
 	Page        int
 	NextPage    string
 	IsListing   bool
+	Tags        []string
 
 	IsHome       bool
 	LoggedIn     bool

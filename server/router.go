@@ -55,7 +55,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 		r.Post("/webmention", s.webmentionHandler)
 	}
 
-	// r.Get("/tags")
+	r.Get("/tags", s.tagsGet)
 
 	if s.Config.Auth != nil {
 		r.Get("/logout", s.logoutGetHandler)
