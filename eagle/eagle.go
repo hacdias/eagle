@@ -1,6 +1,7 @@
 package eagle
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/logging"
 	"github.com/hacdias/eagle/v2/pkg/mf2"
-	"github.com/meilisearch/meilisearch-go"
+	"github.com/jackc/pgx/v4"
 	"github.com/spf13/afero"
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
@@ -24,9 +25,11 @@ const (
 )
 
 type Eagle struct {
-	log        *zap.SugaredLogger
-	ms         meilisearch.ClientInterface
+	log *zap.SugaredLogger
+	// ms         meilisearch.ClientInterface
 	httpClient *http.Client
+
+	conn *pgx.Conn
 
 	// Maybe embed this one and ovveride WriteFile instead of persist?
 	SrcFs  *afero.Afero
@@ -96,7 +99,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.Notifications = newLogNotifications()
 	}
 
-	err := e.setupMeiliSearch()
+	err := e.setupPostgres()
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +121,14 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	return e, nil
+}
+
+func (e *Eagle) Close() {
+	if e.conn != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		_ = e.conn.Close(ctx)
+	}
 }
 
 func (e *Eagle) userAgent(comment string) string {

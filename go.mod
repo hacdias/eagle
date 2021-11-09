@@ -10,11 +10,10 @@ require (
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/gosimple/slug v1.11.0
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jlelse/feeds v1.2.0
 	github.com/karlseguin/typed v1.1.7
 	github.com/lestrrat-go/jwx v1.2.9
-	github.com/meilisearch/meilisearch-go v0.16.2
-	github.com/mitchellh/mapstructure v1.4.2
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.2.1
@@ -33,9 +32,7 @@ require (
 
 require (
 	github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74 // indirect
-	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
-	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/coreos/go-iptables v0.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -45,13 +42,18 @@ require (
 	github.com/godbus/dbus/v5 v5.0.5 // indirect
 	github.com/google/btree v1.0.1 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gosimple/unidecode v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/insomniacslk/dhcp v0.0.0-20210621130208-1cac67f12b1e // indirect
-	github.com/josharian/intern v1.0.0 // indirect
+	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.10.0 // indirect
+	github.com/jackc/pgio v1.0.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.1.1 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgtype v1.8.1 // indirect
 	github.com/josharian/native v0.0.0-20200817173448-b6b71def0850 // indirect
 	github.com/jsimonetti/rtnetlink v0.0.0-20210525051524-4cc836578190 // indirect
 	github.com/karlseguin/expect v1.0.8 // indirect
@@ -62,12 +64,11 @@ require (
 	github.com/lestrrat-go/iter v1.0.1 // indirect
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mdlayher/netlink v1.4.1 // indirect
 	github.com/mdlayher/sdnotify v0.0.0-20210228150836-ea3ec207d697 // indirect
 	github.com/mdlayher/socket v0.0.0-20210307095302-262dc9984e00 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.16 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
+	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -78,8 +79,6 @@ require (
 	github.com/tailscale/goupnp v1.0.1-0.20210804011211-c64d0f06ea05 // indirect
 	github.com/tcnksm/go-httpstat v0.2.0 // indirect
 	github.com/u-root/uio v0.0.0-20210528114334-82958018845c // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.31.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go4.org/intern v0.0.0-20210108033219-3eb7198706b2 // indirect
