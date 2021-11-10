@@ -47,23 +47,25 @@ type Author struct {
 }
 
 type Metadata struct {
-	DataID      string    `yaml:"dataId,omitempty"`
-	Title       string    `yaml:"title,omitempty"`
-	Description string    `yaml:"description,omitempty"`
-	Tags        []string  `yaml:"tags,omitempty"`
-	Date        time.Time `yaml:"date,omitempty"`
-	Lastmod     time.Time `yaml:"lastmod,omitempty"`
-	ExpiryDate  time.Time `yaml:"expiryDate,omitempty"`
-	Syndication []string  `yaml:"syndication,omitempty"`
-	ReplyTo     *XRay     `yaml:"replyTo,omitempty"`
-	URL         string    `yaml:"url,omitempty"`
-	Aliases     []string  `yaml:"aliases,omitempty"`
-	Emoji       string    `yaml:"emoji,omitempty"`
-	Layout      string    `yaml:"layout,omitempty"`
-	NoMentions  bool      `yaml:"noMentions,omitempty"`
-	Cover       *Picture  `yaml:"cover,omitempty"`
-	Draft       bool      `yaml:"draft,omitempty"`
-	Growth      string    `yaml:"growth,omitempty"`
+	DataID      string        `yaml:"dataId,omitempty"`
+	Title       string        `yaml:"title,omitempty"`
+	Description string        `yaml:"description,omitempty"`
+	Tags        []string      `yaml:"tags,omitempty"`
+	Date        time.Time     `yaml:"date,omitempty"`
+	Lastmod     time.Time     `yaml:"lastmod,omitempty"`
+	ExpiryDate  time.Time     `yaml:"expiryDate,omitempty"`
+	Syndication []string      `yaml:"syndication,omitempty"`
+	ReplyTo     *XRay         `yaml:"replyTo,omitempty"`
+	URL         string        `yaml:"url,omitempty"`
+	Aliases     []string      `yaml:"aliases,omitempty"`
+	Emoji       string        `yaml:"emoji,omitempty"`
+	Layout      string        `yaml:"layout,omitempty"`
+	NoMentions  bool          `yaml:"noMentions,omitempty"`
+	Cover       *Picture      `yaml:"cover,omitempty"`
+	Draft       bool          `yaml:"draft,omitempty"`
+	Growth      string        `yaml:"growth,omitempty"`
+	Photo       []interface{} `yaml:"photo,omitempty"`
+	PhotoClass  string        `yaml:"photoClass,omitempty"`
 }
 
 type Picture struct {

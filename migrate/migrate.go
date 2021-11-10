@@ -45,6 +45,13 @@ func Migrate() error {
 	aliases := ""
 
 	for _, oldEntry := range entries {
+		if oldEntry.Metadata.Title == "Stream" {
+			aliases += "/stream /\n"
+			aliases += "/stream/feed.json /feed.json\n"
+			aliases += "/stream/feed.xml /feed.atom\n"
+			continue
+		}
+
 		newEntry := convertEntry(oldEntry)
 		aliases += getAliases(oldEntry, newEntry)
 
@@ -141,7 +148,27 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 		newEntry.Template = "guestbook"
 	}
 
-	// TODO(v2): deal with cover image.
+	if oldEntry.Section() == "photos" && oldEntry.Metadata.Photo != nil {
+		photos := []interface{}{}
+
+		for _, v := range oldEntry.Metadata.Photo {
+			if s, ok := v.(string); ok {
+				photos = append(photos, "cdn:/"+s)
+			} else {
+				m := v.(map[interface{}]interface{})
+				value := m["value"].(string)
+
+				photos = append(photos, map[string]interface{}{
+					"value": "cdn:/" + value,
+					"alt":   m["alt"],
+				})
+			}
+		}
+
+		newEntry.Properties["photo"] = photos
+		newEntry.PhotoClass = oldEntry.Metadata.PhotoClass
+	}
+
 	return newEntry
 }
 

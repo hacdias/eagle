@@ -10,6 +10,7 @@ import (
 	urlpkg "net/url"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -88,7 +89,21 @@ func dateFormat(date, template string) string {
 	return t.Format(template)
 }
 
+func isMap(data interface{}) bool {
+	return reflect.ValueOf(data).Kind() == reflect.Map
+}
+
 func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
+	// TODO(v2): cleanup this
+	figure := func(url, alt string) template.HTML {
+		var w strings.Builder
+		err := writeFigure(&w, e.Config.Site.BaseURL, url, alt, "", alwaysAbsolute, true)
+		if err != nil {
+			return template.HTML("")
+		}
+		return template.HTML(w.String())
+	}
+
 	funcs := template.FuncMap{
 		"include":    e.includeTemplate,
 		"now":        time.Now,
@@ -98,6 +113,8 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"domain":     domain,
 		"safeHTML":   safeHTML,
 		"safeCSS":    safeCSS,
+		"figure":     figure,
+		"isMap":      isMap,
 		"dateFormat": dateFormat,
 		"absURL":     e.AbsoluteURL,
 		"relURL":     e.relativeURL,
