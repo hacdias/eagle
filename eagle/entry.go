@@ -47,6 +47,8 @@ type Metadata struct {
 	Draft       bool             `yaml:"draft,omitempty"`
 	Growth      string           `yaml:"growth,omitempty"`
 	Menu        map[string]*Menu `yaml:"menu,omitempty"`
+	Photo       []interface{}    `yaml:"photo,omitempty"`
+	PhotoClass  string           `yaml:"photoClass,omitempty"`
 }
 
 func (e *Entry) Section() string {
