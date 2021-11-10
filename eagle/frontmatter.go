@@ -23,6 +23,7 @@ type Frontmatter struct {
 	Template           string    `yaml:"template,omitempty"`
 	NoShowInteractions bool      `yaml:"noShowInteractions,omitempty"`
 	NoSendInteractions bool      `yaml:"noSendInteractions,omitempty"`
+	PhotoClass         string    `yaml:"photoClass,omitempty"`
 
 	// MF2 flattened properties.
 	Properties map[string]interface{} `yaml:"properties,omitempty"`

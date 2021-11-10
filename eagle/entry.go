@@ -160,6 +160,18 @@ func (e *Eagle) ParseEntry(id, raw string) (*Entry, error) {
 }
 
 func (e *Eagle) SaveEntry(entry *Entry) error {
+	if entry.Description == "" {
+		data := entry.MF2()
+
+		switch data.PostType() {
+		case mf2.TypeCheckin:
+			checkin := data.Sub(data.TypeProperty())
+			if name := checkin.Name(); name != "" {
+				entry.Description = "At " + name
+			}
+		}
+	}
+
 	e.entriesMu.Lock()
 	defer e.entriesMu.Unlock()
 

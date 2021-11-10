@@ -1,6 +1,7 @@
 package mf2
 
 import (
+	"reflect"
 	"strings"
 
 	"github.com/karlseguin/typed"
@@ -67,6 +68,43 @@ func (m *FlatHelper) Strings(prop string) []string {
 	}
 
 	return []string{}
+}
+
+func (m *FlatHelper) Photos() []map[string]interface{} {
+	v, ok := m.Properties["photo"]
+	if !ok {
+		return nil
+	}
+
+	if vv, ok := v.(string); ok {
+		return []map[string]interface{}{
+			{
+				"value": vv,
+				"alt":   "",
+			},
+		}
+	}
+
+	value := reflect.ValueOf(v)
+	kind := value.Kind()
+	parsed := []map[string]interface{}{}
+
+	if kind == reflect.Array || kind == reflect.Slice {
+		for i := 0; i < value.Len(); i++ {
+			v = value.Index(i).Interface()
+
+			if vv, ok := v.(string); ok {
+				parsed = append(parsed, map[string]interface{}{
+					"value": vv,
+					"alt":   "",
+				})
+			} else if vv, ok := v.(map[string]interface{}); ok {
+				parsed = append(parsed, vv)
+			}
+		}
+	}
+
+	return parsed
 }
 
 func (m *FlatHelper) Name() string {

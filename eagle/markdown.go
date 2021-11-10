@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"bytes"
+	"io"
 	urlpkg "net/url"
 	"strings"
 
@@ -161,9 +162,26 @@ func (r *customRenderer) renderImage(w util.BufWriter, source []byte, node ast.N
 	}
 	n := node.(*ast.Image)
 
-	url, err := urlpkg.Parse(string(n.Destination))
+	err := writeFigure(w, r.baseURL, string(n.Destination), string(n.Text(source)), string(n.Title), r.absURLs, r.Unsafe)
 	if err != nil {
 		return ast.WalkStop, err
+	}
+
+	return ast.WalkSkipChildren, nil
+}
+
+type figureWriter interface {
+	io.Writer
+	WriteByte(c byte) error
+	WriteString(s string) (int, error)
+	WriteRune(r rune) (size int, err error)
+}
+
+// TODO(v2): cleanup this
+func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, unsafe bool) error {
+	url, err := urlpkg.Parse(imgURL)
+	if err != nil {
+		return err
 	}
 
 	query := url.Query()
@@ -214,25 +232,29 @@ func (r *customRenderer) renderImage(w util.BufWriter, source []byte, node ast.N
 	}
 
 	_, _ = w.WriteString("<img src=\"")
-	if r.absURLs && r.baseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(r.baseURL)))
+	if absURLs && baseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(baseURL)))
 	}
-	if r.Unsafe || !html.IsDangerousURL(imgSrc) {
+	if unsafe || !html.IsDangerousURL(imgSrc) {
 		_, _ = w.Write(util.EscapeHTML(imgSrc))
 	}
-	_, _ = w.WriteString(`" alt="`)
-	_, _ = w.Write(util.EscapeHTML(n.Text(source)))
-	_, _ = w.WriteString("\" loading=\"lazy\">")
 
-	if caption && n.Title != nil {
+	if alt != "" {
+		_, _ = w.WriteString(`" alt="`)
+		_, _ = w.Write(util.EscapeHTML([]byte(alt)))
+		_, _ = w.WriteRune('"')
+	}
+	_, _ = w.WriteString(" loading=\"lazy\">")
+	_, _ = w.WriteString("</picture>")
+
+	if caption && title != "" {
 		_, _ = w.WriteString("<figcaption>")
-		_, _ = w.Write(util.EscapeHTML(n.Title))
+		_, _ = w.Write(util.EscapeHTML([]byte(title)))
 		_, _ = w.WriteString("</figcaption>")
 	}
 
-	_, _ = w.WriteString("</picture>")
 	_, _ = w.WriteString("</figure>")
-	return ast.WalkSkipChildren, nil
+	return nil
 }
 
 // TODO(future): perhaps make this customizable.
