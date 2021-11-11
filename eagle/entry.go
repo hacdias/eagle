@@ -11,6 +11,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/karlseguin/typed"
+	"github.com/thoas/go-funk"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -170,6 +171,10 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 				entry.Description = "At " + name
 			}
 		}
+	}
+
+	if len(entry.MF2().Photos()) > 0 && !funk.ContainsString(entry.Sections, "photo") {
+		entry.Sections = append(entry.Sections, "photos")
 	}
 
 	e.entriesMu.Lock()
