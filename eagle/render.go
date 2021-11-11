@@ -17,6 +17,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/util"
 	"github.com/thoas/go-funk"
 )
 
@@ -55,14 +56,6 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	}
 
 	return template.HTML(buf.String()), err
-}
-
-func truncate(text string, size int) string {
-	if len(text) <= size {
-		return text
-	}
-
-	return strings.TrimSpace(text[:size]) + "..."
 }
 
 func domain(text string) string {
@@ -109,7 +102,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"include":    e.includeTemplate,
 		"now":        time.Now,
 		"md":         e.getRenderMarkdown(alwaysAbsolute),
-		"truncate":   truncate,
+		"truncate":   util.TruncateString,
 		"contains":   funk.Contains,
 		"domain":     domain,
 		"safeHTML":   safeHTML,
@@ -233,7 +226,7 @@ func (rd *RenderData) HeadTitle() string {
 
 	title := rd.Title
 	if title == "" {
-		title = truncate(rd.Summary(), 100)
+		title = util.TruncateString(rd.Summary(), 100)
 	}
 
 	if title != "" {
