@@ -10,6 +10,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/logging"
 )
 
@@ -87,9 +88,9 @@ func Migrate() error {
 	return saveAliases(aliases)
 }
 
-func convertEntry(oldEntry *Entry) *eagle.Entry {
-	newEntry := &eagle.Entry{
-		Frontmatter: eagle.Frontmatter{
+func convertEntry(oldEntry *Entry) *entry.Entry {
+	newEntry := &entry.Entry{
+		Frontmatter: entry.Frontmatter{
 			Title:              oldEntry.Metadata.Title,
 			Description:        oldEntry.Metadata.Description,
 			Draft:              oldEntry.Metadata.Draft,
@@ -172,7 +173,7 @@ func convertEntry(oldEntry *Entry) *eagle.Entry {
 	return newEntry
 }
 
-func getAliases(oldEntry *Entry, newEntry *eagle.Entry) (aliases string) {
+func getAliases(oldEntry *Entry, newEntry *entry.Entry) (aliases string) {
 	if oldEntry.ID != newEntry.ID {
 		aliases += oldEntry.ID + " " + newEntry.ID + "\n"
 	}
@@ -186,7 +187,7 @@ func getAliases(oldEntry *Entry, newEntry *eagle.Entry) (aliases string) {
 	return aliases
 }
 
-func moveFiles(oldEntry *Entry, newEntry *eagle.Entry) error {
+func moveFiles(oldEntry *Entry, newEntry *entry.Entry) error {
 	dir := filepath.Dir(oldEntry.Path)
 	files, err := os.ReadDir(dir)
 	if err != nil {
@@ -244,7 +245,7 @@ func convert(x *XRay) map[string]interface{} {
 	return r
 }
 
-func handleExternal(e *eagle.Eagle, oldEntry *Entry, newEntry *eagle.Entry) error {
+func handleExternal(e *eagle.Eagle, oldEntry *Entry, newEntry *entry.Entry) error {
 	var context map[string]interface{}
 
 	if oldEntry.Metadata.ReplyTo != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/gosimple/slug"
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v2"
 )
@@ -92,8 +93,8 @@ func convertRead(e *eagle.Eagle, r *read, status string, defDate time.Time) erro
 		props["uid"] = "isbn:" + r.ISBN
 	}
 
-	entry := &eagle.Entry{
-		Frontmatter: eagle.Frontmatter{
+	entry := &entry.Entry{
+		Frontmatter: entry.Frontmatter{
 			Description: makeDescription(r, status),
 			Published:   r.Date,
 			Sections:    []string{"reads"},

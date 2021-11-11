@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -19,7 +20,7 @@ func (e *Eagle) setupPostgres() (err error) {
 		return err
 	}
 
-	entries, err := e.GetAllEntries()
+	entries, err := e.GetEntries()
 	if err != nil {
 		return err
 	}
@@ -30,7 +31,7 @@ func (e *Eagle) setupPostgres() (err error) {
 	return err
 }
 
-func (e *Eagle) IndexAdd(entries ...*Entry) error {
+func (e *Eagle) IndexAdd(entries ...*entry.Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
@@ -91,7 +92,7 @@ func (e *Eagle) Tags() ([]string, error) {
 	return tags, rows.Err()
 }
 
-func (e *Eagle) QueryDate(year, month, day int, opts *QueryOptions) ([]*Entry, error) {
+func (e *Eagle) QueryDate(year, month, day int, opts *QueryOptions) ([]*entry.Entry, error) {
 	i := 0
 	args := []interface{}{}
 
@@ -121,17 +122,17 @@ func (e *Eagle) QueryDate(year, month, day int, opts *QueryOptions) ([]*Entry, e
 	return e.queryEntries(sql, args...)
 }
 
-func (e *Eagle) QueryEntries(opts *QueryOptions) ([]*Entry, error) {
+func (e *Eagle) QueryEntries(opts *QueryOptions) ([]*entry.Entry, error) {
 	sql := "select id from entries" + e.finishQuery(opts)
 	return e.queryEntries(sql)
 }
 
-func (e *Eagle) QueryTag(tag string, opts *QueryOptions) ([]*Entry, error) {
+func (e *Eagle) QueryTag(tag string, opts *QueryOptions) ([]*entry.Entry, error) {
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1" + e.finishQuery(opts)
 	return e.queryEntries(sql, tag)
 }
 
-func (e *Eagle) QuerySection(sections []string, opts *QueryOptions) ([]*Entry, error) {
+func (e *Eagle) QuerySection(sections []string, opts *QueryOptions) ([]*entry.Entry, error) {
 	args := []interface{}{}
 	sql := "select id from sections inner join entries on id=entry_id where "
 	where := []string{}
@@ -146,7 +147,7 @@ func (e *Eagle) QuerySection(sections []string, opts *QueryOptions) ([]*Entry, e
 	return e.queryEntries(sql, args...)
 }
 
-func (e *Eagle) SearchPostgres(query string, opts *QueryOptions) ([]*Entry, error) {
+func (e *Eagle) SearchPostgres(query string, opts *QueryOptions) ([]*entry.Entry, error) {
 	sql := `select id from (
 		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, e.id
 		from entries as e
@@ -192,7 +193,7 @@ func (e *Eagle) finishQuery(opts *QueryOptions) string {
 	return query.String()
 }
 
-func (e *Eagle) queryEntries(sql string, args ...interface{}) ([]*Entry, error) {
+func (e *Eagle) queryEntries(sql string, args ...interface{}) ([]*entry.Entry, error) {
 	rows, err := e.conn.Query(context.Background(), sql, args...)
 	if err != nil {
 		return nil, err
@@ -214,7 +215,7 @@ func (e *Eagle) queryEntries(sql string, args ...interface{}) ([]*Entry, error) 
 		return nil, err
 	}
 
-	entries := make([]*Entry, len(ids))
+	entries := make([]*entry.Entry, len(ids))
 
 	for i, id := range ids {
 		entry, err := e.GetEntry(id)

@@ -16,6 +16,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/thoas/go-funk"
 )
 
@@ -46,7 +47,7 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	} else if len(data) == 2 {
 		// TODO(future): perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
-		nrd.Entry = data[1].(*Entry)
+		nrd.Entry = data[1].(*entry.Entry)
 		nrd.sidecar = nil
 		err = e.templates[name].ExecuteTemplate(&buf, name, &nrd)
 	} else {
@@ -203,12 +204,12 @@ type RenderData struct {
 	// All pages must have some sort of Entry embedded.
 	// This allows us to set generic information about
 	// a page that may be needed.
-	*Entry
+	*entry.Entry
 
 	User *config.User
 	Site *config.Site
 
-	Entries []*Entry
+	Entries []*entry.Entry
 
 	SearchQuery string
 	Page        int

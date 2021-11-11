@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/jlelse/feeds"
 )
 
@@ -82,7 +83,7 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.ParseEntry(r.URL.Path, content)
+	entry, err := s.Parser.FromRaw(r.URL.Path, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -106,15 +107,15 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 	s.serveEntry(w, r, entry)
 }
 
-func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *eagle.Entry) {
+func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *entry.Entry) {
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: entry,
-	}, entry.Templates())
+	}, s.EntryTemplates(entry))
 }
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
 			return s.QueryEntries(opts)
 		},
 	})
@@ -125,7 +126,7 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 		rd: &eagle.RenderData{
 			IsHome: true,
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
 			return s.QuerySection(s.Config.Site.IndexSections, opts)
 		},
 		templates: []string{eagle.TemplateIndex},
@@ -139,16 +140,16 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry := s.getEntryOrEmpty(r.URL.Path)
-	if entry.Title == "" {
-		entry.Title = "#" + tag
+	ee := s.getEntryOrEmpty(r.URL.Path)
+	if ee.Title == "" {
+		ee.Title = "#" + tag
 	}
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: entry,
+			Entry: ee,
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
 			return s.QueryTag(tag, opts)
 		},
 	})
@@ -156,20 +157,20 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) sectionGet(section string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		entry := s.getEntryOrEmpty(r.URL.Path)
-		if entry.Title == "" {
-			entry.Title = section
+		ee := s.getEntryOrEmpty(r.URL.Path)
+		if ee.Title == "" {
+			ee.Title = section
 		}
 
-		if len(entry.Sections) == 0 {
-			entry.Sections = []string{section}
+		if len(ee.Sections) == 0 {
+			ee.Sections = []string{section}
 		}
 
 		s.listingGet(w, r, &listingSettings{
 			rd: &eagle.RenderData{
-				Entry: entry,
+				Entry: ee,
 			},
-			exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+			exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
 				return s.QuerySection([]string{section}, opts)
 			},
 			templates: []string{},
@@ -217,13 +218,13 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: &eagle.Entry{
-				Frontmatter: eagle.Frontmatter{
+			Entry: &entry.Entry{
+				Frontmatter: entry.Frontmatter{
 					Title: title.String(),
 				},
 			},
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
 			return s.QueryDate(year, month, day, opts)
 		},
 	})
@@ -232,45 +233,45 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
-	entry := s.getEntryOrEmpty(r.URL.Path)
-	if entry.Title == "" {
-		entry.Title = "Search"
+	ee := s.getEntryOrEmpty(r.URL.Path)
+	if ee.Title == "" {
+		ee.Title = "Search"
 	}
-	if entry.ID == "" {
-		entry.ID = strings.TrimSuffix(r.URL.Path, filepath.Ext(r.URL.Path))
+	if ee.ID == "" {
+		ee.ID = strings.TrimSuffix(r.URL.Path, filepath.Ext(r.URL.Path))
 	}
 
 	if query == "" {
 		s.serveHTML(w, r, &eagle.RenderData{
-			Entry: entry,
+			Entry: ee,
 		}, []string{eagle.TemplateSearch})
 		return
 	}
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry:       entry,
+			Entry:       ee,
 			SearchQuery: query,
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*eagle.Entry, error) {
+		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
 			return s.SearchPostgres(query, opts)
 		},
 		templates: []string{eagle.TemplateSearch},
 	})
 }
 
-func (s *Server) getEntryOrEmpty(id string) *eagle.Entry {
-	if entry, err := s.GetEntry(id); err == nil {
-		return entry
+func (s *Server) getEntryOrEmpty(id string) *entry.Entry {
+	if ee, err := s.GetEntry(id); err == nil {
+		return ee
 	} else {
-		return &eagle.Entry{
-			Frontmatter: eagle.Frontmatter{},
+		return &entry.Entry{
+			Frontmatter: entry.Frontmatter{},
 		}
 	}
 }
 
 type listingSettings struct {
-	exec      func(*eagle.QueryOptions) ([]*eagle.Entry, error)
+	exec      func(*eagle.QueryOptions) ([]*entry.Entry, error)
 	rd        *eagle.RenderData
 	templates []string
 }
@@ -391,7 +392,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 }
 
-// func (s *Server) goSyndicate(entry *eagle.Entry) {
+// func (s *Server) goSyndicate(entry *entry.Entry) {
 // if s.Twitter == nil {
 // 	return
 // }
@@ -412,7 +413,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 // INVALIDATE CACHE OR STH
 // }
 
-// func (s *Server) goWebmentions(entry *eagle.Entry) {
+// func (s *Server) goWebmentions(entry *entry.Entry) {
 // 	err := s.SendWebmentions(entry)
 // 	if err != nil {
 // 		s.NotifyError(fmt.Errorf("webmentions: %w", err))
@@ -450,7 +451,7 @@ type postSaveOptions struct {
 	twitter bool
 }
 
-func (s *Server) postSavePost(entry *eagle.Entry, opts *postSaveOptions) {
+func (s *Server) postSavePost(entry *entry.Entry, opts *postSaveOptions) {
 	// Invalidate cache
 	// TODO
 	s.PostSaveEntry(entry, nil)

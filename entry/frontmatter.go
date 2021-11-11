@@ -1,32 +1,27 @@
-package eagle
+package entry
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/spf13/cast"
 	yaml "gopkg.in/yaml.v2"
 )
 
 type Frontmatter struct {
-	entry *mf2.FlatHelper
-
-	Title              string    `yaml:"title,omitempty"`
-	Description        string    `yaml:"description,omitempty"`
-	Draft              bool      `yaml:"draft,omitempty"`
-	Deleted            bool      `yaml:"deleted,omitempty"`
-	Private            bool      `yaml:"private,omitempty"`
-	Published          time.Time `yaml:"published,omitempty"`
-	Updated            time.Time `yaml:"updated,omitempty"`
-	Sections           []string  `yaml:"section,omitempty"`
-	Template           string    `yaml:"template,omitempty"`
-	NoShowInteractions bool      `yaml:"noShowInteractions,omitempty"`
-	NoSendInteractions bool      `yaml:"noSendInteractions,omitempty"`
-	PhotoClass         string    `yaml:"photoClass,omitempty"`
-
-	// MF2 flattened properties.
-	Properties map[string]interface{} `yaml:"properties,omitempty"`
+	Title              string                 `yaml:"title,omitempty"`
+	Description        string                 `yaml:"description,omitempty"`
+	Draft              bool                   `yaml:"draft,omitempty"`
+	Deleted            bool                   `yaml:"deleted,omitempty"`
+	Private            bool                   `yaml:"private,omitempty"`
+	Published          time.Time              `yaml:"published,omitempty"`
+	Updated            time.Time              `yaml:"updated,omitempty"`
+	Sections           []string               `yaml:"section,omitempty"`
+	Template           string                 `yaml:"template,omitempty"`
+	NoShowInteractions bool                   `yaml:"noShowInteractions,omitempty"`
+	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
+	PhotoClass         string                 `yaml:"photoClass,omitempty"`
+	Properties         map[string]interface{} `yaml:"properties,omitempty"` // "Flat" MF2 Properties.
 }
 
 func unmarshalFrontmatter(data []byte) (*Frontmatter, error) {

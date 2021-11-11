@@ -12,6 +12,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"
@@ -34,7 +35,7 @@ type WebmentionPayload struct {
 	Post    map[string]interface{} `json:"post"`
 }
 
-func (e *Eagle) SendWebmentions(entry *Entry) error {
+func (e *Eagle) SendWebmentions(entry *entry.Entry) error {
 	if entry.NoSendInteractions {
 		return nil
 	}
@@ -76,7 +77,7 @@ func (e *Eagle) SendWebmentions(entry *Entry) error {
 	return fmt.Errorf("webmention errors for %s: %w", entry.ID, err)
 }
 
-func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string, error) {
+func (e *Eagle) GetWebmentionTargets(entry *entry.Entry) ([]string, []string, []string, error) {
 	currentTargets, err := e.getTargetsFromHTML(entry)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -104,11 +105,11 @@ func (e *Eagle) GetWebmentionTargets(entry *Entry) ([]string, []string, []string
 	return targets, currentTargets, oldTargets, nil
 }
 
-func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
+func (e *Eagle) getTargetsFromHTML(entry *entry.Entry) ([]string, error) {
 	var buf bytes.Buffer
 	err := e.Render(&buf, &RenderData{
 		Entry: entry,
-	}, entry.Templates())
+	}, e.EntryTemplates(entry))
 	if err != nil {
 		return nil, err
 	}

@@ -1,58 +1,19 @@
-package eagle
+package twitter
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/dghubble/oauth1"
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/pkg/mf2"
-	"github.com/hashicorp/go-multierror"
-	"github.com/thoas/go-funk"
 )
-
-type Syndicator interface {
-	Syndicate(entry *Entry) (url string, err error)
-	IsByContext(entry *Entry) bool
-	Name() string
-	Identifier() string
-}
-
-func (e *Eagle) Syndicate(entry *Entry, syndicators []string) ([]string, error) {
-	for id, syndicator := range e.syndicators {
-		if syndicator.IsByContext(entry) {
-			syndicators = append(syndicators, id)
-		}
-	}
-
-	syndicators = funk.UniqString(syndicators)
-
-	var (
-		errors       *multierror.Error
-		syndications []string
-	)
-
-	for _, id := range syndicators {
-		syndicator, ok := e.syndicators[id]
-		if !ok {
-			errors = multierror.Append(errors, fmt.Errorf("unknown syndication service: %s", id))
-			continue
-		}
-
-		url, err := syndicator.Syndicate(entry)
-		if err != nil {
-			errors = multierror.Append(errors, err)
-		} else {
-			syndications = append(syndications, url)
-		}
-	}
-
-	return syndications, errors.ErrorOrNil()
-}
 
 type Twitter struct {
 	conf   *config.Twitter
@@ -72,8 +33,8 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	}
 }
 
-func (t *Twitter) Syndicate(entry *Entry) (url string, err error) {
-	mm := entry.MF2()
+func (t *Twitter) Syndicate(entry *entry.Entry) (url string, err error) {
+	mm := entry.Helper()
 	typ := mm.PostType()
 	urlStr := mm.String(mm.TypeProperty())
 
@@ -108,8 +69,8 @@ func (t *Twitter) Syndicate(entry *Entry) (url string, err error) {
 	return t.tweet(status, replyUrl)
 }
 
-func (t *Twitter) IsByContext(entry *Entry) bool {
-	mm := entry.MF2()
+func (t *Twitter) IsByContext(entry *entry.Entry) bool {
+	mm := entry.Helper()
 	typ := mm.PostType()
 
 	switch typ {
@@ -135,29 +96,29 @@ func (t *Twitter) Identifier() string {
 	return fmt.Sprintf("twitter-%s", t.conf.User)
 }
 
-// func (t *Twitter) UserExists(user string) (bool, error) {
-// 	req, err := http.NewRequest(http.MethodPost, "https://api.twitter.com/1.1/users/lookup.json?screen_name="+user, nil)
-// 	if err != nil {
-// 		return false, err
-// 	}
+func (t *Twitter) UserExists(user string) (bool, error) {
+	req, err := http.NewRequest(http.MethodPost, "https://api.twitter.com/1.1/users/lookup.json?screen_name="+user, nil)
+	if err != nil {
+		return false, err
+	}
 
-// 	res, err := t.client.Do(req)
-// 	if err != nil {
-// 		return false, err
-// 	}
+	res, err := t.client.Do(req)
+	if err != nil {
+		return false, err
+	}
 
-// 	var r interface{}
-// 	err = json.NewDecoder(res.Body).Decode(&r)
-// 	if err != nil {
-// 		return false, err
-// 	}
+	var r interface{}
+	err = json.NewDecoder(res.Body).Decode(&r)
+	if err != nil {
+		return false, err
+	}
 
-// 	if reflect.ValueOf(r).Kind() == reflect.Slice {
-// 		return reflect.ValueOf(r).Len() > 0, nil
-// 	}
+	if reflect.ValueOf(r).Kind() == reflect.Slice {
+		return reflect.ValueOf(r).Len() > 0, nil
+	}
 
-// 	return false, nil
-// }
+	return false, nil
+}
 
 func (t *Twitter) tweet(status, replyTo string) (string, error) {
 	values := urlpkg.Values{}
