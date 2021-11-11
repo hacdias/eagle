@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/jwtauth"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/log"
@@ -37,7 +37,7 @@ type Server struct {
 	servers     []*httpServer
 
 	onionAddress string
-	token        *jwtauth.JWTAuth
+	jwtAuth      *jwtauth.JWTAuth
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
@@ -48,7 +48,7 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 	}
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
-	s.token = jwtauth.New("HS256", []byte(secret), nil)
+	s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
 
 	return s, nil
 }
@@ -176,10 +176,10 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	}
 }
 
-func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err error) {
+func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescription string) {
 	s.serveJSON(w, code, map[string]interface{}{
-		"error":             http.StatusText(code),
-		"error_description": err.Error(),
+		"error":             err,
+		"error_description": errDescription,
 	})
 }
 

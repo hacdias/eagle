@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-chi/jwtauth"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/lestrrat-go/jwx/jwt"
@@ -55,7 +55,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(time.Hour * 24 * 7)
 
-	_, signed, err := s.token.Encode(map[string]interface{}{
+	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
 		jwt.SubjectKey:    "Eagle",
 		jwt.IssuedAtKey:   time.Now().Unix(),
 		jwt.ExpirationKey: expiration,
@@ -72,7 +72,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		Secure:   r.URL.Scheme == "https",
 		HttpOnly: true,
 		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	http.SetCookie(w, cookie)
@@ -108,23 +108,22 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) mustAuthenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		isAuthd := r.Context().Value(loggedInContextKey).(bool)
-		if !isAuthd {
-			newPath := "/login?redirect=" + url.PathEscape(r.URL.String())
-			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (s *Server) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 	if loggedIn, ok := r.Context().Value(loggedInContextKey).(bool); ok {
 		return loggedIn
 	}
 
 	return false
+}
+
+func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.isLoggedIn(w, r) {
+			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
+			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

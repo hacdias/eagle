@@ -7,7 +7,7 @@ require (
 	github.com/cretz/bine v0.2.0
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/go-chi/chi/v5 v5.0.5
-	github.com/go-chi/jwtauth v1.2.0
+	github.com/go-chi/jwtauth/v5 v5.0.2
 	github.com/gosimple/slug v1.11.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v4 v4.13.0
