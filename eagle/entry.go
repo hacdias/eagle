@@ -239,6 +239,10 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 }
 
 func (e *Eagle) syndicate(ee *entry.Entry, syndicators []string) error {
+	if len(syndicators) == 0 {
+		return nil
+	}
+
 	syndications, err := e.syndication.Syndicate(ee, syndicators)
 	if err != nil {
 		return err

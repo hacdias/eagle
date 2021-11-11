@@ -10,7 +10,6 @@ import (
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/server/micropub"
-	"github.com/karlseguin/typed"
 )
 
 func (s *Server) micropubGet(w http.ResponseWriter, r *http.Request) {
@@ -93,9 +92,9 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
-	cmds := typed.New(mf2.Flatten(mr.Commands))
+	cmds := mf2.NewFlatHelper(mf2.Flatten(mr.Commands))
 	slug := ""
-	if s, ok := cmds.StringIf("mp-slug"); ok {
+	if s := cmds.String("mp-slug"); s != "" {
 		slug = s
 	}
 
@@ -105,7 +104,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	var syndicators []string
-	if s, ok := cmds.StringsIf("mp-syndicate-to"); ok {
+	if s := cmds.Strings("mp-syndicate-to"); len(s) > 0 {
 		syndicators = s
 	}
 

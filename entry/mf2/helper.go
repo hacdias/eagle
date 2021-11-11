@@ -20,6 +20,12 @@ func NewFlatHelper(data map[string]interface{}) *FlatHelper {
 		return nil
 	}
 
+	if _, ok := data["properties"].(map[string]interface{}); !ok {
+		data = map[string]interface{}{
+			"properties": data,
+		}
+	}
+
 	return &FlatHelper{
 		Map:        typed.New(data),
 		Properties: typed.New(data["properties"].(map[string]interface{})),

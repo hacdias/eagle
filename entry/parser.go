@@ -27,6 +27,11 @@ func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry,
 	id := newID(slug, entry.Published)
 	entry.ID = cleanID(id)
 	entry.Permalink, err = p.makePermalink(entry.ID)
+
+	if entry.Properties == nil {
+		entry.Properties = map[string]interface{}{}
+	}
+
 	return entry, err
 }
 
@@ -55,6 +60,11 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 	}
 
 	entry.Frontmatter = *fr
+
+	if entry.Properties == nil {
+		entry.Properties = map[string]interface{}{}
+	}
+
 	return entry, nil
 }
 
