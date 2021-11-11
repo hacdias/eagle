@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/jwtauth"
+	"github.com/go-chi/jwtauth/v5"
 )
 
 // TODO(v2): handle aliases.
@@ -13,7 +13,6 @@ import (
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	// r.Use(middleware.Logger)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(cleanPath)
 	r.Use(middleware.GetHead)
@@ -21,7 +20,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(s.recoverer)
 	r.Use(s.securityHeaders)
 
-	r.Use(jwtauth.Verifier(s.token))
+	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 
 	if s.Config.Tor != nil {
@@ -30,18 +29,25 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	r.Group(func(r chi.Router) {
-		// TODO(v2): Protect with IndieAuth
+		r.Use(s.mustIndieAuth)
 
 		r.Get("/micropub", s.micropubGet)
 		r.Post("/micropub", s.micropubPost)
 	})
 
 	r.Group(func(r chi.Router) {
-		r.With(s.mustAuthenticate)
+		r.Use(s.mustLoggedIn)
+
+		r.Get("/auth", s.indieauthGet)
+		r.Post("/auth/accept", s.indieauthAcceptPost)
 
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
 	})
+
+	// Token exchange points.
+	r.Post("/auth", s.indieauthPost)
+	r.Post("/token", s.tokenPost)
 
 	r.Group(s.listingRoutes)
 
@@ -60,7 +66,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Post("/login", s.loginPostHandler)
 
 	r.With(s.withStaticFiles).Get("/*", s.entryGet)
-	r.With(s.mustAuthenticate).Post("/*", s.entryPost)
+	r.With(s.mustLoggedIn).Post("/*", s.entryPost)
 
 	return r
 }
@@ -97,16 +103,3 @@ func (s *Server) listingRoutes(r chi.Router) {
 		r.Get("/"+section+feedPath, s.sectionGet(section))
 	}
 }
-
-// 		if s.Config.Auth != nil {
-// 			r.Use(s.mustAuthenticate)
-// 		}
-
-// 		r.Get("/", s.dashboardGetHandler)
-// 		r.Get("/new", s.newGetHandler)
-// 		r.Get("/reply", s.replyGetHandler)
-// 		r.Get("/webmentions*", s.webmentionsGetHandler)
-// 		r.Get("/blogroll", s.blogrollGetHandler)
-// 		r.Get("/sync", s.syncGetHandler)
-// 		r.Get("/rebuild-index", s.rebuildIndexGetHandler)
-// 	})

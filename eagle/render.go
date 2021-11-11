@@ -34,6 +34,7 @@ const (
 	TemplateEditor string = "editor"
 	TemplateIndex  string = "index"
 	TemplateTags   string = "tags"
+	TemplateAuth   string = "auth"
 )
 
 func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML, error) {
@@ -196,6 +197,9 @@ type RenderData struct {
 
 	User config.User
 	Site config.Site
+
+	// Move some things here for specific pages.
+	Data interface{}
 
 	Entries []*entry.Entry
 
