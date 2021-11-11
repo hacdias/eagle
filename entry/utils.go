@@ -29,11 +29,3 @@ func cleanID(id string) string {
 	id = strings.TrimPrefix(id, "/")
 	return "/" + id
 }
-
-func truncate(text string, size int) string {
-	if len(text) <= size {
-		return text
-	}
-
-	return strings.TrimSpace(text[:size]) + "..."
-}
