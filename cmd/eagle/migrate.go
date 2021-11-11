@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hacdias/eagle/v2/migrate"
+	"github.com/hacdias/eagle/v2/cmd/eagle/migrate"
 	"github.com/spf13/cobra"
 )
 
