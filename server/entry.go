@@ -452,5 +452,6 @@ type postSaveOptions struct {
 
 func (s *Server) postSavePost(entry *eagle.Entry, opts *postSaveOptions) {
 	// Invalidate cache
-	s.PostSaveEntry(entry)
+	// TODO
+	s.PostSaveEntry(entry, nil)
 }

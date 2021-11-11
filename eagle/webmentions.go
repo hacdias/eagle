@@ -113,7 +113,7 @@ func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
 		return nil, err
 	}
 
-	targets, err := webmention.DiscoverLinksFromReader(&buf, entry.Permalink, ".h-entry .e-content a")
+	targets, err := webmention.DiscoverLinksFromReader(&buf, entry.Permalink, ".h-entry .e-content a, .h-entry .h-cite a")
 	if err != nil {
 		return nil, err
 	}
