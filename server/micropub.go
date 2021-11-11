@@ -104,18 +104,17 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	// TODO(v2): parse this to add twitter
-	// if targets, ok := post.Commands.StringsIf("mp-syndicate-to"); ok {
-	// 	synd.Targets = targets
-	// }
+	var syndicators []string
+	if s, ok := cmds.StringsIf("mp-syndicate-to"); ok {
+		syndicators = s
+	}
 
 	err = s.SaveEntry(entry)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, &postSaveOptions{})
-
+	go s.postSavePost(entry, syndicators)
 	http.Redirect(w, r, s.Config.Site.BaseURL+entry.ID, http.StatusAccepted)
 	return 0, nil
 }
@@ -145,8 +144,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	go s.postSavePost(entry, &postSaveOptions{})
-
+	go s.postSavePost(entry, nil)
 	http.Redirect(w, r, entry.Permalink, http.StatusOK)
 	return 0, nil
 }
@@ -165,8 +163,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, &postSaveOptions{})
-
+	go s.postSavePost(entry, nil)
 	return http.StatusOK, nil
 }
 
@@ -184,8 +181,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, &postSaveOptions{})
-
+	go s.postSavePost(entry, nil)
 	return http.StatusOK, nil
 }
 
