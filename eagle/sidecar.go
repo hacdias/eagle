@@ -18,7 +18,7 @@ func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
 
 	var sidecar *Sidecar
 
-	err := e.ReadJSON(filename, &sidecar)
+	err := e.fs.ReadJSON(filename, &sidecar)
 	if os.IsNotExist(err) {
 		err = nil
 	}
@@ -57,5 +57,5 @@ func (e *Eagle) UpdateSidecar(entry *entry.Entry, t func(*Sidecar) (*Sidecar, er
 		return err
 	}
 
-	return e.PersistJSON(filename, newSidecar, "sidecar: "+entry.ID)
+	return e.fs.WriteJSON(filename, newSidecar, "sidecar: "+entry.ID)
 }

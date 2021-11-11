@@ -10,7 +10,6 @@ import (
 	urlpkg "net/url"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hashicorp/go-multierror"
@@ -48,9 +47,9 @@ func (e *Eagle) SendWebmentions(entry *entry.Entry) error {
 	var errs *multierror.Error
 
 	for _, target := range all {
-		if strings.HasPrefix(target, e.Config.Site.BaseURL) {
-			// TODO(future): it is a self-mention.
-		}
+		// if strings.HasPrefix(target, e.Config.Site.BaseURL) {
+		// TODO(future): it is a self-mention.
+		// }
 
 		err := e.sendWebmention(entry.Permalink, target)
 		if err != nil && !errors.Is(err, webmention.ErrNoEndpointFound) {
@@ -132,7 +131,7 @@ func (e *Eagle) getTargetsFromHTML(entry *entry.Entry) ([]string, error) {
 }
 
 func (e *Eagle) sendWebmention(source, target string) error {
-	endpoint, err := e.webmentionsClient.DiscoverEndpoint(target)
+	endpoint, err := e.wmClient.DiscoverEndpoint(target)
 	if err != nil {
 		return err
 	}
@@ -141,7 +140,7 @@ func (e *Eagle) sendWebmention(source, target string) error {
 		return fmt.Errorf("webmention endpoint is a private address: %s", endpoint)
 	}
 
-	res, err := e.webmentionsClient.SendWebmention(endpoint, source, target)
+	res, err := e.wmClient.SendWebmention(endpoint, source, target)
 	if err != nil {
 		return err
 	}
@@ -197,6 +196,16 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		sidecar.Webmentions = append(sidecar.Webmentions, data)
 		return sidecar, nil
 	})
+
+	// TODO(vw)
+	// go func() {
+	// 	// INVALIDATE CACHE OR STH
+	// 	if wm.Deleted {
+	// 		s.Notify("💬 Deleted webmention at " + wm.Target)
+	// 	} else {
+	// 		s.Notify("💬 Received webmention at " + wm.Target)
+	// 	}
+	// }()
 }
 
 func (e *Eagle) uploadXRayAuthorPhoto(url string) string {

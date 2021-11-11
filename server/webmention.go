@@ -30,13 +30,4 @@ func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-
-	go func() {
-		// INVALIDATE CACHE OR STH
-		if wm.Deleted {
-			s.Notify("💬 Deleted webmention at " + wm.Target)
-		} else {
-			s.Notify("💬 Received webmention at " + wm.Target)
-		}
-	}()
 }

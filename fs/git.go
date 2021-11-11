@@ -1,4 +1,4 @@
-package eagle
+package fs
 
 import (
 	"bytes"
@@ -9,11 +9,15 @@ import (
 
 var nothingToCommit = []byte("nothing to commit, working tree clean")
 
-type gitRepo struct {
+type GitSync struct {
 	dir string
 }
 
-func (g *gitRepo) addAndCommit(msg string, file string) error {
+func NewGitSync(path string) FSSync {
+	return &GitSync{path}
+}
+
+func (g *GitSync) Persist(msg string, file string) error {
 	args := append([]string{"add"}, file)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
@@ -33,7 +37,7 @@ func (g *gitRepo) addAndCommit(msg string, file string) error {
 	return nil
 }
 
-func (g *gitRepo) pullAndPush() ([]string, error) {
+func (g *GitSync) Sync() ([]string, error) {
 	oldCommit, err := g.currentCommit()
 	if err != nil {
 		return nil, err
@@ -57,7 +61,7 @@ func (g *gitRepo) pullAndPush() ([]string, error) {
 	return changedFiles, nil
 }
 
-func (g *gitRepo) push() error {
+func (g *GitSync) push() error {
 	cmd := exec.Command("git", "push")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -67,7 +71,7 @@ func (g *gitRepo) push() error {
 	return nil
 }
 
-func (g *gitRepo) pull() error {
+func (g *GitSync) pull() error {
 	cmd := exec.Command("git", "pull")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -77,7 +81,7 @@ func (g *gitRepo) pull() error {
 	return nil
 }
 
-func (g *gitRepo) currentCommit() (string, error) {
+func (g *GitSync) currentCommit() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--verify", "HEAD")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -88,7 +92,7 @@ func (g *gitRepo) currentCommit() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func (g *gitRepo) changedFiles(since string) ([]string, error) {
+func (g *GitSync) changedFiles(since string) ([]string, error) {
 	cmd := exec.Command("git", "show", "--name-only", "--format=tformat:", since+"...HEAD")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
