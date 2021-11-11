@@ -72,7 +72,7 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	// 1. Check for context URL and fetch the data if needed.
 	err := e.ensureContextXRay(ee)
 	if err != nil {
-		e.notifier.Error(err)
+		e.Error(err)
 	}
 
 	// TODO(v2)
@@ -85,13 +85,13 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	// 4. Syndicate
 	err = e.syndicate(ee, syndicators)
 	if err != nil {
-		e.notifier.Error(err)
+		e.Error(err)
 	}
 
 	// 5. Webmentions
 	err = e.SendWebmentions(ee)
 	if err != nil {
-		e.notifier.Error(err)
+		e.Error(err)
 	}
 }
 
@@ -123,7 +123,7 @@ func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*en
 	return ee, err
 }
 
-func (e *Eagle) EntryTemplates(ee *entry.Entry) []string {
+func EntryTemplates(ee *entry.Entry) []string {
 	tpls := []string{}
 	if ee.Template != "" {
 		tpls = append(tpls, ee.Template)

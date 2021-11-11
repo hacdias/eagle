@@ -110,7 +110,7 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *entry.Entry) {
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: entry,
-	}, s.EntryTemplates(entry))
+	}, eagle.EntryTemplates(entry))
 }
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {

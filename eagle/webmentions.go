@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	urlpkg "net/url"
 	"os"
@@ -108,7 +109,7 @@ func (e *Eagle) getTargetsFromHTML(entry *entry.Entry) ([]string, error) {
 	var buf bytes.Buffer
 	err := e.Render(&buf, &RenderData{
 		Entry: entry,
-	}, e.EntryTemplates(entry))
+	}, EntryTemplates(entry))
 	if err != nil {
 		return nil, err
 	}
@@ -229,4 +230,23 @@ func (e *Eagle) uploadXRayAuthorPhoto(url string) string {
 		return url
 	}
 	return newURL
+}
+
+func isPrivate(urlStr string) bool {
+	url, _ := urlpkg.Parse(urlStr)
+	if url == nil {
+		return false
+	}
+
+	hostname := url.Hostname()
+	if hostname == "localhost" {
+		return true
+	}
+
+	ip := net.ParseIP(hostname)
+	if ip == nil {
+		return false
+	}
+
+	return ip.IsPrivate() || ip.IsLoopback()
 }

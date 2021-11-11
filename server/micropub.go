@@ -88,7 +88,7 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 		s.log.Errorf("micropub: error on post: %s", err)
 		s.serveErrorJSON(w, code, err)
 	} else if err != nil {
-		s.NotifyError(fmt.Errorf("micropub: %w", err))
+		s.Error(fmt.Errorf("micropub: %w", err))
 	}
 }
 

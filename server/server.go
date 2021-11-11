@@ -139,7 +139,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				err := fmt.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
-				s.NotifyError(err)
+				s.Error(err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
