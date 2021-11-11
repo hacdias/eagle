@@ -49,6 +49,8 @@ type Eagle struct {
 	markdown          goldmark.Markdown
 	absoluteMarkdown  goldmark.Markdown
 
+	syndicators map[string]Syndicator
+
 	Notifications
 	Config      *config.Config
 	PublicDirCh chan string
@@ -57,7 +59,6 @@ type Eagle struct {
 	media *Media
 
 	Miniflux *Miniflux
-	Twitter  *Twitter
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
@@ -74,6 +75,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Config:            conf,
 		PublicDirCh:       make(chan string, 2),
 		allowedTypes:      []mf2.Type{},
+		syndicators:       map[string]Syndicator{},
 	}
 
 	for typ := range conf.Site.MicropubTypes {
@@ -108,7 +110,8 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.absoluteMarkdown = newMarkdown(true, conf.Site.BaseURL)
 
 	if conf.Twitter != nil {
-		e.Twitter = NewTwitter(conf.Twitter)
+		twitter := NewTwitter(conf.Twitter)
+		e.syndicators[twitter.Identifier()] = twitter
 	}
 
 	if conf.Miniflux != nil {

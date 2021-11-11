@@ -12,6 +12,7 @@ import (
 	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/karlseguin/typed"
 	"github.com/thoas/go-funk"
+	stripMarkdown "github.com/writeas/go-strip-markdown"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -75,7 +76,7 @@ func (e *Entry) Summary() string {
 	} else if e.Description != "" {
 		e.summary = e.Description
 	} else {
-		content := sanitizePost(e.Content)
+		content := e.TextContent()
 		e.summary = truncate(content, 300)
 	}
 
@@ -91,6 +92,10 @@ func (e *Entry) String() (string, error) {
 	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), e.Content), nil
 }
 
+func (e *Entry) TextContent() string {
+	return stripMarkdown.Strip(e.Content)
+}
+
 func (e *Entry) Templates() []string {
 	tpls := []string{}
 	if e.Template != "" {
@@ -98,12 +103,6 @@ func (e *Entry) Templates() []string {
 	}
 	tpls = append(tpls, TemplateSingle)
 	return tpls
-}
-
-func (e *Entry) ContextURL() string {
-	mf2 := e.MF2()
-	urlStr := mf2.String(mf2.TypeProperty())
-	return urlStr
 }
 
 // type Picture struct {
@@ -173,7 +172,7 @@ func (e *Eagle) SaveEntry(entry *Entry) error {
 		}
 	}
 
-	if len(entry.MF2().Photos()) > 0 && !funk.ContainsString(entry.Sections, "photo") {
+	if len(entry.MF2().Photos()) > 0 && !funk.ContainsString(entry.Sections, "photos") {
 		entry.Sections = append(entry.Sections, "photos")
 	}
 
@@ -282,12 +281,14 @@ func (e *Eagle) makePermalink(id string) (string, error) {
 	return url.String(), nil
 }
 
-func (e *Eagle) PostSaveEntry(entry *Entry) {
+func (e *Eagle) PostSaveEntry(entry *Entry, syndications []string) {
 	// 1. Check for context URL and fetch the data if needed.
 	mm := entry.MF2()
-	switch mm.PostType() {
+	typ := mm.PostType()
+	switch typ {
 	case mf2.TypeLike, mf2.TypeRepost, mf2.TypeReply:
-		urlStr := entry.ContextURL()
+		mf2 := entry.MF2()
+		urlStr := mf2.String(mf2.TypeProperty())
 		if urlStr != "" {
 			err := e.fetchSaveContext(entry, urlStr)
 			if err != nil {
@@ -304,9 +305,20 @@ func (e *Eagle) PostSaveEntry(entry *Entry) {
 	// 3. If it is a checkin, download map image.
 
 	// 4. Syndicate
+	// TODO(future): detect that this is a reply/like/repost to a post on my own
+	// website. If so, fetch the syndications to syndicate the replies directly
+	// there. For example, if I reply to a post on my website that is syndicated
+	// on Twitter, I will want to syndicate that on Twitter. For now, I have to
+	// directly reply to the Twitter version.
+	syndications, err := e.Syndicate(entry, syndications)
+	if err != nil {
+		e.NotifyError(err)
+	} else {
+		// TODO(v2): update entry
+	}
 
 	// 5. Webmentions
-	err := e.SendWebmentions(entry)
+	err = e.SendWebmentions(entry)
 	if err != nil {
 		e.NotifyError(err)
 	}

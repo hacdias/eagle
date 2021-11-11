@@ -34,7 +34,7 @@ func (e *Eagle) IndexAdd(entries ...*Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
-		content := entry.Title + " " + entry.Description + " " + sanitizePost(entry.Content)
+		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
 		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date) values($1, $2, $3, $4, $5, $6)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC())
