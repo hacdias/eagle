@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
-	"reflect"
 	"strings"
 	"time"
 
@@ -94,30 +93,6 @@ func (t *Twitter) Name() string {
 
 func (t *Twitter) Identifier() string {
 	return fmt.Sprintf("twitter-%s", t.conf.User)
-}
-
-func (t *Twitter) UserExists(user string) (bool, error) {
-	req, err := http.NewRequest(http.MethodPost, "https://api.twitter.com/1.1/users/lookup.json?screen_name="+user, nil)
-	if err != nil {
-		return false, err
-	}
-
-	res, err := t.client.Do(req)
-	if err != nil {
-		return false, err
-	}
-
-	var r interface{}
-	err = json.NewDecoder(res.Body).Decode(&r)
-	if err != nil {
-		return false, err
-	}
-
-	if reflect.ValueOf(r).Kind() == reflect.Slice {
-		return reflect.ValueOf(r).Len() > 0, nil
-	}
-
-	return false, nil
 }
 
 func (t *Twitter) tweet(status, replyTo string) (string, error) {
