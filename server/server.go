@@ -55,15 +55,16 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 func (s *Server) Start() error {
 	errCh := make(chan error)
+	router := s.makeRouter()
 
 	// Start server(s)
-	err := s.startRegularServer(errCh)
+	err := s.startRegularServer(errCh, router)
 	if err != nil {
 		return err
 	}
 
 	if s.Config.Tor != nil {
-		err = s.startTor(errCh)
+		err = s.startTor(errCh, router)
 		if err != nil {
 			err = fmt.Errorf("onion service failed to start: %w", err)
 			s.log.Error(err)
@@ -100,16 +101,14 @@ func (s *Server) registerServer(srv *http.Server, name string) {
 	})
 }
 
-func (s *Server) startRegularServer(errCh chan error) error {
+func (s *Server) startRegularServer(errCh chan error, h http.Handler) error {
 	addr := ":" + strconv.Itoa(s.Config.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
-	router := s.makeRouter()
-	srv := &http.Server{Handler: router}
-
+	srv := &http.Server{Handler: h}
 	s.registerServer(srv, "public")
 
 	go func() {
@@ -185,7 +184,7 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err error) {
 }
 
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
-	data.TorUsed = false // TODO(v2)
+	data.TorUsed = s.isUsingTor(r)
 	data.OnionAddress = s.onionAddress
 	data.LoggedIn = s.isLoggedIn(w, r)
 

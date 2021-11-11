@@ -12,9 +12,14 @@ import (
 	"time"
 
 	"github.com/cretz/bine/tor"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
-func (s *Server) startTor(errCh chan error) error {
+const (
+	torUsedContextKey contextKey = "auth"
+)
+
+func (s *Server) startTor(errCh chan error, h http.Handler) error {
 	key, err := getTorKey(s.Config.Tor.ConfDir)
 	if err != nil {
 		return err
@@ -56,7 +61,7 @@ func (s *Server) startTor(errCh chan error) error {
 	s.onionAddress = "http://" + ln.String()
 
 	srv := &http.Server{
-		Handler:      s.makeRouter(),
+		Handler:      middleware.WithValue(torUsedContextKey, true)(h),
 		ReadTimeout:  5 * time.Minute,
 		WriteTimeout: 5 * time.Minute,
 	}
@@ -139,4 +144,12 @@ func getTorKey(path string) (crypto.PrivateKey, error) {
 	}
 
 	return torKey, err
+}
+
+func (s *Server) isUsingTor(r *http.Request) bool {
+	if loggedIn, ok := r.Context().Value(torUsedContextKey).(bool); ok {
+		return loggedIn
+	}
+
+	return false
 }
