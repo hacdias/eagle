@@ -10,7 +10,7 @@ import (
 
 // TODO(v2): handle aliases.
 
-func (s *Server) makeRouter(noDashboard bool) http.Handler {
+func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
 	// r.Use(middleware.Logger)
@@ -21,9 +21,7 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 	r.Use(s.recoverer)
 	r.Use(s.securityHeaders)
 
-	if s.Config.Auth != nil {
-		r.Use(jwtauth.Verifier(s.token))
-	}
+	r.Use(jwtauth.Verifier(s.token))
 	r.Use(s.withLoggedIn)
 
 	if s.Config.Tor != nil {
@@ -57,11 +55,9 @@ func (s *Server) makeRouter(noDashboard bool) http.Handler {
 
 	r.Get("/tags", s.tagsGet)
 
-	if s.Config.Auth != nil {
-		r.Get("/logout", s.logoutGetHandler)
-		r.Get("/login", s.loginGetHandler)
-		r.Post("/login", s.loginPostHandler)
-	}
+	r.Get("/logout", s.logoutGetHandler)
+	r.Get("/login", s.loginGetHandler)
+	r.Post("/login", s.loginPostHandler)
 
 	r.With(s.withStaticFiles).Get("/*", s.entryGet)
 	r.With(s.mustAuthenticate).Post("/*", s.entryPost)

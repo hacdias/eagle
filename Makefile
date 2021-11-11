@@ -1,7 +1,4 @@
-.PHONY: meilisearch build pgadmin postgres
-
-meilisearch:
-	docker run -it --rm -p 7700:7700 getmeili/meilisearch:latest
+.PHONY: build pgadmin postgres
 
 build:
 	go build -o main ./cmd/eagle

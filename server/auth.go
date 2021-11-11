@@ -100,12 +100,8 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var isAuthd bool
 
-		if s.Config.Auth != nil {
-			token, _, err := jwtauth.FromContext(r.Context())
-			isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil)
-		} else {
-			isAuthd = false
-		}
+		token, _, err := jwtauth.FromContext(r.Context())
+		isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil)
 
 		ctx := context.WithValue(r.Context(), loggedInContextKey, isAuthd)
 		next.ServeHTTP(w, r.WithContext(ctx))

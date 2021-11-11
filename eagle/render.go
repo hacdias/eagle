@@ -199,8 +199,8 @@ type RenderData struct {
 	// a page that may be needed.
 	*entry.Entry
 
-	User *config.User
-	Site *config.Site
+	User config.User
+	Site config.Site
 
 	Entries []*entry.Entry
 

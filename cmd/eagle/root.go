@@ -8,7 +8,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/eagle"
-	"github.com/hacdias/eagle/v2/logging"
+	"github.com/hacdias/eagle/v2/log"
 	"github.com/hacdias/eagle/v2/server"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		defer func() {
-			_ = logging.L().Sync()
+			_ = log.L().Sync()
 		}()
 
 		e, err := eagle.NewEagle(c)
@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
-		log := logging.S()
+		log := log.S()
 
 		go func() {
 			log.Info("starting server")

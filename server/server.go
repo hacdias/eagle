@@ -17,7 +17,7 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/logging"
+	"github.com/hacdias/eagle/v2/log"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
 )
@@ -43,14 +43,12 @@ type Server struct {
 func NewServer(e *eagle.Eagle) (*Server, error) {
 	s := &Server{
 		Eagle:   e,
-		log:     logging.S().Named("server"),
+		log:     log.S().Named("server"),
 		servers: []*httpServer{},
 	}
 
-	if e.Config.Auth != nil {
-		secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
-		s.token = jwtauth.New("HS256", []byte(secret), nil)
-	}
+	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
+	s.token = jwtauth.New("HS256", []byte(secret), nil)
 
 	return s, nil
 }
@@ -62,13 +60,6 @@ func (s *Server) Start() error {
 	err := s.startRegularServer(errCh)
 	if err != nil {
 		return err
-	}
-
-	if s.Config.Tailscale != nil {
-		err = s.startTailscaleServer(errCh)
-		if err != nil {
-			return err
-		}
 	}
 
 	if s.Config.Tor != nil {
@@ -116,12 +107,7 @@ func (s *Server) startRegularServer(errCh chan error) error {
 		return err
 	}
 
-	noDashboard := false
-	if s.Config.Tailscale != nil {
-		noDashboard = s.Config.Tailscale.ExclusiveDashboard
-	}
-
-	router := s.makeRouter(noDashboard)
+	router := s.makeRouter()
 	srv := &http.Server{Handler: router}
 
 	s.registerServer(srv, "public")

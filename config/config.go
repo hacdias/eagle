@@ -5,7 +5,7 @@ import (
 	urlpkg "net/url"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/v2/pkg/mf2"
+	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/spf13/viper"
 	"github.com/thoas/go-funk"
 )
@@ -15,19 +15,18 @@ type Config struct {
 	Port            int
 	SourceDirectory string
 	PublicDirectory string
-	Site            *Site
-	User            *User
+	Site            Site
+	User            User
 	// WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
-	Auth              *Auth
-	Tailscale         *Tailscale
+	Auth              Auth
+	PostgreSQL        PostgreSQL
 	Tor               *Tor
 	BunnyCDN          *BunnyCDN
 	Telegram          *Telegram
 	Twitter           *Twitter
 	Miniflux          *Miniflux
-	PostgreSQL        *PostgreSQL
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -134,14 +133,6 @@ type Auth struct {
 	Username string
 	Password string
 	Secret   string
-}
-
-type Tailscale struct {
-	ExclusiveDashboard bool
-	Hostname           string
-	Logging            bool
-	Port               int
-	AuthKey            string
 }
 
 type Tor struct {

@@ -11,7 +11,7 @@ import (
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/logging"
+	"github.com/hacdias/eagle/v2/log"
 )
 
 const dataPath = "testing/hacdias.com/data"
@@ -25,7 +25,7 @@ func Migrate() error {
 	}
 
 	defer func() {
-		_ = logging.L().Sync()
+		_ = log.L().Sync()
 	}()
 
 	e, err := eagle.NewEagle(c)

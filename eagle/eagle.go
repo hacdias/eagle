@@ -10,10 +10,10 @@ import (
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/fs"
-	"github.com/hacdias/eagle/v2/logging"
+	"github.com/hacdias/eagle/v2/log"
 	"github.com/hacdias/eagle/v2/notifier"
-	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/jackc/pgx/v4"
 	"github.com/yuin/goldmark"
@@ -71,7 +71,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	srcFs := fs.NewFS(conf.SourceDirectory, srcSync)
 
 	e := &Eagle{
-		log:          logging.S().Named("eagle"),
+		log:          log.S().Named("eagle"),
 		httpClient:   httpClient,
 		fs:           srcFs,
 		wmClient:     webmention.New(httpClient),
