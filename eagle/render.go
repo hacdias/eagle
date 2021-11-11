@@ -135,7 +135,7 @@ func (e *Eagle) relativeURL(path string) string {
 
 func (e *Eagle) updateTemplates() error {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
-	baseTemplateData, err := e.SrcFs.ReadFile(baseTemplateFilename)
+	baseTemplateData, err := e.fs.ReadFile(baseTemplateFilename)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func (e *Eagle) updateTemplates() error {
 
 	parsed := map[string]*template.Template{}
 
-	err = e.SrcFs.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
+	err = e.fs.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func (e *Eagle) updateTemplates() error {
 			return nil
 		}
 
-		raw, err := e.SrcFs.ReadFile(filename)
+		raw, err := e.fs.ReadFile(filename)
 		if err != nil {
 			return err
 		}
@@ -246,13 +246,13 @@ func (rd *RenderData) GetSidecar() *Sidecar {
 func (rd *RenderData) GetJSON(path string) interface{} {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
 	var data interface{}
-	_ = rd.eagle.ReadJSON(filename, &data)
+	_ = rd.eagle.fs.ReadJSON(filename, &data)
 	return data
 }
 
 func (rd *RenderData) GetFile(path string) string {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
-	v, _ := rd.eagle.ReadFile(filename)
+	v, _ := rd.eagle.fs.ReadFile(filename)
 	return string(v)
 }
 

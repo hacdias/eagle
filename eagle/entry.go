@@ -20,7 +20,7 @@ func (e *Eagle) GetEntry(id string) (*entry.Entry, error) {
 		return nil, err
 	}
 
-	raw, err := e.ReadFile(filepath)
+	raw, err := e.fs.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (e *Eagle) GetEntry(id string) (*entry.Entry, error) {
 
 func (e *Eagle) GetEntries() ([]*entry.Entry, error) {
 	entries := []*entry.Entry{}
-	err := e.SrcFs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
+	err := e.fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	// 1. Check for context URL and fetch the data if needed.
 	err := e.ensureContextXRay(ee)
 	if err != nil {
-		e.NotifyError(err)
+		e.notifier.Error(err)
 	}
 
 	// TODO(v2)
@@ -83,22 +83,15 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	// 3. If it is a checkin, download map image.
 
 	// 4. Syndicate
-	syndications, err := e.Syndicate(ee, syndicators)
+	err = e.syndicate(ee, syndicators)
 	if err != nil {
-		e.NotifyError(err)
-	} else {
-		e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
-			mm := ee.Helper()
-			syndications := append(mm.Strings("syndication"), syndications...)
-			ee.Properties["syndication"] = syndications
-			return ee, nil
-		})
+		e.notifier.Error(err)
 	}
 
 	// 5. Webmentions
 	err = e.SendWebmentions(ee)
 	if err != nil {
-		e.NotifyError(err)
+		e.notifier.Error(err)
 	}
 }
 
@@ -154,7 +147,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 		path = filepath.Join(ContentDirectory, entry.ID, "index.md")
 	}
 
-	err = e.SrcFs.MkdirAll(filepath.Dir(path), 0777)
+	err = e.fs.MkdirAll(filepath.Dir(path), 0777)
 	if err != nil {
 		return err
 	}
@@ -164,7 +157,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 		return err
 	}
 
-	err = e.Persist(path, []byte(str), "update "+entry.ID)
+	err = e.fs.WriteFile(path, []byte(str), "update "+entry.ID)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -204,7 +197,7 @@ func (e *Eagle) entryCheck(entry *entry.Entry) error {
 
 func (e *Eagle) guessPath(id string) (string, error) {
 	path := filepath.Join(ContentDirectory, id, "index.md")
-	_, err := e.SrcFs.Stat(path)
+	_, err := e.fs.Stat(path)
 	if err == nil {
 		return path, nil
 	}
@@ -243,4 +236,19 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 		data.Context = context
 		return data, nil
 	})
+}
+
+func (e *Eagle) syndicate(ee *entry.Entry, syndicators []string) error {
+	syndications, err := e.syndication.Syndicate(ee, syndicators)
+	if err != nil {
+		return err
+	}
+
+	_, err = e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+		mm := ee.Helper()
+		syndications := append(mm.Strings("syndication"), syndications...)
+		ee.Properties["syndication"] = syndications
+		return ee, nil
+	})
+	return err
 }

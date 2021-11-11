@@ -1,4 +1,4 @@
-package twitter
+package syndicator
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package eagle
+package syndicator
 
 import (
 	"fmt"
@@ -15,14 +15,28 @@ type Syndicator interface {
 	Identifier() string
 }
 
-func (e *Eagle) Syndicate(entry *entry.Entry, syndicators []string) ([]string, error) {
+type Manager struct {
+	syndicators map[string]Syndicator
+}
+
+func NewManager() *Manager {
+	return &Manager{
+		syndicators: map[string]Syndicator{},
+	}
+}
+
+func (m *Manager) Add(s Syndicator) {
+	m.syndicators[s.Identifier()] = s
+}
+
+func (m *Manager) Syndicate(entry *entry.Entry, syndicators []string) ([]string, error) {
 	// TODO(future): detect that this is a reply/like/repost to a post on my own
 	// website. If so, fetch the syndications to syndicate the replies directly
 	// there. For example, if I reply to a post on my website that is syndicated
 	// on Twitter, I will want to syndicate that on Twitter. For now, I have to
 	// directly reply to the Twitter version.
 
-	for id, syndicator := range e.syndicators {
+	for id, syndicator := range m.syndicators {
 		if syndicator.IsByContext(entry) {
 			syndicators = append(syndicators, id)
 		}
@@ -36,7 +50,7 @@ func (e *Eagle) Syndicate(entry *entry.Entry, syndicators []string) ([]string, e
 	)
 
 	for _, id := range syndicators {
-		syndicator, ok := e.syndicators[id]
+		syndicator, ok := m.syndicators[id]
 		if !ok {
 			errors = multierror.Append(errors, fmt.Errorf("unknown syndication service: %s", id))
 			continue

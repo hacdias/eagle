@@ -26,17 +26,15 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 			return
 		}
 
-		path := filepath.Join(eagle.ContentDirectory, r.URL.Path)
-		path = filepath.Clean(path)
-
-		if stat, err := s.SrcFs.Stat(path); err == nil && stat.Mode().IsRegular() {
+		// TODO(v2): do not do this
+		contentFile := filepath.Join(s.Config.SourceDirectory, eagle.ContentDirectory, r.URL.Path)
+		if stat, err := os.Stat(contentFile); err == nil && stat.Mode().IsRegular() {
 			if strings.HasPrefix(stat.Name(), "_") {
 				// Do not serve _* files.
 				s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 				return
 			}
-			path = filepath.Join(s.Config.SourceDirectory, path)
-			http.ServeFile(w, r, path)
+			http.ServeFile(w, r, contentFile)
 			return
 		}
 

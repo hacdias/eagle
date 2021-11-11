@@ -10,11 +10,12 @@ import (
 
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/fs"
 	"github.com/hacdias/eagle/v2/logging"
+	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/pkg/mf2"
-	"github.com/hacdias/eagle/v2/twitter"
+	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/jackc/pgx/v4"
-	"github.com/spf13/afero"
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
@@ -27,15 +28,18 @@ const (
 )
 
 type Eagle struct {
-	log *zap.SugaredLogger
-	// ms         meilisearch.ClientInterface
-	httpClient *http.Client
+	log          *zap.SugaredLogger
+	httpClient   *http.Client
+	wmClient     *webmention.Client
+	fs           *fs.FS
+	conn         *pgx.Conn
+	syndication  *syndicator.Manager
+	allowedTypes []mf2.Type
+	notifier     notifier.Notifier
 
-	conn *pgx.Conn
-
-	// Maybe embed this one and ovveride WriteFile instead of persist?
-	SrcFs  *afero.Afero
-	srcGit *gitRepo
+	templates        map[string]*template.Template
+	markdown         goldmark.Markdown
+	absoluteMarkdown goldmark.Markdown
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -45,23 +49,10 @@ type Eagle struct {
 	entriesMu  sync.Mutex
 	sidecarsMu sync.Mutex
 
-	webmentionsClient *webmention.Client
-	allowedTypes      []mf2.Type
-	templates         map[string]*template.Template
-	markdown          goldmark.Markdown
-	absoluteMarkdown  goldmark.Markdown
-
-	syndicators map[string]Syndicator
-
-	Parser *entry.Parser
-
-	Notifications
-	Config      *config.Config
-	PublicDirCh chan string
-
-	// Optional services
-	media *Media
-
+	// TODO: THINGS TO CLEAN
+	Parser   *entry.Parser
+	Config   *config.Config
+	media    *Media
 	Miniflux *Miniflux
 }
 
@@ -70,17 +61,23 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Timeout: time.Minute * 2,
 	}
 
+	var srcSync fs.FSSync
+	if conf.Development {
+		srcSync = fs.NewPlaceboSync()
+	} else {
+		srcSync = fs.NewGitSync(conf.SourceDirectory)
+	}
+	srcFs := fs.NewFS(conf.SourceDirectory, srcSync)
+
 	e := &Eagle{
-		log:               logging.S().Named("eagle"),
-		httpClient:        httpClient,
-		SrcFs:             makeAfero(conf.SourceDirectory),
-		srcGit:            &gitRepo{conf.SourceDirectory},
-		webmentionsClient: webmention.New(httpClient),
-		Config:            conf,
-		PublicDirCh:       make(chan string, 2),
-		allowedTypes:      []mf2.Type{},
-		syndicators:       map[string]Syndicator{},
-		Parser:            entry.NewParser(conf.Site.BaseURL),
+		log:          logging.S().Named("eagle"),
+		httpClient:   httpClient,
+		fs:           srcFs,
+		wmClient:     webmention.New(httpClient),
+		Config:       conf,
+		allowedTypes: []mf2.Type{},
+		syndication:  syndicator.NewManager(),
+		Parser:       entry.NewParser(conf.Site.BaseURL),
 	}
 
 	for typ := range conf.Site.MicropubTypes {
@@ -97,13 +94,13 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Telegram != nil {
-		notifications, err := newTgNotifications(conf.Telegram)
+		notifications, err := notifier.NewTelegramNotifier(conf.Telegram)
 		if err != nil {
 			return nil, err
 		}
-		e.Notifications = notifications
+		e.notifier = notifications
 	} else {
-		e.Notifications = newLogNotifications()
+		e.notifier = notifier.NewLogNotifier()
 	}
 
 	err := e.setupPostgres()
@@ -115,8 +112,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.absoluteMarkdown = newMarkdown(true, conf.Site.BaseURL)
 
 	if conf.Twitter != nil {
-		twitter := twitter.NewTwitter(conf.Twitter)
-		e.syndicators[twitter.Identifier()] = twitter
+		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
 	}
 
 	if conf.Miniflux != nil {
@@ -141,10 +137,4 @@ func (e *Eagle) Close() {
 
 func (e *Eagle) userAgent(comment string) string {
 	return fmt.Sprintf("Eagle/0.0 %s", comment)
-}
-
-func makeAfero(path string) *afero.Afero {
-	return &afero.Afero{
-		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
-	}
 }
