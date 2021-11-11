@@ -100,10 +100,7 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSavePost(entry, &postSaveOptions{
-		twitter: r.FormValue("twitter") == "on",
-	})
-
+	go s.postSavePost(entry, nil)
 	s.serveEntry(w, r, entry)
 }
 
@@ -447,12 +444,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 // 	return id, nil
 // }
 
-type postSaveOptions struct {
-	twitter bool
-}
-
-func (s *Server) postSavePost(entry *entry.Entry, opts *postSaveOptions) {
+func (s *Server) postSavePost(entry *entry.Entry, syndicators []string) {
 	// Invalidate cache
 	// TODO
-	s.PostSaveEntry(entry, nil)
+	s.PostSaveEntry(entry, syndicators)
 }
