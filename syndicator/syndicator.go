@@ -15,6 +15,11 @@ type Syndicator interface {
 	Identifier() string
 }
 
+type Config struct {
+	UID  string
+	Name string
+}
+
 type Manager struct {
 	syndicators map[string]Syndicator
 }
@@ -65,4 +70,17 @@ func (m *Manager) Syndicate(entry *entry.Entry, syndicators []string) ([]string,
 	}
 
 	return syndications, errors.ErrorOrNil()
+}
+
+func (m *Manager) Config() []*Config {
+	cfg := []*Config{}
+
+	for _, syndicator := range m.syndicators {
+		cfg = append(cfg, &Config{
+			UID:  syndicator.Identifier(),
+			Name: syndicator.Name(),
+		})
+	}
+
+	return cfg
 }

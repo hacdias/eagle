@@ -127,6 +127,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	return e, nil
 }
 
+func (e *Eagle) GetSyndicators() []*syndicator.Config {
+	return e.syndication.Config()
+}
+
 func (e *Eagle) Close() {
 	if e.conn != nil {
 		e.conn.Close()
