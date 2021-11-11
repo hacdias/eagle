@@ -226,7 +226,10 @@ func (rd *RenderData) HeadTitle() string {
 
 	title := rd.Title
 	if title == "" {
-		title = util.TruncateString(rd.Summary(), 100)
+		summary := rd.Summary()
+		if summary != "" {
+			title = util.TruncateString(summary, 100)
+		}
 	}
 
 	if title != "" {
