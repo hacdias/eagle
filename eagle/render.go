@@ -67,6 +67,14 @@ func domain(text string) string {
 	return u.Host
 }
 
+func isTwitter(urlStr string) bool {
+	return strings.Contains(domain(urlStr), "twitter.com")
+}
+
+func isSwarm(urlStr string) bool {
+	return strings.Contains(domain(urlStr), "swarmapp.com")
+}
+
 func safeHTML(text string) template.HTML {
 	return template.HTML(text)
 }
@@ -99,9 +107,6 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	}
 
 	funcs := template.FuncMap{
-		"include":    e.includeTemplate,
-		"now":        time.Now,
-		"md":         e.getRenderMarkdown(alwaysAbsolute),
 		"truncate":   util.TruncateString,
 		"contains":   funk.Contains,
 		"domain":     domain,
@@ -109,7 +114,12 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"safeCSS":    safeCSS,
 		"figure":     figure,
 		"isMap":      isMap,
+		"isTwitter":  isTwitter,
+		"isSwarm":    isSwarm,
 		"dateFormat": dateFormat,
+		"now":        time.Now,
+		"include":    e.includeTemplate,
+		"md":         e.getRenderMarkdown(alwaysAbsolute),
 		"absURL":     e.AbsoluteURL,
 		"relURL":     e.relativeURL,
 	}
@@ -226,9 +236,11 @@ func (rd *RenderData) HeadTitle() string {
 
 	title := rd.Title
 	if title == "" {
-		summary := rd.Summary()
-		if summary != "" {
-			title = util.TruncateString(summary, 100)
+		title = rd.Summary()
+		title = strings.TrimSuffix(title, "…")
+
+		if len(title) > 100 {
+			title = util.TruncateString(title, 100) + "…"
 		}
 	}
 

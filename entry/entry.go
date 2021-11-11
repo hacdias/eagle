@@ -75,7 +75,7 @@ func (e *Entry) Summary() string {
 	} else if e.Description != "" {
 		e.summary = e.Description
 	} else if content := e.TextContent(); content != "" {
-		e.summary = util.TruncateString(content, 300)
+		e.summary = util.TruncateString(content, 300) + "…"
 	}
 
 	// TODO(future): get context and trim that text.
