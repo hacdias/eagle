@@ -118,28 +118,16 @@ func (e *Eagle) getTargetsFromHTML(entry *Entry) ([]string, error) {
 		return nil, err
 	}
 
-	targets = e.filterTargets(targets)
-
-	if urlStr := entry.ContextURL(); urlStr != "" {
-		targets = append(targets, urlStr)
-	}
-
-	return funk.UniqString(targets), nil
-}
-
-func (e *Eagle) filterTargets(targets []string) []string {
-	filteredTargets := []string{}
-	for _, target := range targets {
+	targets = (funk.FilterString(targets, func(target string) bool {
 		url, err := urlpkg.Parse(target)
 		if err != nil {
-			continue
+			return false
 		}
 
-		if url.Scheme == "http" || url.Scheme == "https" {
-			filteredTargets = append(filteredTargets, target)
-		}
-	}
-	return filteredTargets
+		return url.Scheme == "http" || url.Scheme == "https"
+	}))
+
+	return funk.UniqString(targets), nil
 }
 
 func (e *Eagle) sendWebmention(source, target string) error {
@@ -161,26 +149,6 @@ func (e *Eagle) sendWebmention(source, target string) error {
 
 	return nil
 }
-
-// func (e *Eagle) UpdateTargets(entry *Entry) error {
-// 	if entry.Deleted {
-// 		return nil
-// 	}
-
-// 	_, curr, _, err := e.GetWebmentionTargets(entry)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if len(curr) == 0 {
-// 		return nil
-// 	}
-
-// 	return e.UpdateSidecar(entry, func(data *Sidecar) (*Sidecar, error) {
-// 		data.Targets = curr
-// 		return data, nil
-// 	})
-// }
 
 func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	e.log.Infow("received webmention", "webmention", payload)
