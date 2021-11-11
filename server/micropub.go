@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/pkg/mf2"
 	"github.com/hacdias/eagle/v2/pkg/micropub"
 	"github.com/karlseguin/typed"
@@ -41,7 +41,7 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveJSON(w, http.StatusOK, entry.ToMF2())
+	s.serveJSON(w, http.StatusOK, entry.MF2())
 }
 
 func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +99,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		slug = s
 	}
 
-	entry, err := s.EntryFromMF2(mr.Properties, slug)
+	entry, err := s.Parser.FromMF2(mr.Properties, slug)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -126,15 +126,15 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		mf := entry.ToMF2()
+	entry, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+		mf := entry.MF2()
 		props := mf["properties"].(map[string][]interface{})
 		newMf, err := micropub.Update(props, mr)
 		if err != nil {
 			return nil, err
 		}
 
-		err = s.UpdateEntryWithMF2(entry, newMf)
+		err = entry.Update(newMf)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusBadRequest, err
 	}
 
-	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+	entry, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
 		entry.Deleted = false
 		return entry, nil
 	})
@@ -176,7 +176,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	entry, err := s.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+	entry, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
 		entry.Deleted = true
 		return entry, nil
 	})

@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/logging"
 	"github.com/hacdias/eagle/v2/pkg/mf2"
+	"github.com/hacdias/eagle/v2/twitter"
 	"github.com/jackc/pgx/v4"
 	"github.com/spf13/afero"
 	"github.com/yuin/goldmark"
@@ -51,6 +53,8 @@ type Eagle struct {
 
 	syndicators map[string]Syndicator
 
+	Parser *entry.Parser
+
 	Notifications
 	Config      *config.Config
 	PublicDirCh chan string
@@ -76,6 +80,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		PublicDirCh:       make(chan string, 2),
 		allowedTypes:      []mf2.Type{},
 		syndicators:       map[string]Syndicator{},
+		Parser:            entry.NewParser(conf.Site.BaseURL),
 	}
 
 	for typ := range conf.Site.MicropubTypes {
@@ -110,7 +115,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.absoluteMarkdown = newMarkdown(true, conf.Site.BaseURL)
 
 	if conf.Twitter != nil {
-		twitter := NewTwitter(conf.Twitter)
+		twitter := twitter.NewTwitter(conf.Twitter)
 		e.syndicators[twitter.Identifier()] = twitter
 	}
 

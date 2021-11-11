@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/lestrrat-go/jwx/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,9 +19,9 @@ const (
 
 func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int, message string) {
 	s.serveHTMLWithStatus(w, r, &eagle.RenderData{
-		Entry: &eagle.Entry{
+		Entry: &entry.Entry{
 			Content: message,
-			Frontmatter: eagle.Frontmatter{
+			Frontmatter: entry.Frontmatter{
 				Title: "Login",
 			},
 		},

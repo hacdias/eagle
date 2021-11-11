@@ -3,6 +3,8 @@ package eagle
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/hacdias/eagle/v2/entry"
 )
 
 type Sidecar struct {
@@ -11,7 +13,7 @@ type Sidecar struct {
 	Webmentions []map[string]interface{} `json:"webmentions"`
 }
 
-func (e *Eagle) getSidecar(entry *Entry) (*Sidecar, string, error) {
+func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
 	filename := filepath.Join(ContentDirectory, entry.ID, "_sidecar.json")
 
 	var sidecar *Sidecar
@@ -36,12 +38,12 @@ func (e *Eagle) getSidecar(entry *Entry) (*Sidecar, string, error) {
 	return sidecar, filename, err
 }
 
-func (e *Eagle) GetSidecar(entry *Entry) (*Sidecar, error) {
+func (e *Eagle) GetSidecar(entry *entry.Entry) (*Sidecar, error) {
 	sidecar, _, err := e.getSidecar(entry)
 	return sidecar, err
 }
 
-func (e *Eagle) UpdateSidecar(entry *Entry, t func(*Sidecar) (*Sidecar, error)) error {
+func (e *Eagle) UpdateSidecar(entry *entry.Entry, t func(*Sidecar) (*Sidecar, error)) error {
 	e.sidecarsMu.Lock()
 	defer e.sidecarsMu.Unlock()
 

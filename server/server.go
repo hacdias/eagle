@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth"
 	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/logging"
 	"github.com/hashicorp/go-multierror"
 	"go.uber.org/zap"
@@ -224,8 +225,8 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	w.Header().Del("Cache-Control")
 
 	data := &eagle.RenderData{
-		Entry: &eagle.Entry{
-			Frontmatter: eagle.Frontmatter{
+		Entry: &entry.Entry{
+			Frontmatter: entry.Frontmatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 			},
 			Content: strconv.Itoa(code),
