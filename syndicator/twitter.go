@@ -118,7 +118,7 @@ func (t *Twitter) like(id string) (url string, err error) {
 }
 
 func (t *Twitter) repost(id string) (url string, err error) {
-	return t.post(fmt.Sprintf("https://api.twitter.com/1.1/statuses/retweet/$%s.json", id), nil)
+	return t.post(fmt.Sprintf("https://api.twitter.com/1.1/statuses/retweet/%s.json", id), nil)
 }
 
 func (t *Twitter) post(urlStr string, values urlpkg.Values) (string, error) {

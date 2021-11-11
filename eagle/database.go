@@ -3,6 +3,7 @@ package eagle
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,10 @@ func (e *Eagle) setupPostgres() (err error) {
 	fmt.Printf("took %dms\n", time.Since(start).Milliseconds())
 
 	return err
+}
+
+func (e *Eagle) indexRemove(id string) {
+	_, _ = e.conn.Exec(context.Background(), "delete from entries where id=$1", id)
 }
 
 func (e *Eagle) IndexAdd(entries ...*entry.Entry) error {
@@ -215,15 +220,19 @@ func (e *Eagle) queryEntries(sql string, args ...interface{}) ([]*entry.Entry, e
 		return nil, err
 	}
 
-	entries := make([]*entry.Entry, len(ids))
+	entries := []*entry.Entry{}
 
-	for i, id := range ids {
+	for _, id := range ids {
 		entry, err := e.GetEntry(id)
 		if err != nil {
-			return nil, err
+			if os.IsNotExist(err) {
+				go e.indexRemove(id)
+			} else {
+				return nil, err
+			}
+		} else {
+			entries = append(entries, entry)
 		}
-
-		entries[i] = entry
 	}
 
 	return entries, nil
