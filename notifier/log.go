@@ -1,7 +1,7 @@
 package notifier
 
 import (
-	"github.com/hacdias/eagle/v2/logging"
+	"github.com/hacdias/eagle/v2/log"
 	"go.uber.org/zap"
 )
 
@@ -11,7 +11,7 @@ type LogNotifier struct {
 
 func NewLogNotifier() Notifier {
 	return &LogNotifier{
-		log: logging.S().Named("notify"),
+		log: log.S().Named("notify"),
 	}
 }
 

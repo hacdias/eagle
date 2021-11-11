@@ -56,7 +56,7 @@ func (s *Server) startTor(errCh chan error) error {
 	s.onionAddress = "http://" + ln.String()
 
 	srv := &http.Server{
-		Handler:      s.makeRouter(true),
+		Handler:      s.makeRouter(),
 		ReadTimeout:  5 * time.Minute,
 		WriteTimeout: 5 * time.Minute,
 	}

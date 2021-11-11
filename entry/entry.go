@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v2/pkg/mf2"
+	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/util"
 	"github.com/karlseguin/typed"
 	stripMarkdown "github.com/writeas/go-strip-markdown"

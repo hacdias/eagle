@@ -18,31 +18,10 @@ xrayEndpoint: https://xray.p3k.app
 # WebmentionIO (https://webmention.io) secret to verify webmentions.
 webmentionsSecret: ThisIsTheSecret
 
-# Optional authentication. If there is no authentication, the status of the application
-# is logged in all the time for when the dashboard is enabled. If the dashboard is enabled
-# only in the Tailscale router and there is no authentication, the user will only be logged
-# in inside the Tailscale network.
 auth:
   username:
   password:
   secret:
-
-# Optional Tailscale (https://tailscale.com) integration for serving the website through
-# a private network. 
-tailscale:
-  # If exclusiveDashboard is true, the dashboard will be disabled on the public
-  # website and only accessible through the Tailscale network.
-  exclusiveDashboard: false
-  # The hostname you want to use for the "device" in your Tailscale network.
-  hostname: eagle
-  # The Tailscale logging is pretty intensive. Recommend it on true only for
-  # debugging.
-  logging: false
-  # The port to listen to on Tailscale. If the port is 443, Tailscale SSL will
-  # be used on the Tailscale listener.
-  port: 443
-  # The authentication key for Tailscale. Please note that this is not an API key.
-  authKey: tskey-...
 
 tor:
   # The configuration directory of the Tor service. You don't need to create anything
@@ -73,11 +52,6 @@ twitter:
   secret:
   token:
   tokenSecret:
-
-# Optional MeiliSearch (https://meilisearch.com) integration for search indexes.
-meilisearch:
-  key:
-  endpoint: "http://localhost:7700"
 
 # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
 miniflux:

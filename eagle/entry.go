@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/pkg/mf2"
+	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/thoas/go-funk"
 )
 

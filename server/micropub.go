@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/pkg/mf2"
-	"github.com/hacdias/eagle/v2/pkg/micropub"
+	"github.com/hacdias/eagle/v2/entry/mf2"
+	"github.com/hacdias/eagle/v2/server/micropub"
 	"github.com/karlseguin/typed"
 )
 
