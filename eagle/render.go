@@ -10,7 +10,6 @@ import (
 	urlpkg "net/url"
 	"path"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"time"
 
@@ -67,14 +66,6 @@ func domain(text string) string {
 	return u.Host
 }
 
-func isTwitter(urlStr string) bool {
-	return strings.Contains(domain(urlStr), "twitter.com")
-}
-
-func isSwarm(urlStr string) bool {
-	return strings.Contains(domain(urlStr), "swarmapp.com")
-}
-
 func safeHTML(text string) template.HTML {
 	return template.HTML(text)
 }
@@ -91,10 +82,6 @@ func dateFormat(date, template string) string {
 	return t.Format(template)
 }
 
-func isMap(data interface{}) bool {
-	return reflect.ValueOf(data).Kind() == reflect.Map
-}
-
 func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	// TODO(v2): cleanup this
 	figure := func(url, alt string) template.HTML {
@@ -107,21 +94,19 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	}
 
 	funcs := template.FuncMap{
-		"truncate":   util.TruncateString,
-		"contains":   funk.Contains,
-		"domain":     domain,
-		"safeHTML":   safeHTML,
-		"safeCSS":    safeCSS,
-		"figure":     figure,
-		"isMap":      isMap,
-		"isTwitter":  isTwitter,
-		"isSwarm":    isSwarm,
-		"dateFormat": dateFormat,
-		"now":        time.Now,
-		"include":    e.includeTemplate,
-		"md":         e.getRenderMarkdown(alwaysAbsolute),
-		"absURL":     e.AbsoluteURL,
-		"relURL":     e.relativeURL,
+		"truncate":    util.TruncateString,
+		"contains":    funk.Contains,
+		"domain":      domain,
+		"strContains": strings.Contains,
+		"safeHTML":    safeHTML,
+		"safeCSS":     safeCSS,
+		"figure":      figure,
+		"dateFormat":  dateFormat,
+		"now":         time.Now,
+		"include":     e.includeTemplate,
+		"md":          e.getRenderMarkdown(alwaysAbsolute),
+		"absURL":      e.AbsoluteURL,
+		"relURL":      e.relativeURL,
 	}
 
 	if alwaysAbsolute {
@@ -218,7 +203,7 @@ type RenderData struct {
 	Page        int
 	NextPage    string
 	IsListing   bool
-	Tags        []string
+	Terms       []string
 
 	IsHome       bool
 	LoggedIn     bool
