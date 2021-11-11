@@ -74,11 +74,11 @@ func (e *Entry) Summary() string {
 		e.summary = strings.TrimSpace(strings.Split(e.Content, "<!--more-->")[0])
 	} else if e.Description != "" {
 		e.summary = e.Description
-	} else {
-		content := e.TextContent()
+	} else if content := e.TextContent(); content != "" {
 		e.summary = util.TruncateString(content, 300)
 	}
 
+	// TODO(future): get context and trim that text.
 	return e.summary
 }
 
