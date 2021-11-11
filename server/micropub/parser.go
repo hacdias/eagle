@@ -54,15 +54,16 @@ func parseFormEncodeed(body url.Values) (*Request, error) {
 				return nil, errors.New("values in form-encoded input can only be numeric indexed arrays")
 			}
 
+			if strings.HasSuffix(key, "[]") {
+				// TODO(future): some wild micropub clients seem to be posting stuff
+				// such as properties[checkin][location]. It'd be great to have
+				// a way to parse that easily. Look into libraries.
+				key = strings.TrimSuffix(key, "[]")
+			}
+
 			if strings.HasPrefix(key, "mp-") {
 				req.Commands[key] = toGenericArray(val)
 			} else {
-				if strings.HasSuffix(key, "[]") {
-					// TODO(future): some wild micropub clients seem to be posting stuff
-					// such as properties[checkin][location]. It'd be great to have
-					// a way to parse that easily. Look into libraries.
-					key = strings.TrimSuffix(key, "[]")
-				}
 				req.Properties[key] = toGenericArray(val)
 			}
 		}
