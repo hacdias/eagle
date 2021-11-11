@@ -10,9 +10,9 @@ func TruncateString(str string, length int) string {
 	for _, char := range str {
 		truncated += string(char)
 		count++
-		if count+1 >= length {
+		if count >= length {
 			break
 		}
 	}
-	return truncated + "…"
+	return truncated
 }

@@ -226,7 +226,7 @@ func (e *Eagle) queryEntries(sql string, args ...interface{}) ([]*entry.Entry, e
 		entry, err := e.GetEntry(id)
 		if err != nil {
 			if os.IsNotExist(err) {
-				go e.indexRemove(id)
+				e.indexRemove(id)
 			} else {
 				return nil, err
 			}
