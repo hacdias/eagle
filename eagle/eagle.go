@@ -28,6 +28,8 @@ const (
 )
 
 type Eagle struct {
+	notifier.Notifier
+
 	log          *zap.SugaredLogger
 	httpClient   *http.Client
 	wmClient     *webmention.Client
@@ -35,7 +37,6 @@ type Eagle struct {
 	conn         *pgx.Conn
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
-	notifier     notifier.Notifier
 
 	templates        map[string]*template.Template
 	markdown         goldmark.Markdown
@@ -98,9 +99,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		if err != nil {
 			return nil, err
 		}
-		e.notifier = notifications
+		e.Notifier = notifications
 	} else {
-		e.notifier = notifier.NewLogNotifier()
+		e.Notifier = notifier.NewLogNotifier()
 	}
 
 	err := e.setupPostgres()
