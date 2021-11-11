@@ -1,7 +1,6 @@
 package eagle
 
 import (
-	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 	"github.com/hacdias/eagle/v2/log"
 	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/syndicator"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
@@ -34,7 +33,7 @@ type Eagle struct {
 	httpClient   *http.Client
 	wmClient     *webmention.Client
 	fs           *fs.FS
-	conn         *pgx.Conn
+	conn         *pgxpool.Pool
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
 
@@ -130,9 +129,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 func (e *Eagle) Close() {
 	if e.conn != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-		_ = e.conn.Close(ctx)
+		e.conn.Close()
 	}
 }
 

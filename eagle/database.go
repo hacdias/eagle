@@ -10,13 +10,14 @@ import (
 
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 func (e *Eagle) setupPostgres() (err error) {
 	start := time.Now()
 
 	url := "postgres://" + e.Config.PostgreSQL.User + ":" + e.Config.PostgreSQL.Password + "@" + e.Config.PostgreSQL.Host + "/" + e.Config.PostgreSQL.Database
-	e.conn, err = pgx.Connect(context.Background(), url)
+	e.conn, err = pgxpool.Connect(context.Background(), url)
 	if err != nil {
 		return err
 	}

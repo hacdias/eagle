@@ -122,6 +122,7 @@ type MenuItem struct {
 type User struct {
 	Name     string
 	Nickname string
+	Twitter  string
 	Photo    string
 	Email    string
 	URL      string
