@@ -131,19 +131,15 @@ func Migrate() error {
 		newEntry := convertEntry(oldEntry)
 		aliases += getAliases(oldEntry, newEntry)
 
-		if oldEntry.Metadata.Title != "About" {
-			matches := figRegex.FindAllStringSubmatch(newEntry.Content, -1)
-			for _, submatch := range matches {
-				for _, match := range submatch {
-					match = strings.TrimSpace(match)
-					if !strings.HasPrefix(match, "{{<") {
-						continue
-					}
-					newEntry.Content = strings.Replace(newEntry.Content, match, parseFigure(match), 1)
+		matches := figRegex.FindAllStringSubmatch(newEntry.Content, -1)
+		for _, submatch := range matches {
+			for _, match := range submatch {
+				match = strings.TrimSpace(match)
+				if !strings.HasPrefix(match, "{{<") {
+					continue
 				}
+				newEntry.Content = strings.Replace(newEntry.Content, match, parseFigure(match), 1)
 			}
-		} else {
-			fmt.Println("Manually change About figure!")
 		}
 
 		err = e.SaveEntry(newEntry)
