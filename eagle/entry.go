@@ -171,7 +171,10 @@ func (e *Eagle) entryCheck(entry *entry.Entry) error {
 	postType := mm.PostType()
 
 	if funk.Contains(e.allowedTypes, postType) {
-		if len(entry.Sections) == 0 {
+		// Only add the sections to entries under the /year/month/date.
+		// This avoids adding sections to top-level pages that shouldn't
+		// have these sections.
+		if len(entry.Sections) == 0 && strings.HasPrefix(entry.ID, "/20") {
 			entry.Sections = e.Config.Site.MicropubTypes[postType]
 		}
 	} else {

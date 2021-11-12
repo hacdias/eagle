@@ -17,6 +17,8 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// https://indieauth.spec.indieweb.org
+
 const (
 	AuthCodeSubject string = "Eagle Auth Code"
 	TokenSubject    string = "Eagle Token"
