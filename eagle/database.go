@@ -158,7 +158,7 @@ func (e *Eagle) QuerySection(sections []string, opts *QueryOptions) ([]*entry.En
 		args = append(args, section)
 	}
 
-	sql += strings.Join(where, " or ")
+	sql += "(" + strings.Join(where, " or ") + ")"
 	sql += e.finishQuery(opts)
 	return e.queryEntries(sql, args...)
 }
