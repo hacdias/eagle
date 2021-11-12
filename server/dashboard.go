@@ -3,6 +3,7 @@ package server
 // TODO(v2):
 // - s.Sync: Sync was successfull! ⚡️
 // - s.RebuildIndex: "Search index rebuilt! 🔎"
+// - Blogroll?
 // - resend webmentions
 
 // func recentlyTemplate() (*eagle.Entry, string) {

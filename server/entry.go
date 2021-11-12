@@ -247,7 +247,9 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry:       ee,
+			Entry: ee,
+		},
+		lp: listingPage{
 			SearchQuery: query,
 		},
 		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
@@ -270,7 +272,16 @@ func (s *Server) getEntryOrEmpty(id string) *entry.Entry {
 type listingSettings struct {
 	exec      func(*eagle.QueryOptions) ([]*entry.Entry, error)
 	rd        *eagle.RenderData
+	lp        listingPage
 	templates []string
+}
+
+type listingPage struct {
+	SearchQuery string
+	Entries     []*entry.Entry
+	Page        int
+	NextPage    string
+	Terms       []string
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
@@ -294,7 +305,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		vv, _ := strconv.Atoi(v)
 		if vv >= 0 {
 			opts.Page = vv
-			ls.rd.Page = vv
+			ls.lp.Page = vv
 		}
 	}
 
@@ -304,14 +315,15 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		return
 	}
 
-	ls.rd.Entries = entries
+	ls.lp.Entries = entries
 	ls.rd.IsListing = true
 
 	if len(entries) == s.Config.Site.Paginate {
 		url, _ := urlpkg.Parse(r.URL.String())
 		url.RawQuery = "page=" + strconv.Itoa(opts.Page+1)
-		ls.rd.NextPage = url.String()
+		ls.lp.NextPage = url.String()
 	}
+	ls.rd.Data = ls.lp
 
 	feedType := chi.URLParam(r, "feed")
 	if feedType == "" {
