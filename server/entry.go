@@ -333,6 +333,22 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			templates = append(templates, ls.rd.Template)
 		}
 		templates = append(templates, eagle.TemplateList)
+		path := r.URL.Path
+
+		ls.rd.Alternates = []eagle.Alternate{
+			{
+				Type: contenttype.JSONFeed,
+				Href: path + ".json",
+			},
+			{
+				Type: contenttype.ATOM,
+				Href: path + ".atom",
+			},
+			{
+				Type: contenttype.RSS,
+				Href: path + ".rss",
+			},
+		}
 
 		s.serveHTML(w, r, ls.rd, templates)
 		return
@@ -380,7 +396,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	case "rss":
 		feedString, err = feed.ToRss()
 		feedMediaType = contenttype.RSS
-
 	case "atom":
 		feedString, err = feed.ToAtom()
 		feedMediaType = contenttype.ATOM

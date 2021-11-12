@@ -190,6 +190,11 @@ func (e *Eagle) updateTemplates() error {
 	return nil
 }
 
+type Alternate struct {
+	Type string
+	Href string
+}
+
 type RenderData struct {
 	// All pages must have some sort of Entry embedded.
 	// This allows us to set generic information about
@@ -202,6 +207,7 @@ type RenderData struct {
 	// For page-specific variables.
 	Data interface{}
 
+	Alternates   []Alternate
 	IsHome       bool
 	IsListing    bool
 	LoggedIn     bool
