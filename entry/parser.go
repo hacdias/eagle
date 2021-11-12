@@ -24,7 +24,7 @@ func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry,
 		return nil, err
 	}
 
-	id := newID(slug, entry.Published)
+	id := NewID(slug, entry.Published)
 	entry.ID = cleanID(id)
 	entry.Permalink, err = p.makePermalink(entry.ID)
 
