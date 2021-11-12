@@ -2,7 +2,6 @@ package eagle
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -14,8 +13,6 @@ import (
 )
 
 func (e *Eagle) setupPostgres() (err error) {
-	start := time.Now()
-
 	dsn := "user=" + e.Config.PostgreSQL.User
 	dsn += " password=" + e.Config.PostgreSQL.Password
 	dsn += " host=" + e.Config.PostgreSQL.Host
@@ -28,15 +25,22 @@ func (e *Eagle) setupPostgres() (err error) {
 		return err
 	}
 
-	entries, err := e.GetEntries()
-	if err != nil {
-		return err
-	}
+	go func() {
+		entries, err := e.GetEntries()
+		if err != nil {
+			e.Notifier.Error(err)
+			return
+		}
 
-	err = e.IndexAdd(entries...)
-	fmt.Printf("took %dms\n", time.Since(start).Milliseconds())
+		start := time.Now()
+		err = e.IndexAdd(entries...)
+		if err != nil {
+			e.Notifier.Error(err)
+		}
+		e.log.Infof("database update took %dms", time.Since(start).Milliseconds())
+	}()
 
-	return err
+	return nil
 }
 
 func (e *Eagle) indexRemove(id string) {
