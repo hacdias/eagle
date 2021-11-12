@@ -1,10 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"path"
@@ -180,8 +182,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		// TODO: maybe notify as these are terminal errors kinda.
-		s.log.Error("error while serving json", err)
+		s.Notifier.Error(fmt.Errorf("serving html: %w", err))
 	}
 }
 
@@ -197,13 +198,29 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 	data.OnionAddress = s.onionAddress
 	data.LoggedIn = s.isLoggedIn(w, r)
 
+	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
 	w.WriteHeader(code)
 
-	err := s.Render(w, data, tpls)
+	var (
+		buf bytes.Buffer
+		cw  io.Writer
+	)
+
+	if !data.LoggedIn && code == http.StatusOK {
+		cw = io.MultiWriter(w, &buf)
+	} else {
+		cw = w
+	}
+
+	err := s.Render(cw, data, tpls)
 	if err != nil {
-		// TODO: maybe notify as these are terminal errors kinda.
-		s.log.Error("error while serving HTML", err)
+		s.Notifier.Error(fmt.Errorf("serving html: %w", err))
+	} else {
+		data := buf.Bytes()
+		if len(data) > 0 {
+			_ = s.SaveCache(r.URL.Path+".html", data)
+		}
 	}
 }
 

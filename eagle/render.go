@@ -202,6 +202,8 @@ type RenderData struct {
 	// a page that may be needed.
 	*entry.Entry
 
+	Assets map[string]string
+
 	User config.User
 	Site config.Site
 
@@ -264,6 +266,7 @@ func (rd *RenderData) GetFile(path string) string {
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.User = e.Config.User
 	data.Site = e.Config.Site
+	data.Assets = e.assets
 	data.eagle = e
 
 	if e.Config.Development {

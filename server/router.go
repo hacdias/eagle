@@ -6,9 +6,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/hacdias/eagle/v2/eagle"
 )
 
-// TODO(v2): handle aliases.
+const (
+	feedPath  = ".{feed:rss|atom|json}"
+	yearPath  = `/{year:(x|\d\d\d\d)}`
+	monthPath = yearPath + `/{month:(x|\d\d)}`
+	dayPath   = monthPath + `/{day:(x|\d\d)}`
+)
 
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
@@ -48,9 +54,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/edit*", s.editPost)
 	})
 
-	r.Get("/tags", s.tagsGet)
-	r.Group(s.listingRoutes)
-
 	// if s.Config.WebhookSecret != "" {
 	// 	r.Post("/webhook", s.webhookHandler)
 	// }
@@ -67,40 +70,48 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/login", s.loginGetHandler)
 	r.Post("/login", s.loginPostHandler)
 
-	r.With(s.withStaticFiles).Get("/*", s.entryGet)
+	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
+
+	// Listing HTML pages.
+	r.Group(func(r chi.Router) {
+		r.Use(s.withCache)
+
+		r.Get("/tags", s.tagsGet)
+		r.Get("/", s.indexGet)
+		r.Get("/all", s.allGet)
+		r.Get(yearPath, s.dateGet)
+		r.Get(monthPath, s.dateGet)
+		r.Get(dayPath, s.dateGet)
+		r.Get("/tags/{tag}", s.tagGet)
+
+		for _, section := range s.Config.Site.Sections {
+			r.Get("/"+section, s.sectionGet(section))
+		}
+	})
+
+	// Listing feeds: JSON, XML and Atom.
+	r.Group(func(r chi.Router) {
+		r.Get("/feed"+feedPath, s.indexGet)
+		r.Get("/all"+feedPath, s.allGet)
+		r.Get(yearPath+feedPath, s.dateGet)
+		r.Get(monthPath+feedPath, s.dateGet)
+		r.Get(dayPath+feedPath, s.dateGet)
+		r.Get("/tags/{tag}"+feedPath, s.tagGet)
+		r.Get("/search", s.searchGet)
+
+		for _, section := range s.Config.Site.Sections {
+			r.Get("/"+section+feedPath, s.sectionGet(section))
+		}
+	})
+
+	// Everything that was not matched so far.
+	r.Group(func(r chi.Router) {
+		r.Use(s.withRedirects)
+		r.Use(s.withStaticFiles)
+		r.Use(s.withCache)
+
+		r.Get("/*", s.entryGet)
+	})
 
 	return r
-}
-
-const (
-	feedPath  = ".{feed:rss|atom|json}"
-	yearPath  = `/{year:(x|\d\d\d\d)}`
-	monthPath = yearPath + `/{month:(x|\d\d)}`
-	dayPath   = monthPath + `/{day:(x|\d\d)}`
-)
-
-func (s *Server) listingRoutes(r chi.Router) {
-	r.Get("/", s.indexGet)
-	r.Get("/feed"+feedPath, s.indexGet)
-
-	r.Get("/all", s.allGet)
-	r.Get("/all"+feedPath, s.allGet)
-
-	r.Get(yearPath, s.dateGet)
-	r.Get(yearPath+feedPath, s.dateGet)
-
-	r.Get(monthPath, s.dateGet)
-	r.Get(monthPath+feedPath, s.dateGet)
-
-	r.Get(dayPath, s.dateGet)
-	r.Get(dayPath+feedPath, s.dateGet)
-
-	r.Get("/tags/{tag}", s.tagGet)
-	r.Get("/tags/{tag}"+feedPath, s.tagGet)
-	r.Get("/search", s.searchGet)
-
-	for _, section := range s.Config.Site.Sections {
-		r.Get("/"+section, s.sectionGet(section))
-		r.Get("/"+section+feedPath, s.sectionGet(section))
-	}
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
 	mCss "github.com/tdewolff/minify/v2/css"
 	mHtml "github.com/tdewolff/minify/v2/html"
@@ -42,9 +43,12 @@ type Eagle struct {
 	httpClient   *http.Client
 	wmClient     *webmention.Client
 	fs           *fs.FS
+	cacheFs      *afero.Afero
 	conn         *pgxpool.Pool
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
+
+	assets map[string]string
 
 	templates        map[string]*template.Template
 	markdown         goldmark.Markdown
@@ -80,9 +84,12 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	srcFs := fs.NewFS(conf.SourceDirectory, srcSync)
 
 	e := &Eagle{
-		log:          log.S().Named("eagle"),
-		httpClient:   httpClient,
-		fs:           srcFs,
+		log:        log.S().Named("eagle"),
+		httpClient: httpClient,
+		fs:         srcFs,
+		cacheFs: &afero.Afero{
+			Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.CacheDirectory),
+		},
 		wmClient:     webmention.New(httpClient),
 		Config:       conf,
 		allowedTypes: []mf2.Type{},
@@ -128,6 +135,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	if conf.Miniflux != nil {
 		e.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
+	}
+
+	err = e.BuildAssets()
+	if err != nil {
+		return nil, err
 	}
 
 	err = e.updateTemplates()
