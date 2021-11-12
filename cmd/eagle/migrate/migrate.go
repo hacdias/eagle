@@ -12,6 +12,7 @@ import (
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/log"
+	"github.com/thoas/go-funk"
 )
 
 const dataPath = "testing/hacdias.com/data"
@@ -44,6 +45,7 @@ func Migrate() error {
 	}
 
 	aliases := ""
+	sections := []string{}
 
 	for _, oldEntry := range entries {
 		if oldEntry.Metadata.Title == "Stream" {
@@ -51,6 +53,10 @@ func Migrate() error {
 			aliases += "/stream/feed.json /feed.json\n"
 			aliases += "/stream/feed.xml /feed.atom\n"
 			continue
+		}
+
+		if oldEntry.Section() != "" {
+			sections = append(sections, oldEntry.Section())
 		}
 
 		newEntry := convertEntry(oldEntry)
@@ -83,6 +89,13 @@ func Migrate() error {
 	_, err = copy(filepath.Join(dataPath, "watches.json"), filepath.Join(newContentPath, "watches/_stats.json"))
 	if err != nil {
 		return err
+	}
+
+	sections = funk.UniqString(sections)
+
+	for _, section := range sections {
+		aliases += fmt.Sprintf("/%s/feed.json /%s.json\n", section, section)
+		aliases += fmt.Sprintf("/%s/feed.xml /%s.atom\n", section, section)
 	}
 
 	return saveAliases(aliases)
