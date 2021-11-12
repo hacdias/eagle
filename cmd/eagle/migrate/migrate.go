@@ -3,8 +3,10 @@ package migrate
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +20,73 @@ import (
 const dataPath = "testing/hacdias.com/data"
 const oldContentPath = "testing/hacdias.com/content/"
 const newContentPath = "testing/hacdias.com/content2/"
+
+var figRegex = regexp.MustCompile(`{{<\s*figure(\s*?.*?)*?>}}`)
+var figPartRegex = regexp.MustCompile(`(\w+)="(.*?)"`)
+
+func parseFigure(str string) string {
+	str = strings.TrimPrefix(str, "{{<")
+	str = strings.TrimSuffix(str, ">}}")
+	str = strings.TrimSpace(str)
+	str = strings.TrimPrefix(str, "figure")
+	str = strings.TrimSpace(str)
+
+	matches := figPartRegex.FindAllStringSubmatch(str, -1)
+
+	var (
+		class string
+		alt   string
+		title string
+		src   string
+		link  string
+	)
+
+	for _, match := range matches {
+		key := match[1]
+		value := match[2]
+
+		switch key {
+		case "cdn":
+			src = "cdn:/" + value
+		case "src":
+			src = value
+		case "alt":
+			alt = value
+		case "caption":
+			title = value
+		case "class":
+			class = value
+		case "link":
+			link = value
+		default:
+			fmt.Println(key + " not parsed!")
+		}
+	}
+
+	if class != "" {
+		u, err := url.Parse(src)
+		if err != nil {
+			panic(err)
+		}
+
+		vals := url.Values{}
+		vals.Set("class", class)
+		u.RawQuery = vals.Encode()
+		src = u.String()
+	}
+
+	fig := "![" + alt + "](" + src
+	if title != "" {
+		fig += " \"" + title + "\""
+	}
+	fig += ")"
+
+	if link != "" {
+		fig = "[" + fig + "](" + link + ")"
+	}
+
+	return fig
+}
 
 func Migrate() error {
 	c, err := config.Parse()
@@ -61,6 +130,21 @@ func Migrate() error {
 
 		newEntry := convertEntry(oldEntry)
 		aliases += getAliases(oldEntry, newEntry)
+
+		if oldEntry.Metadata.Title != "About" {
+			matches := figRegex.FindAllStringSubmatch(newEntry.Content, -1)
+			for _, submatch := range matches {
+				for _, match := range submatch {
+					match = strings.TrimSpace(match)
+					if !strings.HasPrefix(match, "{{<") {
+						continue
+					}
+					newEntry.Content = strings.Replace(newEntry.Content, match, parseFigure(match), 1)
+				}
+			}
+		} else {
+			fmt.Println("Manually change About figure!")
+		}
 
 		err = e.SaveEntry(newEntry)
 		if err != nil {

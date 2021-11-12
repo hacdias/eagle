@@ -30,7 +30,6 @@ var defaultGoldmarkOptions = []goldmark.Option{
 		extension.Typographer,
 		extension.Linkify,
 		extension.TaskList,
-		&customMarkdown{},
 	),
 }
 
@@ -238,9 +237,10 @@ func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, un
 	if unsafe || !html.IsDangerousURL(imgSrc) {
 		_, _ = w.Write(util.EscapeHTML(imgSrc))
 	}
+	_, _ = w.WriteRune('"')
 
 	if alt != "" {
-		_, _ = w.WriteString(`" alt="`)
+		_, _ = w.WriteString(` alt="`)
 		_, _ = w.Write(util.EscapeHTML([]byte(alt)))
 		_, _ = w.WriteRune('"')
 	}
