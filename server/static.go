@@ -11,6 +11,12 @@ import (
 
 func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(v2): different router?
+		if url, ok := s.redirects[r.URL.Path]; ok {
+			http.Redirect(w, r, url, http.StatusMovedPermanently)
+			return
+		}
+
 		// TODO(v2): find better solution for this
 		staticFile := filepath.Join(s.Config.SourceDirectory, eagle.StaticDirectory, r.URL.Path)
 		if stat, err := os.Stat(staticFile); err == nil && stat.Mode().IsRegular() {

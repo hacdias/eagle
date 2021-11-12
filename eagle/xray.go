@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/hacdias/eagle/v2/contenttype"
 	"github.com/karlseguin/typed"
 )
 
@@ -40,7 +41,7 @@ func (e *Eagle) getXRay(urlStr string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Type", contenttype.WWWForm)
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	req.Header.Add("User-Agent", e.userAgent("XRay"))
 

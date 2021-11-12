@@ -15,6 +15,7 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/contenttype"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/util"
 	"github.com/thoas/go-funk"
@@ -278,7 +279,13 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 		return errors.New("unrecognized template")
 	}
 
-	return tpl.Execute(w, data)
+	mw := e.minifier.Writer(contenttype.HTML, w)
+	err := tpl.Execute(mw, data)
+	if err != nil {
+		return err
+	}
+
+	return mw.Close()
 }
 
 func (e *Eagle) getRenderMarkdown(absoluteURLs bool) func(string) template.HTML {

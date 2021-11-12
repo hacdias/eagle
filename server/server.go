@@ -15,10 +15,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/hacdias/eagle/v2/contenttype"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/log"
 	"github.com/hashicorp/go-multierror"
+
 	"go.uber.org/zap"
 )
 
@@ -35,6 +37,7 @@ type Server struct {
 
 	serversLock sync.Mutex
 	servers     []*httpServer
+	redirects   map[string]string
 
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
@@ -49,6 +52,12 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
 	s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
+
+	redirects, err := e.GetRedirects()
+	if err != nil {
+		return nil, err
+	}
+	s.redirects = redirects
 
 	return s, nil
 }
@@ -167,7 +176,7 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", contenttype.JSONUTF8)
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
@@ -188,7 +197,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 	data.OnionAddress = s.onionAddress
 	data.LoggedIn = s.isLoggedIn(w, r)
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
 	w.WriteHeader(code)
 
 	err := s.Render(w, data, tpls)
