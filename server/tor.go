@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	torUsedContextKey contextKey = "auth"
+	torUsedContextKey contextKey = "tor"
 )
 
 func (s *Server) startTor(errCh chan error, h http.Handler) error {
@@ -147,8 +147,8 @@ func getTorKey(path string) (crypto.PrivateKey, error) {
 }
 
 func (s *Server) isUsingTor(r *http.Request) bool {
-	if loggedIn, ok := r.Context().Value(torUsedContextKey).(bool); ok {
-		return loggedIn
+	if torUsed, ok := r.Context().Value(torUsedContextKey).(bool); ok {
+		return torUsed
 	}
 
 	return false
