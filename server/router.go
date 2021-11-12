@@ -43,12 +43,12 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
+
+		r.Get("/edit*", s.editGet)
+		r.Post("/edit*", s.editPost)
 	})
 
-	// Token exchange points.
-	r.Post("/auth", s.indieauthPost)
-	r.Post("/token", s.tokenPost)
-
+	r.Get("/tags", s.tagsGet)
 	r.Group(s.listingRoutes)
 
 	// if s.Config.WebhookSecret != "" {
@@ -59,14 +59,15 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/webmention", s.webmentionHandler)
 	}
 
-	r.Get("/tags", s.tagsGet)
+	// Token exchange points.
+	r.Post("/auth", s.indieauthPost)
+	r.Post("/token", s.tokenPost)
 
 	r.Get("/logout", s.logoutGetHandler)
 	r.Get("/login", s.loginGetHandler)
 	r.Post("/login", s.loginPostHandler)
 
 	r.With(s.withStaticFiles).Get("/*", s.entryGet)
-	r.With(s.mustLoggedIn).Post("/*", s.entryPost)
 
 	return r
 }

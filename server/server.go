@@ -218,14 +218,22 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 
 	w.Header().Del("Cache-Control")
 
-	data := &eagle.RenderData{
+	data := map[string]interface{}{
+		"Code": code,
+	}
+
+	if err != nil {
+		data["Error"] = err.Error()
+	}
+
+	rd := &eagle.RenderData{
 		Entry: &entry.Entry{
 			Frontmatter: entry.Frontmatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 			},
-			Content: strconv.Itoa(code),
 		},
+		Data: data,
 	}
 
-	s.serveHTMLWithStatus(w, r, data, []string{eagle.TemplateError}, code)
+	s.serveHTMLWithStatus(w, r, rd, []string{eagle.TemplateError}, code)
 }

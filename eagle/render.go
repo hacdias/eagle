@@ -33,6 +33,7 @@ const (
 	TemplateLogin  string = "login"
 	TemplateSearch string = "search"
 	TemplateEditor string = "editor"
+	TemplateNew    string = "new"
 	TemplateIndex  string = "index"
 	TemplateTags   string = "tags"
 	TemplateAuth   string = "auth"
