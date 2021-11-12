@@ -16,8 +16,14 @@ import (
 func (e *Eagle) setupPostgres() (err error) {
 	start := time.Now()
 
-	url := "postgres://" + e.Config.PostgreSQL.User + ":" + e.Config.PostgreSQL.Password + "@" + e.Config.PostgreSQL.Host + "/" + e.Config.PostgreSQL.Database
-	e.conn, err = pgxpool.Connect(context.Background(), url)
+	dsn := "user=" + e.Config.PostgreSQL.User
+	dsn += " password=" + e.Config.PostgreSQL.Password
+	dsn += " host=" + e.Config.PostgreSQL.Host
+	dsn += " port=" + e.Config.PostgreSQL.Port
+	dsn += " dbname=" + e.Config.PostgreSQL.Database
+	dsn += " pool_max_conns=10"
+
+	e.conn, err = pgxpool.Connect(context.Background(), dsn)
 	if err != nil {
 		return err
 	}
