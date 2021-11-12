@@ -249,18 +249,21 @@ func getAuthorizationRequest(r *http.Request) (*authRequest, error) {
 		return nil, errors.New("redirect_uri is invalid")
 	}
 
-	cc := r.Form.Get("code_challenge")
-	if cc == "" {
-		return nil, errors.New("code_challenge is missing")
-	}
+	var (
+		cc  string
+		ccm string
+	)
 
-	if cc != "" && (len(cc) < 43 || len(cc) > 128) {
-		return nil, errors.New("code_challenge length must be between 43 and 128 charachters long")
-	}
+	cc = r.Form.Get("code_challenge")
+	if cc != "" {
+		if len(cc) < 43 || len(cc) > 128 {
+			return nil, errors.New("code_challenge length must be between 43 and 128 charachters long")
+		}
 
-	ccm := r.Form.Get("code_challenge_method")
-	if !isValidCodeChallengeMethod(ccm) {
-		return nil, errors.New("code_challenge_method not supported")
+		ccm = r.Form.Get("code_challenge_method")
+		if !isValidCodeChallengeMethod(ccm) {
+			return nil, errors.New("code_challenge_method not supported")
+		}
 	}
 
 	req := &authRequest{
@@ -310,21 +313,19 @@ func getRequestInfoFromToken(r *http.Request, token jwt.Token) error {
 	}
 
 	cc := getString(token, "code_challenge")
-	if cc == "" {
-		return errors.New("code_challenge missing from token")
-	}
+	if cc != "" {
+		ccm := getString(token, "code_challenge_method")
+		if cc == "" {
+			return errors.New("code_challenge_method missing from token")
+		}
 
-	ccm := getString(token, "code_challenge_method")
-	if cc == "" {
-		return errors.New("code_challenge_method missing from token")
-	}
+		if !isValidCodeChallengeMethod(ccm) {
+			return errors.New("code_challenge_method invalid")
+		}
 
-	if !isValidCodeChallengeMethod(ccm) {
-		return errors.New("code_challenge_method invalid")
-	}
-
-	if !validateCodeChallenge(ccm, cc, codeVerifier) {
-		return errors.New("code challenge failed")
+		if !validateCodeChallenge(ccm, cc, codeVerifier) {
+			return errors.New("code challenge failed")
+		}
 	}
 
 	return nil
