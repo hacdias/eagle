@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/contenttype"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/fs"
@@ -15,6 +17,13 @@ import (
 	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/tdewolff/minify/v2"
+	mCss "github.com/tdewolff/minify/v2/css"
+	mHtml "github.com/tdewolff/minify/v2/html"
+	mJs "github.com/tdewolff/minify/v2/js"
+	mJson "github.com/tdewolff/minify/v2/json"
+	mXml "github.com/tdewolff/minify/v2/xml"
+
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
@@ -40,6 +49,7 @@ type Eagle struct {
 	templates        map[string]*template.Template
 	markdown         goldmark.Markdown
 	absoluteMarkdown goldmark.Markdown
+	minifier         *minify.M
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -78,6 +88,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		allowedTypes: []mf2.Type{},
 		syndication:  syndicator.NewManager(),
 		Parser:       entry.NewParser(conf.Site.BaseURL),
+		minifier:     getMinifier(),
 	}
 
 	for typ := range conf.Site.MicropubTypes {
@@ -131,6 +142,32 @@ func (e *Eagle) GetSyndicators() []*syndicator.Config {
 	return e.syndication.Config()
 }
 
+func (e *Eagle) GetRedirects() (map[string]string, error) {
+	redirects := map[string]string{}
+
+	data, err := e.fs.ReadFile("redirects")
+	if err != nil {
+		return nil, err
+	}
+
+	strs := strings.Split(string(data), "\n")
+
+	for _, str := range strs {
+		if strings.TrimSpace(str) == "" {
+			continue
+		}
+
+		parts := strings.Split(str, " ")
+		if len(parts) != 2 {
+			e.log.Warnf("found invalid redirect entry: %s", str)
+		}
+
+		redirects[parts[0]] = parts[1]
+	}
+
+	return redirects, nil
+}
+
 func (e *Eagle) Close() {
 	if e.conn != nil {
 		e.conn.Close()
@@ -139,4 +176,17 @@ func (e *Eagle) Close() {
 
 func (e *Eagle) userAgent(comment string) string {
 	return fmt.Sprintf("Eagle/0.0 %s", comment)
+}
+
+func getMinifier() *minify.M {
+	m := minify.New()
+	m.AddFunc(contenttype.HTML, mHtml.Minify)
+	m.AddFunc(contenttype.CSS, mCss.Minify)
+	m.AddFunc(contenttype.XML, mXml.Minify)
+	m.AddFunc(contenttype.JS, mJs.Minify)
+	m.AddFunc(contenttype.RSS, mXml.Minify)
+	m.AddFunc(contenttype.ATOM, mXml.Minify)
+	m.AddFunc(contenttype.JSONFeed, mJson.Minify)
+	m.AddFunc(contenttype.AS, mJson.Minify)
+	return m
 }

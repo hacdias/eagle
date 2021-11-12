@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/hacdias/eagle/v2/contenttype"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/jlelse/feeds"
@@ -378,14 +379,14 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	switch feedType {
 	case "rss":
 		feedString, err = feed.ToRss()
-		feedMediaType = "application/rss+xml"
+		feedMediaType = contenttype.RSS
 
 	case "atom":
 		feedString, err = feed.ToAtom()
-		feedMediaType = "application/atom+xml"
+		feedMediaType = contenttype.ATOM
 	case "json":
 		feedString, err = feed.ToJSON()
-		feedMediaType = "application/feed+json"
+		feedMediaType = contenttype.JSONFeed
 	}
 
 	if err != nil {
@@ -393,7 +394,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		return
 	}
 
-	w.Header().Set("Content-Type", feedMediaType+"; charset=utf-8")
+	w.Header().Set("Content-Type", feedMediaType+contenttype.CharsetUtf8Suffix)
 	_, err = w.Write([]byte(feedString))
 	if err != nil {
 		// TODO: maybe notify as these are terminal errors kinda.

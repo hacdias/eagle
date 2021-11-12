@@ -18,8 +18,8 @@ import (
 )
 
 const dataPath = "testing/hacdias.com/data"
-const oldContentPath = "testing/hacdias.com/content/"
-const newContentPath = "testing/hacdias.com/content2/"
+const oldContentPath = "testing/hacdias.com/content"
+const newContentPath = "testing/hacdias.com/content2"
 
 var figRegex = regexp.MustCompile(`{{<\s*figure(\s*?.*?)*?>}}`)
 var figPartRegex = regexp.MustCompile(`(\w+)="(.*?)"`)
@@ -389,5 +389,5 @@ func handleExternal(e *eagle.Eagle, oldEntry *Entry, newEntry *entry.Entry) erro
 }
 
 func saveAliases(aliases string) error {
-	return os.WriteFile(filepath.Join(filepath.Dir(newContentPath), "aliases"), []byte(aliases), 0644)
+	return os.WriteFile(filepath.Join(filepath.Dir(newContentPath), "redirects"), []byte(aliases), 0644)
 }
