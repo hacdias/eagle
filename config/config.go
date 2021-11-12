@@ -169,5 +169,6 @@ type PostgreSQL struct {
 	User     string
 	Password string
 	Host     string
+	Port     string
 	Database string
 }
