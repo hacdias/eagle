@@ -198,18 +198,11 @@ type RenderData struct {
 	User config.User
 	Site config.Site
 
-	// Move some things here for specific pages.
+	// For page-specific variables.
 	Data interface{}
 
-	Entries []*entry.Entry
-
-	SearchQuery string
-	Page        int
-	NextPage    string
-	IsListing   bool
-	Terms       []string
-
 	IsHome       bool
+	IsListing    bool
 	LoggedIn     bool
 	TorUsed      bool
 	OnionAddress string

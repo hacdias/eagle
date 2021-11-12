@@ -19,8 +19,10 @@ func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
-		Entry:     entry,
+		Entry: entry,
+		Data: listingPage{
+			Terms: tags,
+		},
 		IsListing: true,
-		Terms:     tags,
 	}, []string{eagle.TemplateTags})
 }
