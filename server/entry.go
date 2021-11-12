@@ -247,6 +247,19 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *entry
 }
 
 func (s *Server) postSavePost(entry *entry.Entry, syndicators []string) {
-	// TODO(v2): Invalidate cache
 	s.PostSaveEntry(entry, syndicators)
+
+	// TODO(v2): rethink cache.
+
+	for _, sec := range entry.Sections {
+		_ = s.RemoveCache(sec + ".html")
+	}
+
+	for _, tag := range entry.Tags() {
+		_ = s.RemoveCache("tags.html")
+		_ = s.RemoveCache("/tag/" + tag + ".html")
+	}
+
+	_ = s.RemoveCache(entry.ID + ".html")
+	_ = s.RemoveCache(".html")
 }

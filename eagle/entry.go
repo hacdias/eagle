@@ -74,7 +74,6 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	if err != nil {
 		e.Error(err)
 	}
-
 	// TODO(v2)
 
 	// 2. Check if the post has a 'location' property and parse it

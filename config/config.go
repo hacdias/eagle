@@ -15,11 +15,13 @@ type Config struct {
 	Port            int
 	SourceDirectory string
 	PublicDirectory string
+	CacheDirectory  string
 	Site            Site
 	User            User
 	// WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
+	Assets            []*Asset
 	Auth              Auth
 	PostgreSQL        PostgreSQL
 	Tor               *Tor
@@ -60,6 +62,11 @@ func Parse() (*Config, error) {
 	}
 
 	conf.PublicDirectory, err = filepath.Abs(conf.PublicDirectory)
+	if err != nil {
+		return nil, err
+	}
+
+	conf.CacheDirectory, err = filepath.Abs(conf.CacheDirectory)
 	if err != nil {
 		return nil, err
 	}
@@ -171,4 +178,9 @@ type PostgreSQL struct {
 	Host     string
 	Port     string
 	Database string
+}
+
+type Asset struct {
+	Name  string
+	Files []string
 }
