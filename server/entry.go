@@ -101,7 +101,7 @@ func (s *Server) entryPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go s.postSavePost(entry, nil)
-	s.serveEntry(w, r, entry)
+	http.Redirect(w, r, entry.ID, http.StatusSeeOther)
 }
 
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *entry.Entry) {
@@ -388,61 +388,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		s.log.Error("error while serving feed", err)
 	}
 }
-
-// func (s *Server) goSyndicate(entry *entry.Entry) {
-// if s.Twitter == nil {
-// 	return
-// }
-
-// url, err := s.Twitter.Syndicate(entry)
-// if err != nil {
-// 	s.NotifyError(fmt.Errorf("failed to syndicate: %w", err))
-// 	return
-// }
-
-// entry.Metadata.Syndication = append(entry.Metadata.Syndication, url)
-// err = s.SaveEntry(entry)
-// if err != nil {
-// 	s.NotifyError(fmt.Errorf("failed to save entry: %w", err))
-// 	return
-// }
-
-// INVALIDATE CACHE OR STH
-// }
-
-// func (s *Server) goWebmentions(entry *entry.Entry) {
-// 	err := s.SendWebmentions(entry)
-// 	if err != nil {
-// 		s.NotifyError(fmt.Errorf("webmentions: %w", err))
-// 	}
-// }
-
-// func sanitizeReplyURL(replyUrl string) string {
-// 	if strings.HasPrefix(replyUrl, "https://twitter.com") && strings.Contains(replyUrl, "/status/") {
-// 		url, err := urlpkg.Parse(replyUrl)
-// 		if err != nil {
-// 			return replyUrl
-// 		}
-
-// 		url.RawQuery = ""
-// 		url.Fragment = ""
-
-// 		return url.String()
-// 	}
-
-// 	return replyUrl
-// }
-
-// func sanitizeID(id string) (string, error) {
-// 	if id != "" {
-// 		url, err := urlpkg.Parse(id)
-// 		if err != nil {
-// 			return "", err
-// 		}
-// 		id = path.Clean(url.Path)
-// 	}
-// 	return id, nil
-// }
 
 func (s *Server) postSavePost(entry *entry.Entry, syndicators []string) {
 	// Invalidate cache
