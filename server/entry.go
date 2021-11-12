@@ -117,8 +117,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "*")
 	if id == "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("id needed to edit post"))
-		return
+		id = "/"
 	}
 
 	ee, err := s.GetEntry(id)
@@ -151,8 +150,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "*")
 	if id == "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("id needed to edit post"))
-		return
+		id = "/"
 	}
 
 	ee, err := s.GetEntry(id)
