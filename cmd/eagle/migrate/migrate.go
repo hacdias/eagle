@@ -3,6 +3,7 @@ package migrate
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -18,6 +19,7 @@ import (
 )
 
 const dataPath = "testing/hacdias.com/data"
+const staticPath = "testing/hacdias.com/static"
 const oldContentPath = "testing/hacdias.com/content"
 const newContentPath = "testing/hacdias.com/content2"
 
@@ -178,7 +180,12 @@ func Migrate() error {
 		aliases += fmt.Sprintf("/%s/feed.xml /%s.atom\n", section, section)
 	}
 
-	return saveAliases(aliases)
+	err = saveAliases(aliases)
+	if err != nil {
+		return err
+	}
+
+	return copyStatic()
 }
 
 func convertEntry(oldEntry *Entry) *entry.Entry {
@@ -386,4 +393,20 @@ func handleExternal(e *eagle.Eagle, oldEntry *Entry, newEntry *entry.Entry) erro
 
 func saveAliases(aliases string) error {
 	return os.WriteFile(filepath.Join(filepath.Dir(newContentPath), "redirects"), []byte(aliases), 0644)
+}
+
+func copyStatic() error {
+	return filepath.Walk(staticPath, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+
+		id := strings.TrimPrefix(path, staticPath)
+		_, err = copy(path, filepath.Join(newContentPath, id))
+		return err
+	})
 }

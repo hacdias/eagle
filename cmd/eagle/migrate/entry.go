@@ -193,6 +193,11 @@ func copy(src, dst string) (int64, error) {
 	}
 	defer source.Close()
 
+	err = os.MkdirAll(filepath.Dir(dst), 0777)
+	if err != nil {
+		return 0, err
+	}
+
 	destination, err := os.Create(dst)
 	if err != nil {
 		return 0, err

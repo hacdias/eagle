@@ -52,14 +52,7 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 			return
 		}
 
-		filename := filepath.Join(s.Config.SourceDirectory, eagle.StaticDirectory, r.URL.Path)
-		if stat, err := os.Stat(filename); err == nil && stat.Mode().IsRegular() {
-			setCacheDefault(w)
-			http.ServeFile(w, r, filename)
-			return
-		}
-
-		filename = filepath.Join(s.Config.SourceDirectory, eagle.ContentDirectory, r.URL.Path)
+		filename := filepath.Join(s.Config.SourceDirectory, eagle.ContentDirectory, r.URL.Path)
 		if stat, err := os.Stat(filename); err == nil && stat.Mode().IsRegular() {
 			// Do not serve _* files.
 			if strings.HasPrefix(stat.Name(), "_") {
@@ -67,6 +60,7 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 				return
 			}
 
+			setCacheDefault(w)
 			http.ServeFile(w, r, filename)
 			return
 		}

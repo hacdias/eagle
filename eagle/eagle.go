@@ -33,7 +33,6 @@ import (
 const (
 	AssetsDirectory  string = "assets"
 	ContentDirectory string = "content2" // TODO(v2): change this back to content
-	StaticDirectory  string = "static"
 )
 
 type Eagle struct {
