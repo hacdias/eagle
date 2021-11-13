@@ -2,15 +2,12 @@ package eagle
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
 	"net"
-	"net/http"
 	urlpkg "net/url"
 	"os"
-	"path"
 
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hashicorp/go-multierror"
@@ -198,7 +195,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return sidecar, nil
 	})
 
-	// TODO(vw)
+	// TODO(v2)
 	// go func() {
 	// 	// INVALIDATE CACHE OR STH
 	// 	if wm.Deleted {
@@ -207,29 +204,6 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	// 		s.Notify("💬 Received webmention at " + wm.Target)
 	// 	}
 	// }()
-}
-
-func (e *Eagle) uploadXRayAuthorPhoto(url string) string {
-	if e.media == nil {
-		return url
-	}
-
-	ext := path.Ext(url)
-	base := fmt.Sprintf("%x", sha256.Sum256([]byte(url)))
-
-	resp, err := http.Get(url)
-	if err != nil {
-		e.log.Warnf("could not fetch author photo: %s", url)
-		return url
-	}
-	defer resp.Body.Close()
-
-	newURL, err := e.media.UploadMedia("/wm/"+base+ext, resp.Body)
-	if err != nil {
-		e.log.Errorf("could not upload photo to cdn: %s", url)
-		return url
-	}
-	return newURL
 }
 
 func isPrivate(urlStr string) bool {

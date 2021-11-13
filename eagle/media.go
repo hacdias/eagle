@@ -1,9 +1,15 @@
 package eagle
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/hacdias/eagle/v2/config"
@@ -37,4 +43,39 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 	}
 
 	return m.Base + filename, nil
+}
+
+func (e *Eagle) uploadFile(base, url string) (string, error) {
+	if e.media == nil {
+		return url, nil
+	}
+
+	resp, err := e.httpClient.Get(url)
+	if err != nil {
+		return url, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return url, fmt.Errorf("unexpected status code: %s", resp.Status)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return url, err
+	}
+
+	basename := fmt.Sprintf("%x%s", sha256.Sum256(body), path.Ext(url))
+	filename := filepath.Join(base, basename)
+
+	return e.media.UploadMedia(filename, bytes.NewBuffer(body))
+}
+
+func (e *Eagle) safeUploadFile(base, url string) string {
+	newURL, err := e.uploadFile(base, url)
+	if err != nil {
+		e.log.Warnf("could not upload file %s: %s", url, err.Error())
+		return url
+	}
+	return newURL
 }
