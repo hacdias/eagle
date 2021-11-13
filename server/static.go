@@ -33,9 +33,10 @@ func setCacheDefault(w http.ResponseWriter) {
 }
 
 func (s *Server) serveAssets(w http.ResponseWriter, r *http.Request) {
-	if filename, ok := s.IsCached(r.URL.Path); ok {
+	if asset := s.GetAssets().Get(r.URL.Path); asset != nil {
 		setCacheAsset(w)
-		http.ServeFile(w, r, filename)
+		w.Header().Set("Content-Type", asset.Type)
+		w.Write(asset.Body)
 	} else {
 		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 	}

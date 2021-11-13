@@ -14,12 +14,26 @@ const (
 	AssetsBaseURL string = "/assets"
 )
 
+type Assets struct {
+	paths  map[string]string
+	assets map[string]*Asset
+}
+
+func (a *Assets) Path(id string) string {
+	return a.paths[id]
+}
+
+func (a *Assets) Get(id string) *Asset {
+	return a.assets[id]
+}
+
 type Asset struct {
 	Type string
+	Path string
 	Body []byte
 }
 
-func (e *Eagle) BuildAssets() error {
+func (e *Eagle) ReloadAssets() error {
 	assets, err := e.getAssets()
 	if err != nil {
 		return err
@@ -28,37 +42,30 @@ func (e *Eagle) BuildAssets() error {
 	return nil
 }
 
-func (e *Eagle) getAssets() (map[string]string, error) {
-	assets := map[string]string{}
+func (e *Eagle) GetAssets() *Assets {
+	return e.assets
+}
+
+func (e *Eagle) getAssets() (*Assets, error) {
+	assets := &Assets{
+		paths:  map[string]string{},
+		assets: map[string]*Asset{},
+	}
+
 	for _, asset := range e.Config.Assets {
-		data, err := e.getAsset(asset)
+		parsedAsset, err := e.buildAsset(asset)
 		if err != nil {
 			return nil, err
 		}
 
-		filename, err := e.saveAsset(filepath.Ext(asset.Name), data)
-		if err != nil {
-			return nil, err
-		}
-
-		assets[asset.Name] = filename
+		assets.paths[asset.Name] = parsedAsset.Path
+		assets.assets[parsedAsset.Path] = parsedAsset
 	}
 
 	return assets, nil
 }
 
-func (e *Eagle) saveAsset(ext string, data []byte) (string, error) {
-	sha256 := sha256.New()
-	if _, err := sha256.Write(data); err != nil {
-		return "", err
-	}
-
-	// This is where the asset will be available at.
-	path := filepath.Join(AssetsBaseURL, fmt.Sprintf("%x%s", sha256.Sum(nil), ext))
-	return path, e.SaveCache(path, data)
-}
-
-func (e *Eagle) getAsset(asset *config.Asset) ([]byte, error) {
+func (e *Eagle) buildAsset(asset *config.Asset) (*Asset, error) {
 	var data bytes.Buffer
 
 	for _, file := range asset.Files {
@@ -74,23 +81,43 @@ func (e *Eagle) getAsset(asset *config.Asset) ([]byte, error) {
 		}
 	}
 
-	var contentType string
+	var (
+		ext         = filepath.Ext(asset.Name)
+		contentType string
+		raw         []byte
+	)
 
-	switch filepath.Ext(asset.Name) {
+	switch ext {
 	case ".css":
 		contentType = contenttype.CSS
 	case ".js":
 		contentType = contenttype.JS
 	default:
-		return data.Bytes(), nil
+		raw = data.Bytes()
 	}
 
-	var w bytes.Buffer
+	if contentType != "" {
+		var w bytes.Buffer
 
-	err := e.minifier.Minify(contentType, &w, &data)
-	if err != nil {
+		err := e.minifier.Minify(contentType, &w, &data)
+		if err != nil {
+			return nil, err
+		}
+
+		raw = w.Bytes()
+	}
+
+	sha256 := sha256.New()
+	if _, err := sha256.Write(raw); err != nil {
 		return nil, err
 	}
 
-	return w.Bytes(), nil
+	// This is where the asset will be available at.
+	path := filepath.Join(AssetsBaseURL, fmt.Sprintf("%x%s", sha256.Sum(nil), ext))
+
+	return &Asset{
+		Type: contentType,
+		Path: path,
+		Body: raw,
+	}, nil
 }

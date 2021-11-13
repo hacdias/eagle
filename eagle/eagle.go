@@ -47,7 +47,7 @@ type Eagle struct {
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
 
-	assets map[string]string
+	assets *Assets
 
 	templates        map[string]*template.Template
 	markdown         goldmark.Markdown
@@ -136,7 +136,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
-	err = e.BuildAssets()
+	err = e.ReloadAssets()
 	if err != nil {
 		return nil, err
 	}

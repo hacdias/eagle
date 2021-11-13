@@ -202,10 +202,9 @@ type RenderData struct {
 	// a page that may be needed.
 	*entry.Entry
 
-	Assets map[string]string
-
-	User config.User
-	Site config.Site
+	Assets *Assets
+	User   config.User
+	Site   config.Site
 
 	// For page-specific variables.
 	Data interface{}
