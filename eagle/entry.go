@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
@@ -69,29 +70,89 @@ func (e *Eagle) SaveEntry(entry *entry.Entry) error {
 }
 
 func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
-	// 1. Check for context URL and fetch the data if needed.
+	// Check for context URL and fetch the data if needed.
 	err := e.ensureContextXRay(ee)
 	if err != nil {
 		e.Error(err)
 	}
+
+	// Uploads photos if they exist. This may change the entry.
+	err = e.processPhotos(ee)
+	if err != nil {
+		e.Error(err)
+	}
+
+	// Check if the post has a 'location' Geo URI and parse it.
 	// TODO(v2)
 
-	// 2. Check if the post has a 'location' property and parse it
-	// if it is a string.
+	// If it is a checkin, download location map.
+	// TODO(future)
 
-	// 3. If it is a checkin, download map image.
-
-	// 4. Syndicate
+	// Syndicate. This may change the entry.
 	err = e.syndicate(ee, syndicators)
 	if err != nil {
 		e.Error(err)
 	}
 
-	// 5. Webmentions
+	// Send webmentions.
 	err = e.SendWebmentions(ee)
 	if err != nil {
 		e.Error(err)
 	}
+}
+
+func (e *Eagle) processPhotos(ee *entry.Entry) error {
+	if ee.Properties == nil {
+		return nil
+	}
+
+	v, ok := ee.Properties["photo"]
+	if !ok {
+		return nil
+	}
+
+	upload := func(url string) string {
+		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, "https://cdn.hacdias.com") {
+			return e.safeUploadFile("/u", url)
+		}
+		return url
+	}
+
+	var newPhotos interface{}
+
+	if vv, ok := v.(string); ok {
+		newPhotos = upload(vv)
+	} else {
+		value := reflect.ValueOf(v)
+		kind := value.Kind()
+		parsed := []interface{}{}
+
+		if kind != reflect.Array && kind != reflect.Slice {
+			return nil
+		}
+
+		for i := 0; i < value.Len(); i++ {
+			v = value.Index(i).Interface()
+
+			if vv, ok := v.(string); ok {
+				parsed = append(parsed, upload(vv))
+			} else if vv, ok := v.(map[string]interface{}); ok {
+				if value, ok := vv["value"].(string); ok {
+					vv["value"] = upload(value)
+				}
+				parsed = append(parsed, vv)
+			}
+		}
+
+		newPhotos = parsed
+	}
+
+	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+		ee.Properties["photo"] = newPhotos
+		return ee, nil
+	})
+
+	return err
 }
 
 func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*entry.Entry, error) {
