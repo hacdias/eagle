@@ -161,7 +161,7 @@ func (r *customRenderer) renderImage(w util.BufWriter, source []byte, node ast.N
 	}
 	n := node.(*ast.Image)
 
-	err := writeFigure(w, r.baseURL, string(n.Destination), string(n.Text(source)), string(n.Title), r.absURLs, r.Unsafe)
+	err := writeFigure(w, r.baseURL, string(n.Destination), string(n.Text(source)), string(n.Title), r.absURLs, r.Unsafe, false)
 	if err != nil {
 		return ast.WalkStop, err
 	}
@@ -177,7 +177,7 @@ type figureWriter interface {
 }
 
 // TODO(v2): cleanup this
-func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, unsafe bool) error {
+func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, unsafe, uPhoto bool) error {
 	url, err := urlpkg.Parse(imgURL)
 	if err != nil {
 		return err
@@ -238,6 +238,10 @@ func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, un
 		_, _ = w.Write(util.EscapeHTML(imgSrc))
 	}
 	_, _ = w.WriteRune('"')
+
+	if uPhoto {
+		_, _ = w.WriteString(" class=\"u-photo\"")
+	}
 
 	if alt != "" {
 		_, _ = w.WriteString(` alt="`)

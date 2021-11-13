@@ -15,7 +15,6 @@ type Config struct {
 	Port            int
 	SourceDirectory string
 	PublicDirectory string
-	CacheDirectory  string
 	Site            Site
 	User            User
 	// WebhookSecret     string
@@ -62,11 +61,6 @@ func Parse() (*Config, error) {
 	}
 
 	conf.PublicDirectory, err = filepath.Abs(conf.PublicDirectory)
-	if err != nil {
-		return nil, err
-	}
-
-	conf.CacheDirectory, err = filepath.Abs(conf.CacheDirectory)
 	if err != nil {
 		return nil, err
 	}
