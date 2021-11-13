@@ -18,13 +18,7 @@ func (e *Eagle) RemoveCache(filename string) error {
 }
 
 func (e *Eagle) ResetCache() error {
-	err := e.cacheFs.RemoveAll(".")
-	if err != nil {
-		return err
-	}
-
-	// Resetting the cache rebuilds the assets by extension.
-	return e.BuildAssets()
+	return e.cacheFs.RemoveAll(".")
 }
 
 func (e *Eagle) IsCached(filename string) (string, bool) {
