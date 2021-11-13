@@ -15,7 +15,6 @@ import (
 	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
 
 	"github.com/yuin/goldmark"
@@ -35,7 +34,6 @@ type Eagle struct {
 	httpClient   *http.Client
 	wmClient     *webmention.Client
 	fs           *fs.FS
-	cacheFs      *afero.Afero
 	conn         *pgxpool.Pool
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
@@ -79,12 +77,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	srcFs := fs.NewFS(conf.SourceDirectory, srcSync)
 
 	e := &Eagle{
-		log:        log.S().Named("eagle"),
-		httpClient: httpClient,
-		fs:         srcFs,
-		cacheFs: &afero.Afero{
-			Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.CacheDirectory),
-		},
+		log:          log.S().Named("eagle"),
+		httpClient:   httpClient,
+		fs:           srcFs,
 		wmClient:     webmention.New(httpClient),
 		Config:       conf,
 		allowedTypes: []mf2.Type{},
