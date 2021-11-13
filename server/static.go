@@ -11,7 +11,7 @@ import (
 
 func (s *Server) withRedirects(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if url, ok := s.redirects[r.URL.Path]; ok {
+		if url, ok := s.GetRedirects()[r.URL.Path]; ok {
 			http.Redirect(w, r, url, http.StatusMovedPermanently)
 			return
 		}

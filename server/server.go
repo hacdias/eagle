@@ -39,7 +39,6 @@ type Server struct {
 
 	serversLock sync.Mutex
 	servers     []*httpServer
-	redirects   map[string]string
 
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
@@ -54,12 +53,6 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
 	s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
-
-	redirects, err := e.GetRedirects()
-	if err != nil {
-		return nil, err
-	}
-	s.redirects = redirects
 
 	return s, nil
 }

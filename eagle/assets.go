@@ -33,7 +33,7 @@ type Asset struct {
 	Body []byte
 }
 
-func (e *Eagle) ReloadAssets() error {
+func (e *Eagle) initAssets() error {
 	assets, err := e.getAssets()
 	if err != nil {
 		return err

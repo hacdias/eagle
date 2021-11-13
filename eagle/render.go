@@ -131,7 +131,7 @@ func (e *Eagle) relativeURL(path string) string {
 	return base.ResolveReference(url).Path
 }
 
-func (e *Eagle) updateTemplates() error {
+func (e *Eagle) initTemplates() error {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
 	baseTemplateData, err := e.fs.ReadFile(baseTemplateFilename)
 	if err != nil {
@@ -267,13 +267,6 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.Site = e.Config.Site
 	data.Assets = e.assets
 	data.eagle = e
-
-	if e.Config.Development {
-		err := e.updateTemplates()
-		if err != nil {
-			return err
-		}
-	}
 
 	var tpl *template.Template
 
