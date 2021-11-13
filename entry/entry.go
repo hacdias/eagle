@@ -118,9 +118,19 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		delete(data, "updated")
 	}
 
+	fmt.Println(data["content"])
+
 	if content, ok := data.StringIf("content"); ok {
 		e.Content = content
 		delete(data, "content")
+	} else if content, ok := data.ObjectIf("content"); ok {
+		if text, ok := content.StringIf("text"); ok {
+			e.Content = text
+		} else if html, ok := content.StringIf("html"); ok {
+			e.Content = html
+		} else {
+			return errors.New("could not parse content field")
+		}
 	} else if _, ok := data["content"]; ok {
 		return errors.New("could not parse content field")
 	}
