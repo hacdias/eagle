@@ -83,7 +83,7 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	}
 
 	// Check if the post has a 'location' Geo URI and parse it.
-	// TODO(v2)
+	// TODO(future)
 
 	// If it is a checkin, download location map.
 	// TODO(future)
