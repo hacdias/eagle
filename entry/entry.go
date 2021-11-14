@@ -118,8 +118,6 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		delete(data, "updated")
 	}
 
-	fmt.Println(data["content"])
-
 	if content, ok := data.StringIf("content"); ok {
 		e.Content = content
 		delete(data, "content")
