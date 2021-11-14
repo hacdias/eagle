@@ -135,6 +135,8 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		return errors.New("could not parse content field")
 	}
 
+	e.Content = strings.TrimSpace(e.Content)
+
 	if name, ok := data.StringIf("name"); ok {
 		e.Title = name
 		delete(data, "name")
