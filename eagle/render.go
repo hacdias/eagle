@@ -48,7 +48,7 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	if len(data) == 1 {
 		err = e.templates[name].ExecuteTemplate(&buf, name, data[0])
 	} else if len(data) == 2 {
-		// TODO(future): perhaps make more type verifications.
+		// TODO: perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
 		nrd.Entry = data[1].(*entry.Entry)
 		nrd.sidecar = nil

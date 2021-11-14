@@ -82,11 +82,9 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
-	// Check if the post has a 'location' Geo URI and parse it.
-	// TODO(future)
+	// TODO: Check if the post has a 'location' Geo URI and parse it.
 
-	// If it is a checkin, download location map.
-	// TODO(future)
+	// TODO: If it is a checkin, download location map.
 
 	// Syndicate. This may change the entry.
 	err = e.syndicate(ee, syndicators)
@@ -164,8 +162,8 @@ func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*en
 		return nil, errors.New("at least one entry transformer must be provided")
 	}
 
-	// TODO(future): instead, I could keep the file open
-	// for writing and avoid the need for locks entirely.
+	// TODO: instead, I could keep the file open for writing
+	// and avoid the need for locks entirely.
 	// However, take into account that .SaveEntry uses
 	// .entryCheck to fill missing fields.
 	e.entriesMu.Lock()

@@ -36,7 +36,7 @@ func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
 	s.serveLoginPage(w, r, http.StatusOK, "")
 }
 
-// TODO(future): implement 2FA or Push Notification.
+// TODO: implement 2FA or Push Notification.
 func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {

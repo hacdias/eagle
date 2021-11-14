@@ -98,7 +98,7 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Form.Get("action") == "revoke" {
-		// TODO(future): currently, tokens have one week validity, otherwise
+		// TODO: currently, tokens have one week validity, otherwise
 		// specified during the authorization request.
 		w.WriteHeader(http.StatusOK)
 		return
@@ -353,7 +353,7 @@ func isValidProfileURL(profileURL string) bool {
 		return false
 	}
 
-	// TODO(future): check domain / IP.
+	// TODO: check domain / IP.
 	return true
 }
 

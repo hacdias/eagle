@@ -271,7 +271,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Name:  s.Config.User.Name,
 			Email: s.Config.User.Email,
 		},
-		// TODO(future): support .Tags
+		// TODO: support .Tags
 		Created: time.Now(),
 		Items:   []*feeds.Item{},
 	}
@@ -321,7 +321,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	w.Header().Set("Content-Type", feedMediaType+contenttype.CharsetUtf8Suffix)
 	_, err = w.Write([]byte(feedString))
 	if err != nil {
-		// TODO: maybe notify as these are terminal errors kinda.
-		s.log.Error("error while serving feed", err)
+		s.Notifier.Error(fmt.Errorf("error while serving feed: %w", err))
 	}
 }

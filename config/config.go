@@ -87,7 +87,7 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	// TODO(future): add more thorough verification.
+	// TODO: add more thorough verification.
 	return conf, nil
 }
 

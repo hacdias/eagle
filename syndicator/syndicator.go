@@ -35,7 +35,7 @@ func (m *Manager) Add(s Syndicator) {
 }
 
 func (m *Manager) Syndicate(entry *entry.Entry, syndicators []string) ([]string, error) {
-	// TODO(future): detect that this is a reply/like/repost to a post on my own
+	// TODO: detect that this is a reply/like/repost to a post on my own
 	// website. If so, fetch the syndications to syndicate the replies directly
 	// there. For example, if I reply to a post on my website that is syndicated
 	// on Twitter, I will want to syndicate that on Twitter. For now, I have to
