@@ -36,7 +36,7 @@ func (s *Server) serveAssets(w http.ResponseWriter, r *http.Request) {
 	if asset := s.GetAssets().Get(r.URL.Path); asset != nil {
 		setCacheAsset(w)
 		w.Header().Set("Content-Type", asset.Type)
-		w.Write(asset.Body)
+		_, _ = w.Write(asset.Body)
 	} else {
 		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 	}
