@@ -79,30 +79,25 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var code int
-	scopes := s.getScopes(r)
 
 	switch mr.Action {
 	case micropub.ActionCreate:
-		if !funk.ContainsString(scopes, "create") {
-			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		if !s.checkScope(w, r, "create") {
 			return
 		}
 		code, err = s.micropubCreate(w, r, mr)
 	case micropub.ActionUpdate:
-		if !funk.ContainsString(scopes, "update") {
-			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		if !s.checkScope(w, r, "update") {
 			return
 		}
 		code, err = s.micropubUpdate(w, r, mr)
 	case micropub.ActionDelete:
-		if !funk.ContainsString(scopes, "delete") {
-			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		if !s.checkScope(w, r, "delete") {
 			return
 		}
 		code, err = s.micropubRemove(w, r, mr)
 	case micropub.ActionUndelete:
-		if !funk.ContainsString(scopes, "undelete") {
-			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		if !s.checkScope(w, r, "undelete") {
 			return
 		}
 		code, err = s.micropubUnremove(w, r, mr)
@@ -226,9 +221,7 @@ func (s *Server) micropubParseURL(url string) (string, error) {
 }
 
 func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
-	scopes := s.getScopes(r)
-	if !funk.ContainsString(scopes, "media") {
-		s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+	if !s.checkScope(w, r, "media") {
 		return
 	}
 
@@ -252,4 +245,14 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, location, http.StatusCreated)
+}
+
+func (s *Server) checkScope(w http.ResponseWriter, r *http.Request, scope string) bool {
+	scopes := s.getScopes(r)
+	if !funk.ContainsString(scopes, scope) {
+		s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		return false
+	}
+
+	return true
 }
