@@ -43,7 +43,7 @@ func (s *Server) serveAssets(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO(future): right now, we are doing 2 FS checks before checking for the entry.
+// TODO: right now, we are doing 2 FS checks for each entry.
 // To improve this, we avoid handling paths that do not have extensions. However,
 // I don't really like the way this is done and I wonder if this could be improved.
 func (s *Server) withStaticFiles(next http.Handler) http.Handler {

@@ -80,7 +80,7 @@ func (e *Entry) Summary() string {
 		e.summary = util.TruncateString(content, 300) + "…"
 	}
 
-	// TODO(future): get context and trim that text.
+	// TODO: get context and trim that text.
 	return e.summary
 }
 
