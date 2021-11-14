@@ -9,7 +9,6 @@ create table entries (
   isDeleted boolean not null,
   isPrivate boolean not null,
   date TIMESTAMP WITH TIME ZONE,
-  properties json,
   ts tsvector generated always as (to_tsvector('english', content)) STORED
 );
 

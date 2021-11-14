@@ -43,7 +43,7 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC(), entry.Properties)
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date) values($1, $2, $3, $4, $5, $6)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC())
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -132,7 +132,7 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
 
 	if ands := d.whereConstraints(opts); len(ands) > 0 {
-		sql += " " + strings.Join(ands, " and ")
+		sql += " and " + strings.Join(ands, " and ")
 	}
 
 	sql += " order by date desc" + d.offset(opts)
@@ -168,10 +168,12 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id
 		from entries as e
 	) s
-	where score > 0
-	order by score desc` + d.offset(opts)
+	where score > 0`
 
-	// todo needs where constrains
+	if ands := d.whereConstraints(opts); len(ands) > 0 {
+		sql += " and " + strings.Join(ands, " and ")
+	}
+	sql += ` order by score desc` + d.offset(opts)
 
 	return d.queryEntries(sql, query)
 }
