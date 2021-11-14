@@ -107,7 +107,9 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 
 	if code >= 200 && code < 400 {
 		w.WriteHeader(code)
-	} else if code >= 400 {
+	} else if code >= 400 && code < 500 {
+		s.serveErrorJSON(w, code, "invalid_request", err.Error())
+	} else if code >= 500 {
 		s.log.Errorf("micropub: error on post: %s", err)
 		s.serveErrorJSON(w, code, "server_error", err.Error())
 	} else if err != nil {
@@ -164,7 +166,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return entry, nil
 	})
 	if err != nil {
-		return http.StatusBadRequest, err
+		return http.StatusInternalServerError, err
 	}
 
 	go s.postSavePost(entry, nil)
