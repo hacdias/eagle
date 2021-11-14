@@ -86,7 +86,6 @@ func dateFormat(date, template string) string {
 }
 
 func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
-	// TODO(v2): cleanup this
 	figure := func(url, alt string, uPhoto bool) template.HTML {
 		var w strings.Builder
 		err := e.writeFigure(&w, url, alt, "", alwaysAbsolute, true, uPhoto)
