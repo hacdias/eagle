@@ -45,7 +45,19 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 	return m.Base + filename, nil
 }
 
-func (e *Eagle) uploadFile(base, url string) (string, error) {
+func (e *Eagle) UploadFile(base, ext string, data io.Reader) (string, error) {
+	body, err := ioutil.ReadAll(data)
+	if err != nil {
+		return "", err
+	}
+
+	basename := fmt.Sprintf("%x%s", sha256.Sum256(body), ext)
+	filename := filepath.Join(base, basename)
+
+	return e.media.UploadMedia(filename, bytes.NewBuffer(body))
+}
+
+func (e *Eagle) uploadFromURL(base, url string) (string, error) {
 	if e.media == nil {
 		return url, nil
 	}
@@ -60,19 +72,11 @@ func (e *Eagle) uploadFile(base, url string) (string, error) {
 		return url, fmt.Errorf("unexpected status code: %s", resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return url, err
-	}
-
-	basename := fmt.Sprintf("%x%s", sha256.Sum256(body), path.Ext(url))
-	filename := filepath.Join(base, basename)
-
-	return e.media.UploadMedia(filename, bytes.NewBuffer(body))
+	return e.UploadFile(base, path.Ext(url), resp.Body)
 }
 
-func (e *Eagle) safeUploadFile(base, url string) string {
-	newURL, err := e.uploadFile(base, url)
+func (e *Eagle) safeUploadFromURL(base, url string) string {
+	newURL, err := e.uploadFromURL(base, url)
 	if err != nil {
 		e.log.Warnf("could not upload file %s: %s", url, err.Error())
 		return url

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
@@ -62,7 +63,8 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	config := map[string]interface{}{
-		"syndicate-to": syndications,
+		"syndicate-to":   syndications,
+		"media-endpoint": s.AbsoluteURL("/micropub/media"),
 		// "channels":     sections,
 	}
 
@@ -82,25 +84,25 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 	switch mr.Action {
 	case micropub.ActionCreate:
 		if !funk.ContainsString(scopes, "create") {
-			w.WriteHeader(http.StatusForbidden)
+			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
 			return
 		}
 		code, err = s.micropubCreate(w, r, mr)
 	case micropub.ActionUpdate:
 		if !funk.ContainsString(scopes, "update") {
-			w.WriteHeader(http.StatusForbidden)
+			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
 			return
 		}
 		code, err = s.micropubUpdate(w, r, mr)
 	case micropub.ActionDelete:
 		if !funk.ContainsString(scopes, "delete") {
-			w.WriteHeader(http.StatusForbidden)
+			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
 			return
 		}
 		code, err = s.micropubRemove(w, r, mr)
 	case micropub.ActionUndelete:
 		if !funk.ContainsString(scopes, "undelete") {
-			w.WriteHeader(http.StatusForbidden)
+			s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
 			return
 		}
 		code, err = s.micropubUnremove(w, r, mr)
@@ -221,4 +223,33 @@ func (s *Server) micropubParseURL(url string) (string, error) {
 	}
 
 	return strings.Replace(url, s.Config.Site.BaseURL, "", 1), nil
+}
+
+func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
+	scopes := s.getScopes(r)
+	if !funk.ContainsString(scopes, "media") {
+		s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		return
+	}
+
+	err := r.ParseMultipartForm(20 << 20)
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "File is too large.")
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+	defer file.Close()
+
+	location, err := s.UploadFile("/u/", filepath.Ext(header.Filename), file)
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
+		return
+	}
+
+	http.Redirect(w, r, location, http.StatusCreated)
 }
