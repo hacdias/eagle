@@ -71,7 +71,8 @@ func (e *Entry) Summary() string {
 	}
 
 	if strings.Contains(e.Content, "<!--more-->") {
-		e.summary = strings.TrimSpace(strings.Split(e.Content, "<!--more-->")[0])
+		firstPart := strings.Split(e.Content, "<!--more-->")[0]
+		e.summary = stripMarkdown.Strip(strings.TrimSpace(firstPart))
 	} else if e.Description != "" {
 		e.summary = e.Description
 	} else if content := e.TextContent(); content != "" {
