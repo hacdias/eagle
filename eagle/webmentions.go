@@ -178,7 +178,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	}
 
 	data := e.parseXRay(payload.Post)
-	return e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
+	err = e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
 		for i, mention := range sidecar.Webmentions {
 			url, ok := mention["url"].(string)
 			if !ok {
@@ -195,15 +195,15 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return sidecar, nil
 	})
 
-	// TODO(v2)
-	// go func() {
-	// 	// INVALIDATE CACHE OR STH
-	// 	if wm.Deleted {
-	// 		s.Notify("💬 Deleted webmention at " + wm.Target)
-	// 	} else {
-	// 		s.Notify("💬 Received webmention at " + wm.Target)
-	// 	}
-	// }()
+	if err != nil {
+		e.Notifier.Error(err)
+	} else if payload.Deleted {
+		e.Notifier.Info("💬 Deleted webmention at " + payload.Target)
+	} else {
+		e.Notifier.Info("💬 Received webmention at " + payload.Target)
+	}
+
+	return err
 }
 
 func isPrivate(urlStr string) bool {
