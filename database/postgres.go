@@ -43,7 +43,7 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date) values($1, $2, $3, $4, $5, $6)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC())
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC(), entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
