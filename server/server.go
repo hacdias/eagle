@@ -200,7 +200,8 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		cw  io.Writer
 	)
 
-	if !data.LoggedIn && code == http.StatusOK {
+	if !data.LoggedIn && code == http.StatusOK && r.URL.RawQuery == "" {
+		// For now, don't include pages with queries (search, page=, etc)
 		cw = io.MultiWriter(w, &buf)
 	} else {
 		cw = w
@@ -212,7 +213,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 	} else {
 		data := buf.Bytes()
 		if len(data) > 0 {
-			_ = s.SaveCache(r.URL.Path+".html", data)
+			s.SaveCache(r.URL.Path, data, time.Now())
 		}
 	}
 }

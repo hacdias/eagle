@@ -46,7 +46,7 @@ func (e *Eagle) SendWebmentions(entry *entry.Entry) error {
 
 	for _, target := range all {
 		// if strings.HasPrefix(target, e.Config.Site.BaseURL) {
-		// TODO(future): it is a self-mention.
+		// TODO: it is a self-mention.
 		// }
 
 		err := e.sendWebmention(entry.Permalink, target)
@@ -203,6 +203,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		e.Notifier.Info("💬 Received webmention at " + payload.Target)
 	}
 
+	e.RemoveCache(entry)
 	return err
 }
 

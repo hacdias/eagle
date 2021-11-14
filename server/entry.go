@@ -209,7 +209,7 @@ func (s *Server) newEditHandler(w http.ResponseWriter, r *http.Request, ee *entr
 		return
 	}
 
-	go s.postSavePost(ee, syndications)
+	go s.PostSaveEntry(ee, syndications)
 	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
 }
 
@@ -244,22 +244,4 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *entry
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: entry,
 	}, eagle.EntryTemplates(entry))
-}
-
-func (s *Server) postSavePost(entry *entry.Entry, syndicators []string) {
-	s.PostSaveEntry(entry, syndicators)
-
-	// TODO(v2): rethink cache.
-
-	for _, sec := range entry.Sections {
-		_ = s.RemoveCache(sec + ".html")
-	}
-
-	for _, tag := range entry.Tags() {
-		_ = s.RemoveCache("tags.html")
-		_ = s.RemoveCache("/tag/" + tag + ".html")
-	}
-
-	_ = s.RemoveCache(entry.ID + ".html")
-	_ = s.RemoveCache(".html")
 }

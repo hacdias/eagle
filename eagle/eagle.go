@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/dgraph-io/ristretto"
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/database"
 	"github.com/hacdias/eagle/v2/entry"
@@ -16,6 +19,7 @@ import (
 	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/tdewolff/minify/v2"
+	"github.com/thoas/go-funk"
 
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
@@ -37,6 +41,7 @@ type Eagle struct {
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
 	db           database.Database
+	cache        *ristretto.Cache
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -129,6 +134,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
+	err = e.initCache()
+	if err != nil {
+		return nil, err
+	}
+
 	err = e.initRedirects()
 	if err != nil {
 		return nil, err
@@ -181,5 +191,54 @@ func (e *Eagle) reloader() {
 		if err != nil {
 			e.log.Error(err)
 		}
+	}
+}
+
+func (e *Eagle) SyncStorage() {
+	changedFiles, err := e.fs.Sync()
+	if err != nil {
+		e.Notifier.Error(fmt.Errorf("sync storage: %w", err))
+		return
+	}
+
+	if len(changedFiles) == 0 {
+		return
+	}
+
+	ids := []string{}
+
+	for _, file := range changedFiles {
+		if !strings.HasPrefix(ContentDirectory, file) {
+			continue
+		}
+
+		if strings.HasPrefix(ContentDirectory, file) {
+			id := strings.TrimPrefix(file, ContentDirectory)
+			id = filepath.Base(id)
+			ids = append(ids, id)
+		}
+	}
+
+	// TODO: is calling .initTemplates and .initAssets safe here?
+	// This way I could update the templates and the assets without
+	// needing to manually restart the server. Is re-assigning of
+	// variables while possibly reading safe?
+	ids = funk.UniqString(ids)
+
+	entries := []*entry.Entry{}
+
+	for _, id := range ids {
+		entry, err := e.GetEntry(id)
+		if err != nil {
+			e.Notifier.Error(fmt.Errorf("cannot find entry to update %s: %w", id, err))
+			continue
+		}
+		entries = append(entries, entry)
+		e.RemoveCache(entry)
+	}
+
+	err = e.db.Add(entries...)
+	if err != nil {
+		e.Notifier.Error(fmt.Errorf("sync failed: %w", err))
 	}
 }
