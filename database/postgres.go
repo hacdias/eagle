@@ -165,7 +165,7 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	sql := `select id from (
-		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id
+		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isPrivate
 		from entries as e
 	) s
 	where score > 0`
