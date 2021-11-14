@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
-	tags, err := s.Tags()
+	tags, err := s.GetTags()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return

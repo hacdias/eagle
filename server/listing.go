@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/contenttype"
+	"github.com/hacdias/eagle/v2/database"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/jlelse/feeds"
@@ -19,8 +20,8 @@ import (
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
-			return s.QueryEntries(opts)
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.BySection(opts)
 		},
 	})
 }
@@ -30,8 +31,8 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 		rd: &eagle.RenderData{
 			IsHome: true,
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
-			return s.QuerySection(s.Config.Site.IndexSections, opts)
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.BySection(opts, s.Config.Site.IndexSections...)
 		},
 		templates: []string{eagle.TemplateIndex},
 	})
@@ -53,8 +54,8 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		rd: &eagle.RenderData{
 			Entry: ee,
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
-			return s.QueryTag(tag, opts)
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.ByTag(opts, tag)
 		},
 	})
 }
@@ -74,8 +75,8 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 			rd: &eagle.RenderData{
 				Entry: ee,
 			},
-			exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
-				return s.QuerySection([]string{section}, opts)
+			exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+				return s.BySection(opts, section)
 			},
 			templates: []string{},
 		})
@@ -128,8 +129,8 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
-			return s.QueryDate(year, month, day, opts)
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.ByDate(opts, year, month, day)
 		},
 	})
 }
@@ -148,6 +149,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	if query == "" {
 		s.serveHTML(w, r, &eagle.RenderData{
 			Entry: ee,
+			Data:  &listingPage{},
 		}, []string{eagle.TemplateSearch})
 		return
 	}
@@ -159,8 +161,8 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		lp: listingPage{
 			SearchQuery: query,
 		},
-		exec: func(opts *eagle.QueryOptions) ([]*entry.Entry, error) {
-			return s.SearchPostgres(query, opts)
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.Search(opts, query)
 		},
 		templates: []string{eagle.TemplateSearch},
 	})
@@ -177,7 +179,7 @@ func (s *Server) getEntryOrEmpty(id string) *entry.Entry {
 }
 
 type listingSettings struct {
-	exec      func(*eagle.QueryOptions) ([]*entry.Entry, error)
+	exec      func(*database.QueryOptions) ([]*entry.Entry, error)
 	rd        *eagle.RenderData
 	lp        listingPage
 	templates []string
@@ -194,10 +196,11 @@ type listingPage struct {
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
 	loggedIn := s.isLoggedIn(w, r)
 
-	opts := &eagle.QueryOptions{
+	opts := &database.QueryOptions{
 		Draft:   loggedIn,
 		Deleted: loggedIn,
 		Private: loggedIn,
+		Limit:   s.Config.Site.Paginate,
 	}
 
 	if ls.rd == nil {
