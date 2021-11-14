@@ -61,8 +61,15 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 				return
 			}
 
+			f, err := os.Open(filename)
+			if err != nil {
+				s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+				return
+			}
+			defer f.Close()
+
 			setCacheDefault(w)
-			http.ServeFile(w, r, filename)
+			http.ServeContent(w, r, stat.Name(), stat.ModTime(), f)
 			return
 		}
 
@@ -75,7 +82,7 @@ func (s *Server) withCache(next http.Handler) http.Handler {
 		if !s.isLoggedIn(w, r) {
 			if filename, ok := s.IsCached(r.URL.Path + ".html"); ok {
 				setCacheHTML(w)
-				http.ServeFile(w, r, filename)
+				http.ServeFile(w, r, filename) //  use ServeContent instead?
 				return
 			}
 		}
