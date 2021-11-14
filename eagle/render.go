@@ -97,7 +97,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 
 	funcs := template.FuncMap{
 		"truncate":    util.TruncateString,
-		"contains":    funk.Contains,
+		"contains":    funk.ContainsString,
 		"domain":      domain,
 		"strContains": strings.Contains,
 		"safeHTML":    safeHTML,
