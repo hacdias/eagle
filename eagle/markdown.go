@@ -33,18 +33,18 @@ var defaultGoldmarkOptions = []goldmark.Option{
 	),
 }
 
-func newMarkdown(absURLs bool, baseURL string) goldmark.Markdown {
+func newMarkdown(e *Eagle, absURLs bool) goldmark.Markdown {
 	return goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(
 		&customMarkdown{
 			absURLs: absURLs,
-			baseURL: baseURL,
+			e:       e,
 		},
 	))...)
 }
 
 type customMarkdown struct {
-	baseURL string
 	absURLs bool
+	e       *Eagle
 }
 
 func (c *customMarkdown) Extend(m goldmark.Markdown) {
@@ -58,16 +58,16 @@ func newCustomRenderer(l *customMarkdown) renderer.NodeRenderer {
 		Config: html.Config{
 			Writer: html.DefaultWriter,
 		},
-		baseURL: l.baseURL,
 		absURLs: l.absURLs,
+		e:       l.e,
 	}
 	return r
 }
 
 type customRenderer struct {
 	html.Config
-	baseURL string
 	absURLs bool
+	e       *Eagle
 }
 
 func (r *customRenderer) SetOption(name renderer.OptionName, value interface{}) {
@@ -88,8 +88,8 @@ func (r *customRenderer) renderLink(w util.BufWriter, source []byte, node ast.No
 	if entering {
 		_, _ = w.WriteString("<a href=\"")
 		destination := util.URLEscape(n.Destination, true)
-		if r.absURLs && r.baseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
-			_, _ = w.Write(util.EscapeHTML([]byte(r.baseURL)))
+		if r.absURLs && r.e.Config.Site.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
+			_, _ = w.Write(util.EscapeHTML([]byte(r.e.Config.Site.BaseURL)))
 		}
 		if r.Unsafe || !html.IsDangerousURL(destination) {
 			_, _ = w.Write(util.EscapeHTML(destination))
@@ -122,8 +122,8 @@ func (r *customRenderer) renderAutoLink(w util.BufWriter, source []byte, node as
 		_, _ = w.WriteString("mailto:")
 	}
 	destination := util.URLEscape(url, false)
-	if r.absURLs && r.baseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(r.baseURL)))
+	if r.absURLs && r.e.Config.Site.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(r.e.Config.Site.BaseURL)))
 	}
 	_, _ = w.Write(util.EscapeHTML(destination))
 	if n.Attributes() != nil {
@@ -144,24 +144,13 @@ func (r *customRenderer) renderAutoLink(w util.BufWriter, source []byte, node as
 }
 
 // Hijack the image rendering and output <figure>!
-//
-// Syntax
-//	![Alt text](url "Title")
-//	url?class=my+class									--> Add class.
-//	url?id=someid												--> Add id.
-//	url?caption=false							  		--> Do not print "Title" as <figcaption>.
-//
-// URL should be either:
-//	- cdn:/slug-at-cdn									--> Renders <figure> with many <source>.
-// 	- /relative/to/image.jpeg						--> Renders an <img> by default.
-//	- http://example.com/example.jpg		-->	Renders an <img> by default.
 func (r *customRenderer) renderImage(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
 	if !entering {
 		return ast.WalkContinue, nil
 	}
 	n := node.(*ast.Image)
 
-	err := writeFigure(w, r.baseURL, string(n.Destination), string(n.Text(source)), string(n.Title), r.absURLs, r.Unsafe, false)
+	err := r.e.writeFigure(w, string(n.Destination), string(n.Text(source)), string(n.Title), r.absURLs, r.Unsafe, false)
 	if err != nil {
 		return ast.WalkStop, err
 	}
@@ -176,8 +165,17 @@ type figureWriter interface {
 	WriteRune(r rune) (size int, err error)
 }
 
-// TODO(v2): cleanup this
-func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, unsafe, uPhoto bool) error {
+// Syntax
+//	![Alt text](url "Title")
+//	url?class=my+class									--> Add class.
+//	url?id=someid												--> Add id.
+//	url?caption=false							  		--> Do not print "Title" as <figcaption>.
+//
+// URL should be either:
+//	- cdn:/slug-at-cdn									--> Renders <figure> with many <source>.
+// 	- /relative/to/image.jpeg						--> Renders an <img> by default.
+//	- http://example.com/example.jpg		-->	Renders an <img> by default.
+func (e *Eagle) writeFigure(w figureWriter, imgURL, alt, title string, absURLs, unsafe, uPhoto bool) error {
 	url, err := urlpkg.Parse(imgURL)
 	if err != nil {
 		return err
@@ -217,22 +215,22 @@ func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, un
 
 	if url.Scheme == "cdn" {
 		id := strings.TrimPrefix(url.Path, "/")
-		imgSrc = []byte("https://cdn.hacdias.com/i/t/" + id + "-2000x.jpeg")
+		imgSrc = []byte(e.media.Base + "h/i/t/" + id + "-2000x.jpeg")
 
 		_, _ = w.WriteString("<source srcset=\"")
-		_, _ = w.WriteString(makePictureSourceSet(id, "webp"))
+		_, _ = w.WriteString(e.makePictureSourceSet(id, "webp"))
 		_, _ = w.WriteString("\" type=\"image/webp\">")
 
 		_, _ = w.WriteString("<source srcset=\"")
-		_, _ = w.WriteString(makePictureSourceSet(id, "jpeg"))
+		_, _ = w.WriteString(e.makePictureSourceSet(id, "jpeg"))
 		_, _ = w.WriteString("\">")
 	} else {
 		imgSrc = []byte(url.String())
 	}
 
 	_, _ = w.WriteString("<img src=\"")
-	if absURLs && baseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(baseURL)))
+	if absURLs && e.Config.Site.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(e.Config.Site.BaseURL)))
 	}
 	if unsafe || !html.IsDangerousURL(imgSrc) {
 		_, _ = w.Write(util.EscapeHTML(imgSrc))
@@ -261,10 +259,9 @@ func writeFigure(w figureWriter, baseURL, imgURL, alt, title string, absURLs, un
 	return nil
 }
 
-// TODO(future): perhaps make this customizable.
-func makePictureSourceSet(id, format string) string {
-	return "https://cdn.hacdias.com/i/t/" + id + "-250x." + format + " 250w" +
-		", https://cdn.hacdias.com/i/t/" + id + "-500x." + format + " 500w" +
-		", https://cdn.hacdias.com/i/t/" + id + "-1000x." + format + " 1000w" +
-		", https://cdn.hacdias.com/i/t/" + id + "-2000x." + format + " 2000w"
+func (e *Eagle) makePictureSourceSet(id, format string) string {
+	return e.media.Base + "/i/t/" + id + "-250x." + format + " 250w" +
+		", " + e.media.Base + "/i/t/" + id + "-500x." + format + " 500w" +
+		", " + e.media.Base + "/i/t/" + id + "-1000x." + format + " 1000w" +
+		", " + e.media.Base + "/i/t/" + id + "-2000x." + format + " 2000w"
 }
