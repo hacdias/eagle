@@ -222,7 +222,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
 
-	_ = e.IndexAdd(entry)
+	_ = e.db.Add(entry)
 	return nil
 }
 

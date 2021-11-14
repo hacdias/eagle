@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v2/database"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/fs"
 	"github.com/hacdias/eagle/v2/log"
 	"github.com/hacdias/eagle/v2/notifier"
 	"github.com/hacdias/eagle/v2/syndicator"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/tdewolff/minify/v2"
 
 	"github.com/yuin/goldmark"
@@ -34,9 +34,9 @@ type Eagle struct {
 	httpClient   *http.Client
 	wmClient     *webmention.Client
 	fs           *fs.FS
-	conn         *pgxpool.Pool
 	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
+	db           database.Database
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -111,7 +111,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.Notifier = notifier.NewLogNotifier()
 	}
 
-	err := e.setupPostgres()
+	var err error
+
+	e.db, err = database.NewDatabase(&conf.PostgreSQL)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +148,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		go e.reloader()
 	}
 
+	go e.addAll()
 	return e, nil
 }
 
@@ -154,8 +157,8 @@ func (e *Eagle) GetSyndicators() []*syndicator.Config {
 }
 
 func (e *Eagle) Close() {
-	if e.conn != nil {
-		e.conn.Close()
+	if e.db != nil {
+		e.db.Close()
 	}
 }
 
