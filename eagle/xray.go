@@ -102,10 +102,8 @@ func (e *Eagle) parseXRay(xray map[string]interface{}) map[string]interface{} {
 	if cmap, ok := data.MapIf("content"); ok && !hasContent {
 		content := typed.New(cmap)
 		if text, ok := content.StringIf("text"); ok {
-			hasContent = true
 			data["content"] = cleanContent(text)
 		} else if html, ok := content.StringIf("html"); ok {
-			hasContent = true
 			data["content"] = cleanContent(html)
 		}
 	}
