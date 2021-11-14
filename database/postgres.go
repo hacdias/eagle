@@ -32,6 +32,11 @@ func NewDatabase(cfg *config.PostgreSQL) (Database, error) {
 	return &Postgres{pool}, nil
 }
 
+func (d *Postgres) migrate() error {
+	// TODO(v2)
+	return nil
+}
+
 func (d *Postgres) Remove(id string) {
 	_, _ = d.pool.Exec(context.Background(), "delete from entries where id=$1", id)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/hacdias/eagle/v2/util"
 	"github.com/karlseguin/typed"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/thoas/go-funk"
 	stripMarkdown "github.com/writeas/go-strip-markdown"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -82,6 +83,10 @@ func (e *Entry) Summary() string {
 
 	// TODO: get context and trim that text.
 	return e.summary
+}
+
+func (e *Entry) InSection(section string) bool {
+	return funk.ContainsString(e.Sections, section)
 }
 
 func (e *Entry) String() (string, error) {
