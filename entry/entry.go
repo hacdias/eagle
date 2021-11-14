@@ -10,6 +10,7 @@ import (
 	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/util"
 	"github.com/karlseguin/typed"
+	"github.com/microcosm-cc/bluemonday"
 	stripMarkdown "github.com/writeas/go-strip-markdown"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -72,7 +73,7 @@ func (e *Entry) Summary() string {
 
 	if strings.Contains(e.Content, "<!--more-->") {
 		firstPart := strings.Split(e.Content, "<!--more-->")[0]
-		e.summary = stripMarkdown.Strip(strings.TrimSpace(firstPart))
+		e.summary = stripText(strings.TrimSpace(firstPart))
 	} else if e.Description != "" {
 		e.summary = e.Description
 	} else if content := e.TextContent(); content != "" {
@@ -93,7 +94,7 @@ func (e *Entry) String() (string, error) {
 }
 
 func (e *Entry) TextContent() string {
-	return stripMarkdown.Strip(e.Content)
+	return stripText(e.Content)
 }
 
 func (e *Entry) Update(mf2Data map[string][]interface{}) error {
@@ -212,4 +213,12 @@ func (e *Entry) FlatMF2() map[string]interface{} {
 
 func (e *Entry) MF2() map[string]interface{} {
 	return mf2.Deflatten(e.FlatMF2())
+}
+
+var htmlRemover = bluemonday.StrictPolicy()
+
+func stripText(text string) string {
+	text = htmlRemover.Sanitize(text)
+	text = stripMarkdown.Strip(text)
+	return text
 }
