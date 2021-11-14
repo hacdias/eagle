@@ -113,7 +113,7 @@ func (e *Eagle) processPhotos(ee *entry.Entry) error {
 
 	upload := func(url string) string {
 		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, "https://cdn.hacdias.com") {
-			return e.safeUploadFile("/u", url)
+			return e.safeUploadFromURL("/u", url)
 		}
 		return url
 	}

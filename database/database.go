@@ -19,8 +19,6 @@ type Database interface {
 	Add(...*entry.Entry) error
 
 	GetTags() ([]string, error)
-	// GetSections() ([]string, error)
-
 	Search(opt *QueryOptions, query string) ([]string, error)
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)

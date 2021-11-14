@@ -39,6 +39,7 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/micropub", s.micropubGet)
 		r.Post("/micropub", s.micropubPost)
+		r.Post("/micropub/media", s.micropubMediaPost)
 	})
 
 	r.Group(func(r chi.Router) {
