@@ -18,7 +18,6 @@ import (
 	"github.com/hacdias/eagle/v2/contenttype"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/util"
-	"github.com/thoas/go-funk"
 )
 
 const (
@@ -97,7 +96,6 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 
 	funcs := template.FuncMap{
 		"truncate":    util.TruncateString,
-		"contains":    funk.ContainsString,
 		"domain":      domain,
 		"strContains": strings.Contains,
 		"safeHTML":    safeHTML,
