@@ -118,8 +118,8 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	e.markdown = newMarkdown(false, conf.Site.BaseURL)
-	e.absoluteMarkdown = newMarkdown(true, conf.Site.BaseURL)
+	e.markdown = newMarkdown(e, false)
+	e.absoluteMarkdown = newMarkdown(e, true)
 
 	if conf.Twitter != nil {
 		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
