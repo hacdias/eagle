@@ -2,17 +2,23 @@ package entry
 
 import (
 	"fmt"
+	"math/rand"
 	"path"
 	"strings"
 	"time"
-
-	"github.com/thoas/go-funk"
 )
 
 var allowedLetters = []rune("abcdefghijklmnopqrstuvwxyz")
 
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 func NewSlug() string {
-	return funk.RandomString(5, allowedLetters)
+	b := make([]rune, 5)
+	for i := range b {
+		b[i] = allowedLetters[seededRand.Intn(len(allowedLetters))]
+	}
+
+	return string(b)
 }
 
 func NewID(slug string, t time.Time) string {

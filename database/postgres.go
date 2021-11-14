@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -206,7 +205,6 @@ func (d *Postgres) offset(opts *QueryOptions) string {
 }
 
 func (d *Postgres) queryEntries(sql string, args ...interface{}) ([]string, error) {
-	fmt.Println(sql)
 	rows, err := d.pool.Query(context.Background(), sql, args...)
 	if err != nil {
 		return nil, err
