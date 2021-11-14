@@ -55,9 +55,9 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/edit*", s.editPost)
 	})
 
-	// if s.Config.WebhookSecret != "" {
-	// 	r.Post("/webhook", s.webhookHandler)
-	// }
+	if s.Config.WebhookSecret != "" {
+		r.Post("/webhook", s.webhookHandler)
+	}
 
 	if s.Config.WebmentionsSecret != "" {
 		r.Post("/webmention", s.webmentionHandler)

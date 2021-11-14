@@ -94,6 +94,10 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
+	// Remove entry from the cache. Every other action from here on
+	// should not influence how the entry is rendered.
+	e.RemoveCache(ee)
+
 	// Send webmentions.
 	err = e.SendWebmentions(ee)
 	if err != nil {

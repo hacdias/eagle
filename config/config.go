@@ -11,13 +11,13 @@ import (
 )
 
 type Config struct {
-	Development     bool
-	Port            int
-	SourceDirectory string
-	PublicDirectory string
-	Site            Site
-	User            User
-	// WebhookSecret     string
+	Development       bool
+	Port              int
+	SourceDirectory   string
+	PublicDirectory   string
+	Site              Site
+	User              User
+	WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
 	Assets            []*Asset

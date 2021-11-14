@@ -139,7 +139,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, syndicators)
+	go s.PostSaveEntry(entry, syndicators)
 	http.Redirect(w, r, s.Config.Site.BaseURL+entry.ID, http.StatusAccepted)
 	return 0, nil
 }
@@ -169,7 +169,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, nil)
+	go s.PostSaveEntry(entry, nil)
 	http.Redirect(w, r, entry.Permalink, http.StatusOK)
 	return 0, nil
 }
@@ -188,7 +188,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, nil)
+	go s.PostSaveEntry(entry, nil)
 	return http.StatusOK, nil
 }
 
@@ -206,7 +206,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSavePost(entry, nil)
+	go s.PostSaveEntry(entry, nil)
 	return http.StatusOK, nil
 }
 

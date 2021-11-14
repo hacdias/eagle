@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -80,9 +81,9 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 func (s *Server) withCache(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.isLoggedIn(w, r) {
-			if filename, ok := s.IsCached(r.URL.Path + ".html"); ok {
+			if data, modtime, ok := s.IsCached(r.URL.Path); ok {
 				setCacheHTML(w)
-				http.ServeFile(w, r, filename) //  use ServeContent instead?
+				http.ServeContent(w, r, "index.html", modtime, bytes.NewReader(data))
 				return
 			}
 		}
