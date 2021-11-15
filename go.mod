@@ -3,6 +3,7 @@ module github.com/hacdias/eagle/v2
 go 1.17
 
 require (
+	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cretz/bine v0.2.0
 	github.com/dghubble/oauth1 v0.7.0
@@ -16,6 +17,7 @@ require (
 	github.com/lestrrat-go/jwx v1.2.9
 	github.com/lopezator/migrator v0.3.0
 	github.com/microcosm-cc/bluemonday v1.0.16
+	github.com/paulmach/go.geojson v1.4.0
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.2.1
