@@ -42,6 +42,10 @@ type Eagle struct {
 	allowedTypes []mf2.Type
 	db           database.Database
 	cache        *ristretto.Cache
+	media        *Media
+	miniflux     *Miniflux
+	Parser       *entry.Parser
+	Config       *config.Config
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -60,12 +64,6 @@ type Eagle struct {
 	// would probably make it much slower though.
 	entriesMu  sync.Mutex
 	sidecarsMu sync.Mutex
-
-	// TODO: THINGS TO CLEAN
-	Parser   *entry.Parser
-	Config   *config.Config
-	media    *Media
-	Miniflux *Miniflux
 }
 
 func NewEagle(conf *config.Config) (*Eagle, error) {
@@ -131,7 +129,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Miniflux != nil {
-		e.Miniflux = &Miniflux{Miniflux: conf.Miniflux}
+		e.miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
 	err = e.initCache()
