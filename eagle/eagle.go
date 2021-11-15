@@ -28,7 +28,7 @@ import (
 
 const (
 	AssetsDirectory  string = "assets"
-	ContentDirectory string = "content2" // TODO(v2): change this back to content
+	ContentDirectory string = "content"
 )
 
 type Eagle struct {

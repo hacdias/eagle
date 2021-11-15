@@ -204,5 +204,14 @@ func copy(src, dst string) (int64, error) {
 	}
 	defer destination.Close()
 	nBytes, err := io.Copy(destination, source)
+	if err != nil {
+		return 0, err
+	}
+
+	err = os.RemoveAll(src)
+	if err != nil {
+		return 0, err
+	}
+
 	return nBytes, err
 }

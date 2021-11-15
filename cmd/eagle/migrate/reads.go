@@ -3,6 +3,7 @@ package migrate
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -59,7 +60,12 @@ func getReads(e *eagle.Eagle) error {
 		errs = multierror.Append(errs, convertRead(e, &r, "finished", dateparse.MustParse("2020-12-31T12:00:00Z")))
 	}
 
-	return errs.ErrorOrNil()
+	err = errs.ErrorOrNil()
+	if err != nil {
+		return err
+	}
+
+	return os.RemoveAll(filepath.Join(dataPath, "reads.yaml"))
 }
 
 func makeDescription(r *read, status string) string {
