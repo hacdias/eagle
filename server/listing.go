@@ -229,13 +229,14 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	ls.lp.Entries = entries
 	ls.rd.IsListing = true
 
-	if len(entries) == s.Config.Site.Paginate {
+	if len(entries) != 0 {
 		url, _ := urlpkg.Parse(r.URL.String())
 		values := url.Query()
 		values.Set("page", strconv.Itoa(opts.Page+1))
 		url.RawQuery = values.Encode()
 		ls.lp.NextPage = url.String()
 	}
+
 	ls.rd.Data = ls.lp
 
 	feedType := chi.URLParam(r, "feed")
