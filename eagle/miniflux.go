@@ -58,14 +58,14 @@ func (e *Eagle) UpdateBlogroll() error {
 	}
 
 	// TODO: do not like this hardcoded.
-	filename := filepath.Join(ContentDirectory, "links/_blogroll.json")
+	filename := filepath.Join(ContentDirectory, "blogroll/_blogroll.json")
 
 	err = e.fs.WriteJSON(filename, feeds, "update blogroll")
 	if err != nil {
 		return err
 	}
 
-	ee, err := e.GetEntry("/links")
+	ee, err := e.GetEntry("/blogroll")
 	if err != nil {
 		return err
 	}
