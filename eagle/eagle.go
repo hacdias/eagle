@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -185,15 +186,13 @@ func (e *Eagle) SyncStorage() {
 	ids := []string{}
 
 	for _, file := range changedFiles {
-		if !strings.HasPrefix(ContentDirectory, file) {
+		if !strings.HasPrefix(file, ContentDirectory) {
 			continue
 		}
 
-		if strings.HasPrefix(ContentDirectory, file) {
-			id := strings.TrimPrefix(file, ContentDirectory)
-			id = filepath.Dir(id)
-			ids = append(ids, id)
-		}
+		id := strings.TrimPrefix(file, ContentDirectory)
+		id = filepath.Dir(id)
+		ids = append(ids, id)
 	}
 
 	// TODO: is calling .initTemplates and .initAssets safe here?
@@ -206,8 +205,11 @@ func (e *Eagle) SyncStorage() {
 
 	for _, id := range ids {
 		entry, err := e.GetEntry(id)
-		if err != nil {
-			e.Notifier.Error(fmt.Errorf("cannot find entry to update %s: %w", id, err))
+		if os.IsNotExist(err) {
+			e.db.Remove(id)
+			continue
+		} else if err != nil {
+			e.Notifier.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
 			continue
 		}
 		entries = append(entries, entry)
