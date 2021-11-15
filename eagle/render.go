@@ -265,6 +265,20 @@ func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.Assets = e.assets
 	data.eagle = e
 
+	if e.Config.Development {
+		// Probably not very concurrent safe. But it's just
+		// for development purposes.
+		err := e.initAssets()
+		if err != nil {
+			return err
+		}
+
+		err = e.initTemplates()
+		if err != nil {
+			return err
+		}
+	}
+
 	var tpl *template.Template
 
 	for _, t := range tpls {

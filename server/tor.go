@@ -59,6 +59,7 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 	}
 
 	s.onionAddress = "http://" + ln.String()
+	s.ResetCache()
 
 	srv := &http.Server{
 		Handler:      middleware.WithValue(torUsedContextKey, true)(h),
@@ -75,6 +76,7 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 
 		// Clear onion address in case this error happens during runtime.
 		s.onionAddress = ""
+		s.ResetCache()
 	}()
 
 	return nil
