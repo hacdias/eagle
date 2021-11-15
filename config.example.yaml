@@ -1,13 +1,8 @@
 development: false
 port: 8080
-baseUrl: "http://localhost:8080"
 
-# Hugo's website source directory.
+# Website source directory.
 sourceDirectory: /app/source
-
-# Public directory for the app. It is not the same public directory as for the 
-# 'hugo build' command. Can be any empty directory. Eagle will take care of it.
-publicDirectory: /app/public
 
 # Optional GitHub webhook secret to update the repository.
 webhookSecret: ThisIsTheSecret
@@ -18,10 +13,80 @@ xrayEndpoint: https://xray.p3k.app
 # WebmentionIO (https://webmention.io) secret to verify webmentions.
 webmentionsSecret: ThisIsTheSecret
 
+user:
+  name: Your Name
+  nickname: yournick
+  twitter: yourusername
+  email: your@email.com
+  photo: http://localhost:8080/your/photo.jpeg
+  url: http://localhost:8080/
+  rels:
+  - https://twitter.com/profile
+  - https://github.com/profile
+  - https://facebook.com/profile
+  - https://my.other/profile
+  pgp:
+  - https://example.com/pgp/key/path
+
+
 auth:
   username:
+
+  # Use 'eagle pwd' to generate the password.
   password:
+
+  # The secret to protect JWT tokens.
   secret:
+
+site:
+  baseUrl: "http://localhost:8080"
+  language: en
+  title: "The Website Title"
+  description: "The website long description".
+
+  # The available sections at the website. Most of them are derived from micropubTypes.
+  sections: []
+
+  # Sections to automatically add to micropub posts that do not have sections already.
+  # The sections here are automatically added to sections (see above). Keys must be defined
+  # in ./entry/mf2/discovery.go.
+  micropubTypes:
+    reply:
+    - replies
+    - micro
+    like:
+    - likes
+
+  # The sections to be available at the home page.
+  indexSections:
+  - replies
+  - likes
+
+  # Definition of the menus to be used in the templates.
+  menus:
+    main:
+      - name: Home
+        emoji: 🔒
+        link: /
+
+# Assets that are compiled and minimized at runtime. This can be used in the templates.
+assets:
+  - name: styles.css
+    files:
+    - css/base.css
+    - css/cards.css
+  - name: app.js
+    files:
+    - js/vendor/twemoji.min.js
+    - js/app.js
+
+# Database for indexing.
+postgresql:
+  user: postgres
+  password: password
+  host: 127.0.0.1
+  port: 5432
+  database: some-database
 
 tor:
   # The configuration directory of the Tor service. You don't need to create anything
@@ -39,6 +104,8 @@ telegram:
   chatId:
 
 # Optional BunnyCDN (https://bunny.net) credentials to upload Webmentions' users pictures.
+# Note that .base is also used to render figures in the format cdn:/some-slug so if you need
+# support for those, this must be defined.
 bunnycdn:
   zone:
   key:

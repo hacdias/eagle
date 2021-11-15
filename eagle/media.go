@@ -46,6 +46,10 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 }
 
 func (e *Eagle) UploadFile(base, ext string, data io.Reader) (string, error) {
+	if e.media == nil {
+		return "", errors.New("media is not implemented")
+	}
+
 	body, err := ioutil.ReadAll(data)
 	if err != nil {
 		return "", err
@@ -59,7 +63,7 @@ func (e *Eagle) UploadFile(base, ext string, data io.Reader) (string, error) {
 
 func (e *Eagle) uploadFromURL(base, url string) (string, error) {
 	if e.media == nil {
-		return url, nil
+		return url, errors.New("media is not implemented")
 	}
 
 	resp, err := e.httpClient.Get(url)

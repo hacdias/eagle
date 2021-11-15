@@ -213,7 +213,7 @@ func (e *Eagle) writeFigure(w figureWriter, imgURL, alt, title string, absURLs, 
 
 	_, _ = w.WriteString("<picture>")
 
-	if url.Scheme == "cdn" {
+	if url.Scheme == "cdn" && e.media != nil {
 		id := strings.TrimPrefix(url.Path, "/")
 		imgSrc = []byte(e.media.Base + "h/i/t/" + id + "-2000x.jpeg")
 
