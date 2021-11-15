@@ -154,10 +154,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	if e.Config.Development {
-		go e.reloader()
-	}
-
 	go e.addAll()
 	return e, nil
 }
@@ -174,24 +170,6 @@ func (e *Eagle) Close() {
 
 func (e *Eagle) userAgent(comment string) string {
 	return fmt.Sprintf("Eagle/0.0 %s", comment)
-}
-
-// TODO(v2): improve this template/assets reloader
-// for development mode. Fsnotify?
-func (e *Eagle) reloader() {
-	for {
-		time.Sleep(time.Second * 10)
-
-		err := e.initAssets()
-		if err != nil {
-			e.log.Error(err)
-		}
-
-		err = e.initTemplates()
-		if err != nil {
-			e.log.Error(err)
-		}
-	}
 }
 
 func (e *Eagle) SyncStorage() {
