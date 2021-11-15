@@ -230,7 +230,9 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	if len(entries) == s.Config.Site.Paginate {
 		url, _ := urlpkg.Parse(r.URL.String())
-		url.RawQuery = "page=" + strconv.Itoa(opts.Page+1)
+		values := url.Query()
+		values.Set("page", strconv.Itoa(opts.Page+1))
+		url.RawQuery = values.Encode()
 		ls.lp.NextPage = url.String()
 	}
 	ls.rd.Data = ls.lp
