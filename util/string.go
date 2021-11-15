@@ -1,5 +1,7 @@
 package util
 
+import "strings"
+
 func TruncateString(str string, length int) string {
 	if length <= 0 {
 		return ""
@@ -14,5 +16,14 @@ func TruncateString(str string, length int) string {
 			break
 		}
 	}
-	return truncated
+	return strings.TrimSpace(truncated)
+}
+
+func TruncateStringWithEllipsis(str string, length int) string {
+	newStr := TruncateString(str, length)
+	if newStr != str {
+		newStr += "…"
+	}
+
+	return newStr
 }

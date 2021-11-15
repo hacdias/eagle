@@ -3,6 +3,7 @@ package entry
 import (
 	"errors"
 	"fmt"
+	"html"
 	"strings"
 	"time"
 
@@ -226,6 +227,8 @@ var htmlRemover = bluemonday.StrictPolicy()
 
 func stripText(text string) string {
 	text = htmlRemover.Sanitize(text)
+	// Unescapes html entities.
+	text = html.UnescapeString(text)
 	text = stripMarkdown.Strip(text)
 	return text
 }
