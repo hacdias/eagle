@@ -95,7 +95,7 @@ func (s *Server) makeRouter() http.Handler {
 
 	// Listing feeds: JSON, XML and Atom.
 	r.Group(func(r chi.Router) {
-		r.Get("/feed"+feedPath, s.indexGet)
+		r.Get("/"+feedPath, s.indexGet)
 		r.Get("/all"+feedPath, s.allGet)
 		r.Get(yearPath+feedPath, s.dateGet)
 		r.Get(monthPath+feedPath, s.dateGet)
