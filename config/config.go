@@ -14,7 +14,6 @@ type Config struct {
 	Development       bool
 	Port              int
 	SourceDirectory   string
-	PublicDirectory   string
 	Site              Site
 	User              User
 	WebhookSecret     string
@@ -37,7 +36,6 @@ func Parse() (*Config, error) {
 
 	viper.SetDefault("port", 8080)
 	viper.SetDefault("sourceDirectory", "/app/source")
-	viper.SetDefault("publicDirectory", "/app/public")
 	viper.SetDefault("xrayEndpoint", "https://xray.p3k.app")
 
 	viper.SetDefault("site.baseUrl", "http://localhost:8080")
@@ -56,11 +54,6 @@ func Parse() (*Config, error) {
 	}
 
 	conf.SourceDirectory, err = filepath.Abs(conf.SourceDirectory)
-	if err != nil {
-		return nil, err
-	}
-
-	conf.PublicDirectory, err = filepath.Abs(conf.PublicDirectory)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +98,6 @@ type Site struct {
 	Language      string
 	Title         string
 	BaseURL       string
-	Emoji         string
 	Description   string
 	Sections      []string
 	MicropubTypes map[mf2.Type][]string
