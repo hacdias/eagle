@@ -1,31 +1,46 @@
 package server
 
-// TODO(v2):
-// - s.Sync: Sync was successfull! ⚡️
-// - s.RebuildIndex: "Search index rebuilt! 🔎"
-// - Blogroll?
-// - resend webmentions
+import (
+	"net/http"
 
-// func (s *Server) blogrollGetHandler(w http.ResponseWriter, r *http.Request) {
-// 	if s.Miniflux == nil {
-// 		s.dashboardError(w, r, errors.New("miniflux integration is disabled"))
-// 		return
-// 	}
+	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v2/entry"
+)
 
-// 	feeds, err := s.Miniflux.Fetch()
-// 	if err != nil {
-// 		s.dashboardError(w, r, err)
-// 		return
-// 	}
+func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
+	s.serveHTML(w, r, &eagle.RenderData{
+		Entry: &entry.Entry{
+			Frontmatter: entry.Frontmatter{
+				Title: "Dashboard",
+			},
+		},
+	}, []string{eagle.TemplateDashboard})
+}
 
-// 	data, err := json.MarshalIndent(feeds, "", "  ")
-// 	if err != nil {
-// 		s.dashboardError(w, r, err)
-// 		return
-// 	}
+func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
 
-// 	s.renderDashboard(w, "gedit", &dashboardData{
-// 		ID:      "data/blogroll.json",
-// 		Content: string(data),
-// 	})
-// }
+	actions := r.Form["action"]
+
+	for _, action := range actions {
+		switch action {
+		case "clear-cache":
+			s.ResetCache()
+		case "sync-storage":
+			go s.SyncStorage()
+		case "update-blogroll":
+			err = s.UpdateBlogroll()
+		}
+	}
+
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+}
