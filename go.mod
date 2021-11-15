@@ -15,6 +15,7 @@ require (
 	github.com/jlelse/feeds v1.2.0
 	github.com/karlseguin/typed v1.1.7
 	github.com/lestrrat-go/jwx v1.2.9
+	github.com/lopezator/migrator v0.3.0
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cast v1.4.1

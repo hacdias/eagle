@@ -1,7 +1,3 @@
-drop table if exists sections;
-drop table if exists tags;
-drop table if exists entries;
-
 create table entries (
   id text primary key,
   content text not null,
