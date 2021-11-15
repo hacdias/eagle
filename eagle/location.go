@@ -17,8 +17,8 @@ func (e *Eagle) processLocation(ee *entry.Entry) error {
 	}
 
 	mm := ee.Helper()
-	geouri := mm.String("location")
 
+	geouri := mm.String("location")
 	if geouri == "" {
 		return nil
 	}
