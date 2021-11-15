@@ -178,6 +178,11 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	}
 
 	data := e.parseXRay(payload.Post)
+	dataURL, ok := data["url"].(string)
+	if !ok {
+		dataURL = ""
+	}
+
 	err = e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
 		for i, mention := range sidecar.Webmentions {
 			url, ok := mention["url"].(string)
@@ -185,7 +190,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 				continue
 			}
 
-			if url == payload.Source {
+			if url == payload.Source || url == dataURL {
 				sidecar.Webmentions[i] = data
 				return sidecar, nil
 			}
