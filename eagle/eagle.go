@@ -190,7 +190,7 @@ func (e *Eagle) SyncStorage() {
 
 		if strings.HasPrefix(ContentDirectory, file) {
 			id := strings.TrimPrefix(file, ContentDirectory)
-			id = filepath.Base(id)
+			id = filepath.Dir(id)
 			ids = append(ids, id)
 		}
 	}
