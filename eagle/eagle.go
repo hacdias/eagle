@@ -178,6 +178,7 @@ func (e *Eagle) SyncStorage() {
 	}
 
 	if len(changedFiles) == 0 {
+		e.Notifier.Info("No changed files")
 		return
 	}
 
