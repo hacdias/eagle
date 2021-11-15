@@ -9,7 +9,6 @@ require (
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/jwtauth/v5 v5.0.2
-	github.com/gosimple/slug v1.11.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jlelse/feeds v1.2.0
@@ -43,7 +42,6 @@ require (
 	github.com/goccy/go-json v0.7.10 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/gosimple/unidecode v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

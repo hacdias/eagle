@@ -30,7 +30,7 @@ func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int
 }
 
 func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
-	if s.isLoggedIn(w, r) {
+	if s.isLoggedIn(r) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
@@ -109,7 +109,7 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
+func (s *Server) isLoggedIn(r *http.Request) bool {
 	if loggedIn, ok := r.Context().Value(loggedInContextKey).(bool); ok {
 		return loggedIn
 	}
@@ -119,7 +119,7 @@ func (s *Server) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 
 func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isLoggedIn(w, r) {
+		if !s.isLoggedIn(r) {
 			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
 			return

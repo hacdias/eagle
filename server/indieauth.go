@@ -360,7 +360,7 @@ func isValidProfileURL(profileURL string) bool {
 
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isLoggedIn(w, r) {
+		if !s.isLoggedIn(r) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

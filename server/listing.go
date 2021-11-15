@@ -195,7 +195,7 @@ type listingPage struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	loggedIn := s.isLoggedIn(w, r)
+	loggedIn := s.isLoggedIn(r)
 
 	opts := &database.QueryOptions{
 		Draft:   loggedIn,

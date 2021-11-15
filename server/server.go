@@ -189,7 +189,7 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
 	data.TorUsed = s.isUsingTor(r)
 	data.OnionAddress = s.onionAddress
-	data.LoggedIn = s.isLoggedIn(w, r)
+	data.LoggedIn = s.isLoggedIn(r)
 
 	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
@@ -200,8 +200,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		cw  io.Writer
 	)
 
-	if !data.LoggedIn && code == http.StatusOK && r.URL.RawQuery == "" {
-		// For now, don't include pages with queries (search, page=, etc)
+	if code == http.StatusOK && s.isCacheable(r) {
 		cw = io.MultiWriter(w, &buf)
 	} else {
 		cw = w
@@ -213,7 +212,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 	} else {
 		data := buf.Bytes()
 		if len(data) > 0 {
-			s.SaveCache(r.URL.Path, data, time.Now())
+			s.saveCache(r, data)
 		}
 	}
 }

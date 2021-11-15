@@ -227,7 +227,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loggedIn := s.isLoggedIn(w, r)
+	loggedIn := s.isLoggedIn(r)
 	if ee.Deleted && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusGone, nil)
 		return

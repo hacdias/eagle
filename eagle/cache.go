@@ -1,10 +1,18 @@
 package eagle
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
 	"github.com/hacdias/eagle/v2/entry"
+)
+
+type CacheScope string
+
+const (
+	CacheRegular CacheScope = "reg"
+	CacheTor     CacheScope = "tor"
 )
 
 func (e *Eagle) initCache() error {
@@ -25,39 +33,49 @@ type cacheEntry struct {
 	modtime time.Time
 }
 
-func (e *Eagle) SaveCache(filename string, data []byte, modtime time.Time) {
+func (e *Eagle) SaveCache(scope CacheScope, filename string, data []byte, modtime time.Time) {
 	value := &cacheEntry{data, modtime}
 	cost := int64(len(data))
-	e.cache.SetWithTTL(filename, value, cost, time.Hour*24)
+	e.cache.SetWithTTL(e.cacheKey(scope, filename), value, cost, time.Hour*24)
 }
 
 func (e *Eagle) RemoveCache(ee *entry.Entry) {
-	e.cache.Del("/")
-	e.cache.Del(ee.ID)
+	e.PurgeCache("/")
+	e.PurgeCache(ee.ID)
 
 	for _, sec := range ee.Sections {
-		e.cache.Del("/" + sec)
+		e.PurgeCache("/" + sec)
 	}
 
 	hasTags := false
 	for _, tag := range ee.Tags() {
 		hasTags = true
-		e.cache.Del("/tag/" + tag)
+		e.PurgeCache("/tag/" + tag)
 	}
 	if hasTags {
-		e.cache.Del("/tags")
+		e.PurgeCache("/tags")
 	}
+}
+
+func (e *Eagle) PurgeCache(filename string) {
+	e.cache.Del(e.cacheKey(CacheRegular, filename))
+	e.cache.Del(e.cacheKey(CacheTor, filename))
 }
 
 func (e *Eagle) ResetCache() {
 	e.cache.Clear()
 }
 
-func (e *Eagle) IsCached(filename string) ([]byte, time.Time, bool) {
-	data, ok := e.cache.Get(filename)
+func (e *Eagle) IsCached(scope CacheScope, filename string) ([]byte, time.Time, bool) {
+	data, ok := e.cache.Get(e.cacheKey(scope, filename))
 	if ok {
 		ce := data.(*cacheEntry)
+		fmt.Println("Cache hit", e.cacheKey(scope, filename))
 		return ce.data, ce.modtime, true
 	}
 	return nil, time.Time{}, false
+}
+
+func (e *Eagle) cacheKey(scope CacheScope, filename string) string {
+	return string(scope) + filename
 }
