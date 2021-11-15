@@ -82,7 +82,11 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
-	// TODO: Check if the post has a 'location' Geo URI and parse it.
+	// Check if the post has a 'location' Geo URI and parse it.
+	err = e.processLocation(ee)
+	if err != nil {
+		e.Error(err)
+	}
 
 	// TODO: If it is a checkin, download location map.
 
