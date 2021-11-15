@@ -158,6 +158,11 @@ func Migrate() error {
 		if err != nil {
 			return err
 		}
+
+		err = os.RemoveAll(oldEntry.Path)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = copy(filepath.Join(dataPath, "blogroll.json"), filepath.Join(newContentPath, "links/_blogroll.json"))
@@ -388,7 +393,7 @@ func handleExternal(e *eagle.Eagle, oldEntry *Entry, newEntry *entry.Entry) erro
 		}
 	}
 
-	return nil
+	return os.RemoveAll(filename)
 }
 
 func saveAliases(aliases string) error {
