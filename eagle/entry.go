@@ -253,9 +253,13 @@ func (e *Eagle) entryCheck(entry *entry.Entry) error {
 		}
 	}
 
-	if len(entry.Helper().Photos()) > 0 && !funk.ContainsString(entry.Sections, "photos") {
-		entry.Sections = append(entry.Sections, "photos")
-	}
+	// TODO: perhaps I only want better pictures in the /photos section. Since I want to show
+	// pictures on the homepage, this would get noisy. The other option is to change the rules
+	// for home, like "accept photos that are not checkins".
+	//
+	// if len(entry.Helper().Photos()) > 0 && !funk.ContainsString(entry.Sections, "photos") {
+	// 	entry.Sections = append(entry.Sections, "photos")
+	// }
 
 	return nil
 }
