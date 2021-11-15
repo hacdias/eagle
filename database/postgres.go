@@ -22,6 +22,12 @@ func NewDatabase(cfg *config.PostgreSQL) (Database, error) {
 	dsn += " host=" + cfg.Host
 	dsn += " port=" + cfg.Port
 	dsn += " dbname=" + cfg.Database
+
+	err := migrate(dsn)
+	if err != nil {
+		return nil, err
+	}
+
 	dsn += " pool_max_conns=10"
 
 	pool, err := pgxpool.Connect(context.Background(), dsn)
@@ -30,11 +36,6 @@ func NewDatabase(cfg *config.PostgreSQL) (Database, error) {
 	}
 
 	return &Postgres{pool}, nil
-}
-
-func (d *Postgres) migrate() error {
-	// TODO(v2)
-	return nil
 }
 
 func (d *Postgres) Remove(id string) {
