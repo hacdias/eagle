@@ -1,6 +1,8 @@
 package eagle
 
 import (
+	"errors"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -43,4 +45,31 @@ func (m *Miniflux) Fetch() ([]Feed, error) {
 	})
 
 	return feeds, nil
+}
+
+func (e *Eagle) UpdateBlogroll() error {
+	if e.Miniflux == nil {
+		return errors.New("miniflux is not implemented")
+	}
+
+	feeds, err := e.Miniflux.Fetch()
+	if err != nil {
+		return err
+	}
+
+	// TODO: do not like this hardcoded.
+	filename := filepath.Join(ContentDirectory, "links/_blogroll.json")
+
+	err = e.fs.WriteJSON(filename, feeds, "update blogroll")
+	if err != nil {
+		return err
+	}
+
+	ee, err := e.GetEntry("/links")
+	if err != nil {
+		return err
+	}
+
+	e.RemoveCache(ee)
+	return nil
 }
