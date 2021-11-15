@@ -169,6 +169,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getEntryOrEmpty(id string) *entry.Entry {
+	id = strings.TrimSuffix(id, filepath.Ext(id))
 	if ee, err := s.GetEntry(id); err == nil {
 		return ee
 	} else {
