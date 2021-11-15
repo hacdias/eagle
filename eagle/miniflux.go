@@ -48,11 +48,11 @@ func (m *Miniflux) Fetch() ([]Feed, error) {
 }
 
 func (e *Eagle) UpdateBlogroll() error {
-	if e.Miniflux == nil {
+	if e.miniflux == nil {
 		return errors.New("miniflux is not implemented")
 	}
 
-	feeds, err := e.Miniflux.Fetch()
+	feeds, err := e.miniflux.Fetch()
 	if err != nil {
 		return err
 	}
