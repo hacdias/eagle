@@ -80,7 +80,7 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 
 func (s *Server) withCache(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isLoggedIn(w, r) {
+		if !s.isLoggedIn(w, r) || r.URL.RawQuery != "" {
 			if data, modtime, ok := s.IsCached(r.URL.Path); ok {
 				setCacheHTML(w)
 				http.ServeContent(w, r, "index.html", modtime, bytes.NewReader(data))
