@@ -243,7 +243,8 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 			},
 		},
-		Data: data,
+		NoIndex: true,
+		Data:    data,
 	}
 
 	s.serveHTMLWithStatus(w, r, rd, []string{eagle.TemplateError}, code)

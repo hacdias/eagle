@@ -14,6 +14,7 @@ func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
 				Title: "Dashboard",
 			},
 		},
+		NoIndex: true,
 	}, []string{eagle.TemplateDashboard})
 }
 

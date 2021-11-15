@@ -25,6 +25,7 @@ func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int
 				Title: "Login",
 			},
 		},
+		NoIndex: true,
 	}, []string{eagle.TemplateLogin}, code)
 }
 

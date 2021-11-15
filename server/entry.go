@@ -88,6 +88,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 			"Syndicators": s.GetSyndicators(),
 			"Templates":   templates,
 		},
+		NoIndex: true,
 	}, []string{eagle.TemplateNew})
 }
 
@@ -144,6 +145,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 			"Content":     str,
 			"Syndicators": s.GetSyndicators(),
 		},
+		NoIndex: true,
 	}, []string{eagle.TemplateEditor})
 }
 

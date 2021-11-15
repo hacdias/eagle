@@ -47,8 +47,9 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{},
-		Data:  req,
+		Entry:   &entry.Entry{},
+		Data:    req,
+		NoIndex: true,
 	}, []string{eagle.TemplateAuth})
 }
 

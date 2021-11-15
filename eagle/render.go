@@ -211,6 +211,7 @@ type RenderData struct {
 	IsHome       bool
 	IsListing    bool
 	LoggedIn     bool
+	NoIndex      bool
 	TorUsed      bool
 	OnionAddress string
 
