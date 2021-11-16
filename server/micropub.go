@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/hacdias/eagle/v2/server/micropub"
@@ -255,18 +255,23 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 
 	ext := filepath.Ext(header.Filename)
 	if ext == "" {
-		exts, err := mime.ExtensionsByType(header.Header.Get("Content-Type"))
-		if err != nil || len(exts) == 0 {
-			mimeType := http.DetectContentType(raw)
-			exts, err = mime.ExtensionsByType(mimeType)
+		// NOTE: I'm not using http.DetectContentType because it depends
+		// on OS specific mime type registries. Thus, it was being unreliable
+		// on different OSes.
+		contentType := header.Header.Get("Content-Type")
+		mime := mimetype.Lookup(contentType)
+		if mime.Is("application/octet-stream") {
+			mime = mimetype.Detect(raw)
 		}
 
-		if err != nil || len(exts) == 0 {
+		if mime == nil {
 			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "request provides no file type")
 			return
 		}
 
-		ext = exts[len(exts)-1]
+		fmt.Println(mime)
+
+		ext = mime.Extension()
 	}
 
 	location, err := s.UploadFile("/u/", ext, bytes.NewReader(raw))

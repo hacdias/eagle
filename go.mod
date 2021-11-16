@@ -8,6 +8,7 @@ require (
 	github.com/cretz/bine v0.2.0
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/dgraph-io/ristretto v0.1.0
+	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/jwtauth/v5 v5.0.2
 	github.com/hashicorp/go-multierror v1.1.1
