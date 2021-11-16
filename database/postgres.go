@@ -130,7 +130,7 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 	sql += " order by date desc"
 	sql += d.offset(opts)
 
-	return d.queryEntries(sql, args...)
+	return d.queryEntries(sql, 0, args...)
 }
 
 func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
@@ -142,12 +142,16 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	}
 
 	sql += " order by date desc" + d.offset(opts)
-	return d.queryEntries(sql, args...)
+	return d.queryEntries(sql, 0, args...)
 }
 
 func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
+	if len(sections) == 0 {
+		return d.queryEntries("select id from entries order by date desc"+d.offset(opts), 0)
+	}
+
 	args := []interface{}{}
-	sql := "select id from sections inner join entries on id=entry_id"
+	sql := "select distinct (id) id, date from sections inner join entries on id=entry_id"
 	ands := d.whereConstraints(opts)
 
 	var sectionsWhere []string
@@ -166,7 +170,7 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 	}
 
 	sql += " order by date desc" + d.offset(opts)
-	return d.queryEntries(sql, args...)
+	return d.queryEntries(sql, 1, args...)
 }
 
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
@@ -181,7 +185,7 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	}
 	sql += ` order by score desc` + d.offset(opts)
 
-	return d.queryEntries(sql, query)
+	return d.queryEntries(sql, 0, query)
 }
 
 func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
@@ -212,7 +216,7 @@ func (d *Postgres) offset(opts *QueryOptions) string {
 	return sql + " limit " + strconv.Itoa(opts.Limit)
 }
 
-func (d *Postgres) queryEntries(sql string, args ...interface{}) ([]string, error) {
+func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]string, error) {
 	rows, err := d.pool.Query(context.Background(), sql, args...)
 	if err != nil {
 		return nil, err
@@ -223,7 +227,12 @@ func (d *Postgres) queryEntries(sql string, args ...interface{}) ([]string, erro
 
 	for rows.Next() {
 		var id string
-		err := rows.Scan(&id)
+		dest := make([]interface{}, ignore+1)
+		dest[0] = &id
+		for i := 1; i <= ignore; i++ {
+			dest[1] = nil
+		}
+		err := rows.Scan(dest...)
 		if err != nil {
 			return nil, err
 		}
