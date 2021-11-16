@@ -50,7 +50,9 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	} else if len(data) == 2 {
 		// TODO: perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
+		isListing := nrd.Entry.IsListing
 		nrd.Entry = data[1].(*entry.Entry)
+		nrd.Entry.IsListing = isListing
 		nrd.sidecar = nil
 		err = e.templates[name].ExecuteTemplate(&buf, name, &nrd)
 	} else {
@@ -209,7 +211,6 @@ type RenderData struct {
 
 	Alternates   []Alternate
 	IsHome       bool
-	IsListing    bool
 	LoggedIn     bool
 	NoIndex      bool
 	TorUsed      bool

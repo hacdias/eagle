@@ -51,8 +51,8 @@ func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {
 	return entries, nil
 }
 
-func (e *Eagle) addAll() {
-	entries, err := e.GetEntries()
+func (e *Eagle) indexAll() {
+	entries, err := e.GetEntries(false)
 	if err != nil {
 		e.Notifier.Error(err)
 		return

@@ -153,7 +153,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	go e.addAll()
+	go e.indexAll()
 	return e, nil
 }
 

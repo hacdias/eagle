@@ -13,16 +13,15 @@ func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry := s.getEntryOrEmpty(r.URL.Path)
-	if entry.Title == "" {
-		entry.Title = "Tags"
+	ee := s.getListingEntryOrEmpty(r.URL.Path)
+	if ee.Title == "" {
+		ee.Title = "Tags"
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: entry,
+		Entry: ee,
 		Data: listingPage{
 			Terms: tags,
 		},
-		IsListing: true,
 	}, []string{eagle.TemplateTags})
 }

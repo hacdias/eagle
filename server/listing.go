@@ -45,7 +45,7 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee := s.getEntryOrEmpty(r.URL.Path)
+	ee := s.getListingEntryOrEmpty(r.URL.Path)
 	if ee.Title == "" {
 		ee.Title = "#" + tag
 	}
@@ -62,7 +62,7 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) sectionGet(section string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ee := s.getEntryOrEmpty(r.URL.Path)
+		ee := s.getListingEntryOrEmpty(r.URL.Path)
 		if ee.Title == "" {
 			ee.Title = section
 		}
@@ -138,7 +138,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
-	ee := s.getEntryOrEmpty(r.URL.Path)
+	ee := s.getListingEntryOrEmpty(r.URL.Path)
 	if ee.Title == "" {
 		ee.Title = "Search"
 	}
@@ -168,14 +168,20 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) getEntryOrEmpty(id string) *entry.Entry {
+func (s *Server) getListingEntryOrEmpty(id string) *entry.Entry {
 	id = strings.TrimSuffix(id, filepath.Ext(id))
 	if ee, err := s.GetEntry(id); err == nil {
-		return ee
-	} else {
-		return &entry.Entry{
-			Frontmatter: entry.Frontmatter{},
+		if !ee.IsListing {
+			s.log.Warnf("entry %s should be marked as listing", ee.ID)
+			ee.IsListing = true
 		}
+		return ee
+	}
+
+	return &entry.Entry{
+		Frontmatter: entry.Frontmatter{
+			IsListing: true,
+		},
 	}
 }
 
@@ -209,7 +215,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	if ls.rd.Entry == nil {
-		ls.rd.Entry = s.getEntryOrEmpty(r.URL.Path)
+		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path)
 	}
 
 	if v := r.URL.Query().Get("page"); v != "" {
@@ -227,7 +233,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	ls.lp.Entries = entries
-	ls.rd.IsListing = true
 
 	if len(entries) != 0 {
 		url, _ := urlpkg.Parse(r.URL.String())

@@ -34,7 +34,7 @@ func (e *Eagle) GetEntry(id string) (*entry.Entry, error) {
 	return entry, nil
 }
 
-func (e *Eagle) GetEntries() ([]*entry.Entry, error) {
+func (e *Eagle) GetEntries(includeList bool) ([]*entry.Entry, error) {
 	entries := []*entry.Entry{}
 	err := e.fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -55,7 +55,10 @@ func (e *Eagle) GetEntries() ([]*entry.Entry, error) {
 			return err
 		}
 
-		entries = append(entries, entry)
+		if !entry.IsListing {
+			entries = append(entries, entry)
+		}
+
 		return nil
 	})
 
@@ -70,6 +73,12 @@ func (e *Eagle) SaveEntry(entry *entry.Entry) error {
 }
 
 func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
+	if ee.IsListing {
+		// For lists, only remove from cache.
+		e.RemoveCache(ee)
+		return
+	}
+
 	// Check for context URL and fetch the data if needed.
 	err := e.ensureContextXRay(ee)
 	if err != nil {
