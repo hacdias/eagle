@@ -3,6 +3,7 @@ package eagle
 import (
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/hacdias/eagle/v2/entry"
 )
@@ -34,6 +35,20 @@ func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
 	if sidecar.Webmentions == nil {
 		sidecar.Webmentions = []map[string]interface{}{}
 	}
+
+	sort.Slice(sidecar.Webmentions, func(i, j int) bool {
+		a, ok := sidecar.Webmentions[i]["published"].(string)
+		if !ok {
+			return false
+		}
+
+		b, ok := sidecar.Webmentions[j]["published"].(string)
+		if !ok {
+			return false
+		}
+
+		return a > b
+	})
 
 	return sidecar, filename, err
 }
