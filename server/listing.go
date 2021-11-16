@@ -125,7 +125,8 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 		rd: &eagle.RenderData{
 			Entry: &entry.Entry{
 				Frontmatter: entry.Frontmatter{
-					Title: title.String(),
+					Title:     title.String(),
+					IsListing: true,
 				},
 			},
 		},
