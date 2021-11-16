@@ -40,6 +40,7 @@ func (e *Eagle) SaveCache(scope CacheScope, filename string, data []byte, modtim
 
 func (e *Eagle) RemoveCache(ee *entry.Entry) {
 	e.PurgeCache("/")
+	e.PurgeCache("/all")
 	e.PurgeCache(ee.ID)
 
 	for _, sec := range ee.Sections {
