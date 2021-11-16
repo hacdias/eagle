@@ -27,6 +27,7 @@ type Config struct {
 	Telegram          *Telegram
 	Twitter           *Twitter
 	Miniflux          *Miniflux
+	MapBox            *MapBox
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -169,4 +170,13 @@ type PostgreSQL struct {
 type Asset struct {
 	Name  string
 	Files []string
+}
+
+type MapBox struct {
+	AccessToken string
+	MapStyle    string
+	PinColor    string
+	Size        string
+	Zoom        int
+	Use2X       bool
 }

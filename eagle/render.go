@@ -262,6 +262,22 @@ func (rd *RenderData) GetFile(path string) string {
 	return string(v)
 }
 
+func (rd *RenderData) HasFile(path string) bool {
+	filename := filepath.Join(ContentDirectory, rd.ID, path)
+	stat, err := rd.eagle.fs.Stat(filename)
+	return err == nil && stat.Mode().IsRegular()
+}
+
+func (rd *RenderData) TryFiles(filenames ...string) string {
+	for _, filename := range filenames {
+		if rd.HasFile(filename) {
+			return path.Join(rd.ID, filename)
+		}
+	}
+
+	return ""
+}
+
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.User = e.Config.User
 	data.Site = e.Config.Site
