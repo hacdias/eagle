@@ -269,8 +269,6 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(mime)
-
 		ext = mime.Extension()
 	}
 
