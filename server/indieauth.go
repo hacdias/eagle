@@ -26,6 +26,7 @@ const (
 
 const (
 	scopesContextKey contextKey = "scopes"
+	clientContextKey contextKey = "client"
 )
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
@@ -114,14 +115,10 @@ type tokenUser struct {
 }
 
 func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
-	token, _, _ := jwtauth.FromContext(r.Context())
-	scope := getString(token, "scope")
-	clientID := getString(token, "client_id")
-
 	s.serveJSON(w, http.StatusOK, &tokenResponse{
 		Me:       s.Config.Site.BaseURL + "/",
-		Scope:    scope,
-		ClientID: clientID,
+		Scope:    strings.Join(s.getScopes(r), " "),
+		ClientID: s.getClient(r),
 	})
 }
 
@@ -397,7 +394,11 @@ func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 		}
 
 		scopes := strings.Split(getString(token, "scope"), " ")
+		clientID := getString(token, "client_id")
+
 		ctx := context.WithValue(r.Context(), scopesContextKey, scopes)
+		ctx = context.WithValue(ctx, clientContextKey, clientID)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -408,4 +409,12 @@ func (s *Server) getScopes(r *http.Request) []string {
 	}
 
 	return []string{}
+}
+
+func (s *Server) getClient(r *http.Request) string {
+	if clientID, ok := r.Context().Value(clientContextKey).(string); ok {
+		return clientID
+	}
+
+	return ""
 }

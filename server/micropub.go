@@ -129,6 +129,10 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
+	if client := s.getClient(r); client != "" {
+		entry.CreatedWith = client
+	}
+
 	var syndicators []string
 	if s := cmds.Strings("mp-syndicate-to"); len(s) > 0 {
 		syndicators = s

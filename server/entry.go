@@ -112,6 +112,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ee.CreatedWith = s.Config.Site.BaseURL + "/"
 	s.newEditHandler(w, r, ee)
 }
 

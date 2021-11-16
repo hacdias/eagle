@@ -18,6 +18,7 @@ type Frontmatter struct {
 	Updated            time.Time              `yaml:"updated,omitempty"`
 	Sections           []string               `yaml:"section,omitempty"`
 	Template           string                 `yaml:"template,omitempty"`
+	CreatedWith        string                 `yaml:"createdWith,omitempty"`
 	NoShowInteractions bool                   `yaml:"noShowInteractions,omitempty"`
 	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
 	PhotoClass         string                 `yaml:"photoClass,omitempty"`
