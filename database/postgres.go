@@ -147,7 +147,11 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 
 func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
 	if len(sections) == 0 {
-		return d.queryEntries("select id from entries order by date desc"+d.offset(opts), 0)
+		sql := "select id from entries"
+		if ands := d.whereConstraints(opts); len(ands) > 0 {
+			sql += " where " + strings.Join(ands, " and ")
+		}
+		return d.queryEntries(sql+" order by date desc"+d.offset(opts), 0)
 	}
 
 	args := []interface{}{}
