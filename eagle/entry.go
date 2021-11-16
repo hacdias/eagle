@@ -85,6 +85,12 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
+	// Syndicate. This may change the entry.
+	err = e.syndicate(ee, syndicators)
+	if err != nil {
+		e.Error(err)
+	}
+
 	// Uploads photos if they exist. This may change the entry.
 	err = e.processPhotos(ee)
 	if err != nil {
@@ -97,10 +103,8 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
-	// TODO: If it is a checkin, download location map.
-
-	// Syndicate. This may change the entry.
-	err = e.syndicate(ee, syndicators)
+	// Download location map if meets certain conditions.
+	err = e.ProcessLocationMap(ee)
 	if err != nil {
 		e.Error(err)
 	}
