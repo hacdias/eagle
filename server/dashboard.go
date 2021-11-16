@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/hacdias/eagle/v2/eagle"
@@ -8,14 +9,7 @@ import (
 )
 
 func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
-	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{
-			Frontmatter: entry.Frontmatter{
-				Title: "Dashboard",
-			},
-		},
-		NoIndex: true,
-	}, []string{eagle.TemplateDashboard})
+	s.serveDashboard(w, r, map[string]interface{}{})
 }
 
 func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
@@ -27,14 +21,33 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 
 	actions := r.Form["action"]
 
+	data := map[string]interface{}{}
+
 	for _, action := range actions {
 		switch action {
 		case "clear-cache":
 			s.ResetCache()
+			data["Message"] = "Success!"
 		case "sync-storage":
 			go s.SyncStorage()
+			data["Message"] = "Success!"
 		case "update-blogroll":
 			err = s.UpdateBlogroll()
+			data["Message"] = "Success!"
+		case "token":
+			clientID := r.Form.Get("client_id")
+			scope := r.Form.Get("scope")
+			expires := r.Form.Get("expiry") != "infinity"
+
+			if !isValidProfileURL(clientID) {
+				s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("client id is invalid"))
+				return
+			}
+
+			signed, err := s.generateToken(clientID, scope, expires)
+			if err == nil {
+				data["Token"] = signed
+			}
 		}
 	}
 
@@ -43,5 +56,17 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	s.serveDashboard(w, r, data)
+}
+
+func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data interface{}) {
+	s.serveHTML(w, r, &eagle.RenderData{
+		Entry: &entry.Entry{
+			Frontmatter: entry.Frontmatter{
+				Title: "Dashboard",
+			},
+		},
+		Data:    data,
+		NoIndex: true,
+	}, []string{eagle.TemplateDashboard})
 }

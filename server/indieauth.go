@@ -183,20 +183,9 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	scope := getString(token, "scope")
 
 	if withToken {
-		claims := map[string]interface{}{
-			jwt.SubjectKey:  TokenSubject,
-			jwt.IssuedAtKey: time.Now().Unix(),
-			"client_id":     getString(token, "client_id"),
-			"scope":         scope,
-		}
-
-		// By default, tokens expire in a week, unless specified otherwise.
-		if getString(token, "expiry") != "infinity" {
-			claims[jwt.ExpirationKey] = time.Now().Add(time.Hour * 24 * 7)
-		}
-
-		_, signed, err := s.jwtAuth.Encode(claims)
-
+		clientID := getString(token, "client_id")
+		expires := getString(token, "expiry") != "infinity"
+		signed, err := s.generateToken(clientID, scope, expires)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 			return
@@ -223,6 +212,22 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	}
 
 	s.serveJSON(w, http.StatusOK, at)
+}
+
+func (s *Server) generateToken(client, scope string, expires bool) (string, error) {
+	claims := map[string]interface{}{
+		jwt.SubjectKey:  TokenSubject,
+		jwt.IssuedAtKey: time.Now().Unix(),
+		"client_id":     client,
+		"scope":         scope,
+	}
+
+	if expires {
+		claims[jwt.ExpirationKey] = time.Now().Add(time.Hour * 24 * 7)
+	}
+
+	_, signed, err := s.jwtAuth.Encode(claims)
+	return signed, err
 }
 
 var (
