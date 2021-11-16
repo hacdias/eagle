@@ -2,6 +2,7 @@ package syndicator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
@@ -33,6 +34,11 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 }
 
 func (t *Twitter) Syndicate(entry *entry.Entry) (url string, err error) {
+	if t.isSyndicated(entry) {
+		// If it is already syndicated to Twitter, do not try to syndicate again.
+		return "", errors.New("cannot re-syndicate to Twitter")
+	}
+
 	mm := entry.Helper()
 	typ := mm.PostType()
 	urlStr := mm.String(mm.TypeProperty())
@@ -69,6 +75,11 @@ func (t *Twitter) Syndicate(entry *entry.Entry) (url string, err error) {
 }
 
 func (t *Twitter) IsByContext(entry *entry.Entry) bool {
+	if t.isSyndicated(entry) {
+		// If it is already syndicated to Twitter, do not try to syndicate again.
+		return false
+	}
+
 	mm := entry.Helper()
 	typ := mm.PostType()
 
@@ -170,4 +181,18 @@ func (t *Twitter) idFromUrl(urlStr string) (string, error) {
 	user = strings.TrimPrefix(user, "/")
 	parts := strings.Split(user, "/")
 	return parts[len(parts)-1], nil
+}
+
+func (t *Twitter) isSyndicated(entry *entry.Entry) bool {
+	mm := entry.Helper()
+
+	syndications := mm.Strings("syndications")
+	for _, syndication := range syndications {
+		url, _ := urlpkg.Parse(syndication)
+		if url != nil && strings.Contains(url.Host, "twitter.com") {
+			return true
+		}
+	}
+
+	return false
 }
