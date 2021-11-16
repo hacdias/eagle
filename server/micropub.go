@@ -1,8 +1,11 @@
 package server
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -233,7 +236,7 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseMultipartForm(20 << 20)
 	if err != nil {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "File is too large.")
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "file is too large")
 		return
 	}
 
@@ -244,7 +247,29 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	location, err := s.UploadFile("/u/", filepath.Ext(header.Filename), file)
+	raw, err := ioutil.ReadAll(file)
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+
+	ext := filepath.Ext(header.Filename)
+	if ext == "" {
+		exts, err := mime.ExtensionsByType(header.Header.Get("Content-Type"))
+		if err != nil || len(exts) == 0 {
+			mimeType := http.DetectContentType(raw)
+			exts, err = mime.ExtensionsByType(mimeType)
+		}
+
+		if err != nil || len(exts) == 0 {
+			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "request provides no file type")
+			return
+		}
+
+		ext = exts[0]
+	}
+
+	location, err := s.UploadFile("/u/", ext, bytes.NewReader(raw))
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
