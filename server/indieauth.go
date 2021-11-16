@@ -36,7 +36,7 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 
 	resType := r.FormValue("response_type")
 	if resType == "" {
-		// Default to 'code' to support old clients.
+		// Default to support legacy clients.
 		resType = "code"
 	}
 
@@ -123,6 +123,11 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		grantType = r.Form.Get("grant_type")
 		code      = r.Form.Get("code")
 	)
+
+	if grantType == "" {
+		// Default to support legacy clients.
+		grantType = "authorization_code"
+	}
 
 	if grantType != "authorization_code" {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "grant_type must be authorization_code")

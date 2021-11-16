@@ -1,7 +1,6 @@
 package eagle
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/dgraph-io/ristretto"
@@ -70,7 +69,6 @@ func (e *Eagle) IsCached(scope CacheScope, filename string) ([]byte, time.Time, 
 	data, ok := e.cache.Get(e.cacheKey(scope, filename))
 	if ok {
 		ce := data.(*cacheEntry)
-		fmt.Println("Cache hit", e.cacheKey(scope, filename))
 		return ce.data, ce.modtime, true
 	}
 	return nil, time.Time{}, false
