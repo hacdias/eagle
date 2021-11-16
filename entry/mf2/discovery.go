@@ -29,6 +29,8 @@ const (
 	TypeReview   Type = "review"
 	TypeNote     Type = "note"
 	TypeArticle  Type = "article"
+	TypeAte      Type = "ate"
+	TypeDrank    Type = "drank"
 )
 
 type propTyp struct {
@@ -47,6 +49,8 @@ var propertyToType = []propTyp{
 	{"watch-of", TypeWatch},
 	{"listen-of", TypeListen},
 	{"checkin", TypeCheckin},
+	{"ate", TypeAte},
+	{"drank", TypeDrank},
 	{"video", TypeVideo},
 	{"audio", TypeAudio},
 	{"photo", TypePhoto},
@@ -111,7 +115,8 @@ func IsType(typ Type) bool {
 	switch t {
 	case TypeRsvp, TypeRepost, TypeLike, TypeReply, TypeBookmark,
 		TypeFollow, TypeRead, TypeWatch, TypeListen, TypeCheckin, TypeVideo,
-		TypeAudio, TypePhoto, TypeEvent, TypeRecipe, TypeReview, TypeNote, TypeArticle:
+		TypeAudio, TypePhoto, TypeEvent, TypeRecipe, TypeReview, TypeNote, TypeArticle,
+		TypeAte, TypeDrank:
 		return true
 	default:
 		return false
