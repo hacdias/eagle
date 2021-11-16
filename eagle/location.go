@@ -14,7 +14,7 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
-func (e *Eagle) processLocation(ee *entry.Entry) error {
+func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 	if ee.Properties == nil {
 		return nil
 	}
@@ -128,6 +128,10 @@ func (e *Eagle) ProcessLocationMap(ee *entry.Entry) error {
 }
 
 func (e *Eagle) mapboxStatic(lon, lat float64) ([]byte, string, error) {
+	if e.Config.MapBox == nil {
+		return nil, "", errors.New("mapbox details not provided")
+	}
+
 	path := fmt.Sprintf(
 		"https://api.mapbox.com/styles/v1/mapbox/%s/static/pin-l+%s(%f,%f)/%f,%f,%d,0/%s",
 		e.Config.MapBox.MapStyle,

@@ -1,21 +1,17 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/hacdias/eagle/v2/config"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/spf13/cobra"
 )
 
 func init() {
-	rootCmd.AddCommand(mapsCmd)
-	mapsCmd.Flags().BoolP("skip", "s", false, "Skip already existent maps.")
+	rootCmd.AddCommand(locationsCmd)
 }
 
-var mapsCmd = &cobra.Command{
-	Use: "maps",
+var locationsCmd = &cobra.Command{
+	Use: "locations",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := config.Parse()
 		if err != nil {
@@ -33,16 +29,8 @@ var mapsCmd = &cobra.Command{
 			return err
 		}
 
-		skip, _ := cmd.Flags().GetBool("skip")
-
 		for _, ee := range entries {
-			if skip {
-				if _, err := os.Stat(filepath.Join(e.Config.SourceDirectory, eagle.ContentDirectory, ee.ID, "map.png")); err == nil {
-					continue
-				}
-			}
-
-			err = e.ProcessLocationMap(ee)
+			err = e.ProcessLocation(ee)
 			if err != nil {
 				e.Error(err)
 			}

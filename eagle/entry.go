@@ -98,7 +98,7 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	}
 
 	// Check if the post has a 'location' Geo URI and parse it.
-	err = e.processLocation(ee)
+	err = e.ProcessLocation(ee)
 	if err != nil {
 		e.Error(err)
 	}
