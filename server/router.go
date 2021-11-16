@@ -40,6 +40,9 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/micropub", s.micropubGet)
 		r.Post("/micropub", s.micropubPost)
 		r.Post("/micropub/media", s.micropubMediaPost)
+
+		// Token verification point.
+		r.Get("/token", s.tokenGet)
 	})
 
 	r.Group(func(r chi.Router) {

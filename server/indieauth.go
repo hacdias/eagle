@@ -97,6 +97,34 @@ func (s *Server) indieauthAcceptPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, req.RedirectURI+"?"+query.Encode(), http.StatusFound)
 }
 
+type tokenResponse struct {
+	Me          string     `json:"me"`
+	ClientID    string     `json:"client_id,omitempty"`
+	AccessToken string     `json:"access_token,omitempty"`
+	TokenType   string     `json:"token_type,omitempty"`
+	Scope       string     `json:"scope,omitempty"`
+	Profile     *tokenUser `json:"profile,omitempty"`
+}
+
+type tokenUser struct {
+	Name  string `json:"name,omitempty"`
+	URL   string `json:"url,omitempty"`
+	Photo string `json:"photo,omitempty"`
+	Email string `json:"email,omitempty"`
+}
+
+func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
+	token, _, _ := jwtauth.FromContext(r.Context())
+	scope := getString(token, "scope")
+	clientID := getString(token, "client_id")
+
+	s.serveJSON(w, http.StatusOK, &tokenResponse{
+		Me:       s.Config.Site.BaseURL + "/",
+		Scope:    scope,
+		ClientID: clientID,
+	})
+}
+
 func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
@@ -145,13 +173,13 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = getRequestInfoFromToken(r, token)
+	err = validateAuthorizationCode(r, token)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
-	at := &accessToken{
+	at := &tokenResponse{
 		Me: s.Config.Site.BaseURL + "/",
 	}
 
@@ -161,6 +189,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		claims := map[string]interface{}{
 			jwt.SubjectKey:  TokenSubject,
 			jwt.IssuedAtKey: time.Now().Unix(),
+			"client_id":     getString(token, "client_id"),
 			"scope":         scope,
 		}
 
@@ -182,7 +211,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	}
 
 	if strings.Contains(scope, "profile") {
-		at.Profile = &userToken{
+		at.Profile = &tokenUser{
 			Name:  s.Config.User.Name,
 			URL:   s.Config.User.URL,
 			Photo: s.Config.User.Photo,
@@ -191,27 +220,12 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 
 	if strings.Contains(scope, "email") {
 		if at.Profile == nil {
-			at.Profile = &userToken{}
+			at.Profile = &tokenUser{}
 		}
 		at.Profile.Email = s.Config.User.Email
 	}
 
 	s.serveJSON(w, http.StatusOK, at)
-}
-
-type accessToken struct {
-	AccessToken string     `json:"access_token,omitempty"`
-	TokenType   string     `json:"token_type,omitempty"`
-	Scope       string     `json:"scope,omitempty"`
-	Me          string     `json:"me"`
-	Profile     *userToken `json:"profile,omitempty"`
-}
-
-type userToken struct {
-	Name  string `json:"name,omitempty"`
-	URL   string `json:"url,omitempty"`
-	Photo string `json:"photo,omitempty"`
-	Email string `json:"email,omitempty"`
 }
 
 var (
@@ -308,7 +322,7 @@ func getString(token jwt.Token, prop string) string {
 	return vv
 }
 
-func getRequestInfoFromToken(r *http.Request, token jwt.Token) error {
+func validateAuthorizationCode(r *http.Request, token jwt.Token) error {
 	var (
 		clientID     = r.Form.Get("client_id")
 		redirectURI  = r.Form.Get("redirect_uri")
@@ -371,14 +385,14 @@ func isValidProfileURL(profileURL string) bool {
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.isLoggedIn(r) {
-			w.WriteHeader(http.StatusUnauthorized)
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
 		}
 
 		// The verification above MUST ensure that token exists.
 		token, _, _ := jwtauth.FromContext(r.Context())
 		if token.Subject() != TokenSubject {
-			w.WriteHeader(http.StatusUnauthorized)
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token subject")
 			return
 		}
 
