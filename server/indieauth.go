@@ -35,6 +35,11 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resType := r.FormValue("response_type")
+	if resType == "" {
+		// Default to 'code' to support old clients.
+		resType = "code"
+	}
+
 	if resType != "code" {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("response_type must be code"))
 		return
