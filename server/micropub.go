@@ -266,7 +266,7 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		ext = exts[0]
+		ext = exts[len(exts)-1]
 	}
 
 	location, err := s.UploadFile("/u/", ext, bytes.NewReader(raw))
