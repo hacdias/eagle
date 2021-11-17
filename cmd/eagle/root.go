@@ -16,7 +16,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:               "eagle",
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
-	Short:             "Eagle is a website CMS built around Hugo",
+	Short:             "Eagle is a website CMS",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := config.Parse()
 		if err != nil {
