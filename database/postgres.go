@@ -49,7 +49,7 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date) values($1, $2, $3, $4, $5, $6)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC())
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC(), entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -190,6 +190,60 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	sql += ` order by score desc` + d.offset(opts)
 
 	return d.queryEntries(sql, 0, query)
+}
+
+func (d *Postgres) ReadsStatistics() (*ReadsStatistics, error) {
+	sql := `select distinct on (name)
+	id,
+	date,
+	properties->>'read-status' as status,
+	properties->'read-of'->'properties'->>'name' as name,
+	properties->'read-of'->'properties'->>'author' as author
+from entries
+where properties->>'read-status' is not null`
+
+	if ands := d.whereConstraints(&QueryOptions{}); len(ands) > 0 {
+		sql += " and " + strings.Join(ands, " and ")
+	}
+
+	sql += " order by name, date desc"
+
+	rows, err := d.pool.Query(context.Background(), sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := &ReadsStatistics{
+		ToRead:   []*Read{},
+		Reading:  []*Read{},
+		Finished: []*Read{},
+	}
+
+	for rows.Next() {
+		read := &Read{}
+		status := ""
+
+		err := rows.Scan(&read.ID, &read.Date, &status, &read.Name, &read.Author)
+		if err != nil {
+			return nil, err
+		}
+
+		switch status {
+		case "to-read":
+			stats.ToRead = append(stats.ToRead, read)
+		case "reading":
+			stats.Reading = append(stats.Reading, read)
+		case "finished":
+			stats.Finished = append(stats.Finished, read)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
 }
 
 func (d *Postgres) whereConstraints(opts *QueryOptions) []string {

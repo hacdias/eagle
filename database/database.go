@@ -1,8 +1,23 @@
 package database
 
 import (
+	"time"
+
 	"github.com/hacdias/eagle/v2/entry"
 )
+
+type Read struct {
+	ID     string    `json:"id"`
+	Date   time.Time `json:"date"`
+	Name   string    `json:"name"`
+	Author string    `json:"author"`
+}
+
+type ReadsStatistics struct {
+	ToRead   []*Read `json:"to-read"`
+	Reading  []*Read `json:"reading"`
+	Finished []*Read `json:"finished"`
+}
 
 type QueryOptions struct {
 	Page    int
@@ -23,4 +38,6 @@ type Database interface {
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
+
+	ReadsStatistics() (*ReadsStatistics, error)
 }
