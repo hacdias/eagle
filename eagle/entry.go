@@ -126,6 +126,14 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 			e.Error(err)
 		}
 	}
+
+	// Update watches statistics if it's a watch.
+	if ee.Helper().PostType() == mf2.TypeWatch {
+		err = e.UpdateWatchStatistics()
+		if err != nil {
+			e.Error(err)
+		}
+	}
 }
 
 func (e *Eagle) processPhotos(ee *entry.Entry) error {

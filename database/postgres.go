@@ -246,6 +246,75 @@ where properties->>'read-status' is not null`
 	return stats, nil
 }
 
+func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
+	sql := "select id, date, name from (" + baseSql
+
+	if ands := d.whereConstraints(&QueryOptions{}); len(ands) > 0 {
+		sql += " and " + strings.Join(ands, " and ")
+	}
+
+	sql += " order by ttid, date desc ) s order by date desc"
+
+	rows, err := d.pool.Query(context.Background(), sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	watches := []*Watch{}
+
+	for rows.Next() {
+		watch := &Watch{}
+		err := rows.Scan(&watch.ID, &watch.Date, &watch.Name)
+		if err != nil {
+			return nil, err
+		}
+		watches = append(watches, watch)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return watches, nil
+}
+
+func (d *Postgres) WatchStatistics() (*WatchStatistics, error) {
+	watches := &WatchStatistics{
+		Series: []*Watch{},
+		Movies: []*Watch{},
+	}
+
+	series, err := d.watches(`select distinct on (ttid)
+	id,
+	date,
+	properties->'watch-of'->'properties'->'episode-of'->'properties'->>'name' as name,
+	properties->'watch-of'->'properties'->'episode-of'->'properties'->'trakt-ids'->>'trakt' as ttid
+from entries
+where
+	properties->'watch-of'->'properties'->'episode-of' is not null`)
+	if err != nil {
+		return nil, err
+	}
+	watches.Series = series
+
+	movies, err := d.watches(`select distinct on (ttid)
+	id,
+	date,
+	properties->'watch-of'->'properties'->>'name' as name,
+	properties->'watch-of'->'properties'->'trakt-ids'->>'trakt' as ttid
+from entries
+where
+	properties->'watch-of' is not null and
+	properties->'watch-of'->'properties'->'episode-of' is null`)
+	if err != nil {
+		return nil, err
+	}
+	watches.Movies = movies
+
+	return watches, nil
+}
+
 func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
 	var where []string
 

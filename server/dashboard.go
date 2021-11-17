@@ -37,6 +37,9 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 		case "update-reads-statistics":
 			err = s.UpdateReadStatistics()
 			data["Message"] = "Success!"
+		case "update-watches-statistics":
+			err = s.UpdateWatchStatistics()
+			data["Message"] = "Success!"
 		case "token":
 			clientID := r.Form.Get("client_id")
 			scope := r.Form.Get("scope")

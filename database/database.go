@@ -19,6 +19,17 @@ type ReadsStatistics struct {
 	Finished []*Read `json:"finished"`
 }
 
+type Watch struct {
+	ID   string    `json:"id"`
+	Date time.Time `json:"date"`
+	Name string    `json:"name"`
+}
+
+type WatchStatistics struct {
+	Series []*Watch `json:"series"`
+	Movies []*Watch `json:"movies"`
+}
+
 type QueryOptions struct {
 	Page    int
 	Limit   int
@@ -40,4 +51,5 @@ type Database interface {
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 
 	ReadsStatistics() (*ReadsStatistics, error)
+	WatchStatistics() (*WatchStatistics, error)
 }
