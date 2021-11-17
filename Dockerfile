@@ -1,8 +1,7 @@
 FROM golang:1.17-alpine3.14 as build
 
 RUN apk update && \
-    apk add --no-cache git gcc g++ musl-dev && \
-    go get github.com/magefile/mage
+    apk add --no-cache git gcc g++ musl-dev
 
 WORKDIR /eagle/
 
