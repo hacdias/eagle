@@ -118,6 +118,14 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	if err != nil {
 		e.Error(err)
 	}
+
+	// Update read statistics if it's a read.
+	if ee.Helper().PostType() == mf2.TypeRead {
+		err = e.UpdateReadStatistics()
+		if err != nil {
+			e.Error(err)
+		}
+	}
 }
 
 func (e *Eagle) processPhotos(ee *entry.Entry) error {
