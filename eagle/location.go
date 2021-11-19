@@ -21,19 +21,37 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 
 	mm := ee.Helper()
 
-	geouri := mm.String("location")
-	if geouri == "" {
+	locationStr := mm.String("location")
+	if locationStr == "" {
 		return nil
 	}
 
-	geo, err := gogeouri.Parse(geouri)
+	var (
+		location map[string]interface{}
+		err      error
+	)
+
+	if strings.HasPrefix(locationStr, "geo:") {
+		var geo *gogeouri.Geo
+		geo, err = gogeouri.Parse(locationStr)
+		if err != nil {
+			return err
+		}
+
+		location, err = e.photonReverse(geo.Longitude, geo.Latitude)
+	} else if strings.HasPrefix(locationStr, "airport:") {
+
+	} else if strings.HasPrefix(locationStr, "name:") {
+		locationStr = strings.TrimPrefix(locationStr, "name:")
+		location, err = e.photonSearch(locationStr)
+	}
+
 	if err != nil {
 		return err
 	}
 
-	location, err := e.photonReverse(geo.Longitude, geo.Latitude)
-	if err != nil {
-		return err
+	if location == nil {
+		return nil
 	}
 
 	_, err = e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
@@ -72,7 +90,7 @@ func (e *Eagle) photonReverse(lon, lat float64) (map[string]interface{}, error) 
 
 	f := fc.Features[0]
 	city := f.PropertyMustString("city", "")
-	state := f.PropertyMustString("state", "")
+	state := f.PropertyMustString("state", f.PropertyMustString("county", ""))
 	country := f.PropertyMustString("country", "")
 
 	if city == "" && state == "" && country == "" {
@@ -82,6 +100,65 @@ func (e *Eagle) photonReverse(lon, lat float64) (map[string]interface{}, error) 
 	props := map[string]interface{}{
 		"latitude":  lat,
 		"longitude": lon,
+	}
+
+	if city != "" {
+		props["locality"] = city
+	}
+
+	if state != "" {
+		props["region"] = state
+	}
+
+	if country != "" {
+		props["country-name"] = country
+	}
+
+	return map[string]interface{}{
+		"properties": props,
+		"type":       "h-adr",
+	}, nil
+}
+
+func (e *Eagle) photonSearch(query string) (map[string]interface{}, error) {
+	uv := url.Values{}
+	uv.Set("q", query)
+	uv.Set("lang", e.Config.Site.Language)
+
+	res, err := e.httpClient.Get("https://photon.komoot.io/api/?" + uv.Encode())
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	fc, err := geojson.UnmarshalFeatureCollection(data)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(fc.Features) < 1 {
+		return nil, errors.New("features missing from request")
+	}
+
+	f := fc.Features[0]
+	city := f.PropertyMustString("city", "")
+	state := f.PropertyMustString("state", f.PropertyMustString("county", ""))
+	country := f.PropertyMustString("country", "")
+
+	if city == "" && state == "" && country == "" {
+		return nil, errors.New("no useful information found")
+	}
+
+	props := map[string]interface{}{}
+
+	if f.Geometry != nil && len(f.Geometry.Point) == 2 {
+		props["longitude"] = f.Geometry.Point[0]
+		props["latitude"] = f.Geometry.Point[1]
 	}
 
 	if city != "" {
