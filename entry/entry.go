@@ -104,7 +104,9 @@ func (e *Entry) TextContent() string {
 }
 
 func (e *Entry) Update(mf2Data map[string][]interface{}) error {
-	data := typed.New(mf2.Flatten(mf2Data))
+	flattened := mf2.Flatten(mf2Data)
+	data := typed.New(flattened)
+	mm := mf2.NewFlatHelper(flattened)
 
 	if published, ok := data.StringIf("published"); ok {
 		p, err := dateparse.ParseStrict(published)
@@ -113,8 +115,6 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		}
 		e.Published = p
 		delete(data, "published")
-	} else {
-		e.Published = time.Now()
 	}
 
 	if updated, ok := data.StringIf("updated"); ok {
@@ -171,7 +171,53 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		e.Properties = map[string]interface{}{}
 	}
 
+	switch mm.PostType() {
+	case mf2.TypeItinerary:
+		if err := e.parseItinerary(data, mm); err != nil {
+			return err
+		}
+	}
+
+	if e.Published.IsZero() {
+		e.Published = time.Now()
+	}
+
 	e.Properties = data
+	return nil
+}
+
+func (e *Entry) parseItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
+	itinerary, ok := data.ObjectIf(mm.TypeProperty())
+	if !ok {
+		return nil
+	}
+
+	props, ok := itinerary.ObjectIf("properties")
+	if !ok {
+		return nil
+	}
+
+	if departure, ok := props.StringIf("departure"); ok {
+		p, err := dateparse.ParseStrict(departure)
+		if err != nil {
+			return err
+		}
+
+		if e.Published.IsZero() {
+			e.Published = p
+		}
+	}
+
+	if origin, ok := props.StringIf("origin"); ok {
+		if props.StringOr("transit-type", "") == "air" {
+			data["location"] = "airport:" + origin
+		} else {
+			data["location"] = "name:" + origin
+		}
+	}
+
+	itinerary["properties"] = props
+	data[mm.TypeProperty()] = itinerary
 	return nil
 }
 
