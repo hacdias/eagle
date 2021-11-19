@@ -4,14 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"path/filepath"
 	"strings"
 
-	gogeouri "git.jlel.se/jlelse/go-geouri"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
-	geojson "github.com/paulmach/go.geojson"
 )
 
 func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
@@ -26,30 +23,7 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 		return nil
 	}
 
-	var (
-		location map[string]interface{}
-		err      error
-	)
-
-	if strings.HasPrefix(locationStr, "geo:") {
-		var geo *gogeouri.Geo
-		geo, err = gogeouri.Parse(locationStr)
-		if err != nil {
-			return err
-		}
-
-		location, err = e.photonReverse(geo.Longitude, geo.Latitude)
-	} else if strings.HasPrefix(locationStr, "airport:") {
-		// https://www.aviowiki.com/docs/airports/free-api-endpoints/airport-search/
-	} else if strings.HasPrefix(locationStr, "name:") {
-		locationStr = strings.TrimPrefix(locationStr, "name:")
-		location, err = e.photonSearch(locationStr)
-	}
-
-	// TODO: Maybe detect it is itinerary and replace origin and destination by a h-adr with name property.
-	// Add properties[location] = properties[itinerary][destination]
-	// NOTE: itinerary may be array collection of legs.
-
+	location, err := e.parseLocation(locationStr, false)
 	if err != nil {
 		return err
 	}
@@ -66,121 +40,16 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 	return err
 }
 
-func (e *Eagle) photonReverse(lon, lat float64) (map[string]interface{}, error) {
-	uv := url.Values{}
-	uv.Set("lat", fmt.Sprintf("%v", lat))
-	uv.Set("lon", fmt.Sprintf("%v", lon))
-	uv.Set("lang", e.Config.Site.Language)
-
-	res, err := e.httpClient.Get("https://photon.komoot.io/reverse?" + uv.Encode())
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
+func (e *Eagle) parseLocation(str string, isAirport bool) (map[string]interface{}, error) {
+	if strings.HasPrefix(str, "geo:") {
+		return e.loctools.FromGeoURI(e.Config.Site.Language, str)
 	}
 
-	fc, err := geojson.UnmarshalFeatureCollection(data)
-	if err != nil {
-		return nil, err
+	if isAirport {
+		return e.loctools.Airport(str)
 	}
 
-	if len(fc.Features) < 1 {
-		return nil, errors.New("features missing from request")
-	}
-
-	f := fc.Features[0]
-	city := f.PropertyMustString("city", "")
-	state := f.PropertyMustString("state", f.PropertyMustString("county", ""))
-	country := f.PropertyMustString("country", "")
-
-	if city == "" && state == "" && country == "" {
-		return nil, errors.New("no useful information found")
-	}
-
-	props := map[string]interface{}{
-		"latitude":  lat,
-		"longitude": lon,
-	}
-
-	if city != "" {
-		props["locality"] = city
-	}
-
-	if state != "" {
-		props["region"] = state
-	}
-
-	if country != "" {
-		props["country-name"] = country
-	}
-
-	return map[string]interface{}{
-		"properties": props,
-		"type":       "h-adr",
-	}, nil
-}
-
-func (e *Eagle) photonSearch(query string) (map[string]interface{}, error) {
-	uv := url.Values{}
-	uv.Set("q", query)
-	uv.Set("lang", e.Config.Site.Language)
-
-	res, err := e.httpClient.Get("https://photon.komoot.io/api/?" + uv.Encode())
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	fc, err := geojson.UnmarshalFeatureCollection(data)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(fc.Features) < 1 {
-		return nil, errors.New("features missing from request")
-	}
-
-	f := fc.Features[0]
-	city := f.PropertyMustString("city", "")
-	state := f.PropertyMustString("state", f.PropertyMustString("county", ""))
-	country := f.PropertyMustString("country", "")
-
-	if city == "" && state == "" && country == "" {
-		return nil, errors.New("no useful information found")
-	}
-
-	props := map[string]interface{}{}
-
-	if f.Geometry != nil && len(f.Geometry.Point) == 2 {
-		props["longitude"] = f.Geometry.Point[0]
-		props["latitude"] = f.Geometry.Point[1]
-	}
-
-	if city != "" {
-		props["locality"] = city
-	}
-
-	if state != "" {
-		props["region"] = state
-	}
-
-	if country != "" {
-		props["country-name"] = country
-	}
-
-	return map[string]interface{}{
-		"properties": props,
-		"type":       "h-adr",
-	}, nil
+	return e.loctools.Search(e.Config.Site.Language, str)
 }
 
 func (e *Eagle) ProcessLocationMap(ee *entry.Entry) error {

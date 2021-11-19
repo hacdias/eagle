@@ -18,6 +18,7 @@ import (
 	"github.com/hacdias/eagle/v2/fs"
 	"github.com/hacdias/eagle/v2/log"
 	"github.com/hacdias/eagle/v2/notifier"
+	"github.com/hacdias/eagle/v2/pkg/loctools"
 	"github.com/hacdias/eagle/v2/syndicator"
 	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
@@ -47,6 +48,7 @@ type Eagle struct {
 	miniflux     *Miniflux
 	Parser       *entry.Parser
 	Config       *config.Config
+	loctools     *loctools.LocTools
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -90,6 +92,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		syndication:  syndicator.NewManager(),
 		Parser:       entry.NewParser(conf.Site.BaseURL),
 		minifier:     initMinifier(),
+		loctools:     loctools.NewLocTools(httpClient),
 	}
 
 	for typ := range conf.Site.MicropubTypes {

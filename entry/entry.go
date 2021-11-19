@@ -173,7 +173,7 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 
 	switch mm.PostType() {
 	case mf2.TypeItinerary:
-		if err := e.parseItinerary(data, mm); err != nil {
+		if err := e.parseDateFromItinerary(data, mm); err != nil {
 			return err
 		}
 	}
@@ -186,7 +186,11 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 	return nil
 }
 
-func (e *Entry) parseItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
+func (e *Entry) parseDateFromItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
+	if !e.Published.IsZero() {
+		return nil
+	}
+
 	itinerary, ok := data.ObjectIf(mm.TypeProperty())
 	if !ok {
 		return nil
@@ -197,27 +201,14 @@ func (e *Entry) parseItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
 		return nil
 	}
 
-	if departure, ok := props.StringIf("departure"); ok {
-		p, err := dateparse.ParseStrict(departure)
+	if arrival, ok := props.StringIf("arrival"); ok {
+		p, err := dateparse.ParseStrict(arrival)
 		if err != nil {
 			return err
 		}
-
-		if e.Published.IsZero() {
-			e.Published = p
-		}
+		e.Published = p
 	}
 
-	if origin, ok := props.StringIf("origin"); ok {
-		if props.StringOr("transit-type", "") == "air" {
-			data["location"] = "airport:" + origin
-		} else {
-			data["location"] = "name:" + origin
-		}
-	}
-
-	itinerary["properties"] = props
-	data[mm.TypeProperty()] = itinerary
 	return nil
 }
 

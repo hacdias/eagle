@@ -33,6 +33,12 @@ func NewFlatHelper(data map[string]interface{}) *FlatHelper {
 	}
 }
 
+func (m *FlatHelper) AsMap() map[string]interface{} {
+	v := m.Map
+	v["properties"] = m.Properties
+	return v
+}
+
 func (m *FlatHelper) PostType() Type {
 	if m.postType == "" {
 		m.postType, m.typeProperty = DiscoverType(m.Map)

@@ -109,6 +109,14 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
+	// Update itinerary locations.
+	if ee.Helper().PostType() == mf2.TypeItinerary {
+		err = e.processItinerary(ee)
+		if err != nil {
+			e.Error(err)
+		}
+	}
+
 	// Remove entry from the cache. Every other action from here on
 	// should not influence how the entry is rendered.
 	e.RemoveCache(ee)
