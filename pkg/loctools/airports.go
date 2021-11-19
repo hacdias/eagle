@@ -2,6 +2,7 @@ package loctools
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/url"
 	"strings"
@@ -51,12 +52,8 @@ func (l *LocTools) aviowikiSearch(query string) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	if avioRes == nil {
-		return nil, nil
-	}
-
-	if len(avioRes.Content) == 0 {
-		return nil, nil
+	if avioRes == nil || len(avioRes.Content) == 0 {
+		return nil, errors.New("no airport found")
 	}
 
 	props := map[string]interface{}{
@@ -72,10 +69,6 @@ func (l *LocTools) aviowikiSearch(query string) (map[string]interface{}, error) 
 
 	if f.Country.Name != "" {
 		props["country-name"] = f.Country.Name
-	}
-
-	if f.Name != "" {
-		props["name"] = f.Name
 	}
 
 	if f.City != "" {

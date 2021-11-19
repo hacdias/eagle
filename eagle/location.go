@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"path/filepath"
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
+	geojson "github.com/paulmach/go.geojson"
 )
 
 func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
@@ -99,6 +101,48 @@ func (e *Eagle) mapboxStatic(lon, lat float64) ([]byte, string, error) {
 	}
 
 	path += "?access_token=" + e.Config.MapBox.AccessToken
+
+	res, err := e.httpClient.Get(path)
+	if err != nil {
+		return nil, "", err
+	}
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, "", err
+	}
+
+	typ := "png"
+	if strings.Contains(res.Header.Get("Content-Type"), "jpeg") {
+		typ = "jpeg"
+	}
+
+	return data, typ, nil
+}
+
+func (e *Eagle) mapboxGeoJSON(geojson *geojson.FeatureCollection) ([]byte, string, error) {
+	if e.Config.MapBox == nil {
+		return nil, "", errors.New("mapbox details not provided")
+	}
+
+	raw, err := geojson.MarshalJSON()
+	if err != nil {
+		return nil, "", err
+	}
+
+	path := fmt.Sprintf(
+		"https://api.mapbox.com/styles/v1/mapbox/%s/static/geojson(%s)/auto/%s",
+		e.Config.MapBox.MapStyle,
+		url.QueryEscape(string(raw)),
+		e.Config.MapBox.Size,
+	)
+
+	if e.Config.MapBox.Use2X {
+		path += "@2x"
+	}
+
+	path += "?padding=20&access_token=" + e.Config.MapBox.AccessToken
 
 	res, err := e.httpClient.Get(path)
 	if err != nil {
