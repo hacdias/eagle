@@ -13,7 +13,7 @@ type Read struct {
 	Author string    `json:"author"`
 }
 
-type ReadsStatistics struct {
+type ReadsSummary struct {
 	ToRead   []*Read `json:"to-read"`
 	Reading  []*Read `json:"reading"`
 	Finished []*Read `json:"finished"`
@@ -25,7 +25,7 @@ type Watch struct {
 	Name string    `json:"name"`
 }
 
-type WatchStatistics struct {
+type WatchesSummary struct {
 	Series []*Watch `json:"series"`
 	Movies []*Watch `json:"movies"`
 }
@@ -50,6 +50,8 @@ type Database interface {
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 
-	ReadsStatistics() (*ReadsStatistics, error)
-	WatchStatistics() (*WatchStatistics, error)
+	ReadsSummary() (*ReadsSummary, error)
+	WatchesSummary() (*WatchesSummary, error)
+	Been() ([]string, error)
+	SectionsCount() (map[string]int, error)
 }

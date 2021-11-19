@@ -3,7 +3,7 @@ package eagle
 import "path/filepath"
 
 func (e *Eagle) UpdateReadStatistics() error {
-	stats, err := e.db.ReadsStatistics()
+	stats, err := e.db.ReadsSummary()
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (e *Eagle) UpdateReadStatistics() error {
 }
 
 func (e *Eagle) UpdateWatchStatistics() error {
-	stats, err := e.db.WatchStatistics()
+	stats, err := e.db.WatchesSummary()
 	if err != nil {
 		return err
 	}

@@ -192,7 +192,7 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	return d.queryEntries(sql, 0, query)
 }
 
-func (d *Postgres) ReadsStatistics() (*ReadsStatistics, error) {
+func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
 	sql := `select distinct on (name)
 	id,
 	date,
@@ -214,7 +214,7 @@ where properties->>'read-status' is not null`
 	}
 	defer rows.Close()
 
-	stats := &ReadsStatistics{
+	stats := &ReadsSummary{
 		ToRead:   []*Read{},
 		Reading:  []*Read{},
 		Finished: []*Read{},
@@ -279,8 +279,8 @@ func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
 	return watches, nil
 }
 
-func (d *Postgres) WatchStatistics() (*WatchStatistics, error) {
-	watches := &WatchStatistics{
+func (d *Postgres) WatchesSummary() (*WatchesSummary, error) {
+	watches := &WatchesSummary{
 		Series: []*Watch{},
 		Movies: []*Watch{},
 	}
@@ -375,4 +375,70 @@ func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]
 
 func (d *Postgres) Close() {
 	d.pool.Close()
+}
+
+func (d *Postgres) Been() ([]string, error) {
+	sql := `select distinct on (country)
+	properties->'location'->'properties'->>'country-name' as country
+from entries
+where properties->'location'->'properties'->>'country-name' is not null
+order by country`
+
+	rows, err := d.pool.Query(context.Background(), sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var been []string
+
+	for rows.Next() {
+		var country string
+		err := rows.Scan(&country)
+		if err != nil {
+			return nil, err
+		}
+
+		been = append(been, country)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return been, nil
+}
+
+func (d *Postgres) SectionsCount() (map[string]int, error) {
+	sql := `select section, COUNT(*)
+	from sections inner join entries on id=entry_id
+	group by section
+	order by section;`
+
+	rows, err := d.pool.Query(context.Background(), sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	count := map[string]int{}
+
+	for rows.Next() {
+		var (
+			section string
+			n       int
+		)
+		err := rows.Scan(&section, &n)
+		if err != nil {
+			return nil, err
+		}
+
+		count[section] = n
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return count, nil
 }
