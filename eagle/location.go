@@ -48,6 +48,7 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 
 	// TODO: Maybe detect it is itinerary and replace origin and destination by a h-adr with name property.
 	// Add properties[location] = properties[itinerary][destination]
+	// NOTE: itinerary may be array collection of legs.
 
 	if err != nil {
 		return err
