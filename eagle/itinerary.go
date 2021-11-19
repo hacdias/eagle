@@ -27,7 +27,9 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 	}
 
 	var lastDest map[string]interface{}
-	fc := geojson.NewFeatureCollection()
+
+	var paths []*geojson.Feature
+	var points []*geojson.Feature
 
 	for i, leg := range legs {
 		props, ok := leg.ObjectIf("properties")
@@ -52,7 +54,7 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 		if i == 0 {
 			feature := geojson.NewPointFeature(originCoord)
 			feature.SetProperty("marker-color", "#2ecc71")
-			fc.Features = append(fc.Features, feature)
+			points = append(points, feature)
 		}
 
 		// Destination
@@ -68,8 +70,8 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 		} else {
 			feature.SetProperty("marker-color", "#3498db")
 		}
-		fc.Features = append(fc.Features, feature)
-		fc.Features = append(fc.Features, geojson.NewLineStringFeature([][]float64{originCoord, destCoord}))
+		points = append(points, feature)
+		paths = append(paths, geojson.NewLineStringFeature([][]float64{originCoord, destCoord}))
 	}
 
 	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
@@ -87,6 +89,10 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 	if err != nil {
 		return err
 	}
+
+	fc := geojson.NewFeatureCollection()
+	fc.Features = append(fc.Features, paths...)
+	fc.Features = append(fc.Features, points...)
 
 	// Get map with GeoJSON and save it
 	data, typ, err := e.mapboxGeoJSON(fc)

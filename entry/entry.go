@@ -191,22 +191,27 @@ func (e *Entry) parseDateFromItinerary(data typed.Typed, mm *mf2.FlatHelper) err
 		return nil
 	}
 
-	itinerary, ok := data.ObjectIf(mm.TypeProperty())
-	if !ok {
-		return nil
-	}
-
-	props, ok := itinerary.ObjectIf("properties")
-	if !ok {
-		return nil
-	}
-
-	if arrival, ok := props.StringIf("arrival"); ok {
-		p, err := dateparse.ParseStrict(arrival)
-		if err != nil {
-			return err
+	dateFromLeg := func(leg typed.Typed) error {
+		props, ok := leg.ObjectIf("properties")
+		if !ok {
+			return nil
 		}
-		e.Published = p
+
+		if arrival, ok := props.StringIf("arrival"); ok {
+			p, err := dateparse.ParseStrict(arrival)
+			if err != nil {
+				return err
+			}
+			e.Published = p
+		}
+
+		return nil
+	}
+
+	if leg, ok := data.ObjectIf(mm.TypeProperty()); ok {
+		return dateFromLeg(leg)
+	} else if legs, ok := data.ObjectsIf(mm.TypeProperty()); ok {
+		return dateFromLeg(legs[len(legs)-1])
 	}
 
 	return nil
