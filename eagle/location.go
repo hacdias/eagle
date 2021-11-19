@@ -40,11 +40,14 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 
 		location, err = e.photonReverse(geo.Longitude, geo.Latitude)
 	} else if strings.HasPrefix(locationStr, "airport:") {
-
+		// https://www.aviowiki.com/docs/airports/free-api-endpoints/airport-search/
 	} else if strings.HasPrefix(locationStr, "name:") {
 		locationStr = strings.TrimPrefix(locationStr, "name:")
 		location, err = e.photonSearch(locationStr)
 	}
+
+	// TODO: Maybe detect it is itinerary and replace origin and destination by a h-adr with name property.
+	// Add properties[location] = properties[itinerary][destination]
 
 	if err != nil {
 		return err
