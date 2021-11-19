@@ -11,26 +11,27 @@ import (
 type Type string
 
 const (
-	TypeRsvp     Type = "rsvp"
-	TypeRepost   Type = "repost"
-	TypeLike     Type = "like"
-	TypeReply    Type = "reply"
-	TypeBookmark Type = "bookmark"
-	TypeFollow   Type = "follow"
-	TypeRead     Type = "read"
-	TypeWatch    Type = "watch"
-	TypeListen   Type = "listen"
-	TypeCheckin  Type = "checkin"
-	TypeVideo    Type = "video"
-	TypeAudio    Type = "audio"
-	TypePhoto    Type = "photo"
-	TypeEvent    Type = "event"
-	TypeRecipe   Type = "recipe"
-	TypeReview   Type = "review"
-	TypeNote     Type = "note"
-	TypeArticle  Type = "article"
-	TypeAte      Type = "ate"
-	TypeDrank    Type = "drank"
+	TypeRsvp      Type = "rsvp"
+	TypeRepost    Type = "repost"
+	TypeLike      Type = "like"
+	TypeReply     Type = "reply"
+	TypeBookmark  Type = "bookmark"
+	TypeFollow    Type = "follow"
+	TypeRead      Type = "read"
+	TypeWatch     Type = "watch"
+	TypeListen    Type = "listen"
+	TypeCheckin   Type = "checkin"
+	TypeVideo     Type = "video"
+	TypeAudio     Type = "audio"
+	TypePhoto     Type = "photo"
+	TypeEvent     Type = "event"
+	TypeRecipe    Type = "recipe"
+	TypeReview    Type = "review"
+	TypeNote      Type = "note"
+	TypeArticle   Type = "article"
+	TypeAte       Type = "ate"
+	TypeDrank     Type = "drank"
+	TypeItinerary Type = "itinerary"
 )
 
 type propTyp struct {
@@ -51,6 +52,10 @@ var propertyToType = []propTyp{
 	{"checkin", TypeCheckin},
 	{"ate", TypeAte},
 	{"drank", TypeDrank},
+	{"itinerary", TypeItinerary},
+
+	// Most of the posts above can be accompanied by these,
+	// so they are naturally the last ones.
 	{"video", TypeVideo},
 	{"audio", TypeAudio},
 	{"photo", TypePhoto},
@@ -116,7 +121,7 @@ func IsType(typ Type) bool {
 	case TypeRsvp, TypeRepost, TypeLike, TypeReply, TypeBookmark,
 		TypeFollow, TypeRead, TypeWatch, TypeListen, TypeCheckin, TypeVideo,
 		TypeAudio, TypePhoto, TypeEvent, TypeRecipe, TypeReview, TypeNote, TypeArticle,
-		TypeAte, TypeDrank:
+		TypeAte, TypeDrank, TypeItinerary:
 		return true
 	default:
 		return false
