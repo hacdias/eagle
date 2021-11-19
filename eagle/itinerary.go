@@ -9,11 +9,11 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
+// TODO: DECOUPLE PROCESS ITINERARY FROM GENERATING THE GEOJSON MAP.
 func (e *Eagle) processItinerary(ee *entry.Entry) error {
 	mm := ee.Helper()
 
 	var legs []typed.Typed
-
 	if leg, ok := mm.Properties.ObjectIf(mm.TypeProperty()); ok {
 		legs = append(legs, leg)
 	} else if llegs, ok := mm.Properties.ObjectsIf(mm.TypeProperty()); ok {
@@ -27,8 +27,7 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 	}
 
 	var lastDest map[string]interface{}
-
-	features := geojson.NewFeatureCollection()
+	fc := geojson.NewFeatureCollection()
 
 	for i, leg := range legs {
 		props, ok := leg.ObjectIf("properties")
@@ -38,7 +37,13 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 
 		transitType := props.String("transit-type")
 
-		// ORIGIN
+		if _, ok := props.ObjectIf("origin"); ok {
+			// This entry was most likely already processed.
+			// Otherwise, origin wouldn't be a map.
+			return nil
+		}
+
+		// Origin
 		originCoord, _, err := e.parseLocationCoord(props, "origin", transitType)
 		if err != nil {
 			return err
@@ -46,11 +51,11 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 
 		if i == 0 {
 			feature := geojson.NewPointFeature(originCoord)
-			features.Features = append(features.Features, feature)
 			feature.SetProperty("marker-color", "#2ecc71")
+			fc.Features = append(fc.Features, feature)
 		}
 
-		// DESTINATION
+		// Destination
 		destCoord, loc, err := e.parseLocationCoord(props, "destination", transitType)
 		if err != nil {
 			return err
@@ -63,22 +68,11 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 		} else {
 			feature.SetProperty("marker-color", "#3498db")
 		}
-		features.Features = append(features.Features, feature)
-		features.Features = append(features.Features, geojson.NewLineStringFeature([][]float64{originCoord, destCoord}))
+		fc.Features = append(fc.Features, feature)
+		fc.Features = append(fc.Features, geojson.NewLineStringFeature([][]float64{originCoord, destCoord}))
 	}
 
-	data, typ, err := e.mapboxGeoJSON(features)
-	if err != nil {
-		return err
-	}
-
-	filename := filepath.Join(ContentDirectory, ee.ID, "map."+typ)
-	err = e.fs.WriteFile(filename, data, "map")
-	if err != nil {
-		return err
-	}
-
-	_, err = e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
 		if lastDest != nil {
 			ee.Properties["location"] = lastDest
 		}
@@ -90,8 +84,18 @@ func (e *Eagle) processItinerary(ee *entry.Entry) error {
 		}
 		return ee, nil
 	})
+	if err != nil {
+		return err
+	}
 
-	return err
+	// Get map with GeoJSON and save it
+	data, typ, err := e.mapboxGeoJSON(fc)
+	if err != nil {
+		return err
+	}
+
+	filename := filepath.Join(ContentDirectory, ee.ID, "map."+typ)
+	return e.fs.WriteFile(filename, data, "map")
 }
 
 func (e *Eagle) parseLocationCoord(props typed.Typed, prop, transitType string) ([]float64, map[string]interface{}, error) {

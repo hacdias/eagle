@@ -48,7 +48,22 @@ func (e *Eagle) parseLocation(str string, isAirport bool) (map[string]interface{
 	}
 
 	if isAirport {
-		return e.loctools.Airport(str)
+		var code string
+		if strings.Contains(str, "(") {
+			str = strings.TrimSpace(str)
+			strs := strings.Split(str, "(")
+			code = strs[len(strs)-1]
+			code = strings.Replace(code, ")", "", 1)
+		} else {
+			code = str
+		}
+
+		loc, err := e.loctools.Airport(code)
+		if err != nil {
+			return nil, err
+		}
+		loc["properties"].(map[string]interface{})["name"] = str
+		return loc, nil
 	}
 
 	return e.loctools.Search(e.Config.Site.Language, str)
