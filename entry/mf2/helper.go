@@ -153,3 +153,17 @@ func (m *FlatHelper) LocationHTML() template.HTML {
 func (m *FlatHelper) Sub(prop string) *FlatHelper {
 	return NewFlatHelper(m.Properties.MapOr(prop, nil))
 }
+
+func (m *FlatHelper) Subs(prop string) []*FlatHelper {
+	if v := m.Properties.Map(prop); v != nil {
+		return []*FlatHelper{NewFlatHelper(v)}
+	}
+
+	vv := m.Properties.Maps(prop)
+	var hh []*FlatHelper
+	for _, v := range vv {
+		hh = append(hh, NewFlatHelper(v))
+	}
+
+	return hh
+}
