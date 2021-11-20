@@ -235,8 +235,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if (ee.Draft || ee.Private) && !loggedIn {
-		// Do not give away it exists!
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 		return
 	}
 
