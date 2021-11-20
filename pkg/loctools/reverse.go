@@ -9,7 +9,7 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
-func (l *LocTools) photonReverse(lang string, lon, lat float64) (map[string]interface{}, error) {
+func (l *LocTools) photonReverse(lang string, lon, lat float64) (*Location, error) {
 	uv := url.Values{}
 	uv.Set("lat", fmt.Sprintf("%v", lat))
 	uv.Set("lon", fmt.Sprintf("%v", lon))
@@ -44,25 +44,11 @@ func (l *LocTools) photonReverse(lang string, lon, lat float64) (map[string]inte
 		return nil, errors.New("no useful information found")
 	}
 
-	props := map[string]interface{}{
-		"latitude":  lat,
-		"longitude": lon,
-	}
-
-	if city != "" {
-		props["locality"] = city
-	}
-
-	if state != "" {
-		props["region"] = state
-	}
-
-	if country != "" {
-		props["country-name"] = country
-	}
-
-	return map[string]interface{}{
-		"properties": props,
-		"type":       "h-adr",
+	return &Location{
+		Latitude:  lat,
+		Longitude: lon,
+		Locality:  city,
+		Region:    state,
+		Country:   country,
 	}, nil
 }

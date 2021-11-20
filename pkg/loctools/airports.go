@@ -13,12 +13,12 @@ type aviowikiResponse struct {
 }
 
 type aviowikiContent struct {
-	ICAO        string               `json:"icao"`
-	IATA        string               `json:"iata"`
-	Name        string               `json:"name"`
-	Coordinates *aviowikiCoordinates `json:"coordinates"`
-	Country     *aviowikiCountry     `json:"country"`
-	City        string               `json:"servedCity"`
+	ICAO        string              `json:"icao"`
+	IATA        string              `json:"iata"`
+	Name        string              `json:"name"`
+	Coordinates aviowikiCoordinates `json:"coordinates"`
+	Country     aviowikiCountry     `json:"country"`
+	City        string              `json:"servedCity"`
 }
 
 type aviowikiCoordinates struct {
@@ -30,7 +30,7 @@ type aviowikiCountry struct {
 	Name string `json:"name"`
 }
 
-func (l *LocTools) aviowikiSearch(query string) (map[string]interface{}, error) {
+func (l *LocTools) aviowikiSearch(query string) (*Location, error) {
 	uv := url.Values{}
 	uv.Set("query", query)
 	uv.Set("size", "1")
@@ -56,27 +56,15 @@ func (l *LocTools) aviowikiSearch(query string) (map[string]interface{}, error) 
 		return nil, errors.New("no airport found")
 	}
 
-	props := map[string]interface{}{
-		"name": query,
-	}
-
 	f := avioRes.Content[0]
 
-	if f.Coordinates != nil {
-		props["longitude"] = f.Coordinates.Longitude
-		props["latitude"] = f.Coordinates.Latitude
+	loc := &Location{
+		Name:      query,
+		Latitude:  f.Coordinates.Latitude,
+		Longitude: f.Coordinates.Longitude,
+		Country:   f.Country.Name,
+		Locality:  strings.TrimSpace(strings.Split(f.City, ",")[0]),
 	}
 
-	if f.Country.Name != "" {
-		props["country-name"] = f.Country.Name
-	}
-
-	if f.City != "" {
-		props["locality"] = strings.TrimSpace(strings.Split(f.City, ",")[0])
-	}
-
-	return map[string]interface{}{
-		"properties": props,
-		"type":       "h-adr",
-	}, nil
+	return loc, nil
 }

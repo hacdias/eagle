@@ -2,15 +2,12 @@ package eagle
 
 import (
 	"errors"
-	"fmt"
-	"io"
-	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
-	geojson "github.com/paulmach/go.geojson"
+	"github.com/hacdias/eagle/v2/pkg/loctools"
+	"github.com/karlseguin/typed"
 )
 
 func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
@@ -18,14 +15,16 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 		return nil
 	}
 
-	mm := ee.Helper()
+	if ee.Helper().PostType() == mf2.TypeItinerary {
+		return e.processItineraryLocations(ee)
+	}
 
-	locationStr := mm.String("location")
-	if locationStr == "" {
+	locationStr, ok := ee.Properties["location"].(string)
+	if locationStr == "" || !ok {
 		return nil
 	}
 
-	location, err := e.parseLocation(locationStr, false)
+	location, err := e.parseLocation(locationStr)
 	if err != nil {
 		return err
 	}
@@ -42,138 +41,165 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 	return err
 }
 
-func (e *Eagle) parseLocation(str string, isAirport bool) (map[string]interface{}, error) {
-	if strings.HasPrefix(str, "geo:") {
-		return e.loctools.FromGeoURI(e.Config.Site.Language, str)
+func (e *Eagle) processItineraryLocations(ee *entry.Entry) error {
+	if ee.Properties == nil {
+		return nil
 	}
 
-	if isAirport {
-		var code string
-		if strings.Contains(str, "(") {
-			str = strings.TrimSpace(str)
-			strs := strings.Split(str, "(")
-			code = strs[len(strs)-1]
-			code = strings.Replace(code, ")", "", 1)
-		} else {
-			code = str
+	props := typed.Typed(ee.Properties)
+
+	var legs []typed.Typed
+
+	if v, ok := props.ObjectIf("itinerary"); ok {
+		legs = []typed.Typed{v}
+	} else if vv, ok := props.ObjectsIf("itinerary"); ok {
+		legs = vv
+	} else {
+		return errors.New("itinerary has no legs")
+	}
+
+	if len(legs) == 0 {
+		return errors.New("itinerary has no legs")
+	}
+
+	var lastDest map[string]interface{}
+
+	for _, leg := range legs {
+		props, ok := leg.ObjectIf("properties")
+		if !ok {
+			return errors.New("leg missing properties")
 		}
 
-		loc, err := e.loctools.Airport(code)
+		transitType := props.String("transit-type")
+
+		if _, ok := props.ObjectIf("origin"); ok {
+			// This entry was most likely already processed.
+			// Otherwise, origin wouldn't be a map.
+			return nil
+		}
+
+		_, err := e.parseItineraryLocation(props, "origin", transitType)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		loc["properties"].(map[string]interface{})["name"] = str
-		return loc, nil
+
+		loc, err := e.parseItineraryLocation(props, "destination", transitType)
+		if err != nil {
+			return err
+		}
+		lastDest = loc
 	}
 
-	return e.loctools.Search(e.Config.Site.Language, str)
+	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+		if lastDest != nil {
+			ee.Properties["location"] = lastDest
+		}
+
+		if len(legs) == 1 {
+			ee.Properties["itinerary"] = legs[0]
+		} else {
+			ee.Properties["itinerary"] = legs
+		}
+
+		return ee, nil
+	})
+
+	return err
 }
 
-func (e *Eagle) ProcessLocationMap(ee *entry.Entry) error {
-	mm := ee.Helper()
-
-	if mm.PostType() != mf2.TypeCheckin {
-		// Only get location maps for checkins.
-		return nil
+func (e *Eagle) parseItineraryLocation(props typed.Typed, prop, transitType string) (map[string]interface{}, error) {
+	str := props.String(prop)
+	if str == "" {
+		return nil, errors.New(prop + " missing")
 	}
 
-	location := mm.Sub("location")
-	if location == nil {
-		return nil
-	}
-
-	latitude := location.Properties.Float("latitude")
-	longitude := location.Properties.Float("longitude")
-
-	data, typ, err := e.mapboxStatic(longitude, latitude)
-	if err != nil {
-		return err
-	}
-
-	filename := filepath.Join(ContentDirectory, ee.ID, "map."+typ)
-	return e.fs.WriteFile(filename, data, "map")
-}
-
-func (e *Eagle) mapboxStatic(lon, lat float64) ([]byte, string, error) {
-	if e.Config.MapBox == nil {
-		return nil, "", errors.New("mapbox details not provided")
-	}
-
-	path := fmt.Sprintf(
-		"https://api.mapbox.com/styles/v1/mapbox/%s/static/pin-l+%s(%f,%f)/%f,%f,%d,0/%s",
-		e.Config.MapBox.MapStyle,
-		e.Config.MapBox.PinColor,
-		lon,
-		lat,
-		lon,
-		lat,
-		e.Config.MapBox.Zoom,
-		e.Config.MapBox.Size,
+	var (
+		location map[string]interface{}
+		err      error
 	)
 
-	if e.Config.MapBox.Use2X {
-		path += "@2x"
+	if transitType == "air" {
+		location, err = e.parseAirportLocation(str)
+	} else {
+		location, err = e.parseLocation(str)
 	}
 
-	path += "?access_token=" + e.Config.MapBox.AccessToken
-
-	res, err := e.httpClient.Get(path)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, "", err
-	}
-
-	typ := "png"
-	if strings.Contains(res.Header.Get("Content-Type"), "jpeg") {
-		typ = "jpeg"
-	}
-
-	return data, typ, nil
+	props[prop] = location
+	return location, nil
 }
 
-func (e *Eagle) mapboxGeoJSON(geojson *geojson.FeatureCollection) ([]byte, string, error) {
-	if e.Config.MapBox == nil {
-		return nil, "", errors.New("mapbox details not provided")
+func (e *Eagle) parseAirportLocation(str string) (map[string]interface{}, error) {
+	var code string
+
+	if strings.Contains(str, "(") {
+		str = strings.TrimSpace(str)
+		strs := strings.Split(str, "(")
+		code = strs[len(strs)-1]
+		code = strings.Replace(code, ")", "", 1)
+	} else {
+		code = str
 	}
 
-	raw, err := geojson.MarshalJSON()
+	loc, err := e.loctools.Airport(code)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	path := fmt.Sprintf(
-		"https://api.mapbox.com/styles/v1/mapbox/%s/static/geojson(%s)/auto/%s",
-		e.Config.MapBox.MapStyle,
-		url.QueryEscape(string(raw)),
-		e.Config.MapBox.Size,
+	loc.Name = str
+	location, err := loc, nil
+	if err != nil {
+		return nil, err
+	}
+
+	return locationToMultiformat(location), nil
+}
+
+func (e *Eagle) parseLocation(str string) (map[string]interface{}, error) {
+	var (
+		location *loctools.Location
+		err      error
 	)
 
-	if e.Config.MapBox.Use2X {
-		path += "@2x"
+	if strings.HasPrefix(str, "geo:") {
+		location, err = e.loctools.FromGeoURI(e.Config.Site.Language, str)
+	} else {
+		location, err = e.loctools.Search(e.Config.Site.Language, str)
 	}
 
-	path += "?padding=20&access_token=" + e.Config.MapBox.AccessToken
-
-	res, err := e.httpClient.Get(path)
 	if err != nil {
-		return nil, "", err
-	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	typ := "png"
-	if strings.Contains(res.Header.Get("Content-Type"), "jpeg") {
-		typ = "jpeg"
+	return locationToMultiformat(location), nil
+}
+
+func locationToMultiformat(loc *loctools.Location) map[string]interface{} {
+	props := map[string]interface{}{
+		"latitude":  loc.Latitude,
+		"longitude": loc.Longitude,
 	}
 
-	return data, typ, nil
+	if loc.Name != "" {
+		props["name"] = loc.Name
+	}
+
+	if loc.Locality != "" {
+		props["locality"] = loc.Locality
+	}
+
+	if loc.Region != "" {
+		props["region"] = loc.Region
+	}
+
+	if loc.Country != "" {
+		props["country-name"] = loc.Country
+	}
+
+	return map[string]interface{}{
+		"type":       "h-adr",
+		"properties": props,
+	}
 }

@@ -8,7 +8,7 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
-func (l *LocTools) photonSearch(lang, query string) (map[string]interface{}, error) {
+func (l *LocTools) photonSearch(lang, query string) (*Location, error) {
 	uv := url.Values{}
 	uv.Set("q", query)
 	uv.Set("lang", lang)
@@ -42,29 +42,17 @@ func (l *LocTools) photonSearch(lang, query string) (map[string]interface{}, err
 		return nil, errors.New("no useful information found")
 	}
 
-	props := map[string]interface{}{
-		"name": query,
+	loc := &Location{
+		Name:     query,
+		Locality: city,
+		Region:   state,
+		Country:  country,
 	}
 
 	if f.Geometry != nil && len(f.Geometry.Point) == 2 {
-		props["longitude"] = f.Geometry.Point[0]
-		props["latitude"] = f.Geometry.Point[1]
+		loc.Longitude = f.Geometry.Point[0]
+		loc.Latitude = f.Geometry.Point[1]
 	}
 
-	if city != "" {
-		props["locality"] = city
-	}
-
-	if state != "" {
-		props["region"] = state
-	}
-
-	if country != "" {
-		props["country-name"] = country
-	}
-
-	return map[string]interface{}{
-		"properties": props,
-		"type":       "h-adr",
-	}, nil
+	return loc, nil
 }
