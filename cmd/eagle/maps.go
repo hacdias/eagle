@@ -40,6 +40,10 @@ var mapsCmd = &cobra.Command{
 				if _, err := os.Stat(filepath.Join(e.Config.SourceDirectory, eagle.ContentDirectory, ee.ID, "map.png")); err == nil {
 					continue
 				}
+
+				if _, err := os.Stat(filepath.Join(e.Config.SourceDirectory, eagle.ContentDirectory, ee.ID, "map.jpeg")); err == nil {
+					continue
+				}
 			}
 
 			err = e.ProcessLocationMap(ee)
