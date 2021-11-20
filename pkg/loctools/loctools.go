@@ -6,12 +6,6 @@ import (
 	gogeouri "git.jlel.se/jlelse/go-geouri"
 )
 
-type LocTools struct {
-	httpClient *http.Client
-}
-
-// JUST RETURN type directly without the wrapping with properties
-
 type Location struct {
 	Latitude  float64 `json:"latitude,omitempty" yaml:"latitude,omitempty"`
 	Longitude float64 `json:"longitude,omitempty" yaml:"longitude,omitempty"`
@@ -19,6 +13,10 @@ type Location struct {
 	Locality  string  `json:"locality,omitempty" yaml:"locality,omitempty"`
 	Region    string  `json:"region,omitempty" yaml:"region,omitempty"`
 	Country   string  `json:"country-name,omitempty" yaml:"country-name,omitempty"`
+}
+
+type LocTools struct {
+	httpClient *http.Client
 }
 
 func NewLocTools(client *http.Client) *LocTools {
