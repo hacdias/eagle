@@ -176,6 +176,11 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		if err := e.parseDateFromItinerary(data, mm); err != nil {
 			return err
 		}
+
+		// Make itineraries private if they're in the future.
+		if e.Published.After(time.Now()) {
+			e.Private = true
+		}
 	}
 
 	if e.Published.IsZero() {
