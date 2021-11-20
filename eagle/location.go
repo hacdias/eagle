@@ -6,7 +6,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/entry/mf2"
-	"github.com/hacdias/eagle/v2/pkg/loctools"
+	"github.com/hacdias/eagle/v2/loctools"
 	"github.com/karlseguin/typed"
 )
 
