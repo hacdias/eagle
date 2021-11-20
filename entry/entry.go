@@ -104,7 +104,9 @@ func (e *Entry) TextContent() string {
 }
 
 func (e *Entry) Update(mf2Data map[string][]interface{}) error {
-	data := typed.New(mf2.Flatten(mf2Data))
+	flattened := mf2.Flatten(mf2Data)
+	data := typed.New(flattened)
+	mm := mf2.NewFlatHelper(flattened)
 
 	if published, ok := data.StringIf("published"); ok {
 		p, err := dateparse.ParseStrict(published)
@@ -113,8 +115,6 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		}
 		e.Published = p
 		delete(data, "published")
-	} else {
-		e.Published = time.Now()
 	}
 
 	if updated, ok := data.StringIf("updated"); ok {
@@ -171,7 +171,54 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		e.Properties = map[string]interface{}{}
 	}
 
+	switch mm.PostType() {
+	case mf2.TypeItinerary:
+		if err := e.parseDateFromItinerary(data, mm); err != nil {
+			return err
+		}
+
+		// Make itineraries private if they're in the future.
+		if e.Published.After(time.Now()) {
+			e.Private = true
+		}
+	}
+
+	if e.Published.IsZero() {
+		e.Published = time.Now()
+	}
+
 	e.Properties = data
+	return nil
+}
+
+func (e *Entry) parseDateFromItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
+	if !e.Published.IsZero() {
+		return nil
+	}
+
+	dateFromLeg := func(leg typed.Typed) error {
+		props, ok := leg.ObjectIf("properties")
+		if !ok {
+			return nil
+		}
+
+		if arrival, ok := props.StringIf("arrival"); ok {
+			p, err := dateparse.ParseStrict(arrival)
+			if err != nil {
+				return err
+			}
+			e.Published = p
+		}
+
+		return nil
+	}
+
+	if leg, ok := data.ObjectIf(mm.TypeProperty()); ok {
+		return dateFromLeg(leg)
+	} else if legs, ok := data.ObjectsIf(mm.TypeProperty()); ok {
+		return dateFromLeg(legs[len(legs)-1])
+	}
+
 	return nil
 }
 

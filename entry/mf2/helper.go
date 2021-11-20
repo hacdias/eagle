@@ -77,6 +77,18 @@ func (m *FlatHelper) Strings(prop string) []string {
 	return []string{}
 }
 
+func (m *FlatHelper) Float(prop string) float64 {
+	if v, ok := m.Properties.FloatIf(prop); ok {
+		return v
+	}
+
+	if v, ok := m.Properties.FloatsIf(prop); ok && len(v) > 0 {
+		return v[0]
+	}
+
+	return 0
+}
+
 func (m *FlatHelper) Photos() []map[string]interface{} {
 	v, ok := m.Properties["photo"]
 	if !ok {
