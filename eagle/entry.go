@@ -195,10 +195,6 @@ func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*en
 		return nil, errors.New("at least one entry transformer must be provided")
 	}
 
-	// TODO: instead, I could keep the file open for writing
-	// and avoid the need for locks entirely.
-	// However, take into account that .SaveEntry uses
-	// .entryCheck to fill missing fields.
 	e.entriesMu.Lock()
 	defer e.entriesMu.Unlock()
 

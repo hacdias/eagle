@@ -197,12 +197,9 @@ func (e *Eagle) SyncStorage() {
 		ids = append(ids, id)
 	}
 
-	// TODO: is calling .initTemplates and .initAssets safe here?
-	// This way I could update the templates and the assets without
-	// needing to manually restart the server. Is re-assigning of
-	// variables while possibly reading safe?
+	// NOTE: we do not reload the templates and assets because
+	// doing so is not concurrent-safe.
 	ids = funk.UniqString(ids)
-
 	entries := []*entry.Entry{}
 
 	for _, id := range ids {
