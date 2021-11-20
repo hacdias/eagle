@@ -122,13 +122,19 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 func (e *Eagle) AbsoluteURL(path string) string {
 	url, _ := urlpkg.Parse(path)
 	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
-	return base.ResolveReference(url).String()
+	resolved := base.ResolveReference(url)
+	return resolved.String()
 }
 
 func (e *Eagle) relativeURL(path string) string {
 	url, _ := urlpkg.Parse(path)
 	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
-	return base.ResolveReference(url).Path
+	resolved := base.ResolveReference(url)
+	// Take out everything before the path.
+	resolved.User = nil
+	resolved.Host = ""
+	resolved.Scheme = ""
+	return resolved.String()
 }
 
 func (e *Eagle) initTemplates() error {

@@ -31,7 +31,7 @@ func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int
 
 func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
 	if s.isLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	s.serveLoginPage(w, r, http.StatusOK, "")
@@ -94,7 +94,11 @@ func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	if redirect := r.URL.Query().Get("redirect"); redirect != "" {
+		http.Redirect(w, r, redirect, http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
 }
 
 func (s *Server) withLoggedIn(next http.Handler) http.Handler {
@@ -121,7 +125,7 @@ func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.isLoggedIn(r) {
 			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
-			http.Redirect(w, r, newPath, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, newPath, http.StatusSeeOther)
 			return
 		}
 
