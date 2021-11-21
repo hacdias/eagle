@@ -217,7 +217,8 @@ type RenderData struct {
 
 	Alternates   []Alternate
 	IsHome       bool
-	LoggedIn     bool
+	IsLoggedIn   bool
+	IsAdmin      bool
 	NoIndex      bool
 	TorUsed      bool
 	OnionAddress string

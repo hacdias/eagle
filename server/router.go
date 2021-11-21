@@ -90,6 +90,7 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/deleted", s.deletedGet)
 		r.Get("/drafts", s.draftsGet)
+		r.Get("/unlisted", s.unlistedGet)
 	})
 
 	// Logged-in only pages.

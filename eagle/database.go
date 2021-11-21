@@ -40,6 +40,10 @@ func (e *Eagle) GetDrafts(opts *database.PaginationOptions) ([]*entry.Entry, err
 	return e.idsToEntries(e.db.GetDrafts(opts))
 }
 
+func (e *Eagle) GetUnlisted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetUnlisted(opts))
+}
+
 func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {
 	if err != nil {
 		return nil, err

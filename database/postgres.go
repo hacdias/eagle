@@ -193,6 +193,11 @@ func (d *Postgres) GetDrafts(opts *PaginationOptions) ([]string, error) {
 	return d.queryEntries(sql, 0)
 }
 
+func (d *Postgres) GetUnlisted(opts *PaginationOptions) ([]string, error) {
+	sql := "select id from entries where visibility='unlisted' order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	sql := `select id from (
 		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility

@@ -45,14 +45,9 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "#" + tag
-	}
-
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: ee,
+			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			return s.GetByTag(opts, tag)
@@ -62,11 +57,7 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) sectionGet(section string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ee := s.getListingEntryOrEmpty(r.URL.Path)
-		if ee.Title == "" {
-			ee.Title = section
-		}
-
+		ee := s.getListingEntryOrEmpty(r.URL.Path, section)
 		if len(ee.Sections) == 0 {
 			ee.Sections = []string{section}
 		}
@@ -139,10 +130,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "Search"
-	}
+	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	if ee.ID == "" {
 		ee.ID = strings.TrimSuffix(r.URL.Path, filepath.Ext(r.URL.Path))
 	}
@@ -175,14 +163,9 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "Private"
-	}
-
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry:   ee,
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -193,14 +176,9 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "Deleted"
-	}
-
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry:   ee,
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -210,14 +188,9 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "Drafts"
-	}
-
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry:   ee,
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -226,7 +199,19 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) getListingEntryOrEmpty(id string) *entry.Entry {
+func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetUnlisted(&opts.PaginationOptions)
+		},
+	})
+}
+
+func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 	id = strings.TrimSuffix(id, filepath.Ext(id))
 	if ee, err := s.GetEntry(id); err == nil {
 		if !ee.IsListing {
@@ -238,6 +223,7 @@ func (s *Server) getListingEntryOrEmpty(id string) *entry.Entry {
 
 	return &entry.Entry{
 		Frontmatter: entry.Frontmatter{
+			Title:     title,
 			IsListing: true,
 		},
 	}
@@ -284,7 +270,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	if ls.rd.Entry == nil {
-		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path)
+		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path, "")
 	}
 
 	if v := r.URL.Query().Get("page"); v != "" {
