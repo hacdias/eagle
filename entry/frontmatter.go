@@ -8,12 +8,19 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+type Visibility string
+
+const (
+	VisibilityPrivate  Visibility = "private"
+	VisibilityUnlisted Visibility = "unlisted"
+	VisibilityPublic   Visibility = "public"
+)
+
 type Frontmatter struct {
 	Title              string                 `yaml:"title,omitempty"`
 	Description        string                 `yaml:"description,omitempty"`
 	Draft              bool                   `yaml:"draft,omitempty"`
 	Deleted            bool                   `yaml:"deleted,omitempty"`
-	Private            bool                   `yaml:"private,omitempty"`
 	Published          time.Time              `yaml:"published,omitempty"`
 	Updated            time.Time              `yaml:"updated,omitempty"`
 	Sections           []string               `yaml:"section,omitempty"`

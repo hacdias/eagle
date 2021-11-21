@@ -39,7 +39,9 @@ type QueryOptions struct {
 	PaginationOptions
 	Draft   bool
 	Deleted bool
-	Private bool
+
+	// Nil or empty list means that all visibilities can be shown.
+	Visibility []entry.Visibility
 }
 
 type Database interface {

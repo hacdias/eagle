@@ -163,7 +163,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			SearchQuery: query,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			if opts.Private {
+			if s.isLoggedIn(r) {
 				opts.Draft = true
 				opts.Deleted = true
 			}
@@ -247,7 +247,14 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		PaginationOptions: database.PaginationOptions{
 			Limit: s.Config.Site.Paginate,
 		},
-		Private: loggedIn,
+	}
+
+	if !loggedIn {
+		// If not logged in, only show public posts. If logged in,
+		// do not set it and show everything.
+		opts.Visibility = []entry.Visibility{
+			entry.VisibilityPublic,
+		}
 	}
 
 	if ls.rd == nil {

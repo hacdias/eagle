@@ -68,6 +68,18 @@ func (e *Entry) Tags() []string {
 	return []string{}
 }
 
+func (e *Entry) Visibility() Visibility {
+	m := typed.New(e.Properties)
+	switch m.String("visibility") {
+	case "private":
+		return VisibilityPrivate
+	case "unlisted":
+		return VisibilityUnlisted
+	default:
+		return VisibilityPublic
+	}
+}
+
 func (e *Entry) Summary() string {
 	if e.summary != "" {
 		return e.summary
@@ -103,33 +115,33 @@ func (e *Entry) TextContent() string {
 	return stripText(e.Content)
 }
 
-func (e *Entry) Update(mf2Data map[string][]interface{}) error {
-	flattened := mf2.Flatten(mf2Data)
-	data := typed.New(flattened)
-	mm := mf2.NewFlatHelper(flattened)
+func (e *Entry) Update(newProps map[string][]interface{}) error {
+	props := typed.New(mf2.Flatten(newProps))
+	mm := mf2.NewFlatHelper(props)
+	e.Properties = props
 
-	if published, ok := data.StringIf("published"); ok {
+	if published, ok := props.StringIf("published"); ok {
 		p, err := dateparse.ParseStrict(published)
 		if err != nil {
 			return err
 		}
 		e.Published = p
-		delete(data, "published")
+		delete(props, "published")
 	}
 
-	if updated, ok := data.StringIf("updated"); ok {
+	if updated, ok := props.StringIf("updated"); ok {
 		p, err := dateparse.ParseStrict(updated)
 		if err != nil {
 			return err
 		}
 		e.Updated = p
-		delete(data, "updated")
+		delete(props, "updated")
 	}
 
-	if content, ok := data.StringIf("content"); ok {
+	if content, ok := props.StringIf("content"); ok {
 		e.Content = content
-		delete(data, "content")
-	} else if content, ok := data.ObjectIf("content"); ok {
+		delete(props, "content")
+	} else if content, ok := props.ObjectIf("content"); ok {
 		if text, ok := content.StringIf("text"); ok {
 			e.Content = text
 		} else if html, ok := content.StringIf("html"); ok {
@@ -137,49 +149,38 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		} else {
 			return errors.New("could not parse content field")
 		}
-	} else if _, ok := data["content"]; ok {
+	} else if _, ok := props["content"]; ok {
 		return errors.New("could not parse content field")
 	}
 
 	e.Content = strings.TrimSpace(e.Content)
 
-	if name, ok := data.StringIf("name"); ok {
+	if name, ok := props.StringIf("name"); ok {
 		e.Title = name
-		delete(data, "name")
+		delete(props, "name")
 	}
 
-	if summary, ok := data.StringIf("summary"); ok {
+	if summary, ok := props.StringIf("summary"); ok {
 		e.Description = summary
-		delete(data, "summary")
+		delete(props, "summary")
 	}
 
-	if status, ok := data.StringIf("post-status"); ok {
+	if status, ok := props.StringIf("post-status"); ok {
 		if status == "draft" {
 			e.Draft = true
 		}
-		delete(data, "post-status")
-	}
-
-	if visibility, ok := data.StringIf("visibility"); ok {
-		if visibility == "private" {
-			e.Private = true
-		}
-		delete(data, "visibility")
-	}
-
-	if e.Properties == nil {
-		e.Properties = map[string]interface{}{}
+		delete(props, "post-status")
 	}
 
 	switch mm.PostType() {
 	case mf2.TypeItinerary:
-		if err := e.parseDateFromItinerary(data, mm); err != nil {
+		if err := e.parseDateFromItinerary(props, mm); err != nil {
 			return err
 		}
 
 		// Make itineraries private if they're in the future.
 		if e.Published.After(time.Now()) {
-			e.Private = true
+			e.Properties["visibility"] = VisibilityPrivate
 		}
 	}
 
@@ -187,7 +188,6 @@ func (e *Entry) Update(mf2Data map[string][]interface{}) error {
 		e.Published = time.Now()
 	}
 
-	e.Properties = data
 	return nil
 }
 
@@ -252,12 +252,6 @@ func (e *Entry) FlatMF2() map[string]interface{} {
 		properties["post-status"] = "draft"
 	} else {
 		properties["post-status"] = "published"
-	}
-
-	if e.Private {
-		properties["visibility"] = "private"
-	} else {
-		properties["visibility"] = "public"
 	}
 
 	return map[string]interface{}{

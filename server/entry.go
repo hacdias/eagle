@@ -196,7 +196,7 @@ func (s *Server) newEditHandler(w http.ResponseWriter, r *http.Request, ee *entr
 		return
 	}
 
-	if len(syndications) > 0 && ee.Private {
+	if len(syndications) > 0 && ee.Visibility() == entry.VisibilityPrivate {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate private entry"))
 		return
 	}
@@ -234,7 +234,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (ee.Draft || ee.Private) && !loggedIn {
+	if (ee.Draft || ee.Visibility() == entry.VisibilityPrivate) && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 		return
 	}

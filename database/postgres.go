@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -49,7 +50,7 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC(), entry.Properties)
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Published.UTC(), entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -189,7 +190,7 @@ func (d *Postgres) GetDrafts(opts *PaginationOptions) ([]string, error) {
 
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	sql := `select id from (
-		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isPrivate
+		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility
 		from entries as e
 	) s
 	where score > 0`
@@ -332,14 +333,20 @@ func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
 		where = append(where, "isDeleted=false")
 	}
 
-	if !opts.Private {
-		where = append(where, "isPrivate=false")
+	if len(opts.Visibility) > 0 {
+		visibilityOr := []string{}
+		for _, vis := range opts.Visibility {
+			// TODO: fix this and send as arg.
+			visibilityOr = append(visibilityOr, "visibility='"+string(vis)+"'")
+		}
+		where = append(where, "("+strings.Join(visibilityOr, " or ")+")")
 	}
 
 	if !opts.Draft {
 		where = append(where, "isDraft=false")
 	}
 
+	fmt.Println(where)
 	return where
 }
 
