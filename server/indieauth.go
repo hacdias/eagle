@@ -22,9 +22,7 @@ import (
 const (
 	AuthCodeSubject string = "Eagle Auth Code"
 	TokenSubject    string = "Eagle Token"
-)
 
-const (
 	scopesContextKey contextKey = "scopes"
 	clientContextKey contextKey = "client"
 )
@@ -272,6 +270,10 @@ func getAuthorizationRequest(r *http.Request) (*authRequest, error) {
 		return nil, errors.New("client_id is invalid")
 	}
 
+	// TODO: fix this.
+	// 	1. Check if redirect URI has same domain and scheme as CLIENT ID.
+	//  2. If not, GET request and check redirect_uri links.
+	// https://indieauth.spec.indieweb.org/#redirect-url
 	if !isValidProfileURL(redirectURI) {
 		return nil, errors.New("redirect_uri is invalid")
 	}
@@ -368,6 +370,8 @@ func isValidProfileURL(profileURL string) bool {
 		return false
 	}
 
+	// TODO: MUST contain a path component (/ is a valid path), MUST NOT contain single-dot or double-dot path segments
+
 	if url.Fragment != "" {
 		return false
 	}
@@ -380,7 +384,10 @@ func isValidProfileURL(profileURL string) bool {
 		return false
 	}
 
-	// TODO: check domain / IP.
+	// TODO:
+	// PROFILE URL: Additionally, host names MUST be domain names and MUST NOT be ipv4 or ipv6 addresses.
+	// CLIENT ID: Additionally, host names MUST be domain names or a loopback interface and MUST NOT be IPv4 or IPv6 addresses except for IPv4 127.0.0.1 or IPv6 [::1].
+
 	return true
 }
 

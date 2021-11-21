@@ -50,7 +50,8 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Published.UTC(), entry.Properties)
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, date, properties) values($1, $2, $3, $4, $5, $6, $7, $8)",
+			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -147,14 +148,6 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 }
 
 func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
-	if len(sections) == 0 {
-		sql := "select id from entries"
-		if ands := d.whereConstraints(opts); len(ands) > 0 {
-			sql += " where " + strings.Join(ands, " and ")
-		}
-		return d.queryEntries(sql+" order by date desc"+d.offset(&opts.PaginationOptions), 0)
-	}
-
 	args := []interface{}{}
 	sql := "select distinct (id) id, date from sections inner join entries on id=entry_id"
 	ands := d.whereConstraints(opts)
@@ -176,6 +169,18 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 
 	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
 	return d.queryEntries(sql, 1, args...)
+}
+
+func (d *Postgres) GetAll(opts *QueryOptions) ([]string, error) {
+	sql := "select id from entries"
+
+	if ands := d.whereConstraints(opts); len(ands) > 0 {
+		sql += " where " + strings.Join(ands, " and ")
+	}
+
+	fmt.Println(sql)
+
+	return d.queryEntries(sql+" order by date desc"+d.offset(&opts.PaginationOptions), 0)
 }
 
 func (d *Postgres) GetDeleted(opts *PaginationOptions) ([]string, error) {
@@ -337,7 +342,12 @@ func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
 		visibilityOr := []string{}
 		for _, vis := range opts.Visibility {
 			// TODO: fix this and send as arg.
-			visibilityOr = append(visibilityOr, "visibility='"+string(vis)+"'")
+			if vis == entry.VisibilityPrivate && opts.Audience != "" {
+				visibilityOr = append(visibilityOr, "(visibility='private' and audience is null)")
+				visibilityOr = append(visibilityOr, "(visibility='private' and '"+opts.Audience+"' = ANY (audience) )")
+			} else {
+				visibilityOr = append(visibilityOr, "visibility='"+string(vis)+"'")
+			}
 		}
 		where = append(where, "("+strings.Join(visibilityOr, " or ")+")")
 	}
@@ -346,7 +356,6 @@ func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
 		where = append(where, "isDraft=false")
 	}
 
-	fmt.Println(where)
 	return where
 }
 

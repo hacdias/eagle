@@ -21,7 +21,7 @@ import (
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.BySection(opts)
+			return s.GetAll(opts)
 		},
 	})
 }
@@ -32,7 +32,7 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 			IsHome: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.BySection(opts, s.Config.Site.IndexSections...)
+			return s.GetBySection(opts, s.Config.Site.IndexSections...)
 		},
 		templates: []string{eagle.TemplateIndex},
 	})
@@ -55,7 +55,7 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 			Entry: ee,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.ByTag(opts, tag)
+			return s.GetByTag(opts, tag)
 		},
 	})
 }
@@ -76,7 +76,7 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 				Entry: ee,
 			},
 			exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-				return s.BySection(opts, section)
+				return s.GetBySection(opts, section)
 			},
 			templates: []string{},
 		})
@@ -131,7 +131,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.ByDate(opts, year, month, day)
+			return s.GetByDate(opts, year, month, day)
 		},
 	})
 }
@@ -174,15 +174,33 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
+func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
+	ee := s.getListingEntryOrEmpty(r.URL.Path)
+	if ee.Title == "" {
+		ee.Title = "Private"
+	}
+
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: &entry.Entry{
-				Frontmatter: entry.Frontmatter{
-					Title:     "Deleted",
-					IsListing: true,
-				},
-			},
+			Entry:   ee,
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			opts.Visibility = []entry.Visibility{entry.VisibilityPrivate}
+			return s.GetAll(opts)
+		},
+	})
+}
+
+func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
+	ee := s.getListingEntryOrEmpty(r.URL.Path)
+	if ee.Title == "" {
+		ee.Title = "Deleted"
+	}
+
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry:   ee,
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -192,14 +210,14 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
+	ee := s.getListingEntryOrEmpty(r.URL.Path)
+	if ee.Title == "" {
+		ee.Title = "Drafts"
+	}
+
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: &entry.Entry{
-				Frontmatter: entry.Frontmatter{
-					Title:     "Drafts",
-					IsListing: true,
-				},
-			},
+			Entry:   ee,
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -249,12 +267,16 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		},
 	}
 
-	if !loggedIn {
-		// If not logged in, only show public posts. If logged in,
-		// do not set it and show everything.
-		opts.Visibility = []entry.Visibility{
-			entry.VisibilityPublic,
+	if loggedIn {
+		if s.isAdmin(r) {
+			// Admin has access to everything, thus no need to set
+			// visibility or audience.
+		} else {
+			opts.Visibility = []entry.Visibility{entry.VisibilityPublic, entry.VisibilityPrivate}
+			opts.Audience = s.getUser(r)
 		}
+	} else {
+		opts.Visibility = []entry.Visibility{entry.VisibilityPublic}
 	}
 
 	if ls.rd == nil {

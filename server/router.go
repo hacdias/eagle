@@ -34,6 +34,27 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/onion", s.onionRedirHandler)
 	}
 
+	if s.Config.WebhookSecret != "" {
+		r.Post("/webhook", s.webhookHandler)
+	}
+
+	if s.Config.WebmentionsSecret != "" {
+		r.Post("/webmention", s.webmentionHandler)
+	}
+
+	r.Get("/search", s.searchGet)
+	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
+
+	// Token exchange points.
+	r.Post("/auth", s.indieauthPost)
+	r.Post("/token", s.tokenPost)
+
+	// TODO: rework this as indieauth put your address.
+	r.Get("/login", s.loginGetHandler)
+	r.Post("/login", s.loginPostHandler)
+
+	r.Get("/logout", s.logoutGetHandler)
+
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
 
@@ -48,8 +69,15 @@ func (s *Server) makeRouter() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustLoggedIn)
 
+		// TODO: This should be somewhere separatly. Perhaps /auth should ask for password.
 		r.Get("/auth", s.indieauthGet)
 		r.Post("/auth/accept", s.indieauthAcceptPost)
+	})
+
+	// Admin only pages.
+	r.Group(func(r chi.Router) {
+		r.Use(s.mustLoggedIn)
+		r.Use(s.mustAdmin)
 
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
@@ -59,27 +87,19 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/dashboard", s.dashboardGet)
 		r.Post("/dashboard", s.dashboardPost)
+
+		r.Get("/deleted", s.deletedGet)
+		r.Get("/drafts", s.draftsGet)
 	})
 
-	if s.Config.WebhookSecret != "" {
-		r.Post("/webhook", s.webhookHandler)
-	}
+	// Logged-in only pages.
+	r.Group(func(r chi.Router) {
+		r.Use(s.mustLoggedIn)
 
-	if s.Config.WebmentionsSecret != "" {
-		r.Post("/webmention", s.webmentionHandler)
-	}
+		r.Get("/private", s.privateGet)
+	})
 
-	// Token exchange points.
-	r.Post("/auth", s.indieauthPost)
-	r.Post("/token", s.tokenPost)
-
-	r.Get("/logout", s.logoutGetHandler)
-	r.Get("/login", s.loginGetHandler)
-	r.Post("/login", s.loginPostHandler)
-
-	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
-
-	// Listing HTML pages.
+	// Listing HTML pages. Cached.
 	r.Group(func(r chi.Router) {
 		r.Use(s.withCache)
 
@@ -91,28 +111,22 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(dayPath, s.dateGet)
 		r.Get("/tags/{tag}", s.tagGet)
 
-		r.With(s.mustLoggedIn).Get("/deleted", s.deletedGet)
-		r.With(s.mustLoggedIn).Get("/drafts", s.draftsGet)
-
 		for _, section := range s.Config.Site.Sections {
 			r.Get("/"+section, s.sectionGet(section))
 		}
 	})
 
-	// Listing feeds: JSON, XML and Atom.
-	r.Group(func(r chi.Router) {
-		r.Get("/"+feedPath, s.indexGet)
-		r.Get("/all"+feedPath, s.allGet)
-		r.Get(yearPath+feedPath, s.dateGet)
-		r.Get(monthPath+feedPath, s.dateGet)
-		r.Get(dayPath+feedPath, s.dateGet)
-		r.Get("/tags/{tag}"+feedPath, s.tagGet)
-		r.Get("/search", s.searchGet)
+	// Listing JSON, XML and ATOM feeds. Not cached.
+	r.Get("/"+feedPath, s.indexGet)
+	r.Get("/all"+feedPath, s.allGet)
+	r.Get(yearPath+feedPath, s.dateGet)
+	r.Get(monthPath+feedPath, s.dateGet)
+	r.Get(dayPath+feedPath, s.dateGet)
+	r.Get("/tags/{tag}"+feedPath, s.tagGet)
 
-		for _, section := range s.Config.Site.Sections {
-			r.Get("/"+section+feedPath, s.sectionGet(section))
-		}
-	})
+	for _, section := range s.Config.Site.Sections {
+		r.Get("/"+section+feedPath, s.sectionGet(section))
+	}
 
 	// Everything that was not matched so far.
 	r.Group(func(r chi.Router) {

@@ -40,8 +40,11 @@ type QueryOptions struct {
 	Draft   bool
 	Deleted bool
 
-	// Nil or empty list means that all visibilities can be shown.
+	// Empty matches all visibilities.
 	Visibility []entry.Visibility
+
+	// Empty matches all audiences.
+	Audience string
 }
 
 type Database interface {
@@ -52,12 +55,15 @@ type Database interface {
 
 	GetTags() ([]string, error)
 	Search(opt *QueryOptions, query string) ([]string, error)
-	ByTag(opt *QueryOptions, tag string) ([]string, error)
-	BySection(opt *QueryOptions, sections ...string) ([]string, error)
-	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 
 	GetDeleted(opts *PaginationOptions) ([]string, error)
 	GetDrafts(opts *PaginationOptions) ([]string, error)
+
+	GetAll(opts *QueryOptions) ([]string, error)
+
+	ByTag(opt *QueryOptions, tag string) ([]string, error)
+	BySection(opt *QueryOptions, sections ...string) ([]string, error)
+	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 
 	ReadsSummary() (*ReadsSummary, error)
 	WatchesSummary() (*WatchesSummary, error)

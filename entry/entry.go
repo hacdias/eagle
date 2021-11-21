@@ -80,6 +80,20 @@ func (e *Entry) Visibility() Visibility {
 	}
 }
 
+func (e *Entry) Audience() []string {
+	m := typed.New(e.Properties)
+
+	if a := m.String("audience"); a != "" {
+		return []string{a}
+	}
+
+	if aa := m.Strings("audience"); len(aa) != 0 {
+		return aa
+	}
+
+	return nil
+}
+
 func (e *Entry) Summary() string {
 	if e.summary != "" {
 		return e.summary

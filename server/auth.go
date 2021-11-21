@@ -14,7 +14,10 @@ import (
 )
 
 const (
+	SessionSubject string = "Eagle Session"
+
 	loggedInContextKey contextKey = "auth"
+	userContextKey     contextKey = "user"
 )
 
 func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int, message string) {
@@ -57,9 +60,10 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	expiration := time.Now().Add(time.Hour * 24 * 7)
 
 	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
-		jwt.SubjectKey:    "Eagle",
+		jwt.SubjectKey:    SessionSubject,
 		jwt.IssuedAtKey:   time.Now().Unix(),
 		jwt.ExpirationKey: expiration,
+		"user":            s.Config.Site.BaseURL,
 	})
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
@@ -106,19 +110,18 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 		var isAuthd bool
 
 		token, _, err := jwtauth.FromContext(r.Context())
-		isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil)
+		isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != SessionSubject)
 
 		ctx := context.WithValue(r.Context(), loggedInContextKey, isAuthd)
+		if isAuthd {
+			user, ok := token.Get("user")
+			if ok {
+				ctx = context.WithValue(ctx, userContextKey, user.(string))
+			}
+		}
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func (s *Server) isLoggedIn(r *http.Request) bool {
-	if loggedIn, ok := r.Context().Value(loggedInContextKey).(bool); ok {
-		return loggedIn
-	}
-
-	return false
 }
 
 func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
@@ -131,4 +134,35 @@ func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (s *Server) mustAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.isAdmin(r) {
+			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) getUser(r *http.Request) string {
+	if user, ok := r.Context().Value(userContextKey).(string); ok {
+		return user
+	}
+
+	return ""
+}
+
+func (s *Server) isLoggedIn(r *http.Request) bool {
+	if loggedIn, ok := r.Context().Value(loggedInContextKey).(bool); ok {
+		return loggedIn
+	}
+
+	return false
+}
+
+func (s *Server) isAdmin(r *http.Request) bool {
+	return s.getUser(r) == s.Config.Site.BaseURL
 }
