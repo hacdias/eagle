@@ -91,6 +91,9 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(dayPath, s.dateGet)
 		r.Get("/tags/{tag}", s.tagGet)
 
+		r.With(s.mustLoggedIn).Get("/deleted", s.deletedGet)
+		r.With(s.mustLoggedIn).Get("/drafts", s.draftsGet)
+
 		for _, section := range s.Config.Site.Sections {
 			r.Get("/"+section, s.sectionGet(section))
 		}

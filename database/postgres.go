@@ -128,7 +128,7 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 	where = append(where, d.whereConstraints(opts)...)
 	sql += strings.Join(where, " and ")
 	sql += " order by date desc"
-	sql += d.offset(opts)
+	sql += d.offset(&opts.PaginationOptions)
 
 	return d.queryEntries(sql, 0, args...)
 }
@@ -141,7 +141,7 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
-	sql += " order by date desc" + d.offset(opts)
+	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
 	return d.queryEntries(sql, 0, args...)
 }
 
@@ -151,7 +151,7 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 		if ands := d.whereConstraints(opts); len(ands) > 0 {
 			sql += " where " + strings.Join(ands, " and ")
 		}
-		return d.queryEntries(sql+" order by date desc"+d.offset(opts), 0)
+		return d.queryEntries(sql+" order by date desc"+d.offset(&opts.PaginationOptions), 0)
 	}
 
 	args := []interface{}{}
@@ -173,8 +173,18 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 		sql += " where " + strings.Join(ands, " and ")
 	}
 
-	sql += " order by date desc" + d.offset(opts)
+	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
 	return d.queryEntries(sql, 1, args...)
+}
+
+func (d *Postgres) GetDeleted(opts *PaginationOptions) ([]string, error) {
+	sql := "select id from entries where isDeleted=true order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetDrafts(opts *PaginationOptions) ([]string, error) {
+	sql := "select id from entries where isDraft=true order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
 }
 
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
@@ -187,7 +197,7 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	if ands := d.whereConstraints(opts); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
-	sql += ` order by score desc` + d.offset(opts)
+	sql += ` order by score desc` + d.offset(&opts.PaginationOptions)
 
 	return d.queryEntries(sql, 0, query)
 }
@@ -333,7 +343,7 @@ func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
 	return where
 }
 
-func (d *Postgres) offset(opts *QueryOptions) string {
+func (d *Postgres) offset(opts *PaginationOptions) string {
 	var sql string
 
 	if opts.Page > 0 {

@@ -163,9 +163,48 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			SearchQuery: query,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			if opts.Private {
+				opts.Draft = true
+				opts.Deleted = true
+			}
+
 			return s.Search(opts, query)
 		},
 		templates: []string{eagle.TemplateSearch},
+	})
+}
+
+func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry: &entry.Entry{
+				Frontmatter: entry.Frontmatter{
+					Title:     "Deleted",
+					IsListing: true,
+				},
+			},
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetDeleted(&opts.PaginationOptions)
+		},
+	})
+}
+
+func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry: &entry.Entry{
+				Frontmatter: entry.Frontmatter{
+					Title:     "Drafts",
+					IsListing: true,
+				},
+			},
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetDrafts(&opts.PaginationOptions)
+		},
 	})
 }
 
@@ -205,10 +244,10 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	loggedIn := s.isLoggedIn(r)
 
 	opts := &database.QueryOptions{
-		Draft:   loggedIn,
-		Deleted: loggedIn,
+		PaginationOptions: database.PaginationOptions{
+			Limit: s.Config.Site.Paginate,
+		},
 		Private: loggedIn,
-		Limit:   s.Config.Site.Paginate,
 	}
 
 	if ls.rd == nil {

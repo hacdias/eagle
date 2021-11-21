@@ -30,9 +30,13 @@ type WatchesSummary struct {
 	Movies []*Watch `json:"movies"`
 }
 
+type PaginationOptions struct {
+	Page  int
+	Limit int
+}
+
 type QueryOptions struct {
-	Page    int
-	Limit   int
+	PaginationOptions
 	Draft   bool
 	Deleted bool
 	Private bool
@@ -49,6 +53,9 @@ type Database interface {
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
+
+	GetDeleted(opts *PaginationOptions) ([]string, error)
+	GetDrafts(opts *PaginationOptions) ([]string, error)
 
 	ReadsSummary() (*ReadsSummary, error)
 	WatchesSummary() (*WatchesSummary, error)

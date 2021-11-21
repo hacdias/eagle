@@ -28,6 +28,14 @@ func (e *Eagle) ByDate(opts *database.QueryOptions, year, month, day int) ([]*en
 	return e.idsToEntries(e.db.ByDate(opts, year, month, day))
 }
 
+func (e *Eagle) GetDeleted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetDeleted(opts))
+}
+
+func (e *Eagle) GetDrafts(opts *database.PaginationOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetDrafts(opts))
+}
+
 func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {
 	if err != nil {
 		return nil, err
