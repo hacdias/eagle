@@ -8,8 +8,9 @@ import (
 )
 
 type Server struct {
-	Client    *http.Client
-	ForcePKCE bool
+	Client *http.Client
+
+	RequirePKCE bool
 }
 
 type AuthenticationRequest struct {
@@ -61,7 +62,7 @@ func (s *Server) ParseAuthorization(r *http.Request) (*AuthenticationRequest, er
 		if !IsValidCodeChallengeMethod(ccm) {
 			return nil, errors.New("code_challenge_method not supported")
 		}
-	} else if s.ForcePKCE {
+	} else if s.RequirePKCE {
 		return nil, errors.New("code_challenge and code_challenge_method are required")
 	}
 

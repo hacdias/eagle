@@ -2,10 +2,10 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
-	"net/url"
+	urlpkg "net/url"
+	"strings"
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -13,283 +13,300 @@ import (
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/pkg/indieauth"
 	"github.com/lestrrat-go/jwx/jwt"
+	"golang.org/x/crypto/bcrypt"
 )
+
+// https://indieauth.spec.indieweb.org
 
 const (
-	SessionSubject string = "Eagle Session"
+	AuthCodeSubject string = "Eagle Auth Code"
+	TokenSubject    string = "Eagle Token"
 
-	OAuthSubject    string = "Eagle OAuth Client"
-	OAuthCookieName string = "eagle-oauth"
-
-	loggedInContextKey contextKey = "auth"
-	userContextKey     contextKey = "user"
+	scopesContextKey contextKey = "scopes"
+	clientContextKey contextKey = "client"
 )
 
-func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int, message string) {
-	s.serveHTMLWithStatus(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{
-			Content: message,
-			Frontmatter: entry.Frontmatter{
-				Title: "Login",
-			},
-		},
-		NoIndex: true,
-	}, []string{eagle.TemplateLogin}, code)
-}
-
-func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
-	if s.isLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
-	s.serveLoginPage(w, r, http.StatusOK, "")
-}
 
-func (s *Server) saveAuthInfo(w http.ResponseWriter, r *http.Request, i *indieauth.AuthInfo) error {
-	data, err := json.Marshal(i)
+	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
-		return err
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
 	}
 
-	expiration := time.Now().Add(time.Minute * 10)
+	s.serveHTML(w, r, &eagle.RenderData{
+		Entry:   &entry.Entry{},
+		Data:    req,
+		NoIndex: true,
+	}, []string{eagle.TemplateAuth})
+}
+
+func (s *Server) indieauthPost(w http.ResponseWriter, r *http.Request) {
+	s.authorizationCodeExchange(w, r, false)
+}
+
+func (s *Server) indieauthAcceptPost(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
+
+	if username != s.Config.Auth.Username || !correctPassword {
+		s.serveErrorHTML(w, r, http.StatusUnauthorized, errors.New("wrong credentials"))
+		return
+	}
+
+	req, err := s.ias.ParseAuthorization(r)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
 
 	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
-		jwt.SubjectKey:    OAuthSubject,
-		jwt.IssuedAtKey:   time.Now().Unix(),
-		jwt.ExpirationKey: expiration,
-		"data":            string(data),
-		"redirect":        r.URL.Query().Get("redirect"),
+		jwt.SubjectKey:          AuthCodeSubject,
+		jwt.IssuedAtKey:         time.Now().Unix(),
+		jwt.ExpirationKey:       time.Now().Add(time.Minute * 5),
+		"scope":                 strings.Join(req.Scopes, " "),
+		"expiry":                r.Form.Get("expiry"),
+		"client_id":             req.ClientID,
+		"redirect_uri":          req.RedirectURI,
+		"code_challenge":        req.CodeChallenge,
+		"code_challenge_method": req.CodeChallengeMethod,
 	})
-	if err != nil {
-		return err
-	}
-
-	cookie := &http.Cookie{
-		Name:     OAuthCookieName,
-		Value:    string(signed),
-		Expires:  expiration,
-		Secure:   r.URL.Scheme == "https",
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, cookie)
-	return nil
-}
-
-func (s *Server) getInformation(w http.ResponseWriter, r *http.Request) (*indieauth.AuthInfo, string, error) {
-	cookie, err := r.Cookie(OAuthCookieName)
-	if err != nil {
-		return nil, "", err
-	}
-
-	token, err := jwtauth.VerifyToken(s.jwtAuth, cookie.Value)
-	if err != nil {
-		return nil, "", err
-	}
-
-	err = jwt.Validate(token)
-	if err != nil {
-		return nil, "", err
-	}
-
-	if token.Subject() != OAuthSubject {
-		return nil, "", errors.New("invalid subject for oauth token")
-	}
-
-	data, ok := token.Get("data")
-	if !ok || data == nil {
-		return nil, "", errors.New("cannot find 'data' property in token")
-	}
-
-	dataStr, ok := data.(string)
-	if !ok || dataStr == "" {
-		return nil, "", errors.New("cannot find 'data' property in token")
-	}
-
-	var i *indieauth.AuthInfo
-	err = json.Unmarshal([]byte(dataStr), &i)
-	if err != nil {
-		return nil, "", err
-	}
-
-	// Delete cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:     OAuthCookieName,
-		MaxAge:   -1,
-		Secure:   r.URL.Scheme == "https",
-		Path:     "/",
-		HttpOnly: true,
-	})
-
-	redirect, ok := token.Get("redirect")
-	if !ok {
-		return i, "", nil
-	}
-
-	redirectStr, ok := redirect.(string)
-	if !ok || redirectStr == "" {
-		return i, "", nil
-	}
-
-	return i, redirectStr, nil
-}
-
-func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	profile := r.FormValue("profile")
-	if profile == "" {
-		s.serveLoginPage(w, r, http.StatusBadRequest, "profile is empty")
-		return
-	}
+	query := urlpkg.Values{}
+	query.Set("code", signed)
+	query.Set("state", req.State)
 
-	i, redirect, err := s.iac.Authenticate(profile, "profile")
-	if err != nil {
-		s.serveLoginPage(w, r, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err = s.saveAuthInfo(w, r, i)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
-	}
-
-	http.Redirect(w, r, redirect, http.StatusSeeOther)
+	http.Redirect(w, r, req.RedirectURI+"?"+query.Encode(), http.StatusFound)
 }
 
-func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
-	i, redirect, err := s.getInformation(w, r)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
-	}
+type tokenResponse struct {
+	Me          string     `json:"me"`
+	ClientID    string     `json:"client_id,omitempty"`
+	AccessToken string     `json:"access_token,omitempty"`
+	TokenType   string     `json:"token_type,omitempty"`
+	Scope       string     `json:"scope,omitempty"`
+	Profile     *tokenUser `json:"profile,omitempty"`
+}
 
-	code, err := s.iac.ValidateCallback(i, r)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
-	}
+type tokenUser struct {
+	Name  string `json:"name,omitempty"`
+	URL   string `json:"url,omitempty"`
+	Photo string `json:"photo,omitempty"`
+	Email string `json:"email,omitempty"`
+}
 
-	profile, err := s.iac.FetchProfile(i, code)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
-	}
-
-	expiration := time.Now().Add(time.Hour * 24 * 7)
-
-	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
-		jwt.SubjectKey:    SessionSubject,
-		jwt.IssuedAtKey:   time.Now().Unix(),
-		jwt.ExpirationKey: expiration,
-		"user":            profile.Me,
+func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
+	s.serveJSON(w, http.StatusOK, &tokenResponse{
+		Me:       s.Config.Site.BaseURL + "/",
+		Scope:    strings.Join(s.getScopes(r), " "),
+		ClientID: s.getClient(r),
 	})
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+}
+
+func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    string(signed),
-		Expires:  expiration,
-		Secure:   r.URL.Scheme == "https",
-		HttpOnly: true,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
+	if r.Form.Get("action") == "revoke" {
+		// TODO: currently, tokens have one week validity, otherwise
+		// specified during the authorization request.
+		w.WriteHeader(http.StatusOK)
+		return
 	}
 
-	http.SetCookie(w, cookie)
-
-	if redirect == "" {
-		redirect = "/"
-	}
-
-	http.Redirect(w, r, redirect, http.StatusSeeOther)
+	s.authorizationCodeExchange(w, r, true)
 }
 
-func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
-	cookie := http.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		MaxAge:   -1,
-		Secure:   r.URL.Scheme == "https",
-		Path:     "/",
-		HttpOnly: true,
+func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Request, withToken bool) {
+	if err := r.ParseForm(); err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
 	}
-	http.SetCookie(w, &cookie)
-	if redirect := r.URL.Query().Get("redirect"); redirect != "" {
-		http.Redirect(w, r, redirect, http.StatusSeeOther)
-	} else {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	var (
+		grantType = r.Form.Get("grant_type")
+		code      = r.Form.Get("code")
+	)
+
+	if grantType == "" {
+		// Default to support legacy clients.
+		grantType = "authorization_code"
 	}
-}
 
-func (s *Server) withLoggedIn(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var isAuthd bool
+	if grantType != "authorization_code" {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "grant_type must be authorization_code")
+		return
+	}
 
-		token, _, err := jwtauth.FromContext(r.Context())
-		isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != SessionSubject)
+	token, err := jwtauth.VerifyToken(s.jwtAuth, code)
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
 
-		ctx := context.WithValue(r.Context(), loggedInContextKey, isAuthd)
-		if isAuthd {
-			user, ok := token.Get("user")
-			if ok {
-				ctx = context.WithValue(ctx, userContextKey, user.(string))
-			}
+	if token.Subject() != AuthCodeSubject {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "token has invalid subject")
+		return
+	}
+
+	err = validateAuthorizationCode(r, token)
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+
+	at := &tokenResponse{
+		Me: s.Config.Site.BaseURL + "/",
+	}
+
+	scope := getString(token, "scope")
+
+	if withToken {
+		clientID := getString(token, "client_id")
+		expires := getString(token, "expiry") != "infinity"
+		signed, err := s.generateToken(clientID, scope, expires)
+		if err != nil {
+			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
+			return
 		}
+
+		at.AccessToken = signed
+		at.TokenType = "Bearer"
+		at.Scope = scope
+	}
+
+	if strings.Contains(scope, "profile") {
+		at.Profile = &tokenUser{
+			Name:  s.Config.User.Name,
+			URL:   s.Config.User.URL,
+			Photo: s.Config.User.Photo,
+		}
+	}
+
+	if strings.Contains(scope, "email") {
+		if at.Profile == nil {
+			at.Profile = &tokenUser{}
+		}
+		at.Profile.Email = s.Config.User.Email
+	}
+
+	s.serveJSON(w, http.StatusOK, at)
+}
+
+func (s *Server) generateToken(client, scope string, expires bool) (string, error) {
+	claims := map[string]interface{}{
+		jwt.SubjectKey:  TokenSubject,
+		jwt.IssuedAtKey: time.Now().Unix(),
+		"client_id":     client,
+		"scope":         scope,
+	}
+
+	if expires {
+		claims[jwt.ExpirationKey] = time.Now().Add(time.Hour * 24 * 7)
+	}
+
+	_, signed, err := s.jwtAuth.Encode(claims)
+	return signed, err
+}
+
+func getString(token jwt.Token, prop string) string {
+	v, ok := token.Get(prop)
+	if !ok {
+		return ""
+	}
+	vv, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return vv
+}
+
+func validateAuthorizationCode(r *http.Request, token jwt.Token) error {
+	var (
+		clientID     = r.Form.Get("client_id")
+		redirectURI  = r.Form.Get("redirect_uri")
+		codeVerifier = r.Form.Get("code_verifier")
+	)
+
+	if getString(token, "client_id") != clientID {
+		return errors.New("client_id differs")
+	}
+
+	if getString(token, "redirect_uri") != redirectURI {
+		return errors.New("redirect_uri differs")
+	}
+
+	cc := getString(token, "code_challenge")
+	if cc != "" {
+		ccm := getString(token, "code_challenge_method")
+		if cc == "" {
+			return errors.New("code_challenge_method missing from token")
+		}
+
+		if !indieauth.IsValidCodeChallengeMethod(ccm) {
+			return errors.New("code_challenge_method invalid")
+		}
+
+		if !indieauth.ValidateCodeChallenge(ccm, cc, codeVerifier) {
+			return errors.New("code challenge failed")
+		}
+	}
+
+	return nil
+}
+
+func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.isLoggedIn(r) {
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
+			return
+		}
+
+		// The verification above MUST ensure that token exists.
+		token, _, _ := jwtauth.FromContext(r.Context())
+		if token.Subject() != TokenSubject {
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token subject")
+			return
+		}
+
+		scopes := strings.Split(getString(token, "scope"), " ")
+		clientID := getString(token, "client_id")
+
+		ctx := context.WithValue(r.Context(), scopesContextKey, scopes)
+		ctx = context.WithValue(ctx, clientContextKey, clientID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isLoggedIn(r) {
-			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
-			http.Redirect(w, r, newPath, http.StatusSeeOther)
-			return
-		}
+func (s *Server) getScopes(r *http.Request) []string {
+	if scopes, ok := r.Context().Value(scopesContextKey).([]string); ok {
+		return scopes
+	}
 
-		next.ServeHTTP(w, r)
-	})
+	return []string{}
 }
 
-func (s *Server) mustAdmin(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isAdmin(r) {
-			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (s *Server) getUser(r *http.Request) string {
-	if user, ok := r.Context().Value(userContextKey).(string); ok {
-		return user
+func (s *Server) getClient(r *http.Request) string {
+	if clientID, ok := r.Context().Value(clientContextKey).(string); ok {
+		return clientID
 	}
 
 	return ""
-}
-
-func (s *Server) isLoggedIn(r *http.Request) bool {
-	if loggedIn, ok := r.Context().Value(loggedInContextKey).(bool); ok {
-		return loggedIn
-	}
-
-	return false
-}
-
-func (s *Server) isAdmin(r *http.Request) bool {
-	return s.getUser(r) == s.Config.Site.BaseURL+"/"
 }

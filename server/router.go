@@ -45,12 +45,13 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/search", s.searchGet)
 	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
 
-	// Token exchange points.
+	// IndieAuth Server
 	r.Get("/auth", s.indieauthGet)
 	r.Post("/auth/accept", s.indieauthAcceptPost)
 	r.Post("/auth", s.indieauthPost)
 	r.Post("/token", s.tokenPost)
 
+	// IndieAuth Client
 	r.Get("/login", s.loginGet)
 	r.Post("/login", s.loginPost)
 	r.Get("/login/callback", s.loginCallbackGet)
