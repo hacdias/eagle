@@ -239,7 +239,7 @@ func getString(token jwt.Token, prop string) string {
 
 func validateAuthorizationCode(r *http.Request, token jwt.Token) error {
 	var (
-		clientID     = r.Form.Get("client_id")
+		clientID     = indieauth.CanonicalizeURL(r.Form.Get("client_id"))
 		redirectURI  = r.Form.Get("redirect_uri")
 		codeVerifier = r.Form.Get("code_verifier")
 	)
