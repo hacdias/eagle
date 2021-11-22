@@ -37,7 +37,7 @@ func (s *Server) serveLoginPage(w http.ResponseWriter, r *http.Request, code int
 	}, []string{eagle.TemplateLogin}, code)
 }
 
-func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 	if s.isLoggedIn(r) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -136,7 +136,7 @@ func (s *Server) getInformation(w http.ResponseWriter, r *http.Request) (*indiea
 	return i, redirectStr, nil
 }
 
-func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
@@ -149,7 +149,7 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i, redirect, err := s.ia.Authenticate(profile, "profile")
+	i, redirect, err := s.iac.Authenticate(profile, "profile")
 	if err != nil {
 		s.serveLoginPage(w, r, http.StatusBadRequest, err.Error())
 		return
@@ -171,13 +171,13 @@ func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	code, err := s.ia.ValidateCallback(i, r)
+	code, err := s.iac.ValidateCallback(i, r)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	profile, err := s.ia.FetchProfile(i, code)
+	profile, err := s.iac.FetchProfile(i, code)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -215,7 +215,7 @@ func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirect, http.StatusSeeOther)
 }
 
-func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 	cookie := http.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -291,5 +291,5 @@ func (s *Server) isLoggedIn(r *http.Request) bool {
 }
 
 func (s *Server) isAdmin(r *http.Request) bool {
-	return s.getUser(r) == s.Config.Site.BaseURL
+	return s.getUser(r) == s.Config.Site.BaseURL+"/"
 }

@@ -31,30 +31,30 @@ func (s *Server) makeRouter() http.Handler {
 
 	if s.Config.Tor != nil {
 		r.Use(s.onionHeader)
-		r.Get("/onion", s.onionRedirHandler)
+		r.Get("/onion", s.onionRedirGet)
 	}
 
 	if s.Config.WebhookSecret != "" {
-		r.Post("/webhook", s.webhookHandler)
+		r.Post("/webhook", s.webhookPost)
 	}
 
 	if s.Config.WebmentionsSecret != "" {
-		r.Post("/webmention", s.webmentionHandler)
+		r.Post("/webmention", s.webmentionPost)
 	}
 
 	r.Get("/search", s.searchGet)
 	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
 
 	// Token exchange points.
+	r.Get("/auth", s.indieauthGet)
+	r.Post("/auth/accept", s.indieauthAcceptPost)
 	r.Post("/auth", s.indieauthPost)
 	r.Post("/token", s.tokenPost)
 
-	// TODO: rework this as indieauth put your address.
-	r.Get("/login", s.loginGetHandler)
-	r.Post("/login", s.loginPostHandler)
+	r.Get("/login", s.loginGet)
+	r.Post("/login", s.loginPost)
 	r.Get("/login/callback", s.loginCallbackGet)
-
-	r.Get("/logout", s.logoutGetHandler)
+	r.Get("/logout", s.logoutGet)
 
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
@@ -65,14 +65,6 @@ func (s *Server) makeRouter() http.Handler {
 
 		// Token verification point.
 		r.Get("/token", s.tokenGet)
-	})
-
-	r.Group(func(r chi.Router) {
-		r.Use(s.mustLoggedIn)
-
-		// TODO: This should be somewhere separatly. Perhaps /auth should ask for password.
-		r.Get("/auth", s.indieauthGet)
-		r.Post("/auth/accept", s.indieauthAcceptPost)
 	})
 
 	// Admin only pages.

@@ -82,7 +82,7 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 	return nil
 }
 
-func (s *Server) onionRedirHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) onionRedirGet(w http.ResponseWriter, r *http.Request) {
 	if s.onionAddress == "" {
 		w.WriteHeader(http.StatusNotImplemented)
 		return

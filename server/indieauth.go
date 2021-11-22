@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"net/http"
 	urlpkg "net/url"
@@ -13,8 +11,9 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/pkg/indieauth"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/thoas/go-funk"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // https://indieauth.spec.indieweb.org
@@ -33,27 +32,7 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// username := r.FormValue("username")
-	// password := r.FormValue("password")
-	// correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
-
-	// if username != s.Config.Auth.Username || !correctPassword {
-	// 	s.serveLoginPage(w, r, http.StatusUnauthorized, "Wrong credentials.")
-	// 	return
-	// }
-
-	resType := r.FormValue("response_type")
-	if resType == "" {
-		// Default to support legacy clients.
-		resType = "code"
-	}
-
-	if resType != "code" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("response_type must be code"))
-		return
-	}
-
-	req, err := getAuthorizationRequest(r)
+	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
@@ -76,7 +55,16 @@ func (s *Server) indieauthAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := getAuthorizationRequest(r)
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
+
+	if username != s.Config.Auth.Username || !correctPassword {
+		s.serveLoginPage(w, r, http.StatusUnauthorized, "Wrong credentials.")
+		return
+	}
+
+	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
@@ -237,92 +225,6 @@ func (s *Server) generateToken(client, scope string, expires bool) (string, erro
 	return signed, err
 }
 
-var (
-	codeChallengeMethods = []string{
-		"plain", "S256",
-	}
-)
-
-func isValidCodeChallengeMethod(ccm string) bool {
-	return funk.ContainsString(codeChallengeMethods, ccm)
-}
-
-func validateCodeChallenge(ccm, cc, ver string) bool {
-	switch ccm {
-	case "plain":
-		return cc == ver
-	case "S256":
-		s256 := sha256.Sum256([]byte(ver))
-		// trim padding
-		a := strings.TrimRight(base64.URLEncoding.EncodeToString(s256[:]), "=")
-		b := strings.TrimRight(cc, "=")
-		return a == b
-	default:
-		return false
-	}
-}
-
-type authRequest struct {
-	RedirectURI         string
-	ClientID            string
-	Scopes              []string
-	State               string
-	CodeChallenge       string
-	CodeChallengeMethod string
-}
-
-func getAuthorizationRequest(r *http.Request) (*authRequest, error) {
-	redirectURI := r.FormValue("redirect_uri")
-	clientID := r.FormValue("client_id")
-
-	if !isValidProfileURL(clientID) {
-		return nil, errors.New("client_id is invalid")
-	}
-
-	// TODO: fix this.
-	// 	1. Check if redirect URI has same domain and scheme as CLIENT ID.
-	//  2. If not, GET request and check redirect_uri links.
-	// https://indieauth.spec.indieweb.org/#redirect-url
-	if !isValidProfileURL(redirectURI) {
-		return nil, errors.New("redirect_uri is invalid")
-	}
-
-	var (
-		cc  string
-		ccm string
-	)
-
-	cc = r.Form.Get("code_challenge")
-	if cc != "" {
-		if len(cc) < 43 || len(cc) > 128 {
-			return nil, errors.New("code_challenge length must be between 43 and 128 charachters long")
-		}
-
-		ccm = r.Form.Get("code_challenge_method")
-		if !isValidCodeChallengeMethod(ccm) {
-			return nil, errors.New("code_challenge_method not supported")
-		}
-	}
-
-	req := &authRequest{
-		RedirectURI:         redirectURI,
-		ClientID:            clientID,
-		State:               r.Form.Get("state"),
-		Scopes:              []string{},
-		CodeChallenge:       cc,
-		CodeChallengeMethod: ccm,
-	}
-
-	scope := r.Form.Get("scope")
-	if scope != "" {
-		req.Scopes = strings.Split(scope, " ")
-	} else if scopes := r.Form["scopes"]; len(scopes) > 0 {
-		req.Scopes = scopes
-	}
-
-	return req, nil
-}
-
 func getString(token jwt.Token, prop string) string {
 	v, ok := token.Get(prop)
 	if !ok {
@@ -357,47 +259,16 @@ func validateAuthorizationCode(r *http.Request, token jwt.Token) error {
 			return errors.New("code_challenge_method missing from token")
 		}
 
-		if !isValidCodeChallengeMethod(ccm) {
+		if !indieauth.IsValidCodeChallengeMethod(ccm) {
 			return errors.New("code_challenge_method invalid")
 		}
 
-		if !validateCodeChallenge(ccm, cc, codeVerifier) {
+		if !indieauth.ValidateCodeChallenge(ccm, cc, codeVerifier) {
 			return errors.New("code challenge failed")
 		}
 	}
 
 	return nil
-}
-
-func isValidProfileURL(profileURL string) bool {
-	url, err := urlpkg.Parse(profileURL)
-	if err != nil {
-		return false
-	}
-
-	if url.Scheme != "http" && url.Scheme != "https" {
-		return false
-	}
-
-	// TODO: MUST contain a path component (/ is a valid path), MUST NOT contain single-dot or double-dot path segments
-
-	if url.Fragment != "" {
-		return false
-	}
-
-	if url.User.String() != "" {
-		return false
-	}
-
-	if url.Port() != "" {
-		return false
-	}
-
-	// TODO:
-	// PROFILE URL: Additionally, host names MUST be domain names and MUST NOT be ipv4 or ipv6 addresses.
-	// CLIENT ID: Additionally, host names MUST be domain names or a loopback interface and MUST NOT be IPv4 or IPv6 addresses except for IPv4 127.0.0.1 or IPv6 [::1].
-
-	return true
 }
 
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {

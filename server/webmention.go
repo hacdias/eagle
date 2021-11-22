@@ -7,7 +7,7 @@ import (
 	"github.com/hacdias/eagle/v2/eagle"
 )
 
-func (s *Server) webmentionHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 	wm := &eagle.WebmentionPayload{}
 	err := json.NewDecoder(r.Body).Decode(&wm)
 	if err != nil {
