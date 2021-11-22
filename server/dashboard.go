@@ -6,7 +6,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/pkg/indieauth"
+	"github.com/hacdias/indieauth"
 )
 
 func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
