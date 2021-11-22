@@ -85,7 +85,7 @@ func IsValidClientIdentifier(identifier string) bool {
 func CanonicalizeURL(urlStr string) string {
 	// NOTE: parsing a URL without scheme will most likely put the host as path.
 	// That's why I add it first.
-	if !strings.HasPrefix(urlStr, "http://") || !strings.HasPrefix(urlStr, "https://") {
+	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 		urlStr = "https://" + urlStr
 	}
 

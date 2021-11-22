@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -127,7 +126,10 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 		args = append(args, day)
 	}
 
-	where = append(where, d.whereConstraints(opts)...)
+	wwhere, aargs := d.whereConstraints(opts, i)
+
+	where = append(where, wwhere...)
+	args = append(args, aargs...)
 	sql += strings.Join(where, " and ")
 	sql += " order by date desc"
 	sql += d.offset(&opts.PaginationOptions)
@@ -139,8 +141,9 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	args := []interface{}{tag}
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
 
-	if ands := d.whereConstraints(opts); len(ands) > 0 {
-		sql += " and " + strings.Join(ands, " and ")
+	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
 	}
 
 	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
@@ -148,23 +151,23 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 }
 
 func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
-	args := []interface{}{}
 	sql := "select distinct (id) id, date from sections inner join entries on id=entry_id"
-	ands := d.whereConstraints(opts)
+	where, args := d.whereConstraints(opts, 0)
+	i := len(args)
 
 	var sectionsWhere []string
-
-	for i, section := range sections {
-		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i+1))
+	for _, section := range sections {
+		i++
+		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i))
 		args = append(args, section)
 	}
 
 	if len(sectionsWhere) > 0 {
-		ands = append(ands, "("+strings.Join(sectionsWhere, " or ")+")")
+		where = append(where, "("+strings.Join(sectionsWhere, " or ")+")")
 	}
 
-	if len(ands) > 0 {
-		sql += " where " + strings.Join(ands, " and ")
+	if len(where) > 0 {
+		sql += " where " + strings.Join(where, " and ")
 	}
 
 	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
@@ -174,13 +177,12 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 func (d *Postgres) GetAll(opts *QueryOptions) ([]string, error) {
 	sql := "select id from entries"
 
-	if ands := d.whereConstraints(opts); len(ands) > 0 {
-		sql += " where " + strings.Join(ands, " and ")
+	where, args := d.whereConstraints(opts, 0)
+	if len(where) > 0 {
+		sql += " where " + strings.Join(where, " and ")
 	}
 
-	fmt.Println(sql)
-
-	return d.queryEntries(sql+" order by date desc"+d.offset(&opts.PaginationOptions), 0)
+	return d.queryEntries(sql+" order by date desc"+d.offset(&opts.PaginationOptions), 0, args...)
 }
 
 func (d *Postgres) GetDeleted(opts *PaginationOptions) ([]string, error) {
@@ -214,12 +216,16 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	) s
 	where score > 0`
 
-	if ands := d.whereConstraints(opts); len(ands) > 0 {
-		sql += " and " + strings.Join(ands, " and ")
+	args := []interface{}{query}
+	where, aargs := d.whereConstraints(opts, 1)
+	args = append(args, aargs...)
+
+	if len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
 	}
 	sql += ` order by score desc` + d.offset(&opts.PaginationOptions)
 
-	return d.queryEntries(sql, 0, query)
+	return d.queryEntries(sql, 0, args...)
 }
 
 func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
@@ -232,7 +238,7 @@ func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
 from entries
 where properties->>'read-status' is not null`
 
-	if ands := d.whereConstraints(&QueryOptions{}); len(ands) > 0 {
+	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
@@ -279,7 +285,7 @@ where properties->>'read-status' is not null`
 func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
 	sql := "select id, date, name from (" + baseSql
 
-	if ands := d.whereConstraints(&QueryOptions{}); len(ands) > 0 {
+	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
@@ -345,32 +351,35 @@ where
 	return watches, nil
 }
 
-func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
+func (d *Postgres) whereConstraints(opts *QueryOptions, i int) ([]string, []interface{}) {
 	var where []string
+	var args []interface{}
 
-	if !opts.Deleted {
+	if !opts.WithDeleted {
 		where = append(where, "isDeleted=false")
 	}
 
 	if len(opts.Visibility) > 0 {
 		visibilityOr := []string{}
 		for _, vis := range opts.Visibility {
-			// TODO: fix this and send as arg.
+			i++
 			if vis == entry.VisibilityPrivate && opts.Audience != "" {
 				visibilityOr = append(visibilityOr, "(visibility='private' and audience is null)")
-				visibilityOr = append(visibilityOr, "(visibility='private' and '"+opts.Audience+"' = ANY (audience) )")
+				visibilityOr = append(visibilityOr, "(visibility='private' and $"+strconv.Itoa(i)+" = ANY (audience) )")
+				args = append(args, opts.Audience)
 			} else {
-				visibilityOr = append(visibilityOr, "visibility='"+string(vis)+"'")
+				visibilityOr = append(visibilityOr, "visibility=$"+strconv.Itoa(i))
+				args = append(args, vis)
 			}
 		}
 		where = append(where, "("+strings.Join(visibilityOr, " or ")+")")
 	}
 
-	if !opts.Draft {
+	if !opts.WithDrafts {
 		where = append(where, "isDraft=false")
 	}
 
-	return where
+	return where, args
 }
 
 func (d *Postgres) offset(opts *PaginationOptions) string {

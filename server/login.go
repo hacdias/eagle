@@ -184,6 +184,11 @@ func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !indieauth.IsValidProfileURL(profile.Me) {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("profile request returned invalid 'Me' field"))
+		return
+	}
+
 	expiration := time.Now().Add(time.Hour * 24 * 7)
 
 	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{

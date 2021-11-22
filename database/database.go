@@ -37,8 +37,8 @@ type PaginationOptions struct {
 
 type QueryOptions struct {
 	PaginationOptions
-	Draft   bool
-	Deleted bool
+	WithDrafts  bool
+	WithDeleted bool
 
 	// Empty matches all visibilities.
 	Visibility []entry.Visibility

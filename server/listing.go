@@ -152,8 +152,9 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			if s.isAdmin(r) {
-				opts.Draft = true
-				opts.Deleted = true
+				opts.WithDrafts = true
+				opts.WithDeleted = true
+				opts.Visibility = nil
 			}
 
 			return s.Search(opts, query)
@@ -169,7 +170,7 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetPrivate(&opts.PaginationOptions, opts.Audience)
+			return s.GetPrivate(&opts.PaginationOptions, s.getUser(r))
 		},
 	})
 }
@@ -244,22 +245,18 @@ type listingPage struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	user := s.getUser(r)
-
 	opts := &database.QueryOptions{
 		PaginationOptions: database.PaginationOptions{
 			Limit: s.Config.Site.Paginate,
 		},
 	}
 
+	user := s.getUser(r)
 	if user == "" {
 		opts.Visibility = []entry.Visibility{entry.VisibilityPublic}
 	} else {
-		if s.isAdmin(r) {
-			// Admin has access to everything, thus no need to set
-			// visibility or audience.
-		} else {
-			opts.Visibility = []entry.Visibility{entry.VisibilityPublic, entry.VisibilityPrivate}
+		opts.Visibility = []entry.Visibility{entry.VisibilityPublic, entry.VisibilityPrivate}
+		if !s.isAdmin(r) {
 			opts.Audience = s.getUser(r)
 		}
 	}
