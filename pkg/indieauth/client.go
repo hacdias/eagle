@@ -176,6 +176,7 @@ func (c *Client) FetchProfile(i *AuthInfo, code string) (*Profile, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("status code: expected 200, got %d", res.StatusCode)
