@@ -1,7 +1,7 @@
 package server
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/hacdias/eagle/v2/eagle"
@@ -46,8 +46,8 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 			scope := r.Form.Get("scope")
 			expires := r.Form.Get("expiry") != "infinity"
 
-			if !indieauth.IsValidClientIdentifier(clientID) {
-				s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("client id is invalid"))
+			if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
+				s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
 				return
 			}
 

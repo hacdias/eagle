@@ -2,6 +2,7 @@ package indieauth
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	urlpkg "net/url"
 	"strings"
@@ -38,8 +39,8 @@ func (s *Server) ParseAuthorization(r *http.Request) (*AuthenticationRequest, er
 	}
 
 	clientID := r.FormValue("client_id")
-	if !IsValidClientIdentifier(clientID) {
-		return nil, errors.New("client_id is invalid")
+	if err := IsValidClientIdentifier(clientID); err != nil {
+		return nil, fmt.Errorf("invalid client_id: %w", err)
 	}
 
 	redirectURI := r.FormValue("redirect_uri")

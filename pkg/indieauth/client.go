@@ -183,8 +183,6 @@ func (c *Client) FetchProfile(i *AuthInfo, code string) (*Profile, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("DEBUUUUUUG")
-	fmt.Println(string(data))
 
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("status code: expected 200, got %d", res.StatusCode)

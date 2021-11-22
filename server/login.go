@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -144,9 +145,9 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profile = indieauth.CanonicalizeURL(profile)
-
-	if !indieauth.IsValidProfileURL(profile) {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("invalid profile url"))
+	if err := indieauth.IsValidProfileURL(profile); err != nil {
+		err = fmt.Errorf("invalid profile url: %w", err)
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -184,8 +185,9 @@ func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !indieauth.IsValidProfileURL(profile.Me) {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("profile request returned invalid 'me' field"))
+	if err := indieauth.IsValidProfileURL(profile.Me); err != nil {
+		err = fmt.Errorf("invalid 'me': %w", err)
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 

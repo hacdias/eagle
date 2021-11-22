@@ -1,6 +1,7 @@
 package indieauth
 
 import (
+	"errors"
 	"net"
 	urlpkg "net/url"
 	"strings"
@@ -8,76 +9,78 @@ import (
 
 // IsValidProfileURL validates the profile URL according to the specification.
 // https://indieauth.spec.indieweb.org/#user-profile-url
-func IsValidProfileURL(profile string) bool {
+func IsValidProfileURL(profile string) error {
 	url, err := urlpkg.Parse(profile)
 	if err != nil {
-		return false
+		return err
 	}
 
 	if url.Scheme != "http" && url.Scheme != "https" {
-		return false
+		return errors.New("scheme must be either http or https")
 	}
 
 	if url.Path == "" {
-		return false
+		return errors.New("path must not be empty")
 	}
 
 	if strings.Contains(url.Path, ".") || strings.Contains(url.Path, "..") {
-		return false
+		return errors.New("cannot contain single or double dots")
 	}
 
 	if url.Fragment != "" {
-		return false
+		return errors.New("fragment must be empty")
 	}
 
 	if url.User.String() != "" {
-		return false
+		return errors.New("user and or password must not be set")
 	}
 
 	if url.Port() != "" {
-		return false
+		return errors.New("port must not be set")
 	}
 
 	if net.ParseIP(profile) != nil {
-		return false
+		return errors.New("profile cannot be ip address")
 	}
 
-	return true
+	return nil
 }
 
 // IsValidClientIdentifier validates a client identifier according to the specification.
 // https://indieauth.spec.indieweb.org/#client-identifier
-func IsValidClientIdentifier(identifier string) bool {
+func IsValidClientIdentifier(identifier string) error {
 	url, err := urlpkg.Parse(identifier)
 	if err != nil {
-		return false
+		return err
 	}
 
 	if url.Scheme != "http" && url.Scheme != "https" {
-		return false
+		return errors.New("scheme must be either http or https")
 	}
 
 	if url.Path == "" {
-		return false
+		return errors.New("path must not be empty")
 	}
 
 	if strings.Contains(url.Path, ".") || strings.Contains(url.Path, "..") {
-		return false
+		return errors.New("cannot contain single or double dots")
 	}
 
 	if url.Fragment != "" {
-		return false
+		return errors.New("fragment must be empty")
 	}
 
 	if url.User.String() != "" {
-		return false
+		return errors.New("user and or password must not be set")
 	}
 
 	if v := net.ParseIP(identifier); v != nil {
-		return v.IsLoopback()
+		if !v.IsLoopback() {
+			return errors.New("client id cannot be non-loopback ip")
+		}
 	}
 
-	return true
+	return nil
 }
 
 // CanonicalizeURL checks if a URL has a path, and appends a path "/""
