@@ -15,7 +15,7 @@ type Config struct {
 	Port              int
 	SourceDirectory   string
 	Site              Site
-	User              User
+	Me                Me
 	WebhookSecret     string
 	XRayEndpoint      string
 	WebmentionsSecret string
@@ -28,6 +28,10 @@ type Config struct {
 	Twitter           *Twitter
 	Miniflux          *Miniflux
 	MapBox            *MapBox
+}
+
+func (c *Config) ID() string {
+	return c.Site.BaseURL + "/"
 }
 
 // Parse parses the configuration from the default files and paths.
@@ -113,13 +117,12 @@ type MenuItem struct {
 	Link  string
 }
 
-type User struct {
+type Me struct {
 	Name     string
 	Nickname string
 	Twitter  string
 	Photo    string
 	Email    string
-	URL      string
 	Rels     []string
 	PGP      string
 }

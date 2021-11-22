@@ -151,7 +151,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			SearchQuery: query,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			if s.isLoggedIn(r) {
+			if s.isAdmin(r) {
 				opts.Draft = true
 				opts.Deleted = true
 			}
@@ -244,7 +244,7 @@ type listingPage struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	loggedIn := s.isLoggedIn(r)
+	user := s.getUser(r)
 
 	opts := &database.QueryOptions{
 		PaginationOptions: database.PaginationOptions{
@@ -252,7 +252,9 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		},
 	}
 
-	if loggedIn {
+	if user == "" {
+		opts.Visibility = []entry.Visibility{entry.VisibilityPublic}
+	} else {
 		if s.isAdmin(r) {
 			// Admin has access to everything, thus no need to set
 			// visibility or audience.
@@ -260,8 +262,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			opts.Visibility = []entry.Visibility{entry.VisibilityPublic, entry.VisibilityPrivate}
 			opts.Audience = s.getUser(r)
 		}
-	} else {
-		opts.Visibility = []entry.Visibility{entry.VisibilityPublic}
 	}
 
 	if ls.rd == nil {
@@ -331,8 +331,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.AbsoluteURL(r.URL.Path), "."+feedType)},
 		Description: ls.rd.Entry.Summary(),
 		Author: &feeds.Author{
-			Name:  s.Config.User.Name,
-			Email: s.Config.User.Email,
+			Name:  s.Config.Me.Name,
+			Email: s.Config.Me.Email,
 		},
 		// TODO: support .Tags
 		Created: time.Now(),
@@ -354,8 +354,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Description: entry.Description,
 			Content:     buf.String(),
 			Author: &feeds.Author{
-				Name:  s.Config.User.Name,
-				Email: s.Config.User.Email,
+				Name:  s.Config.Me.Name,
+				Email: s.Config.Me.Email,
 			},
 			Created: entry.Published,
 			Updated: entry.Updated,

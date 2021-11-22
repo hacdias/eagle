@@ -21,12 +21,11 @@ const (
 	OAuthSubject    string = "Eagle OAuth Client"
 	OAuthCookieName string = "eagle-oauth"
 
-	loggedInContextKey contextKey = "auth"
-	userContextKey     contextKey = "user"
+	userContextKey contextKey = "user"
 )
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
-	if s.isLoggedIn(r) {
+	if user := s.getUser(r); user != "" {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -236,16 +235,15 @@ func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var isAuthd bool
-
 		token, _, err := jwtauth.FromContext(r.Context())
-		isAuthd = !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != SessionSubject)
+		valid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != SessionSubject)
+		ctx := r.Context()
 
-		ctx := context.WithValue(r.Context(), loggedInContextKey, isAuthd)
-		if isAuthd {
-			user, ok := token.Get("user")
-			if ok {
-				ctx = context.WithValue(ctx, userContextKey, user.(string))
+		if valid {
+			if userToken, ok := token.Get("user"); ok {
+				if user, ok := userToken.(string); ok {
+					ctx = context.WithValue(r.Context(), userContextKey, user)
+				}
 			}
 		}
 
@@ -255,7 +253,7 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 
 func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isLoggedIn(r) {
+		if user := s.getUser(r); user == "" {
 			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusSeeOther)
 			return
@@ -276,7 +274,7 @@ func (s *Server) mustAdmin(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) getUser(r *http.Request) string {
+func (s *Server) getUser(r *http.Request) (me string) {
 	if user, ok := r.Context().Value(userContextKey).(string); ok {
 		return user
 	}
@@ -284,14 +282,7 @@ func (s *Server) getUser(r *http.Request) string {
 	return ""
 }
 
-func (s *Server) isLoggedIn(r *http.Request) bool {
-	if loggedIn, ok := r.Context().Value(loggedInContextKey).(bool); ok {
-		return loggedIn
-	}
-
-	return false
-}
-
 func (s *Server) isAdmin(r *http.Request) bool {
-	return s.getUser(r) == s.Config.Site.BaseURL+"/"
+	user := s.getUser(r)
+	return user == s.Config.ID()
 }

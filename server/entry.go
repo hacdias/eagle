@@ -112,7 +112,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee.CreatedWith = s.Config.Site.BaseURL + "/"
+	ee.CreatedWith = s.Config.ID()
 	s.newEditHandler(w, r, ee)
 }
 
@@ -228,15 +228,22 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loggedIn := s.isLoggedIn(r)
-	if ee.Deleted && !loggedIn {
+	admin := s.isAdmin(r)
+	if ee.Deleted && !admin {
 		s.serveErrorHTML(w, r, http.StatusGone, nil)
 		return
 	}
 
-	if (ee.Draft || ee.Visibility() == entry.VisibilityPrivate) && !loggedIn {
+	if ee.Draft && !admin {
 		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 		return
+	}
+
+	if ee.Visibility() == entry.VisibilityPrivate && !admin {
+		if !funk.ContainsString(ee.Audience(), s.getUser(r)) {
+			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
+			return
+		}
 	}
 
 	s.serveEntry(w, r, ee)

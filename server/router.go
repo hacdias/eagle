@@ -19,6 +19,7 @@ const (
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(middleware.Logger)
 	r.Use(middleware.RedirectSlashes)
 	r.Use(cleanPath)
 	r.Use(middleware.GetHead)

@@ -111,7 +111,7 @@ type tokenUser struct {
 
 func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, &tokenResponse{
-		Me:       s.Config.Site.BaseURL + "/",
+		Me:       s.Config.ID(),
 		Scope:    strings.Join(s.getScopes(r), " "),
 		ClientID: s.getClient(r),
 	})
@@ -172,7 +172,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	}
 
 	at := &tokenResponse{
-		Me: s.Config.Site.BaseURL + "/",
+		Me: s.Config.ID(),
 	}
 
 	scope := getString(token, "scope")
@@ -193,9 +193,9 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 
 	if strings.Contains(scope, "profile") {
 		at.Profile = &tokenUser{
-			Name:  s.Config.User.Name,
-			URL:   s.Config.User.URL,
-			Photo: s.Config.User.Photo,
+			Name:  s.Config.Me.Name,
+			URL:   s.Config.ID(),
+			Photo: s.Config.Me.Photo,
 		}
 	}
 
@@ -203,7 +203,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		if at.Profile == nil {
 			at.Profile = &tokenUser{}
 		}
-		at.Profile.Email = s.Config.User.Email
+		at.Profile.Email = s.Config.Me.Email
 	}
 
 	s.serveJSON(w, http.StatusOK, at)

@@ -203,8 +203,9 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
 	data.TorUsed = s.isUsingTor(r)
 	data.OnionAddress = s.onionAddress
-	data.IsLoggedIn = s.isLoggedIn(r)
+	data.IsLoggedIn = s.getUser(r) != ""
 	data.IsAdmin = s.isAdmin(r)
+	data.User = s.getUser(r)
 
 	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)

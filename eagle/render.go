@@ -209,13 +209,14 @@ type RenderData struct {
 	*entry.Entry
 
 	Assets *Assets
-	User   config.User
+	Me     config.Me
 	Site   config.Site
 
 	// For page-specific variables.
 	Data interface{}
 
 	Alternates   []Alternate
+	User         string
 	IsHome       bool
 	IsLoggedIn   bool
 	IsAdmin      bool
@@ -286,7 +287,7 @@ func (rd *RenderData) TryFiles(filenames ...string) string {
 }
 
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
-	data.User = e.Config.User
+	data.Me = e.Config.Me
 	data.Site = e.Config.Site
 	data.Assets = e.assets
 	data.eagle = e
