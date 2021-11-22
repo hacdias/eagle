@@ -14,7 +14,7 @@ This repository replaces the old, JavaScript based, [API](https://github.com/hac
 This is a non-extensive list of features.
 
 - Micropub endpoint
-- IndiAuth authorization and token endpoints
+- IndieAuth authorization and token endpoints
 - Login via IndieAuth
 
 ### Visibility and Audience
