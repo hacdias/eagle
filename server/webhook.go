@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) webhookHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 	signature := r.Header.Get("X-Hub-Signature")
 	if len(signature) == 0 {
 		s.log.Warn("webhook: request without signature")

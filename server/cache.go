@@ -17,7 +17,7 @@ func (s *Server) cacheScope(r *http.Request) eagle.CacheScope {
 }
 
 func (s *Server) isCacheable(r *http.Request) bool {
-	return !s.isLoggedIn(r) && r.URL.RawQuery == ""
+	return s.getUser(r) == "" && r.URL.RawQuery == ""
 }
 
 func (s *Server) isCached(r *http.Request) ([]byte, time.Time, bool) {

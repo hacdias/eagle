@@ -49,7 +49,8 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, isPrivate, date, properties) values($1, $2, $3, $4, $5, $6, $7)", entry.ID, content, entry.Draft, entry.Deleted, entry.Private, entry.Published.UTC(), entry.Properties)
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, date, properties) values($1, $2, $3, $4, $5, $6, $7, $8)",
+			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -125,10 +126,13 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 		args = append(args, day)
 	}
 
-	where = append(where, d.whereConstraints(opts)...)
+	wwhere, aargs := d.whereConstraints(opts, i)
+
+	where = append(where, wwhere...)
+	args = append(args, aargs...)
 	sql += strings.Join(where, " and ")
 	sql += " order by date desc"
-	sql += d.offset(opts)
+	sql += d.offset(&opts.PaginationOptions)
 
 	return d.queryEntries(sql, 0, args...)
 }
@@ -137,59 +141,91 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	args := []interface{}{tag}
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
 
-	if ands := d.whereConstraints(opts); len(ands) > 0 {
-		sql += " and " + strings.Join(ands, " and ")
+	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
 	}
 
-	sql += " order by date desc" + d.offset(opts)
+	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
 	return d.queryEntries(sql, 0, args...)
 }
 
 func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
-	if len(sections) == 0 {
-		sql := "select id from entries"
-		if ands := d.whereConstraints(opts); len(ands) > 0 {
-			sql += " where " + strings.Join(ands, " and ")
-		}
-		return d.queryEntries(sql+" order by date desc"+d.offset(opts), 0)
-	}
-
-	args := []interface{}{}
 	sql := "select distinct (id) id, date from sections inner join entries on id=entry_id"
-	ands := d.whereConstraints(opts)
+	where, args := d.whereConstraints(opts, 0)
+	i := len(args)
 
 	var sectionsWhere []string
-
-	for i, section := range sections {
-		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i+1))
+	for _, section := range sections {
+		i++
+		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i))
 		args = append(args, section)
 	}
 
 	if len(sectionsWhere) > 0 {
-		ands = append(ands, "("+strings.Join(sectionsWhere, " or ")+")")
+		where = append(where, "("+strings.Join(sectionsWhere, " or ")+")")
 	}
 
-	if len(ands) > 0 {
-		sql += " where " + strings.Join(ands, " and ")
+	if len(where) > 0 {
+		sql += " where " + strings.Join(where, " and ")
 	}
 
-	sql += " order by date desc" + d.offset(opts)
+	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
 	return d.queryEntries(sql, 1, args...)
+}
+
+func (d *Postgres) GetAll(opts *QueryOptions) ([]string, error) {
+	sql := "select id from entries"
+
+	where, args := d.whereConstraints(opts, 0)
+	if len(where) > 0 {
+		sql += " where " + strings.Join(where, " and ")
+	}
+
+	return d.queryEntries(sql+" order by date desc"+d.offset(&opts.PaginationOptions), 0, args...)
+}
+
+func (d *Postgres) GetDeleted(opts *PaginationOptions) ([]string, error) {
+	sql := "select id from entries where isDeleted=true order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetDrafts(opts *PaginationOptions) ([]string, error) {
+	sql := "select id from entries where isDraft=true order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetUnlisted(opts *PaginationOptions) ([]string, error) {
+	sql := "select id from entries where visibility='unlisted' order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetPrivate(opts *PaginationOptions, audience string) ([]string, error) {
+	if audience == "" {
+		return nil, errors.New("audience is required")
+	}
+
+	sql := "select id from entries where visibility='private' and $1=any(audience) order by date desc" + d.offset(opts)
+	return d.queryEntries(sql, 0, audience)
 }
 
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	sql := `select id from (
-		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isPrivate
+		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility
 		from entries as e
 	) s
 	where score > 0`
 
-	if ands := d.whereConstraints(opts); len(ands) > 0 {
-		sql += " and " + strings.Join(ands, " and ")
-	}
-	sql += ` order by score desc` + d.offset(opts)
+	args := []interface{}{query}
+	where, aargs := d.whereConstraints(opts, 1)
+	args = append(args, aargs...)
 
-	return d.queryEntries(sql, 0, query)
+	if len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+	}
+	sql += ` order by score desc` + d.offset(&opts.PaginationOptions)
+
+	return d.queryEntries(sql, 0, args...)
 }
 
 func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
@@ -202,7 +238,7 @@ func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
 from entries
 where properties->>'read-status' is not null`
 
-	if ands := d.whereConstraints(&QueryOptions{}); len(ands) > 0 {
+	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
@@ -249,7 +285,7 @@ where properties->>'read-status' is not null`
 func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
 	sql := "select id, date, name from (" + baseSql
 
-	if ands := d.whereConstraints(&QueryOptions{}); len(ands) > 0 {
+	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
@@ -315,25 +351,38 @@ where
 	return watches, nil
 }
 
-func (d *Postgres) whereConstraints(opts *QueryOptions) []string {
+func (d *Postgres) whereConstraints(opts *QueryOptions, i int) ([]string, []interface{}) {
 	var where []string
+	var args []interface{}
 
-	if !opts.Deleted {
+	if !opts.WithDeleted {
 		where = append(where, "isDeleted=false")
 	}
 
-	if !opts.Private {
-		where = append(where, "isPrivate=false")
+	if len(opts.Visibility) > 0 {
+		visibilityOr := []string{}
+		for _, vis := range opts.Visibility {
+			i++
+			if vis == entry.VisibilityPrivate && opts.Audience != "" {
+				visibilityOr = append(visibilityOr, "(visibility='private' and audience is null)")
+				visibilityOr = append(visibilityOr, "(visibility='private' and $"+strconv.Itoa(i)+" = ANY (audience) )")
+				args = append(args, opts.Audience)
+			} else {
+				visibilityOr = append(visibilityOr, "visibility=$"+strconv.Itoa(i))
+				args = append(args, vis)
+			}
+		}
+		where = append(where, "("+strings.Join(visibilityOr, " or ")+")")
 	}
 
-	if !opts.Draft {
+	if !opts.WithDrafts {
 		where = append(where, "isDraft=false")
 	}
 
-	return where
+	return where, args
 }
 
-func (d *Postgres) offset(opts *QueryOptions) string {
+func (d *Postgres) offset(opts *PaginationOptions) string {
 	var sql string
 
 	if opts.Page > 0 {

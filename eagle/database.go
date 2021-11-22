@@ -16,16 +16,36 @@ func (e *Eagle) Search(opts *database.QueryOptions, query string) ([]*entry.Entr
 	return e.idsToEntries(e.db.Search(opts, query))
 }
 
-func (e *Eagle) ByTag(opts *database.QueryOptions, tag string) ([]*entry.Entry, error) {
+func (e *Eagle) GetAll(opts *database.QueryOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetAll(opts))
+}
+
+func (e *Eagle) GetByTag(opts *database.QueryOptions, tag string) ([]*entry.Entry, error) {
 	return e.idsToEntries(e.db.ByTag(opts, tag))
 }
 
-func (e *Eagle) BySection(opts *database.QueryOptions, sections ...string) ([]*entry.Entry, error) {
+func (e *Eagle) GetBySection(opts *database.QueryOptions, sections ...string) ([]*entry.Entry, error) {
 	return e.idsToEntries(e.db.BySection(opts, sections...))
 }
 
-func (e *Eagle) ByDate(opts *database.QueryOptions, year, month, day int) ([]*entry.Entry, error) {
+func (e *Eagle) GetByDate(opts *database.QueryOptions, year, month, day int) ([]*entry.Entry, error) {
 	return e.idsToEntries(e.db.ByDate(opts, year, month, day))
+}
+
+func (e *Eagle) GetDeleted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetDeleted(opts))
+}
+
+func (e *Eagle) GetDrafts(opts *database.PaginationOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetDrafts(opts))
+}
+
+func (e *Eagle) GetUnlisted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetUnlisted(opts))
+}
+
+func (e *Eagle) GetPrivate(opts *database.PaginationOptions, audience string) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetPrivate(opts, audience))
 }
 
 func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {

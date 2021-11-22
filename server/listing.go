@@ -21,7 +21,7 @@ import (
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.BySection(opts)
+			return s.GetAll(opts)
 		},
 	})
 }
@@ -32,7 +32,7 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 			IsHome: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.BySection(opts, s.Config.Site.IndexSections...)
+			return s.GetBySection(opts, s.Config.Site.IndexSections...)
 		},
 		templates: []string{eagle.TemplateIndex},
 	})
@@ -45,28 +45,19 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "#" + tag
-	}
-
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: ee,
+			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.ByTag(opts, tag)
+			return s.GetByTag(opts, tag)
 		},
 	})
 }
 
 func (s *Server) sectionGet(section string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ee := s.getListingEntryOrEmpty(r.URL.Path)
-		if ee.Title == "" {
-			ee.Title = section
-		}
-
+		ee := s.getListingEntryOrEmpty(r.URL.Path, section)
 		if len(ee.Sections) == 0 {
 			ee.Sections = []string{section}
 		}
@@ -76,7 +67,7 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 				Entry: ee,
 			},
 			exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-				return s.BySection(opts, section)
+				return s.GetBySection(opts, section)
 			},
 			templates: []string{},
 		})
@@ -131,7 +122,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.ByDate(opts, year, month, day)
+			return s.GetByDate(opts, year, month, day)
 		},
 	})
 }
@@ -139,10 +130,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
-	ee := s.getListingEntryOrEmpty(r.URL.Path)
-	if ee.Title == "" {
-		ee.Title = "Search"
-	}
+	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	if ee.ID == "" {
 		ee.ID = strings.TrimSuffix(r.URL.Path, filepath.Ext(r.URL.Path))
 	}
@@ -163,13 +151,67 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			SearchQuery: query,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			if s.isAdmin(r) {
+				opts.WithDrafts = true
+				opts.WithDeleted = true
+				opts.Visibility = nil
+			}
+
 			return s.Search(opts, query)
 		},
 		templates: []string{eagle.TemplateSearch},
 	})
 }
 
-func (s *Server) getListingEntryOrEmpty(id string) *entry.Entry {
+func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetPrivate(&opts.PaginationOptions, s.getUser(r))
+		},
+	})
+}
+
+func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetDeleted(&opts.PaginationOptions)
+		},
+	})
+}
+
+func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetDrafts(&opts.PaginationOptions)
+		},
+	})
+}
+
+func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
+			NoIndex: true,
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetUnlisted(&opts.PaginationOptions)
+		},
+	})
+}
+
+func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 	id = strings.TrimSuffix(id, filepath.Ext(id))
 	if ee, err := s.GetEntry(id); err == nil {
 		if !ee.IsListing {
@@ -181,6 +223,7 @@ func (s *Server) getListingEntryOrEmpty(id string) *entry.Entry {
 
 	return &entry.Entry{
 		Frontmatter: entry.Frontmatter{
+			Title:     title,
 			IsListing: true,
 		},
 	}
@@ -202,13 +245,20 @@ type listingPage struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	loggedIn := s.isLoggedIn(r)
-
 	opts := &database.QueryOptions{
-		Draft:   loggedIn,
-		Deleted: loggedIn,
-		Private: loggedIn,
-		Limit:   s.Config.Site.Paginate,
+		PaginationOptions: database.PaginationOptions{
+			Limit: s.Config.Site.Paginate,
+		},
+	}
+
+	user := s.getUser(r)
+	if user == "" {
+		opts.Visibility = []entry.Visibility{entry.VisibilityPublic}
+	} else {
+		opts.Visibility = []entry.Visibility{entry.VisibilityPublic, entry.VisibilityPrivate}
+		if !s.isAdmin(r) {
+			opts.Audience = s.getUser(r)
+		}
 	}
 
 	if ls.rd == nil {
@@ -216,7 +266,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	if ls.rd.Entry == nil {
-		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path)
+		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path, "")
 	}
 
 	if v := r.URL.Query().Get("page"); v != "" {
@@ -278,8 +328,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.AbsoluteURL(r.URL.Path), "."+feedType)},
 		Description: ls.rd.Entry.Summary(),
 		Author: &feeds.Author{
-			Name:  s.Config.User.Name,
-			Email: s.Config.User.Email,
+			Name:  s.Config.Me.Name,
+			Email: s.Config.Me.Email,
 		},
 		// TODO: support .Tags
 		Created: time.Now(),
@@ -301,8 +351,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Description: entry.Description,
 			Content:     buf.String(),
 			Author: &feeds.Author{
-				Name:  s.Config.User.Name,
-				Email: s.Config.User.Email,
+				Name:  s.Config.Me.Name,
+				Email: s.Config.Me.Email,
 			},
 			Created: entry.Published,
 			Updated: entry.Updated,

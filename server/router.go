@@ -19,6 +19,10 @@ const (
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
+	if s.Config.Development {
+		r.Use(middleware.Logger)
+	}
+
 	r.Use(middleware.RedirectSlashes)
 	r.Use(cleanPath)
 	r.Use(middleware.GetHead)
@@ -31,8 +35,31 @@ func (s *Server) makeRouter() http.Handler {
 
 	if s.Config.Tor != nil {
 		r.Use(s.onionHeader)
-		r.Get("/onion", s.onionRedirHandler)
+		r.Get("/onion", s.onionRedirGet)
 	}
+
+	if s.Config.WebhookSecret != "" {
+		r.Post("/webhook", s.webhookPost)
+	}
+
+	if s.Config.WebmentionsSecret != "" {
+		r.Post("/webmention", s.webmentionPost)
+	}
+
+	r.Get("/search", s.searchGet)
+	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
+
+	// IndieAuth Server
+	r.Get("/auth", s.authGet)
+	r.Post("/auth/accept", s.authAcceptPost)
+	r.Post("/auth", s.authPost)
+	r.Post("/token", s.tokenPost)
+
+	// IndieAuth Client
+	r.Get("/login", s.loginGet)
+	r.Post("/login", s.loginPost)
+	r.Get("/login/callback", s.loginCallbackGet)
+	r.Get("/logout", s.logoutGet)
 
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
@@ -45,11 +72,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/token", s.tokenGet)
 	})
 
+	// Admin only pages.
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustLoggedIn)
-
-		r.Get("/auth", s.indieauthGet)
-		r.Post("/auth/accept", s.indieauthAcceptPost)
+		r.Use(s.mustAdmin)
 
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
@@ -59,27 +85,20 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/dashboard", s.dashboardGet)
 		r.Post("/dashboard", s.dashboardPost)
+
+		r.Get("/deleted", s.deletedGet)
+		r.Get("/drafts", s.draftsGet)
+		r.Get("/unlisted", s.unlistedGet)
 	})
 
-	if s.Config.WebhookSecret != "" {
-		r.Post("/webhook", s.webhookHandler)
-	}
+	// Logged-in only pages.
+	r.Group(func(r chi.Router) {
+		r.Use(s.mustLoggedIn)
 
-	if s.Config.WebmentionsSecret != "" {
-		r.Post("/webmention", s.webmentionHandler)
-	}
+		r.Get("/private", s.privateGet)
+	})
 
-	// Token exchange points.
-	r.Post("/auth", s.indieauthPost)
-	r.Post("/token", s.tokenPost)
-
-	r.Get("/logout", s.logoutGetHandler)
-	r.Get("/login", s.loginGetHandler)
-	r.Post("/login", s.loginPostHandler)
-
-	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
-
-	// Listing HTML pages.
+	// Listing HTML pages. Cached.
 	r.Group(func(r chi.Router) {
 		r.Use(s.withCache)
 
@@ -96,20 +115,17 @@ func (s *Server) makeRouter() http.Handler {
 		}
 	})
 
-	// Listing feeds: JSON, XML and Atom.
-	r.Group(func(r chi.Router) {
-		r.Get("/"+feedPath, s.indexGet)
-		r.Get("/all"+feedPath, s.allGet)
-		r.Get(yearPath+feedPath, s.dateGet)
-		r.Get(monthPath+feedPath, s.dateGet)
-		r.Get(dayPath+feedPath, s.dateGet)
-		r.Get("/tags/{tag}"+feedPath, s.tagGet)
-		r.Get("/search", s.searchGet)
+	// Listing JSON, XML and ATOM feeds. Not cached.
+	r.Get("/"+feedPath, s.indexGet)
+	r.Get("/all"+feedPath, s.allGet)
+	r.Get(yearPath+feedPath, s.dateGet)
+	r.Get(monthPath+feedPath, s.dateGet)
+	r.Get(dayPath+feedPath, s.dateGet)
+	r.Get("/tags/{tag}"+feedPath, s.tagGet)
 
-		for _, section := range s.Config.Site.Sections {
-			r.Get("/"+section+feedPath, s.sectionGet(section))
-		}
-	})
+	for _, section := range s.Config.Site.Sections {
+		r.Get("/"+section+feedPath, s.sectionGet(section))
+	}
 
 	// Everything that was not matched so far.
 	r.Group(func(r chi.Router) {

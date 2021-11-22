@@ -30,12 +30,21 @@ type WatchesSummary struct {
 	Movies []*Watch `json:"movies"`
 }
 
+type PaginationOptions struct {
+	Page  int
+	Limit int
+}
+
 type QueryOptions struct {
-	Page    int
-	Limit   int
-	Draft   bool
-	Deleted bool
-	Private bool
+	PaginationOptions
+	WithDrafts  bool
+	WithDeleted bool
+
+	// Empty matches all visibilities.
+	Visibility []entry.Visibility
+
+	// Empty matches all audiences.
+	Audience string
 }
 
 type Database interface {
@@ -46,6 +55,14 @@ type Database interface {
 
 	GetTags() ([]string, error)
 	Search(opt *QueryOptions, query string) ([]string, error)
+
+	GetDeleted(opts *PaginationOptions) ([]string, error)
+	GetDrafts(opts *PaginationOptions) ([]string, error)
+	GetUnlisted(opts *PaginationOptions) ([]string, error)
+	GetPrivate(opts *PaginationOptions, audience string) ([]string, error)
+
+	GetAll(opts *QueryOptions) ([]string, error)
+
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)

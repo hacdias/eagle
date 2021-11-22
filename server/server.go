@@ -21,6 +21,7 @@ import (
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/log"
+	"github.com/hacdias/eagle/v2/pkg/indieauth"
 	"github.com/hashicorp/go-multierror"
 
 	"go.uber.org/zap"
@@ -35,8 +36,9 @@ type httpServer struct {
 
 type Server struct {
 	*eagle.Eagle
-	log *zap.SugaredLogger
-
+	log         *zap.SugaredLogger
+	iac         *indieauth.Client
+	ias         *indieauth.Server
 	serversLock sync.Mutex
 	servers     []*httpServer
 
@@ -49,6 +51,18 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		Eagle:   e,
 		log:     log.S().Named("server"),
 		servers: []*httpServer{},
+		iac: &indieauth.Client{
+			Client: &http.Client{
+				Timeout: time.Second * 30,
+			},
+			ClientID:    e.Config.Site.BaseURL + "/",
+			RedirectURL: e.Config.Site.BaseURL + "/login/callback",
+		},
+		ias: &indieauth.Server{
+			Client: &http.Client{
+				Timeout: time.Second * 30,
+			},
+		},
 	}
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
@@ -189,7 +203,9 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
 	data.TorUsed = s.isUsingTor(r)
 	data.OnionAddress = s.onionAddress
-	data.LoggedIn = s.isLoggedIn(r)
+	data.IsLoggedIn = s.getUser(r) != ""
+	data.IsAdmin = s.isAdmin(r)
+	data.User = s.getUser(r)
 
 	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)

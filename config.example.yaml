@@ -13,13 +13,12 @@ xrayEndpoint: https://xray.p3k.app
 # WebmentionIO (https://webmention.io) secret to verify webmentions.
 webmentionsSecret: ThisIsTheSecret
 
-user:
+me:
   name: Your Name
   nickname: yournick
   twitter: yourusername
   email: your@email.com
   photo: http://localhost:8080/your/photo.jpeg
-  url: http://localhost:8080/
   rels:
   - https://twitter.com/profile
   - https://github.com/profile

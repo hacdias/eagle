@@ -6,6 +6,7 @@ import (
 
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/pkg/indieauth"
 )
 
 func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +46,7 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 			scope := r.Form.Get("scope")
 			expires := r.Form.Get("expiry") != "infinity"
 
-			if !isValidProfileURL(clientID) {
+			if !indieauth.IsValidClientIdentifier(clientID) {
 				s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("client id is invalid"))
 				return
 			}
