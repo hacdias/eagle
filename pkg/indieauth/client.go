@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -178,12 +179,19 @@ func (c *Client) FetchProfile(i *AuthInfo, code string) (*Profile, error) {
 	}
 	defer res.Body.Close()
 
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("DEBUUUUUUG")
+	fmt.Println(string(data))
+
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("status code: expected 200, got %d", res.StatusCode)
 	}
 
 	var profile *Profile
-	err = json.NewDecoder(res.Body).Decode(&profile)
+	err = json.Unmarshal(data, &profile)
 	if err != nil {
 		return nil, err
 	}
