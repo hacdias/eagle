@@ -52,6 +52,7 @@ func (s *Server) makeRouter() http.Handler {
 	// TODO: rework this as indieauth put your address.
 	r.Get("/login", s.loginGetHandler)
 	r.Post("/login", s.loginPostHandler)
+	r.Get("/login/callback", s.loginCallbackGet)
 
 	r.Get("/logout", s.logoutGetHandler)
 

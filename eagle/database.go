@@ -44,6 +44,10 @@ func (e *Eagle) GetUnlisted(opts *database.PaginationOptions) ([]*entry.Entry, e
 	return e.idsToEntries(e.db.GetUnlisted(opts))
 }
 
+func (e *Eagle) GetPrivate(opts *database.PaginationOptions, audience string) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.GetPrivate(opts, audience))
+}
+
 func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {
 	if err != nil {
 		return nil, err

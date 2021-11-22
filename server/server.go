@@ -21,6 +21,7 @@ import (
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
 	"github.com/hacdias/eagle/v2/log"
+	"github.com/hacdias/eagle/v2/pkg/indieauth"
 	"github.com/hashicorp/go-multierror"
 
 	"go.uber.org/zap"
@@ -35,8 +36,8 @@ type httpServer struct {
 
 type Server struct {
 	*eagle.Eagle
-	log *zap.SugaredLogger
-
+	log         *zap.SugaredLogger
+	ia          *indieauth.Client
 	serversLock sync.Mutex
 	servers     []*httpServer
 
@@ -49,6 +50,13 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		Eagle:   e,
 		log:     log.S().Named("server"),
 		servers: []*httpServer{},
+		ia: &indieauth.Client{
+			Client: &http.Client{
+				Timeout: time.Second * 30,
+			},
+			ClientID:    e.Config.Site.BaseURL + "/",
+			RedirectURL: e.Config.Site.BaseURL + "/login/callback",
+		},
 	}
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))

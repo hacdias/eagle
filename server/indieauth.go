@@ -33,6 +33,15 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// username := r.FormValue("username")
+	// password := r.FormValue("password")
+	// correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
+
+	// if username != s.Config.Auth.Username || !correctPassword {
+	// 	s.serveLoginPage(w, r, http.StatusUnauthorized, "Wrong credentials.")
+	// 	return
+	// }
+
 	resType := r.FormValue("response_type")
 	if resType == "" {
 		// Default to support legacy clients.

@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"time"
@@ -9,12 +11,15 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/pkg/indieauth"
 	"github.com/lestrrat-go/jwx/jwt"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	SessionSubject string = "Eagle Session"
+
+	OAuthSubject    string = "Eagle OAuth Client"
+	OAuthCookieName string = "eagle-oauth"
 
 	loggedInContextKey contextKey = "auth"
 	userContextKey     contextKey = "user"
@@ -40,7 +45,97 @@ func (s *Server) loginGetHandler(w http.ResponseWriter, r *http.Request) {
 	s.serveLoginPage(w, r, http.StatusOK, "")
 }
 
-// TODO: implement 2FA or Push Notification.
+func (s *Server) saveAuthInfo(w http.ResponseWriter, r *http.Request, i *indieauth.AuthInfo) error {
+	data, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+
+	expiration := time.Now().Add(time.Minute * 10)
+
+	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
+		jwt.SubjectKey:    OAuthSubject,
+		jwt.IssuedAtKey:   time.Now().Unix(),
+		jwt.ExpirationKey: expiration,
+		"data":            string(data),
+		"redirect":        r.URL.Query().Get("redirect"),
+	})
+	if err != nil {
+		return err
+	}
+
+	cookie := &http.Cookie{
+		Name:     OAuthCookieName,
+		Value:    string(signed),
+		Expires:  expiration,
+		Secure:   r.URL.Scheme == "https",
+		HttpOnly: true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	http.SetCookie(w, cookie)
+	return nil
+}
+
+func (s *Server) getInformation(w http.ResponseWriter, r *http.Request) (*indieauth.AuthInfo, string, error) {
+	cookie, err := r.Cookie(OAuthCookieName)
+	if err != nil {
+		return nil, "", err
+	}
+
+	token, err := jwtauth.VerifyToken(s.jwtAuth, cookie.Value)
+	if err != nil {
+		return nil, "", err
+	}
+
+	err = jwt.Validate(token)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if token.Subject() != OAuthSubject {
+		return nil, "", errors.New("invalid subject for oauth token")
+	}
+
+	data, ok := token.Get("data")
+	if !ok || data == nil {
+		return nil, "", errors.New("cannot find 'data' property in token")
+	}
+
+	dataStr, ok := data.(string)
+	if !ok || dataStr == "" {
+		return nil, "", errors.New("cannot find 'data' property in token")
+	}
+
+	var i *indieauth.AuthInfo
+	err = json.Unmarshal([]byte(dataStr), &i)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Delete cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     OAuthCookieName,
+		MaxAge:   -1,
+		Secure:   r.URL.Scheme == "https",
+		Path:     "/",
+		HttpOnly: true,
+	})
+
+	redirect, ok := token.Get("redirect")
+	if !ok {
+		return i, "", nil
+	}
+
+	redirectStr, ok := redirect.(string)
+	if !ok || redirectStr == "" {
+		return i, "", nil
+	}
+
+	return i, redirectStr, nil
+}
+
 func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -48,12 +143,43 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
+	profile := r.FormValue("profile")
+	if profile == "" {
+		s.serveLoginPage(w, r, http.StatusBadRequest, "profile is empty")
+		return
+	}
 
-	if username != s.Config.Auth.Username || !correctPassword {
-		s.serveLoginPage(w, r, http.StatusUnauthorized, "Wrong credentials.")
+	i, redirect, err := s.ia.Authenticate(profile, "profile")
+	if err != nil {
+		s.serveLoginPage(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = s.saveAuthInfo(w, r, i)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
+}
+
+func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
+	i, redirect, err := s.getInformation(w, r)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	code, err := s.ia.ValidateCallback(i, r)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	profile, err := s.ia.FetchProfile(i, code)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -63,10 +189,10 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 		jwt.SubjectKey:    SessionSubject,
 		jwt.IssuedAtKey:   time.Now().Unix(),
 		jwt.ExpirationKey: expiration,
-		"user":            s.Config.Site.BaseURL,
+		"user":            profile.Me,
 	})
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -81,18 +207,19 @@ func (s *Server) loginPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, cookie)
-	redirectTo := "/"
-	if r.URL.Query().Get("redirect") != "" {
-		redirectTo = r.URL.Query().Get("redirect")
+
+	if redirect == "" {
+		redirect = "/"
 	}
-	http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
 }
 
 func (s *Server) logoutGetHandler(w http.ResponseWriter, r *http.Request) {
 	cookie := http.Cookie{
 		Name:     "jwt",
 		Value:    "",
-		MaxAge:   0,
+		MaxAge:   -1,
 		Secure:   r.URL.Scheme == "https",
 		Path:     "/",
 		HttpOnly: true,

@@ -169,8 +169,7 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			opts.Visibility = []entry.Visibility{entry.VisibilityPrivate}
-			return s.GetAll(opts)
+			return s.GetPrivate(&opts.PaginationOptions, opts.Audience)
 		},
 	})
 }

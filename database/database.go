@@ -59,6 +59,7 @@ type Database interface {
 	GetDeleted(opts *PaginationOptions) ([]string, error)
 	GetDrafts(opts *PaginationOptions) ([]string, error)
 	GetUnlisted(opts *PaginationOptions) ([]string, error)
+	GetPrivate(opts *PaginationOptions, audience string) ([]string, error)
 
 	GetAll(opts *QueryOptions) ([]string, error)
 
