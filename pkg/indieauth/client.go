@@ -31,7 +31,6 @@ type AuthInfo struct {
 }
 
 func (c *Client) Authenticate(profile, scope string) (*AuthInfo, string, error) {
-	profile = CanonicalizeURL(profile)
 	endpoints, err := c.DiscoverEndpoints(profile)
 	if err != nil {
 		return nil, "", err

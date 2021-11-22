@@ -46,9 +46,9 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
 
 	// IndieAuth Server
-	r.Get("/auth", s.indieauthGet)
-	r.Post("/auth/accept", s.indieauthAcceptPost)
-	r.Post("/auth", s.indieauthPost)
+	r.Get("/auth", s.authGet)
+	r.Post("/auth/accept", s.authAcceptPost)
+	r.Post("/auth", s.authPost)
 	r.Post("/token", s.tokenPost)
 
 	// IndieAuth Client

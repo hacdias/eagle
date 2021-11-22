@@ -144,7 +144,14 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i, redirect, err := s.iac.Authenticate(profile, "profile")
+	profile = indieauth.CanonicalizeURL(profile)
+
+	if !indieauth.IsValidProfileURL(profile) {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("invalid profile url"))
+		return
+	}
+
+	i, redirect, err := s.iac.Authenticate(profile, "")
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return

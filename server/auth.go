@@ -26,7 +26,7 @@ const (
 	clientContextKey contextKey = "client"
 )
 
-func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
+func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -34,7 +34,7 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 
 	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -45,11 +45,11 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	}, []string{eagle.TemplateAuth})
 }
 
-func (s *Server) indieauthPost(w http.ResponseWriter, r *http.Request) {
+func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {
 	s.authorizationCodeExchange(w, r, false)
 }
 
-func (s *Server) indieauthAcceptPost(w http.ResponseWriter, r *http.Request) {
+func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -273,15 +273,10 @@ func validateAuthorizationCode(r *http.Request, token jwt.Token) error {
 
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !s.isLoggedIn(r) {
+		token, _, err := jwtauth.FromContext(r.Context())
+		isAuthd := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != TokenSubject)
+		if !isAuthd {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
-			return
-		}
-
-		// The verification above MUST ensure that token exists.
-		token, _, _ := jwtauth.FromContext(r.Context())
-		if token.Subject() != TokenSubject {
-			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token subject")
 			return
 		}
 
