@@ -185,7 +185,7 @@ func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !indieauth.IsValidProfileURL(profile.Me) {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("profile request returned invalid 'Me' field"))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("profile request returned invalid 'me' field"))
 		return
 	}
 
