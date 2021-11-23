@@ -139,21 +139,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var (
-		grantType = r.Form.Get("grant_type")
-		code      = r.Form.Get("code")
-	)
-
-	if grantType == "" {
-		// Default to support legacy clients.
-		grantType = "authorization_code"
-	}
-
-	if grantType != "authorization_code" {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "grant_type must be authorization_code")
-		return
-	}
-
+	code := r.Form.Get("code")
 	token, err := jwtauth.VerifyToken(s.jwtAuth, code)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
@@ -165,7 +151,14 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = validateAuthorizationCode(r, token)
+	authRequest := &indieauth.AuthenticationRequest{
+		ClientID:            getString(token, "client_id"),
+		RedirectURI:         getString(token, "redirect_uri"),
+		CodeChallenge:       getString(token, "code_challenge"),
+		CodeChallengeMethod: getString(token, "code_challenge_method"),
+	}
+
+	err = s.ias.ValidateTokenExchange(authRequest, r)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
@@ -178,9 +171,8 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	scope := getString(token, "scope")
 
 	if withToken {
-		clientID := getString(token, "client_id")
 		expires := getString(token, "expiry") != "infinity"
-		signed, err := s.generateToken(clientID, scope, expires)
+		signed, err := s.generateToken(authRequest.ClientID, scope, expires)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 			return
@@ -235,40 +227,6 @@ func getString(token jwt.Token, prop string) string {
 		return ""
 	}
 	return vv
-}
-
-func validateAuthorizationCode(r *http.Request, token jwt.Token) error {
-	var (
-		clientID     = r.Form.Get("client_id")
-		redirectURI  = r.Form.Get("redirect_uri")
-		codeVerifier = r.Form.Get("code_verifier")
-	)
-
-	if getString(token, "client_id") != clientID {
-		return errors.New("client_id differs")
-	}
-
-	if getString(token, "redirect_uri") != redirectURI {
-		return errors.New("redirect_uri differs")
-	}
-
-	cc := getString(token, "code_challenge")
-	if cc != "" {
-		ccm := getString(token, "code_challenge_method")
-		if cc == "" {
-			return errors.New("code_challenge_method missing from token")
-		}
-
-		if !indieauth.IsValidCodeChallengeMethod(ccm) {
-			return errors.New("code_challenge_method invalid")
-		}
-
-		if !indieauth.ValidateCodeChallenge(ccm, cc, codeVerifier) {
-			return errors.New("code challenge failed")
-		}
-	}
-
-	return nil
 }
 
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
