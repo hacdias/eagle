@@ -47,22 +47,19 @@ type Server struct {
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
+	clientID := e.Config.Site.BaseURL + "/"
+	redirectURL := e.Config.Site.BaseURL + "/login/callback"
+
 	s := &Server{
 		Eagle:   e,
 		log:     log.S().Named("server"),
 		servers: []*httpServer{},
-		iac: &indieauth.Client{
-			Client: &http.Client{
-				Timeout: time.Second * 30,
-			},
-			ClientID:    e.Config.Site.BaseURL + "/",
-			RedirectURL: e.Config.Site.BaseURL + "/login/callback",
-		},
-		ias: &indieauth.Server{
-			Client: &http.Client{
-				Timeout: time.Second * 30,
-			},
-		},
+		iac: indieauth.NewClient(clientID, redirectURL, &http.Client{
+			Timeout: time.Second * 30,
+		}),
+		ias: indieauth.NewServer(false, &http.Client{
+			Timeout: time.Second * 30,
+		}),
 	}
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
