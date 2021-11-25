@@ -240,7 +240,16 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ee.Visibility() == entry.VisibilityPrivate && !admin {
-		if !funk.ContainsString(ee.Audience(), s.getUser(r)) {
+		user := s.getUser(r)
+		hasUser := user != ""
+		hasAudience := len(ee.Audience()) != 0
+
+		if !hasUser {
+			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
+			return
+		}
+
+		if hasAudience && !funk.ContainsString(ee.Audience(), user) {
 			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 			return
 		}
