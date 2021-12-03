@@ -9,14 +9,14 @@ require (
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/dgraph-io/ristretto v0.1.0
 	github.com/gabriel-vasile/mimetype v1.4.0
-	github.com/go-chi/chi/v5 v5.0.5
+	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/jwtauth/v5 v5.0.2
-	github.com/hacdias/indieauth v1.5.0
+	github.com/hacdias/indieauth v1.7.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/jackc/pgx/v4 v4.13.0
+	github.com/jackc/pgx/v4 v4.14.1
 	github.com/jlelse/feeds v1.2.0
 	github.com/karlseguin/typed v1.1.7
-	github.com/lestrrat-go/jwx v1.2.9
+	github.com/lestrrat-go/jwx v1.2.12
 	github.com/lopezator/migrator v0.3.0
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/paulmach/go.geojson v1.4.0
@@ -27,12 +27,12 @@ require (
 	github.com/tdewolff/minify/v2 v2.9.22
 	github.com/thoas/go-funk v0.9.1
 	github.com/writeas/go-strip-markdown v2.0.1+incompatible
-	github.com/yuin/goldmark v1.4.2
+	github.com/yuin/goldmark v1.4.4
 	go.uber.org/zap v1.19.1
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-	gopkg.in/tucnak/telebot.v2 v2.4.0
+	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
+	gopkg.in/tucnak/telebot.v2 v2.4.1
 	gopkg.in/yaml.v2 v2.4.0
-	miniflux.app v0.0.0-20211024044718-d6ad9a471bb9
+	miniflux.app v0.0.0-20211109005024-42dcc52ed18d
 	willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0
 )
 
@@ -51,13 +51,13 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.10.0 // indirect
+	github.com/jackc/pgconn v1.10.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.1.1 // indirect
+	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
-	github.com/jackc/pgtype v1.8.1 // indirect
-	github.com/jackc/puddle v1.1.3 // indirect
+	github.com/jackc/pgtype v1.9.1 // indirect
+	github.com/jackc/puddle v1.2.0 // indirect
 	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/tdewolff/parse/v2 v2.5.22 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4 // indirect
+	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
 	golang.org/x/text v0.3.7 // indirect
