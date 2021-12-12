@@ -11,7 +11,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/jwtauth/v5 v5.0.2
-	github.com/hacdias/indieauth v1.7.0
+	github.com/hacdias/indieauth v1.7.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/jlelse/feeds v1.2.0
