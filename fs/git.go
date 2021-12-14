@@ -5,19 +5,24 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 var nothingToCommit = []byte("nothing to commit, working tree clean")
 
 type GitSync struct {
 	dir string
+	mu  sync.Mutex
 }
 
 func NewGitSync(path string) FSSync {
-	return &GitSync{path}
+	return &GitSync{dir: path}
 }
 
 func (g *GitSync) Persist(msg string, file string) error {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	args := append([]string{"add"}, file)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
@@ -38,6 +43,9 @@ func (g *GitSync) Persist(msg string, file string) error {
 }
 
 func (g *GitSync) Sync() ([]string, error) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
 	oldCommit, err := g.currentCommit()
 	if err != nil {
 		return nil, err
