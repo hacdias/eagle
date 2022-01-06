@@ -83,7 +83,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: &entry.Entry{},
 		Data: map[string]interface{}{
-			"Slug":        entry.NewSlug(),
+			"ID":          entry.NewID("", time.Now()),
 			"Content":     str,
 			"Syndicators": s.GetSyndicators(),
 			"Templates":   templates,
@@ -99,13 +99,12 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	content := r.FormValue("content")
-	slug := r.FormValue("slug")
-	if content == "" || slug == "" {
+	id := r.FormValue("id")
+	if content == "" || id == "" {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content and slug cannot be empty"))
 		return
 	}
 
-	id := entry.NewID(slug, time.Now())
 	ee, err := s.Parser.FromRaw(id, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
