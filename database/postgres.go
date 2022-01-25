@@ -174,6 +174,19 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 	return d.queryEntries(sql, 1, args...)
 }
 
+func (d *Postgres) ByProperty(opts *QueryOptions, property, value string) ([]string, error) {
+	args := []interface{}{property, value}
+	sql := "select id from entries where properties->>$1=$2"
+
+	if where, aargs := d.whereConstraints(opts, 2); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
+	}
+
+	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
+	return d.queryEntries(sql, 0, args...)
+}
+
 func (d *Postgres) GetAll(opts *QueryOptions) ([]string, error) {
 	sql := "select id from entries"
 

@@ -66,6 +66,7 @@ type Database interface {
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
+	ByProperty(opts *QueryOptions, property, value string) ([]string, error)
 
 	ReadsSummary() (*ReadsSummary, error)
 	WatchesSummary() (*WatchesSummary, error)

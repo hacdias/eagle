@@ -32,6 +32,10 @@ func (e *Eagle) GetByDate(opts *database.QueryOptions, year, month, day int) ([]
 	return e.idsToEntries(e.db.ByDate(opts, year, month, day))
 }
 
+func (e *Eagle) GetByProperty(opts *database.QueryOptions, property, value string) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.ByProperty(opts, property, value))
+}
+
 func (e *Eagle) GetDeleted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
 	return e.idsToEntries(e.db.GetDeleted(opts))
 }
