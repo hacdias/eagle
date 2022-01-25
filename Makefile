@@ -1,4 +1,4 @@
-.PHONY: build pgadmin postgres
+.PHONY: build pgadmin postgres ngrok
 
 build:
 	go build -o main ./cmd/eagle
@@ -9,3 +9,6 @@ postgres:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=pgpassword \
 		postgres
+
+ngrok:
+	ngrok http -region eu 8080
