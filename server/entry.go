@@ -59,6 +59,7 @@ var (
 			return &entry.Entry{
 				ID: "/reads/isbn/ISBN",
 				Frontmatter: entry.Frontmatter{
+					Title: "NAME by AUTHOR (ISBN: ISBN)",
 					Properties: map[string]interface{}{
 						"read-of": map[string]interface{}{
 							"properties": map[string]interface{}{
