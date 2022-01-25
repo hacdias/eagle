@@ -101,6 +101,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"truncate":    util.TruncateStringWithEllipsis,
 		"domain":      domain,
 		"strContains": strings.Contains,
+		"strSplit":    strings.Split,
 		"safeHTML":    safeHTML,
 		"safeCSS":     safeCSS,
 		"figure":      figure,
@@ -268,6 +269,11 @@ func (rd *RenderData) GetFile(path string) string {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
 	v, _ := rd.eagle.fs.ReadFile(filename)
 	return string(v)
+}
+
+func (rd *RenderData) GetEntry(id string) *entry.Entry {
+	entry, _ := rd.eagle.GetEntry(id)
+	return entry
 }
 
 func (rd *RenderData) HasFile(path string) bool {
