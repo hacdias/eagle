@@ -88,6 +88,20 @@ func dateFormat(date, template string) string {
 	return t.Format(template)
 }
 
+func stars(rating, total int) template.HTML {
+	stars := ""
+
+	for i := 0; i < total; i++ {
+		if i < rating {
+			stars += "★"
+		} else {
+			stars += "☆"
+		}
+	}
+
+	return template.HTML(stars)
+}
+
 func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	figure := func(url, alt string, uPhoto bool) template.HTML {
 		var w strings.Builder
@@ -112,6 +126,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"md":          e.getRenderMarkdown(alwaysAbsolute),
 		"absURL":      e.AbsoluteURL,
 		"relURL":      e.relativeURL,
+		"stars":       stars,
 	}
 
 	if alwaysAbsolute {

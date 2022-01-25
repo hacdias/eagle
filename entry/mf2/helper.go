@@ -174,20 +174,6 @@ func (m *FlatHelper) LocationHTML() template.HTML {
 	return template.HTML(`<span class="p-location h-adr">` + strings.Join(strs, ", ") + `</span>`)
 }
 
-func (m *FlatHelper) Stars(rating, total int) template.HTML {
-	stars := ""
-
-	for i := 0; i < total; i++ {
-		if i < rating {
-			stars += "★"
-		} else {
-			stars += "☆"
-		}
-	}
-
-	return template.HTML(stars)
-}
-
 func (m *FlatHelper) Sub(prop string) *FlatHelper {
 	return NewFlatHelper(m.Properties.MapOr(prop, nil))
 }
