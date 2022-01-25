@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/thoas/go-funk"
 )
 
@@ -53,6 +55,69 @@ var (
 				},
 			}
 		},
+		"book": func() *entry.Entry {
+			return &entry.Entry{
+				ID: "/reads/isbn/ISBN",
+				Frontmatter: entry.Frontmatter{
+					Properties: map[string]interface{}{
+						"read-of": map[string]interface{}{
+							"properties": map[string]interface{}{
+								"author":    "AUTHOR",
+								"name":      "NAME",
+								"pages":     "PAGES",
+								"publisher": "PUBLISHER",
+								"uid":       "isbn:ISBN",
+							},
+							"type": "h-cite",
+						},
+					},
+				},
+			}
+		},
+		"want-to-read": func() *entry.Entry {
+			return &entry.Entry{
+				Frontmatter: entry.Frontmatter{
+					Published: time.Now(),
+					Sections:  []string{"reads"},
+					Properties: map[string]interface{}{
+						"read-status": "to-read",
+						"read-of": map[string]interface{}{
+							"properties": map[string]interface{}{
+								"author": "AUTHOR",
+								"name":   "NAME",
+							},
+							"type": "h-cite",
+						},
+					},
+				},
+			}
+		},
+		"currently-reading": func() *entry.Entry {
+			return &entry.Entry{
+				Frontmatter: entry.Frontmatter{
+					Published: time.Now(),
+					Sections:  []string{"reads"},
+					Properties: map[string]interface{}{
+						"read-status": "reading",
+						"page":        "PAGE",
+						"read-of":     "/reads/isbn/ISBN",
+					},
+				},
+			}
+		},
+		"finished-reading": func() *entry.Entry {
+			return &entry.Entry{
+				Frontmatter: entry.Frontmatter{
+					Published: time.Now(),
+					Sections:  []string{"reads"},
+					Properties: map[string]interface{}{
+						"read-status": "finished",
+						"rating":      "RATING",
+						"read-of":     "/reads/isbn/ISBN",
+					},
+				},
+			}
+		},
 	}
 )
 
@@ -80,10 +145,15 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	templates := funk.Keys(entryTemplates).([]string)
 	sort.Strings(templates)
 
+	id := ee.ID
+	if id == "" {
+		id = entry.NewID("", time.Now())
+	}
+
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: &entry.Entry{},
 		Data: map[string]interface{}{
-			"ID":          entry.NewID("", time.Now()),
+			"ID":          id,
 			"Content":     str,
 			"Syndicators": s.GetSyndicators(),
 			"Templates":   templates,
@@ -112,7 +182,70 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ee.CreatedWith = s.Config.ID()
+
+	if err := s.newHandler(ee); err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
 	s.newEditHandler(w, r, ee)
+}
+
+func (s *Server) newHandler(ee *entry.Entry) error {
+	if ee.Description != "" {
+		return nil
+	}
+
+	mm := ee.Helper()
+	if mm.PostType() != mf2.TypeRead {
+		return nil
+	}
+
+	status := mm.String("read-status")
+	if status == "" {
+		return nil
+	}
+
+	description := ""
+
+	switch status {
+	case "to-read":
+		description = "Want to read"
+	case "reading":
+		description = "Currently reading"
+	case "finished":
+		description = "Finished reading"
+	}
+
+	sub := mm.Sub(mm.TypeProperty())
+	if sub == nil {
+		canonical := mm.String(mm.TypeProperty())
+		e, err := s.GetEntry(canonical)
+		if err != nil {
+			return err
+		}
+		sub = e.Helper().Sub(mm.TypeProperty())
+	}
+
+	if sub == nil {
+		return nil
+	}
+
+	name := sub.String("name")
+	author := sub.String("author")
+	uid := sub.String("uid")
+
+	description += ": " + name + " by " + author
+
+	if uid != "" {
+		parts := strings.Split(uid, ":")
+		if len(parts) == 2 {
+			description += ", " + strings.ToUpper(parts[0]) + ": " + parts[1]
+		}
+	}
+
+	ee.Description = description
+	return nil
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
