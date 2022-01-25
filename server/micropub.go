@@ -141,6 +141,10 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		syndicators = s
 	}
 
+	if err := s.PreCreateEntry(ee); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	err = s.SaveEntry(ee)
 	if err != nil {
 		return http.StatusInternalServerError, err

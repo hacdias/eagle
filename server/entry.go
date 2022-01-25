@@ -6,13 +6,11 @@ import (
 	"net/http"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/entry/mf2"
 	"github.com/thoas/go-funk"
 )
 
@@ -184,69 +182,12 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 
 	ee.CreatedWith = s.Config.ID()
 
-	if err := s.newHandler(ee); err != nil {
+	if err := s.PreCreateEntry(ee); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	s.newEditHandler(w, r, ee)
-}
-
-func (s *Server) newHandler(ee *entry.Entry) error {
-	if ee.Description != "" {
-		return nil
-	}
-
-	mm := ee.Helper()
-	if mm.PostType() != mf2.TypeRead {
-		return nil
-	}
-
-	status := mm.String("read-status")
-	if status == "" {
-		return nil
-	}
-
-	description := ""
-
-	switch status {
-	case "to-read":
-		description = "Want to read"
-	case "reading":
-		description = "Currently reading"
-	case "finished":
-		description = "Finished reading"
-	}
-
-	sub := mm.Sub(mm.TypeProperty())
-	if sub == nil {
-		canonical := mm.String(mm.TypeProperty())
-		e, err := s.GetEntry(canonical)
-		if err != nil {
-			return err
-		}
-		sub = e.Helper().Sub(mm.TypeProperty())
-	}
-
-	if sub == nil {
-		return nil
-	}
-
-	name := sub.String("name")
-	author := sub.String("author")
-	uid := sub.String("uid")
-
-	description += ": " + name + " by " + author
-
-	if uid != "" {
-		parts := strings.Split(uid, ":")
-		if len(parts) == 2 {
-			description += ", " + strings.ToUpper(parts[0]) + ": " + parts[1]
-		}
-	}
-
-	ee.Description = description
-	return nil
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
