@@ -5,6 +5,7 @@ import (
 
 	"github.com/dgraph-io/ristretto"
 	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v2/entry/mf2"
 )
 
 type CacheScope string
@@ -54,6 +55,13 @@ func (e *Eagle) RemoveCache(ee *entry.Entry) {
 	}
 	if hasTags {
 		e.PurgeCache("/tags")
+	}
+
+	if mm := ee.Helper(); mm.PostType() == mf2.TypeRead {
+		canonical := mm.String(mm.TypeProperty())
+		if canonical != "" {
+			e.PurgeCache(canonical)
+		}
 	}
 }
 
