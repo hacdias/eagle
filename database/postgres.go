@@ -273,7 +273,7 @@ union
 	from readings
 	where status is not null and name is not null
 	order by name, date desc)
-order by date desc`
+order by name`
 
 	rows, err := d.pool.Query(context.Background(), sql)
 	if err != nil {
