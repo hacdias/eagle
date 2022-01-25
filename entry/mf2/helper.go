@@ -89,6 +89,18 @@ func (m *FlatHelper) Float(prop string) float64 {
 	return 0
 }
 
+func (m *FlatHelper) Int(prop string) int {
+	if v, ok := m.Properties.IntIf(prop); ok {
+		return v
+	}
+
+	if v, ok := m.Properties.IntsIf(prop); ok && len(v) > 0 {
+		return v[0]
+	}
+
+	return 0
+}
+
 func (m *FlatHelper) Photos() []map[string]interface{} {
 	v, ok := m.Properties["photo"]
 	if !ok {
@@ -160,6 +172,20 @@ func (m *FlatHelper) LocationHTML() template.HTML {
 	}
 
 	return template.HTML(`<span class="p-location h-adr">` + strings.Join(strs, ", ") + `</span>`)
+}
+
+func (m *FlatHelper) Stars(rating, total int) template.HTML {
+	stars := ""
+
+	for i := 0; i < total; i++ {
+		if i < rating {
+			stars += "★"
+		} else {
+			stars += "☆"
+		}
+	}
+
+	return template.HTML(stars)
 }
 
 func (m *FlatHelper) Sub(prop string) *FlatHelper {
