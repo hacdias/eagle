@@ -110,6 +110,9 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(dayPath, s.dateGet)
 		r.Get("/tags/{tag}", s.tagGet)
 
+		// Books are special types of listings.
+		r.Get("/reads/isbn/{isbn}", s.bookGet)
+
 		for _, section := range s.Config.Site.Sections {
 			r.Get("/"+section, s.sectionGet(section))
 		}
