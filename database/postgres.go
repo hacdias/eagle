@@ -242,20 +242,38 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 }
 
 func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
-	sql := `select distinct on (name)
+	sql := `select distinct on (read)
+	properties->>'read-of' as read,
 	id,
 	date,
 	properties->>'read-status' as status,
 	properties->'read-of'->'properties'->>'name' as name,
 	properties->'read-of'->'properties'->>'author' as author
-from entries
-where properties->>'read-status' is not null`
+from entries`
 
 	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
-		sql += " and " + strings.Join(ands, " and ")
+		sql += " where " + strings.Join(ands, " and ")
 	}
 
-	sql += " order by name, date desc"
+	sql += " order by read, date desc"
+
+	sql = `with readings as (` + sql + `)
+	(select books.id, date, status, name, author
+	from
+		(select id, date, status, read
+		 from readings where name is null and status is not null
+		 order by read, date desc) as reads
+	inner join
+		(select id, name, author
+		from readings
+		where status is null and name is not null) as books
+	on reads.read = books.id)
+union
+	(select id, date, status, name, author
+	from readings
+	where status is not null and name is not null
+	order by name, date desc)
+order by date desc`
 
 	rows, err := d.pool.Query(context.Background(), sql)
 	if err != nil {
