@@ -57,6 +57,8 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	// TODO: support channels (aka sections)
+	//
 	// sections := []map[string]string{}
 	// for _, s := range s.Config.Site.Sections {
 	// 	sections = append(sections, map[string]string{
@@ -64,11 +66,16 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	// 		"name": s,
 	// 	})
 	// }
+	//
+	// config["channels"] = sections
 
 	config := map[string]interface{}{
 		"syndicate-to":   syndications,
 		"media-endpoint": s.AbsoluteURL("/micropub/media"),
-		// "channels":     sections,
+	}
+
+	if len(s.Config.Site.PostTypes) > 0 {
+		config["post-types"] = s.Config.Site.PostTypes
 	}
 
 	s.serveJSON(w, http.StatusOK, config)

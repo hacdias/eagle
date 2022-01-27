@@ -109,12 +109,20 @@ type Site struct {
 	IndexSections []string
 	Paginate      int
 	Menus         map[string][]MenuItem
+	PostTypes     []PostType
 }
 
 type MenuItem struct {
 	Name  string
 	Emoji string
 	Link  string
+}
+
+type PostType struct {
+	Type       string   `json:"type"`
+	Name       string   `json:"name"`
+	Properties []string `json:"properties,omitempty"`
+	Required   []string `json:"required-properties,omitempty"`
 }
 
 type Me struct {
