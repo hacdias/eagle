@@ -8,6 +8,7 @@ postgres:
 		-p 5432:5432 \
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=pgpassword \
+		-e POSTGRES_DB=eagle \
 		postgres
 
 ngrok:
