@@ -377,7 +377,12 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 		return nil
 	}
 
-	urlStr := mm.String(mm.TypeProperty())
+	property := mm.TypeProperty()
+	if typ == mf2.TypeRsvp {
+		property = "in-reply-to"
+	}
+
+	urlStr := mm.String(property)
 	if urlStr == "" {
 		return fmt.Errorf("expected context url to be non-empty for %s", ee.ID)
 	}
