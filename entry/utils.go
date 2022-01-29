@@ -23,7 +23,7 @@ func NewSlug() string {
 
 func NewID(slug string, t time.Time) string {
 	if t.IsZero() {
-		t = time.Now()
+		t = time.Now().Local()
 	}
 
 	if slug == "" {

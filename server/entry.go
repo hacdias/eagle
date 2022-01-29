@@ -20,12 +20,12 @@ var (
 			return &entry.Entry{
 				Content: "Lorem ipsum...",
 				Frontmatter: entry.Frontmatter{
-					Published: time.Now(),
+					Published: time.Now().Local(),
 				},
 			}
 		},
 		"recently": func() *entry.Entry {
-			t := time.Now()
+			t := time.Now().Local()
 			month := t.Format("January")
 
 			return &entry.Entry{
@@ -46,7 +46,7 @@ var (
 				Frontmatter: entry.Frontmatter{
 					Draft:     true,
 					Title:     "Article Title",
-					Published: time.Now(),
+					Published: time.Now().Local(),
 					Properties: map[string]interface{}{
 						"categories": []string{"example"},
 					},
@@ -76,7 +76,7 @@ var (
 		"want-to-read": func() *entry.Entry {
 			return &entry.Entry{
 				Frontmatter: entry.Frontmatter{
-					Published: time.Now(),
+					Published: time.Now().Local(),
 					Sections:  []string{"reads"},
 					Properties: map[string]interface{}{
 						"read-status": "to-read",
@@ -94,7 +94,7 @@ var (
 		"currently-reading": func() *entry.Entry {
 			return &entry.Entry{
 				Frontmatter: entry.Frontmatter{
-					Published: time.Now(),
+					Published: time.Now().Local(),
 					Sections:  []string{"reads"},
 					Properties: map[string]interface{}{
 						"read-status": "reading",
@@ -107,7 +107,7 @@ var (
 		"finished-reading": func() *entry.Entry {
 			return &entry.Entry{
 				Frontmatter: entry.Frontmatter{
-					Published: time.Now(),
+					Published: time.Now().Local(),
 					Sections:  []string{"reads"},
 					Properties: map[string]interface{}{
 						"read-status": "finished",
@@ -146,7 +146,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 
 	id := ee.ID
 	if id == "" {
-		id = entry.NewID("", time.Now())
+		id = entry.NewID("", time.Now().Local())
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
@@ -256,7 +256,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 
 	lastmod := r.FormValue("lastmod") == "on"
 	if lastmod {
-		ee.Updated = time.Now()
+		ee.Updated = time.Now().Local()
 	}
 
 	s.newEditHandler(w, r, ee)

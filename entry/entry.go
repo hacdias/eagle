@@ -199,7 +199,7 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 	}
 
 	if e.Published.IsZero() {
-		e.Published = time.Now()
+		e.Published = time.Now().Local()
 	}
 
 	return nil
