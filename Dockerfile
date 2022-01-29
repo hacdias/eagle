@@ -20,7 +20,7 @@ ENV UID 501
 ENV GID 20
 
 RUN apk update && \
-  apk add --no-cache git ca-certificates openssh tor && \
+  apk add --no-cache git ca-certificates openssh tor tzdata && \
   addgroup -g $UID eagle && \
   adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
   mkdir /app /app/source /app/public /app/onion && \
