@@ -373,7 +373,13 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 	mm := ee.Helper()
 	typ := mm.PostType()
 
-	if typ != mf2.TypeLike && typ != mf2.TypeRepost && typ != mf2.TypeReply {
+	switch typ {
+	case mf2.TypeLike,
+		mf2.TypeRepost,
+		mf2.TypeReply,
+		mf2.TypeRsvp:
+		// Keep going
+	default:
 		return nil
 	}
 
