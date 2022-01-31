@@ -250,16 +250,7 @@ func (rd *RenderData) HeadTitle() string {
 		return rd.Site.Title
 	}
 
-	title := rd.Title
-	if title == "" {
-		title = rd.Summary()
-		title = strings.TrimSuffix(title, "…")
-
-		if len(title) > 100 {
-			title = util.TruncateString(title, 100) + "…"
-		}
-	}
-
+	title := rd.DisplayTitle()
 	if title != "" {
 		return fmt.Sprintf("%s - %s", title, rd.Site.Title)
 	}

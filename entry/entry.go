@@ -24,7 +24,7 @@ type Entry struct {
 	Content   string
 
 	helper  *mf2.FlatHelper
-	summary string
+	excerpt string
 }
 
 func (e *Entry) Helper() *mf2.FlatHelper {
@@ -94,22 +94,49 @@ func (e *Entry) Audience() []string {
 	return nil
 }
 
-func (e *Entry) Summary() string {
-	if e.summary != "" {
-		return e.summary
+func (e *Entry) Excerpt() string {
+	if e.excerpt != "" {
+		return e.excerpt
 	}
 
 	if strings.Contains(e.Content, "<!--more-->") {
 		firstPart := strings.Split(e.Content, "<!--more-->")[0]
-		e.summary = stripText(strings.TrimSpace(firstPart))
-	} else if e.Description != "" {
-		e.summary = e.Description
+		e.excerpt = stripText(strings.TrimSpace(firstPart))
 	} else if content := e.TextContent(); content != "" {
-		e.summary = util.TruncateString(content, 300) + "…"
+		e.excerpt = util.TruncateString(content, 300) + "…"
 	}
 
-	// TODO: get context and trim that text.
-	return e.summary
+	return e.excerpt
+}
+
+func (e *Entry) DisplayTitle() string {
+	if e.Title != "" {
+		return e.Title
+	}
+
+	if e.Description != "" {
+		return e.Description
+	}
+
+	excerpt := e.Excerpt()
+	if excerpt == "" {
+		return ""
+	}
+
+	if len(excerpt) > 100 {
+		excerpt = strings.TrimSuffix(excerpt, "…")
+		excerpt = util.TruncateString(excerpt, 100) + "…"
+	}
+
+	return excerpt
+}
+
+func (e *Entry) DisplayDescription() string {
+	if e.Description != "" {
+		return e.Description
+	}
+
+	return e.Excerpt()
 }
 
 func (e *Entry) InSection(section string) bool {
