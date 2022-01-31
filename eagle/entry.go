@@ -73,68 +73,10 @@ func (e *Eagle) SaveEntry(entry *entry.Entry) error {
 }
 
 func (e *Eagle) PreCreateEntry(ee *entry.Entry) error {
-	if err := e.generateReadDescription(ee); err != nil {
+	if err := e.GenerateDescription(ee, false); err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (e *Eagle) generateReadDescription(ee *entry.Entry) error {
-	if ee.Description != "" {
-		return nil
-	}
-
-	mm := ee.Helper()
-
-	if mm.PostType() != mf2.TypeRead {
-		return nil
-	}
-
-	status := mm.String("read-status")
-	if status == "" {
-		return nil
-	}
-
-	description := ""
-
-	switch status {
-	case "to-read":
-		description = "Want to read"
-	case "reading":
-		description = "Currently reading"
-	case "finished":
-		description = "Finished reading"
-	}
-
-	sub := mm.Sub(mm.TypeProperty())
-	if sub == nil {
-		canonical := mm.String(mm.TypeProperty())
-		e, err := e.GetEntry(canonical)
-		if err != nil {
-			return err
-		}
-		sub = e.Helper().Sub(mm.TypeProperty())
-	}
-
-	if sub == nil {
-		return nil
-	}
-
-	name := sub.String("name")
-	author := sub.String("author")
-	uid := sub.String("uid")
-
-	description += ": " + name + " by " + author
-
-	if uid != "" {
-		parts := strings.Split(uid, ":")
-		if len(parts) == 2 {
-			description += ", " + strings.ToUpper(parts[0]) + ": " + parts[1]
-		}
-	}
-
-	ee.Description = description
 	return nil
 }
 
