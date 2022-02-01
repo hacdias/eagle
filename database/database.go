@@ -1,34 +1,8 @@
 package database
 
 import (
-	"time"
-
 	"github.com/hacdias/eagle/v2/entry"
 )
-
-type Read struct {
-	ID     string    `json:"id"`
-	Date   time.Time `json:"date"`
-	Name   string    `json:"name"`
-	Author string    `json:"author"`
-}
-
-type ReadsSummary struct {
-	ToRead   []*Read `json:"to-read"`
-	Reading  []*Read `json:"reading"`
-	Finished []*Read `json:"finished"`
-}
-
-type Watch struct {
-	ID   string    `json:"id"`
-	Date time.Time `json:"date"`
-	Name string    `json:"name"`
-}
-
-type WatchesSummary struct {
-	Series []*Watch `json:"series"`
-	Movies []*Watch `json:"movies"`
-}
 
 type PaginationOptions struct {
 	Page  int
@@ -68,8 +42,8 @@ type Database interface {
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 	ByProperty(opts *QueryOptions, property, value string) ([]string, error)
 
-	ReadsSummary() (*ReadsSummary, error)
-	WatchesSummary() (*WatchesSummary, error)
+	ReadsSummary() (*entry.ReadsSummary, error)
+	WatchesSummary() (*entry.WatchesSummary, error)
 	Been() ([]string, error)
 	SectionsCount() (map[string]int, error)
 }

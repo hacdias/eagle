@@ -129,7 +129,7 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 
 	// Update read statistics if it's a read.
 	if ee.Helper().PostType() == mf2.TypeRead {
-		err = e.UpdateReadStatistics()
+		err = e.UpdateReadsSummary()
 		if err != nil {
 			e.Error(err)
 		}
@@ -137,7 +137,7 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 
 	// Update watches statistics if it's a watch.
 	if ee.Helper().PostType() == mf2.TypeWatch {
-		err = e.UpdateWatchStatistics()
+		err = e.UpdateWatchesSummary()
 		if err != nil {
 			e.Error(err)
 		}

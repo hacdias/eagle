@@ -241,7 +241,7 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	return d.queryEntries(sql, 0, args...)
 }
 
-func (d *Postgres) ReadsSummary() (*ReadsSummary, error) {
+func (d *Postgres) ReadsSummary() (*entry.ReadsSummary, error) {
 	sql := `select distinct on (read)
 	properties->>'read-of' as read,
 	id,
@@ -281,14 +281,15 @@ order by name`
 	}
 	defer rows.Close()
 
-	stats := &ReadsSummary{
-		ToRead:   []*Read{},
-		Reading:  []*Read{},
-		Finished: []*Read{},
+	stats := &entry.ReadsSummary{
+		ToRead:  []*entry.Read{},
+		Reading: []*entry.Read{},
 	}
 
+	finished := entry.ReadList([]*entry.Read{})
+
 	for rows.Next() {
-		read := &Read{}
+		read := &entry.Read{}
 		status := ""
 
 		err := rows.Scan(&read.ID, &read.Date, &status, &read.Name, &read.Author)
@@ -302,7 +303,7 @@ order by name`
 		case "reading":
 			stats.Reading = append(stats.Reading, read)
 		case "finished":
-			stats.Finished = append(stats.Finished, read)
+			finished = append(finished, read)
 		}
 	}
 
@@ -310,10 +311,11 @@ order by name`
 		return nil, err
 	}
 
+	stats.Finished = *finished.ByYear()
 	return stats, nil
 }
 
-func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
+func (d *Postgres) watches(baseSql string) ([]*entry.Watch, error) {
 	sql := "select id, date, name from (" + baseSql
 
 	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
@@ -328,10 +330,10 @@ func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
 	}
 	defer rows.Close()
 
-	watches := []*Watch{}
+	watches := []*entry.Watch{}
 
 	for rows.Next() {
-		watch := &Watch{}
+		watch := &entry.Watch{}
 		err := rows.Scan(&watch.ID, &watch.Date, &watch.Name)
 		if err != nil {
 			return nil, err
@@ -346,10 +348,10 @@ func (d *Postgres) watches(baseSql string) ([]*Watch, error) {
 	return watches, nil
 }
 
-func (d *Postgres) WatchesSummary() (*WatchesSummary, error) {
-	watches := &WatchesSummary{
-		Series: []*Watch{},
-		Movies: []*Watch{},
+func (d *Postgres) WatchesSummary() (*entry.WatchesSummary, error) {
+	watches := &entry.WatchesSummary{
+		Series: []*entry.Watch{},
+		Movies: []*entry.Watch{},
 	}
 
 	series, err := d.watches(`select distinct on (ttid)

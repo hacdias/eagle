@@ -2,15 +2,16 @@ package eagle
 
 import "path/filepath"
 
-func (e *Eagle) UpdateReadStatistics() error {
+const ReadsSummary = "_summary.reads.json"
+const WatchesSummary = "_summary.watches.json"
+
+func (e *Eagle) UpdateReadsSummary() error {
 	stats, err := e.db.ReadsSummary()
 	if err != nil {
 		return err
 	}
 
-	// TODO: do not like this hardcoded.
-	filename := filepath.Join(ContentDirectory, "reads/summary/_summary.json")
-
+	filename := filepath.Join(ContentDirectory, ReadsSummary)
 	err = e.fs.WriteJSON(filename, stats, "update read summary")
 	if err != nil {
 		return err
@@ -25,15 +26,13 @@ func (e *Eagle) UpdateReadStatistics() error {
 	return nil
 }
 
-func (e *Eagle) UpdateWatchStatistics() error {
+func (e *Eagle) UpdateWatchesSummary() error {
 	stats, err := e.db.WatchesSummary()
 	if err != nil {
 		return err
 	}
 
-	// TODO: do not like this hardcoded.
-	filename := filepath.Join(ContentDirectory, "watches/summary/_summary.json")
-
+	filename := filepath.Join(ContentDirectory, WatchesSummary)
 	err = e.fs.WriteJSON(filename, stats, "update watches summary")
 	if err != nil {
 		return err
