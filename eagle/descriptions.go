@@ -47,21 +47,11 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 	case mf2.TypeRead:
 		description, err = e.generateReadDescription(ee)
 	case mf2.TypeItinerary:
-		// TODO
+		description, err = e.generateItineraryDescription(ee)
 	case mf2.TypeRsvp:
-		// TODO
+		description, err = e.generateRsvpDescription(ee)
 	case mf2.TypeWatch:
-		// Matches OwnYourTrakt
-		// TODO
-		// 	sub := mm.Sub(mm.TypeProperty())
-		// 	series := sub.Sub("episode-of")
-		// 	what := ""
-		// 	if series == nil {
-		// 		what = sub.Name()
-		// 	} else {
-		// 		what = sub.Name() + " (" + series.Name() + ")"
-		// 	}
-		// 	description = "Just watched: " + what
+		description, err = e.generateWatchDescription(ee)
 	}
 
 	if err != nil {
@@ -123,4 +113,70 @@ func (e *Eagle) generateReadDescription(ee *entry.Entry) (string, error) {
 	}
 
 	return description, nil
+}
+
+func (e *Eagle) generateItineraryDescription(ee *entry.Entry) (string, error) {
+	mm := ee.Helper()
+
+	subs := mm.Subs(mm.TypeProperty())
+	if len(subs) == 0 {
+		return "", nil
+	}
+
+	start := subs[0]
+	end := subs[len(subs)-1]
+
+	origin := start.String("origin")
+	if o := start.Sub("origin"); o != nil {
+		origin = o.Name()
+	}
+
+	destination := end.String("destination")
+	if d := end.Sub("destination"); d != nil {
+		destination = d.Name()
+	}
+
+	return "Trip from " + origin + " to " + destination, nil
+}
+
+func (e *Eagle) generateRsvpDescription(ee *entry.Entry) (string, error) {
+	mm := ee.Helper()
+
+	rsvp := mm.String(mm.TypeProperty())
+	domain := domain(mm.String("in-reply-to"))
+
+	if domain == "" {
+		return "", nil
+	}
+
+	switch rsvp {
+	case "interested":
+		return "Interested in going to an event on " + domain, nil
+	case "yes":
+		return "Going to an event on " + domain, nil
+	case "no":
+		return "Not going to an event on " + domain, nil
+	case "maybe":
+		return "Maybe going to an event on " + domain, nil
+	}
+
+	return "", nil
+}
+
+func (e *Eagle) generateWatchDescription(ee *entry.Entry) (string, error) {
+	// Matches OwnYourTrakt
+
+	// TODO
+	// 	sub := mm.Sub(mm.TypeProperty())
+	// 	series := sub.Sub("episode-of")
+	// 	what := ""
+	// 	if series == nil {
+	// 		what = sub.Name()
+	// 	} else {
+	// 		what = sub.Name() + " (" + series.Name() + ")"
+	// 	}
+	// 	description = "Just watched: " + what
+
+	// TODO
+	return "", nil
 }
