@@ -1,6 +1,7 @@
 package eagle
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/hacdias/eagle/v2/entry"
@@ -160,23 +161,24 @@ func (e *Eagle) generateRsvpDescription(ee *entry.Entry) (string, error) {
 		return "Maybe going to an event on " + domain, nil
 	}
 
+	// TODO: leverage context information.
 	return "", nil
 }
 
 func (e *Eagle) generateWatchDescription(ee *entry.Entry) (string, error) {
 	// Matches OwnYourTrakt
+	mm := ee.Helper()
+	sub := mm.Sub(mm.TypeProperty())
+	series := sub.Sub("episode-of")
 
-	// TODO
-	// 	sub := mm.Sub(mm.TypeProperty())
-	// 	series := sub.Sub("episode-of")
-	// 	what := ""
-	// 	if series == nil {
-	// 		what = sub.Name()
-	// 	} else {
-	// 		what = sub.Name() + " (" + series.Name() + ")"
-	// 	}
-	// 	description = "Just watched: " + what
+	what := ""
+	if series == nil {
+		what = sub.Name()
+	} else {
+		season := sub.Int("season")
+		episode := sub.Int("episode")
+		what = sub.Name() + " (" + series.Name() + " S" + strconv.Itoa(season) + "E" + strconv.Itoa(episode) + ")"
+	}
 
-	// TODO
-	return "", nil
+	return "Just watched: " + what, nil
 }
