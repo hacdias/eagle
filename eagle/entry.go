@@ -349,6 +349,12 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 		return fmt.Errorf("could not fetch context xray for %s: %w", ee.ID, err)
 	}
 
+	if typ, ok := context["type"]; ok {
+		if styp, ok := typ.(string); ok && styp == "unknown" {
+			return nil
+		}
+	}
+
 	return e.UpdateSidecar(ee, func(data *Sidecar) (*Sidecar, error) {
 		data.Context = context
 		return data, nil
