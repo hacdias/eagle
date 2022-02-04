@@ -24,6 +24,21 @@ var (
 				},
 			}
 		},
+		"private": func() *entry.Entry {
+			return &entry.Entry{
+				Content: "Lorem ipsum...",
+				Frontmatter: entry.Frontmatter{
+					Published: time.Now().Local(),
+					Properties: map[string]interface{}{
+						"visibility": "private",
+						"audience":   "https://hacdias.com/",
+						"category": []string{
+							"example",
+						},
+					},
+				},
+			}
+		},
 		"recently": func() *entry.Entry {
 			t := time.Now().Local()
 			month := t.Format("January")
