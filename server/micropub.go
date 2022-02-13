@@ -90,6 +90,8 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 
 	var code int
 
+	s.log.Infow("micropub: post", "request", mr)
+
 	switch mr.Action {
 	case micropub.ActionCreate:
 		if !s.checkScope(w, r, "create") {
