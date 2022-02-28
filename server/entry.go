@@ -50,7 +50,7 @@ var (
 					Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
 					Published: t,
 					Properties: map[string]interface{}{
-						"categories": []string{"recently"},
+						"category": []string{"recently"},
 					},
 				},
 			}
@@ -63,7 +63,7 @@ var (
 					Title:     "Article Title",
 					Published: time.Now().Local(),
 					Properties: map[string]interface{}{
-						"categories": []string{"example"},
+						"category": []string{"example"},
 					},
 				},
 			}
