@@ -100,7 +100,7 @@ func (r *customRenderer) renderLink(w util.BufWriter, source []byte, node ast.No
 			r.Writer.Write(w, n.Title)
 			_ = w.WriteByte('"')
 		}
-		if !bytes.HasPrefix(destination, []byte("/")) {
+		if !(bytes.HasPrefix(destination, []byte("/")) || bytes.HasPrefix(destination, []byte("#"))) {
 			_, _ = w.WriteString(` rel="noopener noreferrer" target="_blank" `)
 		}
 		_ = w.WriteByte('>')
@@ -133,7 +133,7 @@ func (r *customRenderer) renderAutoLink(w util.BufWriter, source []byte, node as
 		_, _ = w.WriteString(`"`)
 	}
 
-	if n.AutoLinkType == ast.AutoLinkURL && !bytes.HasPrefix(url, []byte("/")) {
+	if n.AutoLinkType == ast.AutoLinkURL && !(bytes.HasPrefix(url, []byte("/")) || bytes.HasPrefix(destination, []byte("#"))) {
 		_, _ = w.WriteString(` rel="noopener noreferrer" target="_blank" `)
 	}
 
