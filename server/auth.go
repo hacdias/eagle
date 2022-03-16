@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	urlpkg "net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -171,8 +172,12 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	scope := getString(token, "scope")
 
 	if withToken {
-		expires := getString(token, "expiry") != "infinity"
-		signed, err := s.generateToken(authRequest.ClientID, scope, expires)
+		expiry, err := handleExpiry(getString(token, "expiry"))
+		if err != nil {
+			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "expiry param is not a valid number")
+		}
+
+		signed, err := s.generateToken(authRequest.ClientID, scope, expiry)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 			return
@@ -201,7 +206,20 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	s.serveJSON(w, http.StatusOK, at)
 }
 
-func (s *Server) generateToken(client, scope string, expires bool) (string, error) {
+func handleExpiry(expiry string) (time.Duration, error) {
+	if expiry == "" {
+		expiry = "0"
+	}
+
+	days, err := strconv.Atoi(expiry)
+	if err != nil {
+		return 0, nil
+	}
+
+	return time.Hour * 24 * time.Duration(days), nil
+}
+
+func (s *Server) generateToken(client, scope string, expiry time.Duration) (string, error) {
 	claims := map[string]interface{}{
 		jwt.SubjectKey:  TokenSubject,
 		jwt.IssuedAtKey: time.Now().Unix(),
@@ -209,8 +227,8 @@ func (s *Server) generateToken(client, scope string, expires bool) (string, erro
 		"scope":         scope,
 	}
 
-	if expires {
-		claims[jwt.ExpirationKey] = time.Now().Add(time.Hour * 24 * 7)
+	if expiry > 0 {
+		claims[jwt.ExpirationKey] = time.Now().Add(expiry)
 	}
 
 	_, signed, err := s.jwtAuth.Encode(claims)

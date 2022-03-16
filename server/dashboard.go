@@ -44,14 +44,17 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 		case "token":
 			clientID := r.Form.Get("client_id")
 			scope := r.Form.Get("scope")
-			expires := r.Form.Get("expiry") != "infinity"
+			expiry, err := handleExpiry(r.Form.Get("expiry"))
+			if err != nil {
+				s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
+			}
 
 			if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
 				s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
 				return
 			}
 
-			signed, err := s.generateToken(clientID, scope, expires)
+			signed, err := s.generateToken(clientID, scope, expiry)
 			if err == nil {
 				data["Token"] = signed
 			}
