@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v2/eagle"
 	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/indieauth"
+	"github.com/hacdias/indieauth/v2"
 	"github.com/lestrrat-go/jwx/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -32,7 +32,6 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 		"issuer":                 s.Config.ID(),
 		"authorization_endpoint": s.AbsoluteURL("/auth"),
 		"token_endpoint":         s.AbsoluteURL("/token"),
-		// "introspection_endpoint":           "TODO",
 		// "userinfo_endpoint":                "TODO",
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 	})
@@ -125,6 +124,9 @@ type tokenUser struct {
 }
 
 func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
+	// NOTE: this is kept for backwards compatibility with prior versions of IndieAuth
+	// - Old Access Token Verifications: https://indieauth.spec.indieweb.org/20201126/#access-token-verification
+	// - New Access Token Verifications: https://indieauth.spec.indieweb.org/#access-token-verification
 	s.serveJSON(w, http.StatusOK, &tokenResponse{
 		Me:       s.Config.ID(),
 		Scope:    strings.Join(s.getScopes(r), " "),
@@ -139,8 +141,8 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Form.Get("action") == "revoke" {
-		// TODO: currently, tokens have one week validity, otherwise
-		// specified during the authorization request.
+		// NOTE: this is kept for backwards compatibility with prior versions
+		// of IndieAuth specification. Revocation endpoints are now separate.
 		w.WriteHeader(http.StatusOK)
 		return
 	}

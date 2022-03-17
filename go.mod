@@ -11,7 +11,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/jwtauth/v5 v5.0.2
-	github.com/hacdias/indieauth v1.8.0
+	github.com/hacdias/indieauth/v2 v2.0.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/jlelse/feeds v1.2.0
@@ -33,7 +33,7 @@ require (
 	gopkg.in/tucnak/telebot.v2 v2.5.0
 	gopkg.in/yaml.v2 v2.4.0
 	miniflux.app v0.0.0-20220106044303-8329e9b46cba
-	willnorris.com/go/webmention v0.0.0-20211028201829-b0044f1a24d0
+	willnorris.com/go/webmention v0.0.0-20220108183051-4a23794272f0
 )
 
 require (
@@ -76,9 +76,9 @@ require (
 	github.com/tdewolff/parse/v2 v2.5.26 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
-	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20211210111614-af8b64212486 // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
