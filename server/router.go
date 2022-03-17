@@ -56,6 +56,8 @@ func (s *Server) makeRouter() http.Handler {
 	r.Post("/auth", s.authPost)
 	r.Post("/token", s.tokenPost)
 
+	// TODO: https://indieauth.spec.indieweb.org/#access-token-verification
+
 	// IndieAuth Client
 	r.Get("/login", s.loginGet)
 	r.Post("/login", s.loginPost)
