@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hacdias/eagle/v2/eagle"
-	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v3/eagle"
+	"github.com/hacdias/eagle/v3/entry"
 	"github.com/hacdias/indieauth/v2"
 )
 

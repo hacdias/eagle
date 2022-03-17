@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/entry/mf2"
+	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v3/entry/mf2"
 	geojson "github.com/paulmach/go.geojson"
 )
 

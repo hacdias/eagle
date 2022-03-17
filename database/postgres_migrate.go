@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/hacdias/eagle/v2/log"
+	"github.com/hacdias/eagle/v3/log"
 	_ "github.com/jackc/pgx/v4/stdlib" // postgres driver
 	"github.com/lopezator/migrator"
 )

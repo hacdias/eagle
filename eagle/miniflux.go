@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v3/config"
 	miniflux "miniflux.app/client"
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v3/eagle"
 )
 
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v2/entry/mf2"
-	"github.com/hacdias/eagle/v2/util"
+	"github.com/hacdias/eagle/v3/entry/mf2"
+	"github.com/hacdias/eagle/v3/util"
 	"github.com/karlseguin/typed"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/thoas/go-funk"

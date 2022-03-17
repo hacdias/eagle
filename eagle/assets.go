@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/v2/config"
-	"github.com/hacdias/eagle/v2/contenttype"
+	"github.com/hacdias/eagle/v3/config"
+	"github.com/hacdias/eagle/v3/contenttype"
 )
 
 const (

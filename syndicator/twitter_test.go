@@ -3,8 +3,8 @@ package syndicator
 import (
 	"testing"
 
-	"github.com/hacdias/eagle/v2/config"
-	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v3/config"
+	"github.com/hacdias/eagle/v3/entry"
 )
 
 func newTestTwitter() Syndicator {

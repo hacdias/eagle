@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v2/contenttype"
+	"github.com/hacdias/eagle/v3/contenttype"
 	"github.com/karlseguin/typed"
 )
 

@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v2/config"
-	"github.com/hacdias/eagle/v2/contenttype"
-	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/util"
+	"github.com/hacdias/eagle/v3/config"
+	"github.com/hacdias/eagle/v3/contenttype"
+	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v3/util"
 )
 
 const (

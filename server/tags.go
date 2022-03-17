@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v3/eagle"
 )
 
 func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {

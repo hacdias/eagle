@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/v2/config"
+	"github.com/hacdias/eagle/v3/config"
 )
 
 type Media struct {

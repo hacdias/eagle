@@ -3,7 +3,7 @@ package syndicator
 import (
 	"fmt"
 
-	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v3/entry"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 )

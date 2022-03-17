@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v3/entry"
 )
 
 type PaginationOptions struct {

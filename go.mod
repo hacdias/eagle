@@ -1,4 +1,4 @@
-module github.com/hacdias/eagle/v2
+module github.com/hacdias/eagle/v3
 
 go 1.17
 

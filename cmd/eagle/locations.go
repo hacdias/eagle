@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/hacdias/eagle/v2/config"
-	"github.com/hacdias/eagle/v2/eagle"
+	"github.com/hacdias/eagle/v3/config"
+	"github.com/hacdias/eagle/v3/eagle"
 	"github.com/spf13/cobra"
 )
 

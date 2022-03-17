@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v2/eagle"
-	"github.com/hacdias/eagle/v2/entry"
+	"github.com/hacdias/eagle/v3/eagle"
+	"github.com/hacdias/eagle/v3/entry"
 	"github.com/thoas/go-funk"
 )
 

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/hacdias/eagle/v2/entry"
-	"github.com/hacdias/eagle/v2/entry/mf2"
-	"github.com/hacdias/eagle/v2/loctools"
+	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v3/entry/mf2"
+	"github.com/hacdias/eagle/v3/loctools"
 	"github.com/karlseguin/typed"
 )
 
