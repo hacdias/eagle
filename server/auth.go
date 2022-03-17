@@ -35,6 +35,8 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 		"introspection_endpoint":           s.AbsoluteURL("/token/verify"),
 		"userinfo_endpoint":                s.AbsoluteURL("/userinfo"),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
+		"grant_types_supported":            []string{"authorization_code"},
+		"response_types_supported":         []string{"code"},
 	})
 }
 
@@ -114,7 +116,6 @@ type tokenResponse struct {
 	Scope       string     `json:"scope,omitempty"`
 	Profile     *tokenUser `json:"profile,omitempty"`
 	ExpiresIn   int64      `json:"expires_in,omitempty"`
-	// TODO: implement refresh token (https://indieauth.spec.indieweb.org/#access-token-response-li-2).
 }
 
 type tokenUser struct {
@@ -138,6 +139,12 @@ func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+
+	if r.Form.Get("grant_type") == "refresh_token" {
+		// TODO: implement refresh token: https://indieauth.spec.indieweb.org/#refresh-tokens
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
