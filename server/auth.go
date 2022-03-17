@@ -113,6 +113,8 @@ type tokenResponse struct {
 	TokenType   string     `json:"token_type,omitempty"`
 	Scope       string     `json:"scope,omitempty"`
 	Profile     *tokenUser `json:"profile,omitempty"`
+	ExpiresIn   int64      `json:"expires_in,omitempty"`
+	// TODO: implement refresh token (https://indieauth.spec.indieweb.org/#access-token-response-li-2).
 }
 
 type tokenUser struct {
@@ -197,6 +199,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 
 		at.AccessToken = signed
 		at.TokenType = "Bearer"
+		at.ExpiresIn = int64(expiry.Seconds())
 		at.Scope = scope
 	}
 
