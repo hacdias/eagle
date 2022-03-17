@@ -101,6 +101,7 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 	query := urlpkg.Values{}
 	query.Set("code", signed)
 	query.Set("state", req.State)
+	query.Set("iss", s.Config.ID())
 
 	http.Redirect(w, r, req.RedirectURI+"?"+query.Encode(), http.StatusFound)
 }
