@@ -27,6 +27,17 @@ const (
 	clientContextKey contextKey = "client"
 )
 
+func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
+	s.serveJSON(w, http.StatusOK, map[string]interface{}{
+		"issuer":                 s.Config.ID(),
+		"authorization_endpoint": s.AbsoluteURL("/auth"),
+		"token_endpoint":         s.AbsoluteURL("/token"),
+		// "introspection_endpoint":           "TODO",
+		// "userinfo_endpoint":                "TODO",
+		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
+	})
+}
+
 func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
