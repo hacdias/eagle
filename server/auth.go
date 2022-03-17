@@ -32,6 +32,7 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 		"issuer":                           s.Config.ID(),
 		"authorization_endpoint":           s.AbsoluteURL("/auth"),
 		"token_endpoint":                   s.AbsoluteURL("/token"),
+		"introspection_endpoint":           s.AbsoluteURL("/token/verify"),
 		"userinfo_endpoint":                s.AbsoluteURL("/userinfo"),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 	})
@@ -148,6 +149,32 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.authorizationCodeExchange(w, r, true)
+}
+
+func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
+	token, _, err := jwtauth.FromContext(r.Context())
+	isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != TokenSubject)
+	if !isValid {
+		s.serveJSON(w, http.StatusOK, map[string]interface{}{
+			"active": false,
+		})
+		return
+	}
+
+	info := map[string]interface{}{
+		"active":    true,
+		"me":        s.Config.ID(),
+		"client_id": getString(token, "client_id"),
+		"scope":     getString(token, "scope"),
+		"iat":       token.IssuedAt().Unix(),
+	}
+
+	exp := token.Expiration()
+	if !exp.IsZero() && exp.Unix() != 0 {
+		info["exp"] = exp.Unix()
+	}
+
+	s.serveJSON(w, http.StatusOK, info)
 }
 
 func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Request, withToken bool) {
@@ -284,8 +311,8 @@ func getString(token jwt.Token, prop string) string {
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := jwtauth.FromContext(r.Context())
-		isAuthd := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != TokenSubject)
-		if !isAuthd {
+		isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != TokenSubject)
+		if !isValid {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
 		}
