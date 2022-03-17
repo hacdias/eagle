@@ -29,10 +29,10 @@ const (
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, map[string]interface{}{
-		"issuer":                 s.Config.ID(),
-		"authorization_endpoint": s.AbsoluteURL("/auth"),
-		"token_endpoint":         s.AbsoluteURL("/token"),
-		// "userinfo_endpoint":                "TODO",
+		"issuer":                           s.Config.ID(),
+		"authorization_endpoint":           s.AbsoluteURL("/auth"),
+		"token_endpoint":                   s.AbsoluteURL("/token"),
+		"userinfo_endpoint":                s.AbsoluteURL("/userinfo"),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 	})
 }
@@ -205,8 +205,25 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		at.Scope = scope
 	}
 
+	at.Profile = s.buildProfile(scope)
+	s.serveJSON(w, http.StatusOK, at)
+}
+
+func (s *Server) userInfoGet(w http.ResponseWriter, r *http.Request) {
+	if !s.checkScope(w, r, "profile") {
+		return
+	}
+
+	scope := strings.Join(s.getScopes(r), " ")
+	profile := s.buildProfile(scope)
+	s.serveJSON(w, http.StatusOK, profile)
+}
+
+func (s *Server) buildProfile(scope string) *tokenUser {
+	var profile *tokenUser
+
 	if strings.Contains(scope, "profile") {
-		at.Profile = &tokenUser{
+		profile = &tokenUser{
 			Name:  s.Config.Me.Name,
 			URL:   s.Config.ID(),
 			Photo: s.Config.Me.Photo,
@@ -214,13 +231,13 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	}
 
 	if strings.Contains(scope, "email") {
-		if at.Profile == nil {
-			at.Profile = &tokenUser{}
+		if profile == nil {
+			profile = &tokenUser{}
 		}
-		at.Profile.Email = s.Config.Me.Email
+		profile.Email = s.Config.Me.Email
 	}
 
-	s.serveJSON(w, http.StatusOK, at)
+	return profile
 }
 
 func handleExpiry(expiry string) (time.Duration, error) {
