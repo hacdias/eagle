@@ -127,6 +127,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"absURL":      e.AbsoluteURL,
 		"relURL":      e.relativeURL,
 		"stars":       stars,
+		"sprintf":     fmt.Sprintf,
 	}
 
 	if alwaysAbsolute {
@@ -263,6 +264,13 @@ func (rd *RenderData) GetSidecar() *Sidecar {
 		rd.sidecar, _ = rd.eagle.GetSidecar(rd.Entry)
 	}
 	return rd.sidecar
+}
+
+func (rd *RenderData) GetScrobbles() interface{} {
+	filename := filepath.Join(ContentDirectory, rd.ID, "_scrobbles.json")
+	var data entry.Tracks
+	_ = rd.eagle.fs.ReadJSON(filename, &data)
+	return data
 }
 
 func (rd *RenderData) GetJSON(path string) interface{} {

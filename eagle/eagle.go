@@ -46,6 +46,7 @@ type Eagle struct {
 	cache        *ristretto.Cache
 	media        *Media
 	miniflux     *Miniflux
+	lastfm       *Lastfm
 	Parser       *entry.Parser
 	Config       *config.Config
 	loctools     *loctools.LocTools
@@ -134,6 +135,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	if conf.Miniflux != nil {
 		e.miniflux = &Miniflux{Miniflux: conf.Miniflux}
+	}
+
+	if conf.Lastfm != nil {
+		e.lastfm = &Lastfm{Lastfm: conf.Lastfm}
 	}
 
 	err = e.initCache()
