@@ -44,15 +44,17 @@ var scrobblesCmd = &cobra.Command{
 		}
 		defer e.Close()
 
-		for day := from; !day.Equal(to); day = day.AddDate(0, 0, 1) {
-			year, month, day := day.Date()
+		for cur := from; !cur.Equal(to); cur = cur.AddDate(0, 0, 1) {
+			year, month, day := cur.Date()
 
-			fmt.Println(day)
+			fmt.Println("Downloading", cur.Format("2006-01-02"))
 
 			err := e.FetchLastfmScrobbles(year, month, day)
 			if err != nil {
 				return err
 			}
+
+			time.Sleep(time.Second)
 		}
 
 		return nil

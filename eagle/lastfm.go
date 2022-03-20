@@ -6,25 +6,26 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hacdias/eagle/v3/config"
 	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v3/log"
 )
 
 type Lastfm struct {
 	*config.Lastfm
 }
 
-func (l *Lastfm) Fetch(year int, month time.Month, day int) (entry.Tracks, error) {
+func (l *Lastfm) Fetch(year int, month time.Month, day int) ([]*lastfmTrack, error) {
 	midnight := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
 	from := midnight.Unix()
 	to := midnight.Unix() + 86400 // +1 Day
 
-	tracks := []*entry.Track{}
+	tracks := []*lastfmTrack{}
 	page := 1
 
 	for {
@@ -33,13 +34,21 @@ func (l *Lastfm) Fetch(year int, month time.Month, day int) (entry.Tracks, error
 			return nil, err
 		}
 
-		for _, track := range res.convert() {
-			if track.Duration == 0 {
-				info, err := l.trackInfo(track)
-				if err == nil {
-					track.Duration = time.Duration(info.Duration) * time.Millisecond
-				} // When this fails, we assume an average time of 3m30s.
+		for _, track := range res.Tracks {
+			if track.NowPlaying {
+				continue
 			}
+
+			info, err := l.trackInfo(track)
+			if err == nil {
+				track.Duration = time.Duration(info.Duration) * time.Millisecond
+
+				for _, tag := range info.Tags.Tags {
+					track.Tags = append(track.Tags, strings.ToLower(tag.Name))
+				}
+			} else {
+				log.S().Errorf("could not download track info: %s", err)
+			} // When this fails, we assume an average time of 3m30s.
 
 			tracks = append(tracks, track)
 		}
@@ -101,7 +110,7 @@ func (l *Lastfm) recentTracks(page int, from, to int64) (*lastfmTracks, error) {
 	return response.RecentTracks, nil
 }
 
-func (l *Lastfm) trackInfo(t *entry.Track) (*lastfmTrackInfo, error) {
+func (l *Lastfm) trackInfo(t *lastfmTrack) (*lastfmTrackInfo, error) {
 	u, err := url.Parse("https://ws.audioscrobbler.com/2.0/")
 	if err != nil {
 		return nil, err
@@ -144,13 +153,33 @@ func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error 
 		return errors.New("lastfm is not implemented")
 	}
 
-	tracks, err := e.lastfm.Fetch(year, month, day)
+	scrobbles, err := e.lastfm.Fetch(year, month, day)
 	if err != nil {
 		return err
 	}
 
-	if len(tracks) == 0 {
+	if len(scrobbles) == 0 {
 		return nil
+	}
+
+	artists := map[string]bool{}
+	tracks := map[string]bool{}
+	totalDuration := time.Duration(0)
+	listenOf := []map[string]interface{}{}
+
+	for _, scrobble := range scrobbles {
+		key := scrobble.Name + scrobble.Artist.Name
+		if _, ok := tracks[key]; !ok {
+			tracks[key] = true
+		}
+
+		key = scrobble.Artist.Name
+		if _, ok := artists[key]; !ok {
+			artists[key] = true
+		}
+
+		totalDuration += scrobble.DurationOrAverage()
+		listenOf = append(listenOf, scrobble.toFlatMF2())
 	}
 
 	id := entry.NewID("daily-scrobbles", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
@@ -158,24 +187,20 @@ func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error 
 	ee := &entry.Entry{
 		ID: id,
 		Frontmatter: entry.Frontmatter{
-			Title:              "Daily Scrobbles",
-			Template:           "daily-scrobbles",
-			Sections:           []string{"listens"},
-			NoSendInteractions: true,
+			Sections: []string{"listens"},
 			Properties: map[string]interface{}{
-				"category": []string{"daily-scrobbles"},
+				"scrobbles-count": len(scrobbles),
+				"artists-count":   len(artists),
+				"tracks-count":    len(tracks),
+				"total-duration":  totalDuration.Hours(),
+				"listen-of":       listenOf,
+				"category":        []string{"daily-scrobbles"},
 			},
 			Published: time.Date(year, month, day, 23, 59, 59, 0, time.UTC),
 		},
 	}
 
 	err = e.SaveEntry(ee)
-	if err != nil {
-		return err
-	}
-
-	filename := filepath.Join(ContentDirectory, id, "_scrobbles.json")
-	err = e.fs.WriteJSON(filename, tracks, "update scrobbles")
 	if err != nil {
 		return err
 	}

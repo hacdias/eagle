@@ -266,13 +266,6 @@ func (rd *RenderData) GetSidecar() *Sidecar {
 	return rd.sidecar
 }
 
-func (rd *RenderData) GetScrobbles() interface{} {
-	filename := filepath.Join(ContentDirectory, rd.ID, "_scrobbles.json")
-	var data entry.Tracks
-	_ = rd.eagle.fs.ReadJSON(filename, &data)
-	return data
-}
-
 func (rd *RenderData) GetJSON(path string) interface{} {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
 	var data interface{}

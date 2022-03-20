@@ -3,8 +3,6 @@ package eagle
 import (
 	"encoding/xml"
 	"time"
-
-	"github.com/hacdias/eagle/v3/entry"
 )
 
 type lastfmImage struct {
@@ -19,10 +17,18 @@ type lastfmArtist struct {
 	Name    string   `xml:",chardata"`
 }
 
-func (a lastfmArtist) convert() entry.Artist {
-	return entry.Artist{
-		Name: a.Name,
-		MBID: a.MBID,
+func (a lastfmArtist) toFlatMF2() map[string]interface{} {
+	props := map[string]interface{}{
+		"name": a.Name,
+	}
+
+	if a.MBID != "" {
+		props["mbid"] = a.MBID
+	}
+
+	return map[string]interface{}{
+		"type":       "h-card",
+		"properties": props,
 	}
 }
 
@@ -32,10 +38,18 @@ type lastfmAlbum struct {
 	Name    string   `xml:",chardata"`
 }
 
-func (a lastfmAlbum) convert() entry.Album {
-	return entry.Album{
-		Name: a.Name,
-		MBID: a.MBID,
+func (a lastfmAlbum) toFlatMF2() map[string]interface{} {
+	props := map[string]interface{}{
+		"name": a.Name,
+	}
+
+	if a.MBID != "" {
+		props["mbid"] = a.MBID
+	}
+
+	return map[string]interface{}{
+		"type":       "h-card",
+		"properties": props,
 	}
 }
 
@@ -45,7 +59,7 @@ type lastfmDate struct {
 	Text    string   `xml:",chardata"`
 }
 
-func (l lastfmDate) convert() time.Time {
+func (l lastfmDate) toTime() time.Time {
 	return time.Unix(l.UTS, 0)
 }
 
@@ -59,18 +73,46 @@ type lastfmTrack struct {
 	Album      lastfmAlbum   `xml:"album"`
 	Images     []lastfmImage `xml:"image"`
 	Date       lastfmDate    `xml:"date"`
+	Duration   time.Duration `xml:"-"`
+	Tags       []string      `xml:"-"`
 }
 
-func (t *lastfmTrack) convert() *entry.Track {
-	return &entry.Track{
-		Name:     t.Name,
-		MBID:     t.MBID,
-		URL:      t.URL,
-		Artist:   t.Artist.convert(),
-		Album:    t.Album.convert(),
-		Date:     t.Date.convert(),
-		Duration: 0,
-		Image:    "",
+func (t *lastfmTrack) DurationOrAverage() time.Duration {
+	if t.Duration == 0 {
+		return time.Second * 150 // 3.5m
+	}
+
+	return t.Duration
+}
+
+func (t *lastfmTrack) toFlatMF2() map[string]interface{} {
+	props := map[string]interface{}{
+		"name":      t.Name,
+		"author":    t.Artist.toFlatMF2(),
+		"album":     t.Album.toFlatMF2(),
+		"published": t.Date.toTime().Format(time.RFC3339),
+		"category":  t.Tags,
+	}
+
+	if len(t.Images) > 0 {
+		photos := []string{}
+		for _, img := range t.Images {
+			photos = append(photos, img.URL)
+		}
+		props["photo"] = photos
+	}
+
+	if t.URL != "" {
+		props["url"] = t.URL
+	}
+
+	if t.MBID != "" {
+		props["mbid"] = t.MBID
+	}
+
+	return map[string]interface{}{
+		"type":       "h-cite",
+		"properties": props,
 	}
 }
 
@@ -83,29 +125,27 @@ type lastfmTracks struct {
 	Total      int64          `xml:"total,attr"`
 }
 
-func (ts *lastfmTracks) convert() []*entry.Track {
-	tracks := []*entry.Track{}
-
-	for _, track := range ts.Tracks {
-		if track.NowPlaying {
-			continue
-		}
-
-		tracks = append(tracks, track.convert())
-	}
-
-	return tracks
-}
-
 type lastfmTracksResponse struct {
 	XMLName      xml.Name      `xml:"lfm"`
 	RecentTracks *lastfmTracks `xml:"recenttracks"`
 }
 
+type lastfmTag struct {
+	XMLName xml.Name `xml:"tag"`
+	Name    string   `xml:"name"`
+	URL     string   `xml:"url"`
+}
+
+type lastfmTags struct {
+	XMLName xml.Name    `xml:"toptags"`
+	Tags    []lastfmTag `xml:"tag"`
+}
+
 type lastfmTrackInfo struct {
-	XMLName  xml.Name `xml:"track"`
-	Name     string   `xml:"name"`
-	Duration int64    `xml:"duration"`
+	XMLName  xml.Name   `xml:"track"`
+	Name     string     `xml:"name"`
+	Duration int64      `xml:"duration"`
+	Tags     lastfmTags `xml:"toptags"`
 }
 
 type lastfmTrackInfoResponse struct {
