@@ -91,6 +91,7 @@ func (t *lastfmTrack) toFlatMF2() map[string]interface{} {
 		"author":    t.Artist.toFlatMF2(),
 		"album":     t.Album.toFlatMF2(),
 		"published": t.Date.toTime().Format(time.RFC3339),
+		"duration":  t.DurationOrAverage().Seconds(),
 		"category":  t.Tags,
 	}
 

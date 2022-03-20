@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -80,6 +81,14 @@ func safeCSS(text string) template.CSS {
 	return template.CSS(text)
 }
 
+func asJSON(a interface{}) string {
+	data, err := json.Marshal(a)
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
 func dateFormat(date, template string) string {
 	t, err := dateparse.ParseStrict(date)
 	if err != nil {
@@ -102,6 +111,10 @@ func stars(rating, total int) template.HTML {
 	return template.HTML(stars)
 }
 
+func durationFromSeconds(seconds float64) time.Duration {
+	return time.Second * time.Duration(seconds)
+}
+
 func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	figure := func(url, alt string, uPhoto bool) template.HTML {
 		var w strings.Builder
@@ -113,21 +126,23 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	}
 
 	funcs := template.FuncMap{
-		"truncate":    util.TruncateStringWithEllipsis,
-		"domain":      domain,
-		"strContains": strings.Contains,
-		"strSplit":    strings.Split,
-		"safeHTML":    safeHTML,
-		"safeCSS":     safeCSS,
-		"figure":      figure,
-		"dateFormat":  dateFormat,
-		"now":         time.Now,
-		"include":     e.includeTemplate,
-		"md":          e.getRenderMarkdown(alwaysAbsolute),
-		"absURL":      e.AbsoluteURL,
-		"relURL":      e.relativeURL,
-		"stars":       stars,
-		"sprintf":     fmt.Sprintf,
+		"truncate":            util.TruncateStringWithEllipsis,
+		"domain":              domain,
+		"strContains":         strings.Contains,
+		"strSplit":            strings.Split,
+		"safeHTML":            safeHTML,
+		"safeCSS":             safeCSS,
+		"figure":              figure,
+		"dateFormat":          dateFormat,
+		"now":                 time.Now,
+		"include":             e.includeTemplate,
+		"md":                  e.getRenderMarkdown(alwaysAbsolute),
+		"absURL":              e.AbsoluteURL,
+		"relURL":              e.relativeURL,
+		"stars":               stars,
+		"sprintf":             fmt.Sprintf,
+		"durationFromSeconds": durationFromSeconds,
+		"asJSON":              asJSON,
 	}
 
 	if alwaysAbsolute {

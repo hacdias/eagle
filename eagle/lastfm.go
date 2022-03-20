@@ -7,12 +7,16 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v3/config"
 	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v3/entry/mf2"
 	"github.com/hacdias/eagle/v3/log"
 )
 
@@ -149,6 +153,10 @@ func (l *Lastfm) trackInfo(t *lastfmTrack) (*lastfmTrackInfo, error) {
 	return response.Track, nil
 }
 
+func dailyScrobblesID(year int, month time.Month, day int) string {
+	return entry.NewID("daily-scrobbles", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
+}
+
 func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error {
 	if e.lastfm == nil {
 		return errors.New("lastfm is not implemented")
@@ -183,7 +191,7 @@ func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error 
 		listenOf = append(listenOf, scrobble.toFlatMF2())
 	}
 
-	id := entry.NewID("daily-scrobbles", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
+	id := dailyScrobblesID(year, month, day)
 
 	ee := &entry.Entry{
 		ID: id,
@@ -209,4 +217,227 @@ func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error 
 
 	e.RemoveCache(ee)
 	return nil
+}
+
+func weekdayToIndex(d time.Weekday) int {
+	switch d {
+	case time.Monday:
+		return 0
+	case time.Tuesday:
+		return 1
+	case time.Wednesday:
+		return 2
+	case time.Thursday:
+		return 3
+	case time.Friday:
+		return 4
+	case time.Saturday:
+		return 5
+	case time.Sunday:
+		return 6
+	}
+
+	panic("non existing week day")
+}
+
+func getMondayOfWeek(year int, month time.Month, day int) time.Time {
+	t := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+
+	for t.Weekday() != time.Monday {
+		t = t.AddDate(0, 0, -1)
+	}
+
+	return t
+}
+
+// end is not included
+func (e *Eagle) getScrobblesBetweenDates(start, end time.Time) []*mf2.FlatHelper {
+	scrobbles := []*mf2.FlatHelper{}
+	cur := start
+
+	for !cur.Equal(end) {
+		id := dailyScrobblesID(cur.Date())
+
+		ee, err := e.GetEntry(id)
+		if err == nil {
+			mm := ee.Helper()
+
+			if mm.PostType() == mf2.TypeListen {
+				subs := mm.Subs(mm.TypeProperty())
+				scrobbles = append(scrobbles, subs...)
+			}
+		}
+
+		cur = cur.AddDate(0, 0, 1)
+	}
+
+	return scrobbles
+}
+
+func (e *Eagle) MakeWeeklyScrobblesReport(year int, month time.Month, day int) error {
+	start := getMondayOfWeek(year, month, day)
+	end := start.AddDate(0, 0, 7)
+
+	scrobbles := e.getScrobblesBetweenDates(start, end)
+	if len(scrobbles) == 0 {
+		return nil
+	}
+
+	stats, err := statsFromScrobbles(scrobbles)
+	if err != nil {
+		return err
+	}
+
+	// Publish as if it's the last second of the week.
+	published := end.Add(-time.Second)
+
+	stats.Start = start
+	stats.End = published
+
+	_, week := published.ISOWeek()
+
+	id := entry.NewID("weekly-scrobbles", published)
+	ee := &entry.Entry{
+		ID: id,
+		Frontmatter: entry.Frontmatter{
+			Title:    fmt.Sprintf("Week %d in Music", week),
+			Template: "scrobbles-report",
+			Sections: []string{"listens"},
+			Properties: map[string]interface{}{
+				"category": []string{"weekly-scrobbles"},
+			},
+			Published: published,
+		},
+	}
+
+	err = e.SaveEntry(ee)
+	if err != nil {
+		return err
+	}
+
+	filename := filepath.Join(ContentDirectory, id, "_stats.json")
+	err = e.fs.WriteJSON(filename, stats, "update stats")
+	if err != nil {
+		return err
+	}
+
+	e.RemoveCache(ee)
+	return nil
+}
+
+type IndividualStats struct {
+	Name      string `json:"name"`
+	Duration  int    `json:"duration"`
+	Scrobbles int    `json:"scrobbles"`
+}
+
+type ScrobbleStats struct {
+	Start               time.Time          `json:"start"`
+	End                 time.Time          `json:"end"`
+	ListeningClock      []int              `json:"listeningClock"`
+	ScrobblesPerWeekday []int              `json:"scrobblesPerWeekday"`
+	Artists             []*IndividualStats `json:"artists"`
+	Tracks              []*IndividualStats `json:"tracks"`
+	Albums              []*IndividualStats `json:"albums"`
+}
+
+func statsFromScrobbles(scrobbles []*mf2.FlatHelper) (*ScrobbleStats, error) {
+	stats := &ScrobbleStats{
+		ListeningClock:      make([]int, 24),
+		ScrobblesPerWeekday: make([]int, 7),
+	}
+
+	for i := range stats.ListeningClock {
+		stats.ListeningClock[i] = 0
+	}
+
+	for i := range stats.ScrobblesPerWeekday {
+		stats.ScrobblesPerWeekday[i] = 0
+	}
+
+	artistsMap := map[string]*IndividualStats{}
+	tracksMap := map[string]*IndividualStats{}
+	albumsMap := map[string]*IndividualStats{}
+
+	for _, scrobble := range scrobbles {
+		artist := scrobble.Sub("author")
+		if artist == nil {
+			log.S().Warnf("track has no artist: %s", scrobble.Name())
+			continue
+		}
+
+		t, err := dateparse.ParseStrict(scrobble.String("published"))
+		if err != nil {
+			return nil, err
+		}
+
+		stats.ListeningClock[t.Hour()]++
+		stats.ScrobblesPerWeekday[weekdayToIndex(t.Weekday())]++
+
+		duration := scrobble.Int("duration")
+
+		name := scrobble.Name()
+		artistName := artist.Name()
+
+		key := name + artistName
+		if _, ok := tracksMap[key]; !ok {
+			tracksMap[key] = &IndividualStats{
+				Name:      name,
+				Duration:  duration,
+				Scrobbles: 0,
+			}
+		}
+		tracksMap[key].Scrobbles++
+
+		if _, ok := artistsMap[artistName]; !ok {
+			artistsMap[artistName] = &IndividualStats{
+				Name:      artistName,
+				Duration:  0,
+				Scrobbles: 0,
+			}
+		}
+		artistsMap[artistName].Scrobbles++
+		artistsMap[artistName].Duration += duration
+
+		album := scrobble.Sub("album")
+		if album != nil {
+			albumName := album.Name()
+			key := albumName + artistName
+			if _, ok := albumsMap[key]; !ok {
+				albumsMap[key] = &IndividualStats{
+					Name:      albumName,
+					Duration:  0,
+					Scrobbles: 0,
+				}
+			}
+			albumsMap[key].Scrobbles++
+			albumsMap[key].Duration += duration
+		}
+	}
+
+	for _, artist := range artistsMap {
+		stats.Artists = append(stats.Artists, artist)
+	}
+
+	sort.SliceStable(stats.Artists, func(i, j int) bool {
+		return stats.Artists[i].Scrobbles > stats.Artists[j].Scrobbles
+	})
+
+	for _, track := range tracksMap {
+		stats.Tracks = append(stats.Tracks, track)
+	}
+
+	sort.SliceStable(stats.Tracks, func(i, j int) bool {
+		return stats.Tracks[i].Scrobbles > stats.Tracks[j].Scrobbles
+	})
+
+	for _, album := range albumsMap {
+		stats.Albums = append(stats.Albums, album)
+	}
+
+	sort.SliceStable(stats.Albums, func(i, j int) bool {
+		return stats.Albums[i].Scrobbles > stats.Albums[j].Scrobbles
+	})
+
+	return stats, nil
 }
