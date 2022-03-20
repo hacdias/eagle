@@ -94,14 +94,6 @@ func (t *lastfmTrack) toFlatMF2() map[string]interface{} {
 		"category":  t.Tags,
 	}
 
-	if len(t.Images) > 0 {
-		photos := []string{}
-		for _, img := range t.Images {
-			photos = append(photos, img.URL)
-		}
-		props["photo"] = photos
-	}
-
 	if t.URL != "" {
 		props["url"] = t.URL
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -187,7 +188,8 @@ func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error 
 	ee := &entry.Entry{
 		ID: id,
 		Frontmatter: entry.Frontmatter{
-			Sections: []string{"listens"},
+			Sections:    []string{"listens"},
+			Description: fmt.Sprintf("Listened to %d tracks %.2f hours", len(tracks), totalDuration.Hours()),
 			Properties: map[string]interface{}{
 				"scrobbles-count": len(scrobbles),
 				"artists-count":   len(artists),
