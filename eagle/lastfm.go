@@ -240,16 +240,6 @@ func weekdayToIndex(d time.Weekday) int {
 	panic("non existing week day")
 }
 
-func getMondayOfWeek(year int, month time.Month, day int) time.Time {
-	t := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-
-	for t.Weekday() != time.Monday {
-		t = t.AddDate(0, 0, -1)
-	}
-
-	return t
-}
-
 // end is not included
 func (e *Eagle) getScrobblesBetweenDates(start, end time.Time) []*mf2.FlatHelper {
 	scrobbles := []*mf2.FlatHelper{}
@@ -274,9 +264,9 @@ func (e *Eagle) getScrobblesBetweenDates(start, end time.Time) []*mf2.FlatHelper
 	return scrobbles
 }
 
-func (e *Eagle) MakeWeeklyScrobblesReport(year int, month time.Month, day int) error {
-	start := getMondayOfWeek(year, month, day)
-	end := start.AddDate(0, 0, 7)
+func (e *Eagle) MakeMonthlyScrobblesReport(year int, month time.Month) error {
+	start := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+	end := start.AddDate(0, 1, 0)
 
 	scrobbles := e.getScrobblesBetweenDates(start, end)
 	if len(scrobbles) == 0 {
@@ -294,17 +284,20 @@ func (e *Eagle) MakeWeeklyScrobblesReport(year int, month time.Month, day int) e
 	stats.Start = start
 	stats.End = published
 
-	_, week := published.ISOWeek()
+	monthDays := end.Sub(start).Hours() / 24
 
-	id := entry.NewID("weekly-scrobbles", published)
+	stats.TracksPerDay = stats.Scrobbles / int(monthDays)
+	stats.DurationPerDay = stats.TotalDuration / int(monthDays)
+
+	id := entry.NewID("monthly-scrobbles", published)
 	ee := &entry.Entry{
 		ID: id,
 		Frontmatter: entry.Frontmatter{
-			Title:    fmt.Sprintf("Week %d in Music", week),
+			Title:    fmt.Sprintf("%s in Music", published.Month().String()),
 			Template: "scrobbles-report",
 			Sections: []string{"listens"},
 			Properties: map[string]interface{}{
-				"category": []string{"weekly-scrobbles"},
+				"category": []string{"monthly-scrobbles"},
 			},
 			Published: published,
 		},
@@ -334,7 +327,11 @@ type IndividualStats struct {
 type ScrobbleStats struct {
 	Start               time.Time          `json:"start"`
 	End                 time.Time          `json:"end"`
+	TotalDuration       int                `json:"totalDuration"`
 	ListeningClock      []int              `json:"listeningClock"`
+	Scrobbles           int                `json:"scrobbles"`
+	TracksPerDay        int                `json:"tracksPerDay"`
+	DurationPerDay      int                `json:"durationPerDay"`
 	ScrobblesPerWeekday []int              `json:"scrobblesPerWeekday"`
 	Artists             []*IndividualStats `json:"artists"`
 	Tracks              []*IndividualStats `json:"tracks"`
@@ -345,6 +342,7 @@ func statsFromScrobbles(scrobbles []*mf2.FlatHelper) (*ScrobbleStats, error) {
 	stats := &ScrobbleStats{
 		ListeningClock:      make([]int, 24),
 		ScrobblesPerWeekday: make([]int, 7),
+		TotalDuration:       0,
 	}
 
 	for i := range stats.ListeningClock {
@@ -373,8 +371,10 @@ func statsFromScrobbles(scrobbles []*mf2.FlatHelper) (*ScrobbleStats, error) {
 
 		stats.ListeningClock[t.Hour()]++
 		stats.ScrobblesPerWeekday[weekdayToIndex(t.Weekday())]++
+		stats.Scrobbles++
 
 		duration := scrobble.Int("duration")
+		stats.TotalDuration += duration
 
 		name := scrobble.Name()
 		artistName := artist.Name()

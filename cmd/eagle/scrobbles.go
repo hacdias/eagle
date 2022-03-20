@@ -13,7 +13,7 @@ func init() {
 	rootCmd.AddCommand(scrobblesCmd)
 	scrobblesCmd.Flags().StringP("from", "f", "", "From date to start fetching scrobbles (including).")
 	scrobblesCmd.Flags().StringP("to", "t", "", "To date to start fetching scrobbles (not including).")
-	scrobblesCmd.Flags().StringP("mode", "m", "day", "The mode of the reports to create (day, week, month, year).")
+	scrobblesCmd.Flags().StringP("mode", "m", "day", "The mode of the reports to create (day, month, year).")
 	scrobblesCmd.MarkFlagRequired("from")
 	scrobblesCmd.MarkFlagRequired("to")
 }
@@ -49,10 +49,8 @@ var scrobblesCmd = &cobra.Command{
 		switch mode {
 		case "day":
 			for cur := from; !cur.Equal(to); cur = cur.AddDate(0, 0, 1) {
-				year, month, day := cur.Date()
-
 				fmt.Println("Downloading", cur.Format("2006-01-02"))
-
+				year, month, day := cur.Date()
 				err := e.FetchLastfmScrobbles(year, month, day)
 				if err != nil {
 					return err
@@ -60,21 +58,27 @@ var scrobblesCmd = &cobra.Command{
 
 				time.Sleep(time.Second)
 			}
-		case "week":
-			for cur := from; cur.Before(to); cur = cur.AddDate(0, 0, 7) {
-				year, month, day := cur.Date()
-
-				fmt.Println("Making Week Report", cur.Format("2006-01-02"))
-
-				err := e.MakeWeeklyScrobblesReport(year, month, day)
+		case "month":
+			for cur := from; cur.Before(to); cur = cur.AddDate(0, 1, 0) {
+				fmt.Println("Making Monthly Report", cur.Format("2006-01"))
+				year, month, _ := cur.Date()
+				err := e.MakeMonthlyScrobblesReport(year, month)
 				if err != nil {
 					return err
 				}
 			}
-		case "month":
-
 		case "year":
+			for cur := from; cur.Before(to); cur = cur.AddDate(1, 0, 0) {
+				fmt.Println("Making Yearly Report", cur.Format("2006-01"))
+				// year, month, _ := cur.Date()
 
+				// err := e.MakeMonthlyScrobblesReport(year, month)
+				// if err != nil {
+				// 	return err
+				// }
+			}
+		default:
+			return fmt.Errorf("%s is not a valid mode", mode)
 		}
 
 		return nil
