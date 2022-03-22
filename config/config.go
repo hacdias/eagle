@@ -28,6 +28,7 @@ type Config struct {
 	Twitter           *Twitter
 	Miniflux          *Miniflux
 	MapBox            *MapBox
+	Lastfm            *Lastfm
 }
 
 func (c *Config) ID() string {
@@ -190,4 +191,9 @@ type MapBox struct {
 	Size        string
 	Zoom        int
 	Use2X       bool
+}
+
+type Lastfm struct {
+	Key  string
+	User string
 }

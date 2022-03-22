@@ -20,6 +20,7 @@ import (
 	"github.com/hacdias/eagle/v3/log"
 	"github.com/hacdias/eagle/v3/notifier"
 	"github.com/hacdias/eagle/v3/syndicator"
+	"github.com/robfig/cron/v3"
 	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
 
@@ -46,6 +47,7 @@ type Eagle struct {
 	cache        *ristretto.Cache
 	media        *Media
 	miniflux     *Miniflux
+	lastfm       *Lastfm
 	Parser       *entry.Parser
 	Config       *config.Config
 	loctools     *loctools.LocTools
@@ -59,6 +61,7 @@ type Eagle struct {
 	markdown         goldmark.Markdown
 	absoluteMarkdown goldmark.Markdown
 	minifier         *minify.M
+	cron             *cron.Cron
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -93,6 +96,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Parser:       entry.NewParser(conf.Site.BaseURL),
 		minifier:     initMinifier(),
 		loctools:     loctools.NewLocTools(httpClient),
+		cron:         cron.New(),
 	}
 
 	for typ := range conf.Site.MicropubTypes {
@@ -136,6 +140,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
 
+	if conf.Lastfm != nil {
+		e.lastfm = &Lastfm{Lastfm: conf.Lastfm}
+	}
+
 	err = e.initCache()
 	if err != nil {
 		return nil, err
@@ -156,6 +164,16 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
+	err = e.initBlogrollCron()
+	if err != nil {
+		return nil, err
+	}
+
+	err = e.initScrobbleCron()
+	if err != nil {
+		return nil, err
+	}
+
 	go e.indexAll()
 	return e, nil
 }
@@ -167,6 +185,10 @@ func (e *Eagle) GetSyndicators() []*syndicator.Config {
 func (e *Eagle) Close() {
 	if e.db != nil {
 		e.db.Close()
+	}
+
+	if e.cron != nil {
+		e.cron.Stop()
 	}
 }
 

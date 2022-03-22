@@ -20,6 +20,7 @@ require (
 	github.com/lopezator/migrator v0.3.0
 	github.com/microcosm-cc/bluemonday v1.0.17
 	github.com/paulmach/go.geojson v1.4.0
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/spf13/afero v1.8.0
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.3.0

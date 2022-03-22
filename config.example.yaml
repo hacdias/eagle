@@ -123,3 +123,8 @@ twitter:
 miniflux:
   endpoint:
   key:
+
+# Optional Last.fm (https://last.fm) integration for scrobbles integration.
+lastfm:
+  key:
+  user: 
