@@ -197,7 +197,7 @@ func (e *Eagle) FetchLastfmScrobbles(year int, month time.Month, day int) error 
 		ID: id,
 		Frontmatter: entry.Frontmatter{
 			Sections:    []string{"listens"},
-			Description: fmt.Sprintf("Listened to %d tracks %.2f hours", len(tracks), totalDuration.Hours()),
+			Description: fmt.Sprintf("Listened to %d tracks for %.2f hours", len(tracks), totalDuration.Hours()),
 			Properties: map[string]interface{}{
 				"scrobbles-count": len(scrobbles),
 				"artists-count":   len(artists),
@@ -293,7 +293,15 @@ func (e *Eagle) MakeMonthlyScrobblesReport(year int, month time.Month) error {
 	ee := &entry.Entry{
 		ID: id,
 		Frontmatter: entry.Frontmatter{
-			Title:    fmt.Sprintf("%s in Music", published.Month().String()),
+			Title: fmt.Sprintf("%s in Music", published.Month().String()),
+			Description: fmt.Sprintf(
+				"In %s %d, I listened to %d tracks from %d different artists for a total of %.2f hours.",
+				published.Month().String(),
+				published.Year(),
+				stats.UniqueTracks,
+				stats.UniqueArtists,
+				durationFromSeconds(float64(stats.TotalDuration)).Hours(),
+			),
 			Template: "scrobbles-report",
 			Sections: []string{"listens"},
 			Properties: map[string]interface{}{
@@ -347,7 +355,14 @@ func (e *Eagle) MakeYearlyScrobblesReport(year int) error {
 	ee := &entry.Entry{
 		ID: id,
 		Frontmatter: entry.Frontmatter{
-			Title:    fmt.Sprintf("%d in Music", published.Year()),
+			Title: fmt.Sprintf("%d in Music", published.Year()),
+			Description: fmt.Sprintf(
+				"In %d, I listened to %d tracks from %d different artists for a total of %.2f hours.",
+				published.Year(),
+				stats.UniqueTracks,
+				stats.UniqueArtists,
+				durationFromSeconds(float64(stats.TotalDuration)).Hours(),
+			),
 			Template: "scrobbles-report",
 			Sections: []string{"listens"},
 			Properties: map[string]interface{}{
@@ -422,6 +437,9 @@ type ScrobbleStats struct {
 	TracksPerDay        int                `json:"tracksPerDay"`
 	DurationPerDay      int                `json:"durationPerDay"`
 	ScrobblesPerWeekday []int              `json:"scrobblesPerWeekday"`
+	UniqueArtists       int                `json:"uniqueArtists"`
+	UniqueTracks        int                `json:"uniqueTracks"`
+	UniqueAlbums        int                `json:"uniqueAlbums"`
 	Artists             []*IndividualStats `json:"artists"`
 	Tracks              []*IndividualStats `json:"tracks"`
 	Albums              []*IndividualStats `json:"albums"`
@@ -504,14 +522,14 @@ func statsFromScrobbles(scrobbles []*mf2.FlatHelper) (*ScrobbleStats, error) {
 		}
 	}
 
-	stats.Artists = sortAndCropStats(artistsMap)
-	stats.Tracks = sortAndCropStats(tracksMap)
-	stats.Albums = sortAndCropStats(albumsMap)
+	stats.Artists, stats.UniqueArtists = sortAndCropStats(artistsMap)
+	stats.Tracks, stats.UniqueTracks = sortAndCropStats(tracksMap)
+	stats.Albums, stats.UniqueAlbums = sortAndCropStats(albumsMap)
 
 	return stats, nil
 }
 
-func sortAndCropStats(m map[string]*IndividualStats) []*IndividualStats {
+func sortAndCropStats(m map[string]*IndividualStats) ([]*IndividualStats, int) {
 	a := []*IndividualStats{}
 
 	for _, el := range m {
@@ -522,9 +540,9 @@ func sortAndCropStats(m map[string]*IndividualStats) []*IndividualStats {
 		return a[i].Scrobbles > a[j].Scrobbles
 	})
 
+	l := len(a)
 	if len(a) > 100 {
 		a = a[0:100]
 	}
-
-	return a
+	return a, l
 }
