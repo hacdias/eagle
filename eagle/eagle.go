@@ -174,6 +174,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
+	_, err = e.cron.AddFunc("CRON_TZ=UTC 00 02 * * *", e.SyncStorage)
+	if err != nil {
+		return nil, err
+	}
+
 	go e.indexAll()
 	return e, nil
 }
