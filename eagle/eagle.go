@@ -164,8 +164,15 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	e.initBlogrollCron()
-	e.initScrobbleCron()
+	err = e.initBlogrollCron()
+	if err != nil {
+		return nil, err
+	}
+
+	err = e.initScrobbleCron()
+	if err != nil {
+		return nil, err
+	}
 
 	go e.indexAll()
 	return e, nil

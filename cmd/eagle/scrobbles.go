@@ -14,8 +14,8 @@ func init() {
 	scrobblesCmd.Flags().StringP("from", "f", "", "From date to start fetching scrobbles (including).")
 	scrobblesCmd.Flags().StringP("to", "t", "", "To date to start fetching scrobbles (not including).")
 	scrobblesCmd.Flags().StringP("mode", "m", "day", "The mode of the reports to create (day, month, year).")
-	scrobblesCmd.MarkFlagRequired("from")
-	scrobblesCmd.MarkFlagRequired("to")
+	_ = scrobblesCmd.MarkFlagRequired("from")
+	_ = scrobblesCmd.MarkFlagRequired("to")
 }
 
 var scrobblesCmd = &cobra.Command{

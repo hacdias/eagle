@@ -75,15 +75,17 @@ func (e *Eagle) UpdateBlogroll() error {
 	return nil
 }
 
-func (e *Eagle) initBlogrollCron() {
+func (e *Eagle) initBlogrollCron() error {
 	if e.miniflux == nil {
-		return
+		return nil
 	}
 
-	e.cron.AddFunc("CRON_TZ=UTC 00 00 * * *", func() {
+	_, err := e.cron.AddFunc("CRON_TZ=UTC 00 00 * * *", func() {
 		err := e.UpdateBlogroll()
 		if err != nil {
 			e.Notifier.Error(fmt.Errorf("blogroll updater: %w", err))
 		}
 	})
+
+	return err
 }

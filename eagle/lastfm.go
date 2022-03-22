@@ -318,8 +318,8 @@ func (e *Eagle) MakeMonthlyScrobblesReport(year int, month time.Month) error {
 	return nil
 }
 
-func (e *Eagle) initScrobbleCron() {
-	e.cron.AddFunc("CRON_TZ=UTC 00 01 * * *", func() {
+func (e *Eagle) initScrobbleCron() error {
+	_, err := e.cron.AddFunc("CRON_TZ=UTC 00 01 * * *", func() {
 		yesterday := time.Now().UTC().AddDate(0, 0, -1)
 		year, month, day := yesterday.Date()
 
@@ -328,6 +328,8 @@ func (e *Eagle) initScrobbleCron() {
 			e.Notifier.Error(fmt.Errorf("scrobbles cron job: %w", err))
 		}
 	})
+
+	return err
 }
 
 type IndividualStats struct {
