@@ -69,13 +69,13 @@ var scrobblesCmd = &cobra.Command{
 			}
 		case "year":
 			for cur := from; cur.Before(to); cur = cur.AddDate(1, 0, 0) {
-				fmt.Println("Making Yearly Report", cur.Format("2006-01"))
-				// year, month, _ := cur.Date()
+				fmt.Println("Making Yearly Report", cur.Format("2006"))
+				year, _, _ := cur.Date()
 
-				// err := e.MakeMonthlyScrobblesReport(year, month)
-				// if err != nil {
-				// 	return err
-				// }
+				err := e.MakeYearlyScrobblesReport(year)
+				if err != nil {
+					return err
+				}
 			}
 		default:
 			return fmt.Errorf("%s is not a valid mode", mode)

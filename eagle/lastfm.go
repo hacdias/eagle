@@ -284,10 +284,10 @@ func (e *Eagle) MakeMonthlyScrobblesReport(year int, month time.Month) error {
 	stats.Start = start
 	stats.End = published
 
-	monthDays := end.Sub(start).Hours() / 24
+	days := end.Sub(start).Hours() / 24
 
-	stats.TracksPerDay = stats.Scrobbles / int(monthDays)
-	stats.DurationPerDay = stats.TotalDuration / int(monthDays)
+	stats.TracksPerDay = stats.Scrobbles / int(days)
+	stats.DurationPerDay = stats.TotalDuration / int(days)
 
 	id := entry.NewID("monthly-scrobbles", published)
 	ee := &entry.Entry{
@@ -318,14 +318,89 @@ func (e *Eagle) MakeMonthlyScrobblesReport(year int, month time.Month) error {
 	return nil
 }
 
+func (e *Eagle) MakeYearlyScrobblesReport(year int) error {
+	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := start.AddDate(1, 0, 0)
+
+	scrobbles := e.getScrobblesBetweenDates(start, end)
+	if len(scrobbles) == 0 {
+		return nil
+	}
+
+	stats, err := statsFromScrobbles(scrobbles)
+	if err != nil {
+		return err
+	}
+
+	// Publish as if it's the last second of the week.
+	published := end.Add(-time.Second)
+
+	stats.Start = start
+	stats.End = published
+
+	days := end.Sub(start).Hours() / 24
+
+	stats.TracksPerDay = stats.Scrobbles / int(days)
+	stats.DurationPerDay = stats.TotalDuration / int(days)
+
+	id := entry.NewID("yearly-scrobbles", published)
+	ee := &entry.Entry{
+		ID: id,
+		Frontmatter: entry.Frontmatter{
+			Title:    fmt.Sprintf("%d in Music", published.Year()),
+			Template: "scrobbles-report",
+			Sections: []string{"listens"},
+			Properties: map[string]interface{}{
+				"category": []string{"yearly-scrobbles"},
+			},
+			Published: published,
+		},
+	}
+
+	err = e.SaveEntry(ee)
+	if err != nil {
+		return err
+	}
+
+	filename := filepath.Join(ContentDirectory, id, "_stats.json")
+	err = e.fs.WriteJSON(filename, stats, "update stats")
+	if err != nil {
+		return err
+	}
+
+	e.RemoveCache(ee)
+	return nil
+}
+
 func (e *Eagle) initScrobbleCron() error {
 	_, err := e.cron.AddFunc("CRON_TZ=UTC 00 01 * * *", func() {
-		yesterday := time.Now().UTC().AddDate(0, 0, -1)
+		today := time.Now().UTC()
+		yesterday := today.AddDate(0, 0, -1)
 		year, month, day := yesterday.Date()
 
 		err := e.FetchLastfmScrobbles(year, month, day)
 		if err != nil {
-			e.Notifier.Error(fmt.Errorf("scrobbles cron job: %w", err))
+			e.Notifier.Error(fmt.Errorf("daily scrobbles cron job: %w", err))
+		}
+
+		if today.Day() != 1 {
+			// Not the first day of the month, stop.
+			return
+		}
+
+		err = e.MakeMonthlyScrobblesReport(year, month)
+		if err != nil {
+			e.Notifier.Error(fmt.Errorf("monthly scrobbles cron job: %w", err))
+		}
+
+		if today.Month() != time.January {
+			// Not the first month of the year, stop.
+			return
+		}
+
+		err = e.MakeYearlyScrobblesReport(year)
+		if err != nil {
+			e.Notifier.Error(fmt.Errorf("yearly scrobbles cron job: %w", err))
 		}
 	})
 
@@ -429,29 +504,27 @@ func statsFromScrobbles(scrobbles []*mf2.FlatHelper) (*ScrobbleStats, error) {
 		}
 	}
 
-	for _, artist := range artistsMap {
-		stats.Artists = append(stats.Artists, artist)
-	}
-
-	sort.SliceStable(stats.Artists, func(i, j int) bool {
-		return stats.Artists[i].Scrobbles > stats.Artists[j].Scrobbles
-	})
-
-	for _, track := range tracksMap {
-		stats.Tracks = append(stats.Tracks, track)
-	}
-
-	sort.SliceStable(stats.Tracks, func(i, j int) bool {
-		return stats.Tracks[i].Scrobbles > stats.Tracks[j].Scrobbles
-	})
-
-	for _, album := range albumsMap {
-		stats.Albums = append(stats.Albums, album)
-	}
-
-	sort.SliceStable(stats.Albums, func(i, j int) bool {
-		return stats.Albums[i].Scrobbles > stats.Albums[j].Scrobbles
-	})
+	stats.Artists = sortAndCropStats(artistsMap)
+	stats.Tracks = sortAndCropStats(tracksMap)
+	stats.Albums = sortAndCropStats(albumsMap)
 
 	return stats, nil
+}
+
+func sortAndCropStats(m map[string]*IndividualStats) []*IndividualStats {
+	a := []*IndividualStats{}
+
+	for _, el := range m {
+		a = append(a, el)
+	}
+
+	sort.SliceStable(a, func(i, j int) bool {
+		return a[i].Scrobbles > a[j].Scrobbles
+	})
+
+	if len(a) > 100 {
+		a = a[0:100]
+	}
+
+	return a
 }
