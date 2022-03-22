@@ -179,6 +179,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
+	e.cron.Start()
 	go e.indexAll()
 	return e, nil
 }
