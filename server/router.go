@@ -101,12 +101,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/private", s.privateGet)
 	})
 
-	// r.Get("/listens/week")
-	// r.Get("/listens/month")
-	// r.Get("/listens/year")
-
-	// r.Get("/year/scrobbles")
-
 	// Listing HTML pages. Cached.
 	r.Group(func(r chi.Router) {
 		r.Use(s.withCache)
