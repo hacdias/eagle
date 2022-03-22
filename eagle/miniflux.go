@@ -2,6 +2,7 @@ package eagle
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -72,4 +73,17 @@ func (e *Eagle) UpdateBlogroll() error {
 
 	e.RemoveCache(ee)
 	return nil
+}
+
+func (e *Eagle) initBlogrollCron() {
+	if e.miniflux == nil {
+		return
+	}
+
+	e.cron.AddFunc("CRON_TZ=UTC 00 00 * * *", func() {
+		err := e.UpdateBlogroll()
+		if err != nil {
+			e.Notifier.Error(fmt.Errorf("blogroll updater: %w", err))
+		}
+	})
 }
