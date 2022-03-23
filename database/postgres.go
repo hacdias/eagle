@@ -224,7 +224,7 @@ func (d *Postgres) GetPrivate(opts *PaginationOptions, audience string) ([]strin
 
 func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 	sql := `select id from (
-		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility
+		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility, audience
 		from entries as e
 	) s
 	where score > 0`
