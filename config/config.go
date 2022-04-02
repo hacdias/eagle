@@ -26,6 +26,7 @@ type Config struct {
 	BunnyCDN          *BunnyCDN
 	Telegram          *Telegram
 	Twitter           *Twitter
+	Reddit            *Reddit
 	Miniflux          *Miniflux
 	MapBox            *MapBox
 	Lastfm            *Lastfm
@@ -165,6 +166,10 @@ type Twitter struct {
 	Secret      string
 	Token       string
 	TokenSecret string
+}
+
+type Reddit struct {
+	User string
 }
 
 type Miniflux struct {
