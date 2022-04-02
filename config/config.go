@@ -169,7 +169,10 @@ type Twitter struct {
 }
 
 type Reddit struct {
-	User string
+	User     string
+	Password string
+	App      string
+	Secret   string
 }
 
 type Miniflux struct {

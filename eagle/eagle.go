@@ -150,6 +150,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
 	}
 
+	if conf.Reddit != nil {
+		e.syndication.Add(syndicator.NewReddit(conf.Reddit))
+	}
+
 	if conf.Miniflux != nil {
 		e.miniflux = &Miniflux{Miniflux: conf.Miniflux}
 	}
