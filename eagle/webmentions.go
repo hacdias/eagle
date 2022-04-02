@@ -33,7 +33,7 @@ type WebmentionPayload struct {
 }
 
 func (e *Eagle) SendWebmentions(entry *entry.Entry) error {
-	if entry.NoSendInteractions {
+	if entry.NoSendInteractions || entry.Draft {
 		return nil
 	}
 
