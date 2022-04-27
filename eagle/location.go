@@ -165,6 +165,9 @@ func (e *Eagle) parseLocation(str string) (map[string]interface{}, error) {
 
 	if strings.HasPrefix(str, "geo:") {
 		location, err = e.loctools.FromGeoURI(e.Config.Site.Language, str)
+	} else if strings.HasPrefix(str, "/") {
+		_, err = e.GetEntry(str)
+		return nil, err
 	} else {
 		location, err = e.loctools.Search(e.Config.Site.Language, str)
 	}
