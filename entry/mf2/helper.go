@@ -171,7 +171,7 @@ func (m *FlatHelper) LocationHTML() template.HTML {
 		strs = append(strs, `<span class="p-country">`+v+`</span>`)
 	}
 
-	return template.HTML(`<span class="p-location h-adr">` + strings.Join(strs, ", ") + `</span>`)
+	return template.HTML(strings.Join(strs, ", "))
 }
 
 func (m *FlatHelper) Sub(prop string) *FlatHelper {
