@@ -106,12 +106,14 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.withCache)
 
 		r.Get("/tags", s.tagsGet)
+		r.Get("/emojis", s.emojisGet)
 		r.Get("/", s.indexGet)
 		r.Get("/all", s.allGet)
 		r.Get(yearPath, s.dateGet)
 		r.Get(monthPath, s.dateGet)
 		r.Get(dayPath, s.dateGet)
 		r.Get("/tags/{tag}", s.tagGet)
+		r.Get("/emojis/{emoji}", s.emojiGet)
 
 		// Books are special types of listings.
 		r.Get("/reads/isbn/{isbn}", s.bookGet)
@@ -128,6 +130,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get(monthPath+feedPath, s.dateGet)
 	r.Get(dayPath+feedPath, s.dateGet)
 	r.Get("/tags/{tag}"+feedPath, s.tagGet)
+	r.Get("/emojis/{emoji}"+feedPath, s.emojiGet)
 
 	for _, section := range s.Config.Site.Sections {
 		r.Get("/"+section+feedPath, s.sectionGet(section))

@@ -56,6 +56,23 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Server) emojiGet(w http.ResponseWriter, r *http.Request) {
+	emoji := chi.URLParam(r, "emoji")
+	if emoji == "" {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		return
+	}
+
+	s.listingGet(w, r, &listingSettings{
+		rd: &eagle.RenderData{
+			Entry: s.getListingEntryOrEmpty(r.URL.Path, emoji),
+		},
+		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+			return s.GetByEmoji(opts, emoji)
+		},
+	})
+}
+
 func (s *Server) bookGet(w http.ResponseWriter, r *http.Request) {
 	ee, err := s.GetEntry(r.URL.Path)
 	if os.IsNotExist(err) {

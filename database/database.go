@@ -28,6 +28,7 @@ type Database interface {
 	Add(...*entry.Entry) error
 
 	GetTags() ([]string, error)
+	GetEmojis() ([]string, error)
 	Search(opt *QueryOptions, query string) ([]string, error)
 
 	GetDeleted(opts *PaginationOptions) ([]string, error)
@@ -38,6 +39,7 @@ type Database interface {
 	GetAll(opts *QueryOptions) ([]string, error)
 
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
+	ByEmoji(opt *QueryOptions, emoji string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 	ByProperty(opts *QueryOptions, property, value string) ([]string, error)

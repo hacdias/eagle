@@ -37,6 +37,7 @@ const (
 	TemplateNew       string = "new"
 	TemplateIndex     string = "index"
 	TemplateTags      string = "tags"
+	TemplateEmojis    string = "emojis"
 	TemplateAuth      string = "auth"
 	TemplateDashboard string = "dashboard"
 	TemplateBook      string = "book"

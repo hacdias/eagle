@@ -57,6 +57,15 @@ func (e *Eagle) RemoveCache(ee *entry.Entry) {
 		e.PurgeCache("/tags")
 	}
 
+	hasEmojis := false
+	for _, emoji := range ee.Emojis() {
+		hasEmojis = true
+		e.PurgeCache("/emoji/" + emoji)
+	}
+	if hasEmojis {
+		e.PurgeCache("/emojis")
+	}
+
 	if mm := ee.Helper(); mm.PostType() == mf2.TypeRead {
 		canonical := mm.String(mm.TypeProperty())
 		if canonical != "" {
