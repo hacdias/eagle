@@ -1,6 +1,6 @@
 module github.com/hacdias/eagle/v3
 
-go 1.17
+go 1.18
 
 require (
 	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6
