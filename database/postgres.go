@@ -56,6 +56,10 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
 		}
 
+		for _, emoji := range entry.Emojis() {
+			b.Queue("insert into emojis(entry_id, emoji) values ($1, $2)", entry.ID, emoji)
+		}
+
 		if len(entry.Sections) > 0 {
 			for _, section := range entry.Sections {
 				b.Queue("insert into sections(entry_id, section) values ($1, $2)", entry.ID, section)
@@ -88,6 +92,28 @@ func (d *Postgres) GetTags() ([]string, error) {
 	for rows.Next() {
 		var id string
 		err := rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, id)
+	}
+
+	return tags, rows.Err()
+}
+
+func (d *Postgres) GetEmojis() ([]string, error) {
+	rows, err := d.pool.Query(context.Background(), "select emoji, count(*) from emojis group by emoji order by count desc")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tags := []string{}
+
+	for rows.Next() {
+		var id string
+		var count int
+		err := rows.Scan(&id, &count)
 		if err != nil {
 			return nil, err
 		}
@@ -140,6 +166,19 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	args := []interface{}{tag}
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
+
+	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
+	}
+
+	sql += " order by date desc" + d.offset(&opts.PaginationOptions)
+	return d.queryEntries(sql, 0, args...)
+}
+
+func (d *Postgres) ByEmoji(opts *QueryOptions, emoji string) ([]string, error) {
+	args := []interface{}{emoji}
+	sql := "select id from emojis inner join entries on id=entry_id where emoji=$1"
 
 	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
 		sql += " and " + strings.Join(where, " and ")

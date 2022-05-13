@@ -12,6 +12,10 @@ func (e *Eagle) GetTags() ([]string, error) {
 	return e.db.GetTags()
 }
 
+func (e *Eagle) GetEmojis() ([]string, error) {
+	return e.db.GetEmojis()
+}
+
 func (e *Eagle) Search(opts *database.QueryOptions, query string) ([]*entry.Entry, error) {
 	return e.idsToEntries(e.db.Search(opts, query))
 }
@@ -22,6 +26,10 @@ func (e *Eagle) GetAll(opts *database.QueryOptions) ([]*entry.Entry, error) {
 
 func (e *Eagle) GetByTag(opts *database.QueryOptions, tag string) ([]*entry.Entry, error) {
 	return e.idsToEntries(e.db.ByTag(opts, tag))
+}
+
+func (e *Eagle) GetByEmoji(opts *database.QueryOptions, emoji string) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.ByEmoji(opts, emoji))
 }
 
 func (e *Eagle) GetBySection(opts *database.QueryOptions, sections ...string) ([]*entry.Entry, error) {

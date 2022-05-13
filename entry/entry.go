@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/forPelevin/gomoji"
 	"github.com/hacdias/eagle/v3/entry/mf2"
 	"github.com/hacdias/eagle/v3/util"
 	"github.com/karlseguin/typed"
@@ -24,6 +25,7 @@ type Entry struct {
 	Content   string
 
 	helper  *mf2.FlatHelper
+	emojis  []string
 	excerpt string
 }
 
@@ -66,6 +68,20 @@ func (e *Entry) Tags() []string {
 	}
 
 	return []string{}
+}
+
+func (e *Entry) Emojis() []string {
+	if e.emojis != nil {
+		return e.emojis
+	}
+
+	emojis := gomoji.FindAll(e.Content)
+	for _, emoji := range emojis {
+		e.emojis = append(e.emojis, emoji.Character)
+	}
+
+	e.emojis = funk.UniqString(e.emojis)
+	return e.emojis
 }
 
 func (e *Entry) Visibility() Visibility {
