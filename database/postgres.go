@@ -414,7 +414,8 @@ where
 from entries
 where
 	properties->'watch-of' is not null and
-	properties->'watch-of'->'properties'->'episode-of' is null`)
+	properties->'watch-of'->'properties'->'episode-of' is null and
+	properties->'watch-of'->'properties'->'trakt-ids'->>'trakt' is not null`)
 	if err != nil {
 		return nil, err
 	}
