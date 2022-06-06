@@ -265,10 +265,6 @@ type RenderData struct {
 }
 
 func (rd *RenderData) HeadTitle() string {
-	if rd.ID == "/" {
-		return rd.Site.Title
-	}
-
 	title := rd.DisplayTitle()
 	if title != "" {
 		return fmt.Sprintf("%s - %s", title, rd.Site.Title)
