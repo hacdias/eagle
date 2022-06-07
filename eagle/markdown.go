@@ -260,13 +260,17 @@ func (e *Eagle) writeFigure(w figureWriter, imgURL, alt, title string, absURLs, 
 }
 
 func (e *Eagle) makePictureSourceSet(id, format string) string {
-	return e.media.Base + "/i/t/" + id + "-250x." + format + " 250w" +
-		", " + e.media.Base + "/i/t/" + id + "-500x." + format + " 500w" +
-		", " + e.media.Base + "/i/t/" + id + "-1000x." + format + " 1000w" +
-		", " + e.media.Base + "/i/t/" + id + "-2000x." + format + " 2000w"
+	return e.makePictureURL(id, "250", format) + " 250w" +
+		", " + e.makePictureURL(id, "500", format) + " 500w" +
+		", " + e.makePictureURL(id, "1000", format) + " 1000w" +
+		", " + e.makePictureURL(id, "2000", format) + " 2000w"
 }
 
-func (e *Eagle) getPictureURL(urlStr string) string {
+func (e *Eagle) makePictureURL(id, size, format string) string {
+	return e.media.Base + "/i/t/" + id + "-" + size + "x." + format
+}
+
+func (e *Eagle) getPictureURL(urlStr, size, format string) string {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return ""
@@ -280,7 +284,7 @@ func (e *Eagle) getPictureURL(urlStr string) string {
 
 	if url.Scheme == "cdn" && e.media != nil {
 		id := strings.TrimPrefix(url.Path, "/")
-		return e.media.Base + "/i/" + id + ".jpeg"
+		return e.makePictureURL(id, size, format)
 	} else {
 		return url.String()
 	}
