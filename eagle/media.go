@@ -48,11 +48,21 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 }
 
 func (e *Eagle) UploadAnonymousMedia(ext string, reader io.Reader) (string, error) {
-	return e.uploadAnonymous("media", ext, reader)
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+
+	return e.uploadAnonymous("media", ext, data)
 }
 
 func (e *Eagle) UploadMedia(filename, ext string, reader io.Reader) (string, error) {
-	return e.upload("media", filename, ext, reader)
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+
+	return e.upload("media", filename, ext, data)
 }
 
 func (e *Eagle) uploadFromURL(base, url string) (string, error) {
@@ -70,7 +80,12 @@ func (e *Eagle) uploadFromURL(base, url string) (string, error) {
 		return url, fmt.Errorf("unexpected status code: %s", resp.Status)
 	}
 
-	return e.uploadAnonymous(base, path.Ext(url), resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return e.uploadAnonymous(base, path.Ext(url), data)
 }
 
 func (e *Eagle) safeUploadFromURL(base, url string) string {
@@ -82,23 +97,18 @@ func (e *Eagle) safeUploadFromURL(base, url string) string {
 	return newURL
 }
 
-func (e *Eagle) uploadAnonymous(base, ext string, reader io.Reader) (string, error) {
-	data, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return "", err
-	}
-
+func (e *Eagle) uploadAnonymous(base, ext string, data []byte) (string, error) {
 	filename := fmt.Sprintf("%x", sha256.Sum256(data))
-	return e.upload(base, filename, ext, bytes.NewBuffer(data))
+	return e.upload(base, filename, ext, data)
 }
 
-func (e *Eagle) upload(base, filename, ext string, reader io.Reader) (string, error) {
+func (e *Eagle) upload(base, filename, ext string, data []byte) (string, error) {
 	if e.media == nil {
 		return "", errors.New("media is not implemented")
 	}
 
 	if isImage(ext) && base == "media" {
-		str, err := e.uploadImage(filename, reader)
+		str, err := e.uploadImage(filename, data)
 		if err != nil {
 			e.log.Warnf("could not upload image: %s", err.Error())
 		} else {
@@ -107,7 +117,7 @@ func (e *Eagle) upload(base, filename, ext string, reader io.Reader) (string, er
 	}
 
 	filename = filepath.Join(base, filename+ext)
-	return e.media.UploadMedia(filename, reader)
+	return e.media.UploadMedia(filename, bytes.NewBuffer(data))
 }
 
 var imageExtensions []string = []string{
@@ -121,21 +131,21 @@ func isImage(ext string) bool {
 	return funk.ContainsString(imageExtensions, strings.ToLower(ext))
 }
 
-func (e *Eagle) uploadImage(filename string, reader io.Reader) (string, error) {
-	if e.imgProxy == nil {
-		return "", errors.New("imgproxy is not implemented")
+func (e *Eagle) uploadImage(filename string, data []byte) (string, error) {
+	if len(data) < 100000 {
+		return "", errors.New("image is smaller than 100 KB, ignore")
 	}
 
-	data, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return "", err
+	if e.imgProxy == nil {
+		return "", errors.New("imgproxy is not implemented")
 	}
 
 	imgReader, err := e.imgProxy.Transform(bytes.NewReader(data), "jpeg", 3000, 100)
 	if err != nil {
 		return "", err
 	}
-	canonicalUrl, err := e.media.UploadMedia(filepath.Join("media", filename+".jpeg"), imgReader)
+
+	_, err = e.media.UploadMedia(filepath.Join("media", filename+".jpeg"), imgReader)
 	if err != nil {
 		return "", err
 	}
@@ -154,5 +164,5 @@ func (e *Eagle) uploadImage(filename string, reader io.Reader) (string, error) {
 		}
 	}
 
-	return canonicalUrl, nil
+	return "cdn:/" + filename, nil
 }
