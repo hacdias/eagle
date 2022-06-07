@@ -138,6 +138,15 @@ func (m *FlatHelper) Photos() []map[string]interface{} {
 	return parsed
 }
 
+func (m *FlatHelper) Photo() map[string]interface{} {
+	photos := m.Photos()
+	if len(photos) > 0 {
+		return photos[0]
+	}
+
+	return nil
+}
+
 func (m *FlatHelper) Name() string {
 	return m.Properties.StringOr("name", "")
 }
