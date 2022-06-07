@@ -128,3 +128,10 @@ miniflux:
 lastfm:
   key:
   user: 
+
+# Optional ImgProxy (https://imgproxy.net/) integration for image resizing. Sizes are hardcoded.
+imgproxy:
+  # Temporary directory shared between Eagle and ImgProxy
+  directory:
+  # ImgProxy endpoint
+  endpoint:

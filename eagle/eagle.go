@@ -21,6 +21,7 @@ import (
 	"github.com/hacdias/eagle/v3/notifier"
 	"github.com/hacdias/eagle/v3/syndicator"
 	"github.com/robfig/cron/v3"
+	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
 
@@ -46,6 +47,7 @@ type Eagle struct {
 	db           database.Database
 	cache        *ristretto.Cache
 	media        *Media
+	imgProxy     *ImgProxy
 	miniflux     *Miniflux
 	lastfm       *Lastfm
 	Parser       *entry.Parser
@@ -108,6 +110,18 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			BunnyCDN: conf.BunnyCDN,
 			httpClient: &http.Client{
 				Timeout: time.Minute * 10,
+			},
+		}
+	}
+
+	if conf.ImgProxy != nil {
+		e.imgProxy = &ImgProxy{
+			endpoint: conf.ImgProxy.Endpoint,
+			httpClient: &http.Client{
+				Timeout: time.Minute * 10,
+			},
+			fs: &afero.Afero{
+				Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.ImgProxy.Directory),
 			},
 		}
 	}

@@ -156,7 +156,7 @@ func (e *Eagle) processPhotos(ee *entry.Entry) error {
 
 	upload := func(url string) string {
 		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, e.Config.BunnyCDN.Base) {
-			return e.safeUploadFromURL("/u", url)
+			return e.safeUploadFromURL("media", url)
 		}
 		return url
 	}
