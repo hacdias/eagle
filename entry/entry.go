@@ -119,7 +119,7 @@ func (e *Entry) Excerpt() string {
 		firstPart := strings.Split(e.Content, "<!--more-->")[0]
 		e.excerpt = stripText(strings.TrimSpace(firstPart))
 	} else if content := e.TextContent(); content != "" {
-		e.excerpt = util.TruncateString(content, 300) + "…"
+		e.excerpt = util.TruncateStringWithEllipsis(content, 300)
 	}
 
 	return e.excerpt
@@ -141,7 +141,7 @@ func (e *Entry) DisplayTitle() string {
 
 	if len(excerpt) > 100 {
 		excerpt = strings.TrimSuffix(excerpt, "…")
-		excerpt = util.TruncateString(excerpt, 100) + "…"
+		excerpt = util.TruncateStringWithEllipsis(excerpt, 100)
 	}
 
 	return excerpt
