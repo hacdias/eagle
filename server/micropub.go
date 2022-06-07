@@ -285,7 +285,7 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 		ext = mime.Extension()
 	}
 
-	location, err := s.UploadFile("/u/", ext, bytes.NewReader(raw))
+	location, err := s.UploadAnonymousMedia(ext, bytes.NewReader(raw))
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return

@@ -10,9 +10,11 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/hacdias/eagle/v3/config"
+	"github.com/thoas/go-funk"
 )
 
 type Media struct {
@@ -45,20 +47,22 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 	return m.Base + filename, nil
 }
 
-func (e *Eagle) UploadFile(base, ext string, data io.Reader) (string, error) {
-	if e.media == nil {
-		return "", errors.New("media is not implemented")
-	}
-
-	body, err := ioutil.ReadAll(data)
+func (e *Eagle) UploadAnonymousMedia(ext string, reader io.Reader) (string, error) {
+	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
 
-	basename := fmt.Sprintf("%x%s", sha256.Sum256(body), ext)
-	filename := filepath.Join(base, basename)
+	return e.uploadAnonymous("media", ext, data)
+}
 
-	return e.media.UploadMedia(filename, bytes.NewBuffer(body))
+func (e *Eagle) UploadMedia(filename, ext string, reader io.Reader) (string, error) {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+
+	return e.upload("media", filename, ext, data)
 }
 
 func (e *Eagle) uploadFromURL(base, url string) (string, error) {
@@ -76,7 +80,12 @@ func (e *Eagle) uploadFromURL(base, url string) (string, error) {
 		return url, fmt.Errorf("unexpected status code: %s", resp.Status)
 	}
 
-	return e.UploadFile(base, path.Ext(url), resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return e.uploadAnonymous(base, path.Ext(url), data)
 }
 
 func (e *Eagle) safeUploadFromURL(base, url string) string {
@@ -86,4 +95,74 @@ func (e *Eagle) safeUploadFromURL(base, url string) string {
 		return url
 	}
 	return newURL
+}
+
+func (e *Eagle) uploadAnonymous(base, ext string, data []byte) (string, error) {
+	filename := fmt.Sprintf("%x", sha256.Sum256(data))
+	return e.upload(base, filename, ext, data)
+}
+
+func (e *Eagle) upload(base, filename, ext string, data []byte) (string, error) {
+	if e.media == nil {
+		return "", errors.New("media is not implemented")
+	}
+
+	if isImage(ext) && base == "media" {
+		str, err := e.uploadImage(filename, data)
+		if err != nil {
+			e.log.Warnf("could not upload image: %s", err.Error())
+		} else {
+			return str, nil
+		}
+	}
+
+	filename = filepath.Join(base, filename+ext)
+	return e.media.UploadMedia(filename, bytes.NewBuffer(data))
+}
+
+var imageExtensions []string = []string{
+	".jpeg",
+	".jpg",
+	".webp",
+	".png",
+}
+
+func isImage(ext string) bool {
+	return funk.ContainsString(imageExtensions, strings.ToLower(ext))
+}
+
+func (e *Eagle) uploadImage(filename string, data []byte) (string, error) {
+	if len(data) < 100000 {
+		return "", errors.New("image is smaller than 100 KB, ignore")
+	}
+
+	if e.imgProxy == nil {
+		return "", errors.New("imgproxy is not implemented")
+	}
+
+	imgReader, err := e.imgProxy.Transform(bytes.NewReader(data), "jpeg", 3000, 100)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = e.media.UploadMedia(filepath.Join("media", filename+".jpeg"), imgReader)
+	if err != nil {
+		return "", err
+	}
+
+	for _, format := range []string{"webp", "jpeg"} {
+		for _, width := range []int{250, 500, 1000, 2000} {
+			imgReader, err = e.imgProxy.Transform(bytes.NewReader(data), format, width, 80)
+			if err != nil {
+				return "", err
+			}
+
+			_, err = e.media.UploadMedia(filepath.Join("img", strconv.Itoa(width), filename+"."+format), imgReader)
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+
+	return "cdn:/" + filename, nil
 }

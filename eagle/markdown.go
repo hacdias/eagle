@@ -215,7 +215,7 @@ func (e *Eagle) writeFigure(w figureWriter, imgURL, alt, title string, absURLs, 
 
 	if url.Scheme == "cdn" && e.media != nil {
 		id := strings.TrimPrefix(url.Path, "/")
-		imgSrc = []byte(e.media.Base + "/i/t/" + id + "-2000x.jpeg")
+		imgSrc = []byte(e.makePictureURL(id, "2000", "jpeg"))
 
 		_, _ = w.WriteString("<source srcset=\"")
 		_, _ = w.WriteString(e.makePictureSourceSet(id, "webp"))
@@ -267,7 +267,7 @@ func (e *Eagle) makePictureSourceSet(id, format string) string {
 }
 
 func (e *Eagle) makePictureURL(id, size, format string) string {
-	return e.media.Base + "/i/t/" + id + "-" + size + "x." + format
+	return e.media.Base + "/img/" + size + "/" + id + "." + format
 }
 
 func (e *Eagle) getPictureURL(urlStr, size, format string) string {

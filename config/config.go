@@ -29,6 +29,7 @@ type Config struct {
 	Miniflux          *Miniflux
 	MapBox            *MapBox
 	Lastfm            *Lastfm
+	ImgProxy          *ImgProxy
 }
 
 func (c *Config) ID() string {
@@ -196,4 +197,9 @@ type MapBox struct {
 type Lastfm struct {
 	Key  string
 	User string
+}
+
+type ImgProxy struct {
+	Directory string
+	Endpoint  string
 }
