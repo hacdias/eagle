@@ -35,7 +35,9 @@ func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int
 	if err != nil {
 		return nil, err
 	}
-	defer i.fs.Remove(filename)
+	defer func() {
+		_ = i.fs.Remove(filename)
+	}()
 
 	urlStr := fmt.Sprintf("%s/rs:auto:%d/q:%d/plain/%s@%s", i.endpoint, width, quality, filename, format)
 
