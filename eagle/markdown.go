@@ -265,3 +265,23 @@ func (e *Eagle) makePictureSourceSet(id, format string) string {
 		", " + e.media.Base + "/i/t/" + id + "-1000x." + format + " 1000w" +
 		", " + e.media.Base + "/i/t/" + id + "-2000x." + format + " 2000w"
 }
+
+func (e *Eagle) getPictureURL(urlStr string) string {
+	url, err := urlpkg.Parse(urlStr)
+	if err != nil {
+		return ""
+	}
+
+	query := url.Query()
+	query.Del("class")
+	query.Del("id")
+	query.Del("caption")
+	url.RawQuery = query.Encode()
+
+	if url.Scheme == "cdn" && e.media != nil {
+		id := strings.TrimPrefix(url.Path, "/")
+		return e.media.Base + "/i/" + id + ".jpeg"
+	} else {
+		return url.String()
+	}
+}

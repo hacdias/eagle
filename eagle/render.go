@@ -136,6 +136,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
 		"figure":              figure,
+		"figureURL":           e.getPictureURL,
 		"dateFormat":          dateFormat,
 		"now":                 time.Now,
 		"include":             e.includeTemplate,
