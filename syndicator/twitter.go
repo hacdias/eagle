@@ -151,6 +151,7 @@ func (t *Twitter) post(urlStr string, values urlpkg.Values) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer res.Body.Close()
 
 	var tid map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&tid)
