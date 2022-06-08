@@ -75,13 +75,20 @@ func domain(text string) string {
 	return u.Host
 }
 
-func domainAndPath(text string) string {
+func humanDomain(text string) string {
 	u, err := urlpkg.Parse(text)
 	if err != nil {
 		return text
 	}
 
-	return u.Host + u.Path
+	if strings.Contains(u.Host, "reddit.com") {
+		parts := strings.Split(u.Path, "/")
+		if len(parts) >= 3 {
+			return "r/" + parts[2]
+		}
+	}
+
+	return u.Host
 }
 
 func safeHTML(text string) template.HTML {
@@ -139,7 +146,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	funcs := template.FuncMap{
 		"truncate":            util.TruncateStringWithEllipsis,
 		"domain":              domain,
-		"domainAndPath":       domainAndPath,
+		"humanDomain":         humanDomain,
 		"strContains":         strings.Contains,
 		"strSplit":            strings.Split,
 		"containsString":      funk.ContainsString,
