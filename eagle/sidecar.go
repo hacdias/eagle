@@ -6,12 +6,26 @@ import (
 	"sort"
 
 	"github.com/hacdias/eagle/v3/entry"
+	"github.com/karlseguin/typed"
 )
 
 type Sidecar struct {
 	Targets     []string                 `json:"targets"`
 	Context     map[string]interface{}   `json:"context"`
 	Webmentions []map[string]interface{} `json:"webmentions"`
+}
+
+func (s *Sidecar) GetCoins() float64 {
+	if s.Webmentions == nil {
+		return 0.0
+	}
+
+	coins := 0.0
+	for _, wm := range s.Webmentions {
+		coins += typed.Typed(wm).FloatOr("swarm-coins", 0)
+	}
+
+	return coins
 }
 
 func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
