@@ -1,48 +1,102 @@
 package syndicator
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
 	urlpkg "net/url"
 	"strings"
 
 	"github.com/hacdias/eagle/v3/config"
 	"github.com/hacdias/eagle/v3/entry"
 	"github.com/hacdias/eagle/v3/entry/mf2"
+	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 
 type Reddit struct {
 	conf   *config.Reddit
-	client *http.Client
+	client *reddit.Client
 }
 
-func NewReddit(opts *config.Reddit) *Reddit {
-	// config := oauth1.NewConfig(opts.Key, opts.Secret)
-	// token := oauth1.NewToken(opts.Token, opts.TokenSecret)
-
-	// client := config.Client(oauth1.NoContext, token)
-	// client.Timeout = time.Second * 30
-
-	reddit := &Reddit{
-		conf: opts,
+func NewReddit(opts *config.Reddit) (*Reddit, error) {
+	credentials := reddit.Credentials{
+		ID:       opts.App,
+		Secret:   opts.Secret,
+		Username: opts.User,
+		Password: opts.Password,
 	}
 
-	token, err := reddit.getToken()
-	fmt.Println(token, err)
+	client, err := reddit.NewClient(credentials)
+	if err != nil {
+		return nil, err
+	}
 
-	return reddit
+	reddit := &Reddit{
+		conf:   opts,
+		client: client,
+	}
+
+	return reddit, nil
 }
 
 func (r *Reddit) Syndicate(entry *entry.Entry) (url string, err error) {
+	if r.isSyndicated(entry) {
+		// If it is already syndicated to Reddit, do not try to syndicate again.
+		return "", errors.New("cannot re-syndicate to Reddit")
+	}
 
-	// Like -> Upvote https://www.reddit.com/dev/api#POST_api_vote
-	// Reply -> Reply https://www.reddit.com/dev/api#POST_api_comment
-	// Others -> New Post ^Same?
+	mm := entry.Helper()
+	typ := mm.PostType()
 
-	return "", errors.New("not implemented")
+	if typ == mf2.TypeLike {
+		urlStr := mm.String(mm.TypeProperty())
+		id, err := r.idFromUrl(urlStr)
+		if err != nil {
+			return "", err
+		}
+
+		_, err = r.client.Post.Upvote(context.Background(), id)
+		if err != nil {
+			return "", err
+		}
+		return urlStr, nil
+	}
+
+	if typ == mf2.TypeReply {
+		urlStr := mm.String(mm.TypeProperty())
+		id, err := r.idFromUrl(urlStr)
+		if err != nil {
+			return "", err
+		}
+
+		comment, _, err := r.client.Comment.Submit(context.Background(), id, entry.Content)
+		if err != nil {
+			return "", err
+		}
+
+		return "https://www.reddit.com" + comment.Permalink, nil
+	}
+
+	audience := entry.Audience()
+	if len(audience) != 1 {
+		return "", errors.New("audience needs to have exactly one element for reddit syndication")
+	}
+
+	subreddit, err := r.idFromUrl(audience[0])
+	if err != nil {
+		return "", err
+	}
+
+	post, _, err := r.client.Post.SubmitText(context.Background(), reddit.SubmitTextRequest{
+		Subreddit: subreddit,
+		Title:     entry.Title,
+		Text:      entry.Content,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return post.URL, nil
 }
 
 func (r *Reddit) IsByContext(entry *entry.Entry) bool {
@@ -91,44 +145,26 @@ func (r *Reddit) isSyndicated(entry *entry.Entry) bool {
 	return false
 }
 
-func (r *Reddit) getToken() (*redditToken, error) {
-	// TODO: this only seems to work if 2FA is disabled...
-
-	data := url.Values{}
-	data.Set("grant_type", "password")
-	data.Set("username", r.conf.User)
-	data.Set("password", r.conf.Password)
-
-	req, err := http.NewRequest(http.MethodPost, "https://www.reddit.com/api/v1/access_token", strings.NewReader(data.Encode()))
+func (r *Reddit) idFromUrl(urlStr string) (string, error) {
+	replyTo, err := urlpkg.Parse(urlStr)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	req.SetBasicAuth(r.conf.App, r.conf.Secret)
-	req.Header.Set("User-Agent", "Eagle by hacdias") // TODO
+	path := strings.TrimSuffix(replyTo.Path, "/")
+	path = strings.TrimPrefix(path, "/")
+	parts := strings.Split(path, "/")
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	var token *redditToken
-	err = json.NewDecoder(res.Body).Decode(&token)
-	if err != nil {
-		return nil, err
-	}
-
-	if token.AccessToken == "" || token.ExpiresIn == 0 || token.TokenType == "" {
-		return nil, fmt.Errorf("could not obtain token")
+	if len(parts) == 2 {
+		// Subreddit
+		return parts[1], nil
+	} else if len(parts) == 5 {
+		// Post
+		return "t3_" + parts[3], nil
+	} else if len(parts) == 6 {
+		// Comment
+		return "t1_" + parts[5], nil
 	}
 
-	return token, nil
-}
-
-type redditToken struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int64  `json:"expires_in"`
-	Scope       string `json:"scope"`
-	TokenType   string `json:"token_type"`
+	return "", errors.New("could not get id from Reddit URL")
 }

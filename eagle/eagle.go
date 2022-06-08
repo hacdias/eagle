@@ -151,7 +151,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Reddit != nil {
-		e.syndication.Add(syndicator.NewReddit(conf.Reddit))
+		reddit, err := syndicator.NewReddit(conf.Reddit)
+		if err != nil {
+			return nil, err
+		}
+		e.syndication.Add(reddit)
 	}
 
 	if conf.Miniflux != nil {
