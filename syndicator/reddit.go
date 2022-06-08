@@ -14,7 +14,7 @@ import (
 )
 
 type Reddit struct {
-	conf   *config.Reddit
+	User   string
 	client *reddit.Client
 }
 
@@ -32,7 +32,7 @@ func NewReddit(opts *config.Reddit) (*Reddit, error) {
 	}
 
 	reddit := &Reddit{
-		conf:   opts,
+		User:   opts.User,
 		client: client,
 	}
 
@@ -49,54 +49,14 @@ func (r *Reddit) Syndicate(entry *entry.Entry) (url string, err error) {
 	typ := mm.PostType()
 
 	if typ == mf2.TypeLike {
-		urlStr := mm.String(mm.TypeProperty())
-		id, err := r.idFromUrl(urlStr)
-		if err != nil {
-			return "", err
-		}
-
-		_, err = r.client.Post.Upvote(context.Background(), id)
-		if err != nil {
-			return "", err
-		}
-		return urlStr, nil
+		return r.upvote(entry)
 	}
 
 	if typ == mf2.TypeReply {
-		urlStr := mm.String(mm.TypeProperty())
-		id, err := r.idFromUrl(urlStr)
-		if err != nil {
-			return "", err
-		}
-
-		comment, _, err := r.client.Comment.Submit(context.Background(), id, entry.Content)
-		if err != nil {
-			return "", err
-		}
-
-		return "https://www.reddit.com" + comment.Permalink, nil
+		return r.reply(entry)
 	}
 
-	audience := entry.Audience()
-	if len(audience) != 1 {
-		return "", errors.New("audience needs to have exactly one element for reddit syndication")
-	}
-
-	subreddit, err := r.idFromUrl(audience[0])
-	if err != nil {
-		return "", err
-	}
-
-	post, _, err := r.client.Post.SubmitText(context.Background(), reddit.SubmitTextRequest{
-		Subreddit: subreddit,
-		Title:     entry.Title,
-		Text:      entry.Content,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return post.URL, nil
+	return r.post(entry)
 }
 
 func (r *Reddit) IsByContext(entry *entry.Entry) bool {
@@ -124,11 +84,11 @@ func (r *Reddit) IsByContext(entry *entry.Entry) bool {
 }
 
 func (r *Reddit) Name() string {
-	return fmt.Sprintf("Reddit (%s)", r.conf.User)
+	return fmt.Sprintf("Reddit (%s)", r.User)
 }
 
 func (r *Reddit) Identifier() string {
-	return fmt.Sprintf("Reddit-%s", r.conf.User)
+	return fmt.Sprintf("reddit-%s", r.User)
 }
 
 func (r *Reddit) isSyndicated(entry *entry.Entry) bool {
@@ -167,4 +127,59 @@ func (r *Reddit) idFromUrl(urlStr string) (string, error) {
 	}
 
 	return "", errors.New("could not get id from Reddit URL")
+}
+
+func (r *Reddit) upvote(entry *entry.Entry) (string, error) {
+	mm := entry.Helper()
+	urlStr := mm.String(mm.TypeProperty())
+	id, err := r.idFromUrl(urlStr)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = r.client.Post.Upvote(context.Background(), id)
+	if err != nil {
+		return "", err
+	}
+
+	return urlStr, nil
+}
+
+func (r *Reddit) reply(entry *entry.Entry) (string, error) {
+	mm := entry.Helper()
+	urlStr := mm.String(mm.TypeProperty())
+	id, err := r.idFromUrl(urlStr)
+	if err != nil {
+		return "", err
+	}
+
+	comment, _, err := r.client.Comment.Submit(context.Background(), id, entry.Content)
+	if err != nil {
+		return "", err
+	}
+
+	return "https://www.reddit.com" + comment.Permalink, nil
+}
+
+func (r *Reddit) post(entry *entry.Entry) (string, error) {
+	audience := entry.Audience()
+	if len(audience) != 1 {
+		return "", errors.New("audience needs to have exactly one element for reddit syndication")
+	}
+
+	subreddit, err := r.idFromUrl(audience[0])
+	if err != nil {
+		return "", err
+	}
+
+	post, _, err := r.client.Post.SubmitText(context.Background(), reddit.SubmitTextRequest{
+		Subreddit: subreddit,
+		Title:     entry.Title,
+		Text:      entry.Content,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return post.URL, nil
 }
