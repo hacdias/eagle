@@ -257,7 +257,7 @@ func (d *Postgres) GetPrivate(opts *PaginationOptions, audience string) ([]strin
 		return nil, errors.New("audience is required")
 	}
 
-	sql := "select id from entries where visibility='private' and $1=any(audience) order by date desc" + d.offset(opts)
+	sql := "select id from entries where visibility='private' and $1=any(audience) and isDraft=false and isDeleted=false order by date desc" + d.offset(opts)
 	return d.queryEntries(sql, 0, audience)
 }
 
