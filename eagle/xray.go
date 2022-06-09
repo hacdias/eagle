@@ -26,6 +26,15 @@ func (e *Eagle) getXRay(urlStr string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
+	if strings.Contains(url.Host, "reddit.com") && e.reddit != nil {
+		data, err := e.reddit.GetXRay(urlStr)
+		if err == nil {
+			return data, nil
+		} else {
+			e.log.Warnf("could not download info from reddit %s: %s", urlStr, err.Error())
+		}
+	}
+
 	data := urlpkg.Values{}
 	data.Set("url", url.String())
 

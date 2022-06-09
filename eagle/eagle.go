@@ -53,6 +53,7 @@ type Eagle struct {
 	Parser       *entry.Parser
 	Config       *config.Config
 	loctools     *loctools.LocTools
+	reddit       *syndicator.Reddit
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -151,11 +152,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Reddit != nil {
-		reddit, err := syndicator.NewReddit(conf.Reddit)
+		e.reddit, err = syndicator.NewReddit(conf.Reddit)
 		if err != nil {
 			return nil, err
 		}
-		e.syndication.Add(reddit)
+		e.syndication.Add(e.reddit)
 	}
 
 	if conf.Miniflux != nil {

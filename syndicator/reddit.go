@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html"
 	urlpkg "net/url"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/v3/config"
 	"github.com/hacdias/eagle/v3/entry"
@@ -89,6 +91,80 @@ func (r *Reddit) Name() string {
 
 func (r *Reddit) Identifier() string {
 	return fmt.Sprintf("reddit-%s", r.User)
+}
+
+func (r *Reddit) GetXRay(urlStr string) (map[string]interface{}, error) {
+	id, err := r.idFromUrl(urlStr)
+	if err != nil {
+		return nil, err
+	}
+
+	posts, comments, _, _, err := r.client.Listings.Get(context.Background(), id)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasPrefix(id, "t1_") {
+		if len(comments) != 1 {
+			return nil, errors.New("comment not found")
+		}
+
+		content := html.UnescapeString(comments[0].Body)
+		if content == "[deleted]" {
+			return nil, errors.New("comment was deleted")
+		}
+
+		data := map[string]interface{}{
+			"content":   content,
+			"published": comments[0].Created.Time.Format(time.RFC3339),
+			"url":       "https://www.reddit.com" + comments[0].Permalink,
+			"type":      "entry",
+		}
+
+		if comments[0].Author != "[deleted]" {
+			data["author"] = map[string]interface{}{
+				"name": comments[0].Author,
+				"url":  "https://www.reddit.com/u/" + comments[0].Author,
+				"type": "card",
+			}
+		}
+
+		return data, nil
+	}
+
+	if strings.HasPrefix(id, "t3_") {
+		if len(posts) != 1 {
+			return nil, errors.New("post not found")
+		}
+
+		content := html.UnescapeString(posts[0].Body)
+		if content == "[deleted]" || content == "" {
+			content = posts[0].Title
+		}
+
+		if content == "[deleted]" {
+			return nil, errors.New("post was deleted")
+		}
+
+		data := map[string]interface{}{
+			"content":   content,
+			"published": posts[0].Created.Time.Format(time.RFC3339),
+			"url":       posts[0].URL,
+			"type":      "entry",
+		}
+
+		if posts[0].Author != "[deleted]" {
+			data["author"] = map[string]interface{}{
+				"name": posts[0].Author,
+				"url":  "https://www.reddit.com/u/" + posts[0].Author,
+				"type": "card",
+			}
+		}
+
+		return data, nil
+	}
+
+	return nil, errors.New("could not parse url")
 }
 
 func (r *Reddit) isSyndicated(entry *entry.Entry) bool {
