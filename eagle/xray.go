@@ -1,8 +1,11 @@
 package eagle
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	urlpkg "net/url"
 	"regexp"
@@ -27,7 +30,7 @@ func (e *Eagle) getXRay(urlStr string) (map[string]interface{}, error) {
 	}
 
 	if strings.Contains(url.Host, "reddit.com") && e.reddit != nil {
-		data, err := e.reddit.GetXRay(urlStr)
+		data, err := e.getRedditXRay(urlStr)
 		if err == nil {
 			return data, nil
 		} else {
@@ -76,6 +79,95 @@ func (e *Eagle) getXRay(urlStr string) (map[string]interface{}, error) {
 	}
 
 	return jf2, nil
+}
+
+func (e *Eagle) getRedditXRay(urlStr string) (map[string]interface{}, error) {
+	url, err := urlpkg.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+
+	path := strings.TrimSuffix(url.Path, "/")
+	path = strings.TrimPrefix(path, "/")
+	parts := strings.Split(path, "/")
+
+	if len(parts) == 5 {
+		return e.getRedditPostXRay("t3_" + parts[3])
+	} else if len(parts) == 6 {
+		return e.getRedditCommentXRay("t1_" + parts[5])
+	}
+
+	return nil, errors.New("unsupported reddit url")
+}
+
+func (e *Eagle) getRedditCommentXRay(id string) (map[string]interface{}, error) {
+	_, comments, _, _, err := e.reddit.Listings.Get(context.Background(), id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(comments) != 1 {
+		return nil, errors.New("comment not found")
+	}
+
+	content := html.UnescapeString(comments[0].Body)
+	if content == "[deleted]" {
+		return nil, errors.New("comment was deleted")
+	}
+
+	data := map[string]interface{}{
+		"content":   cleanContent(content),
+		"published": comments[0].Created.Time.Format(time.RFC3339),
+		"url":       "https://www.reddit.com" + comments[0].Permalink,
+		"type":      "entry",
+	}
+
+	if comments[0].Author != "[deleted]" {
+		data["author"] = map[string]interface{}{
+			"name": comments[0].Author,
+			"url":  "https://www.reddit.com/u/" + comments[0].Author,
+			"type": "card",
+		}
+	}
+
+	return data, nil
+}
+
+func (e *Eagle) getRedditPostXRay(id string) (map[string]interface{}, error) {
+	posts, _, _, _, err := e.reddit.Listings.Get(context.Background(), id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(posts) != 1 {
+		return nil, errors.New("post not found")
+	}
+
+	content := html.UnescapeString(posts[0].Body)
+	if content == "[deleted]" || content == "" {
+		content = posts[0].Title
+	}
+
+	if content == "[deleted]" {
+		return nil, errors.New("post was deleted")
+	}
+
+	data := map[string]interface{}{
+		"content":   cleanContent(content),
+		"published": posts[0].Created.Time.Format(time.RFC3339),
+		"url":       posts[0].URL,
+		"type":      "entry",
+	}
+
+	if posts[0].Author != "[deleted]" {
+		data["author"] = map[string]interface{}{
+			"name": posts[0].Author,
+			"url":  "https://www.reddit.com/u/" + posts[0].Author,
+			"type": "card",
+		}
+	}
+
+	return data, nil
 }
 
 func (e *Eagle) parseXRay(xray map[string]interface{}) map[string]interface{} {

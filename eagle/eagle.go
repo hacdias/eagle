@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
+	"github.com/vartanbeno/go-reddit/v2/reddit"
 
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
@@ -53,7 +54,7 @@ type Eagle struct {
 	Parser       *entry.Parser
 	Config       *config.Config
 	loctools     *loctools.LocTools
-	reddit       *syndicator.Reddit
+	reddit       *reddit.Client
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -152,11 +153,19 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Reddit != nil {
-		e.reddit, err = syndicator.NewReddit(conf.Reddit)
+		credentials := reddit.Credentials{
+			ID:       conf.Reddit.App,
+			Secret:   conf.Reddit.Secret,
+			Username: conf.Reddit.User,
+			Password: conf.Reddit.Password,
+		}
+
+		e.reddit, err = reddit.NewClient(credentials)
 		if err != nil {
 			return nil, err
 		}
-		e.syndication.Add(e.reddit)
+
+		e.syndication.Add(syndicator.NewReddit(e.reddit))
 	}
 
 	if conf.Miniflux != nil {
