@@ -20,6 +20,7 @@ func TruncateString(str string, length int) string {
 }
 
 func TruncateStringWithEllipsis(str string, length int) string {
+	str = strings.TrimSpace(str)
 	newStr := TruncateString(str, length)
 	if newStr != str {
 		newStr += "…"
