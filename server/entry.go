@@ -347,8 +347,9 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	s.serveEntry(w, r, ee)
 }
 
-func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, entry *entry.Entry) {
+func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *entry.Entry) {
 	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: entry,
-	}, eagle.EntryTemplates(entry))
+		Entry:   ee,
+		NoIndex: ee.Visibility() != entry.VisibilityPublic,
+	}, eagle.EntryTemplates(ee))
 }
