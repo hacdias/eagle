@@ -81,6 +81,7 @@ func Parse() (*Config, error) {
 		conf.Site.Sections = append(conf.Site.Sections, sections...)
 	}
 
+	conf.Site.Sections = append(conf.Site.Sections, conf.Site.IndexSection)
 	conf.Site.Sections = funk.UniqString(conf.Site.Sections)
 
 	conf.Site.BaseURL, err = validateBaseURL(conf.Site.BaseURL)
@@ -109,7 +110,7 @@ type Site struct {
 	Description   string
 	Sections      []string
 	MicropubTypes map[mf2.Type][]string
-	IndexSections []string
+	IndexSection  string
 	Paginate      int
 	Menus         map[string][]MenuItem
 	PostTypes     []PostType

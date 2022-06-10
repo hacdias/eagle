@@ -43,8 +43,13 @@ site:
   title: "The Website Title"
   description: "The website long description".
 
-  # The available sections at the website. Most of them are derived from micropubTypes.
+  # The available sections at the website. The ones in micropubTypes do not need to be
+  # specified here as they are automatically derived.
   sections: []
+
+  # The name of the section that will be shown in the home page. The option micropubTypes
+  # can be used to automatically add posts to this section.
+  indexSection: home
 
   # Sections to automatically add to micropub posts that do not have sections already.
   # The sections here are automatically added to sections (see above). Keys must be defined
@@ -55,11 +60,6 @@ site:
     - micro
     like:
     - likes
-
-  # The sections to be available at the home page.
-  indexSections:
-  - replies
-  - likes
 
   # Definition of the menus to be used in the templates.
   menus:

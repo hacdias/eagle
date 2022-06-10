@@ -119,7 +119,9 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/reads/isbn/{isbn}", s.bookGet)
 
 		for _, section := range s.Config.Site.Sections {
-			r.Get("/"+section, s.sectionGet(section))
+			if section != s.Config.Site.IndexSection {
+				r.Get("/"+section, s.sectionGet(section))
+			}
 		}
 	})
 
@@ -133,7 +135,9 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/emojis/{emoji}"+feedPath, s.emojiGet)
 
 	for _, section := range s.Config.Site.Sections {
-		r.Get("/"+section+feedPath, s.sectionGet(section))
+		if section != s.Config.Site.IndexSection {
+			r.Get("/"+section+feedPath, s.sectionGet(section))
+		}
 	}
 
 	// Everything that was not matched so far.

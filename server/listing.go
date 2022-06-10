@@ -33,7 +33,7 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 			IsHome: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetBySection(opts, s.Config.Site.IndexSections...)
+			return s.GetBySection(opts, s.Config.Site.IndexSection)
 		},
 		templates: []string{eagle.TemplateIndex},
 	})
