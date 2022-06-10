@@ -57,20 +57,17 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// TODO: support channels (aka sections)
-	//
-	// sections := []map[string]string{}
-	// for _, s := range s.Config.Site.Sections {
-	// 	sections = append(sections, map[string]string{
-	// 		"uid":  s,
-	// 		"name": s,
-	// 	})
-	// }
-	//
-	// config["channels"] = sections
+	sections := []map[string]string{}
+	for _, s := range s.Config.Site.Sections {
+		sections = append(sections, map[string]string{
+			"uid":  s,
+			"name": s,
+		})
+	}
 
 	config := map[string]interface{}{
 		"syndicate-to":   syndications,
+		"channels":       sections,
 		"media-endpoint": s.AbsoluteURL("/micropub/media"),
 	}
 
@@ -145,9 +142,8 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		ee.CreatedWith = client
 	}
 
-	var syndicators []string
-	if s := cmds.Strings("mp-syndicate-to"); len(s) > 0 {
-		syndicators = s
+	if s := cmds.Strings("mp-channel"); len(s) > 0 {
+		ee.Sections = append(ee.Sections, s...)
 	}
 
 	if err := s.PreCreateEntry(ee); err != nil {
@@ -159,7 +155,12 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
+	var syndicators []string
+	if s := cmds.Strings("mp-syndicate-to"); len(s) > 0 {
+		syndicators = s
+	}
 	go s.PostSaveEntry(ee, syndicators)
+
 	http.Redirect(w, r, s.Config.Site.BaseURL+ee.ID, http.StatusAccepted)
 	return 0, nil
 }
