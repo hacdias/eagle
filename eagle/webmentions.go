@@ -9,7 +9,7 @@ import (
 	urlpkg "net/url"
 	"os"
 
-	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"

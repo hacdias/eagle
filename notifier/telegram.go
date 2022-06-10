@@ -1,7 +1,7 @@
 package notifier
 
 import (
-	"github.com/hacdias/eagle/v3/config"
+	"github.com/hacdias/eagle/v4/config"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 

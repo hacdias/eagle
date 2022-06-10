@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v3/config"
-	"github.com/hacdias/eagle/v3/entry"
-	"github.com/hacdias/eagle/v3/entry/mf2"
-	"github.com/hacdias/eagle/v3/log"
+	"github.com/hacdias/eagle/v4/config"
+	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/log"
 )
 
 type Lastfm struct {

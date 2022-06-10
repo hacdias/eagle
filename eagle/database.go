@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/hacdias/eagle/v3/database"
-	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v4/database"
+	"github.com/hacdias/eagle/v4/entry"
 )
 
 func (e *Eagle) GetTags() ([]string, error) {

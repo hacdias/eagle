@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/hacdias/eagle/v3/eagle"
+	"github.com/hacdias/eagle/v4/eagle"
 )
 
 func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {

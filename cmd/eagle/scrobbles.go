@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hacdias/eagle/v3/config"
-	"github.com/hacdias/eagle/v3/eagle"
+	"github.com/hacdias/eagle/v4/config"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/spf13/cobra"
 )
 

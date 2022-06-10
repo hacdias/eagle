@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/hacdias/eagle/v3/entry"
+	"github.com/hacdias/eagle/v4/entry"
 )
 
 type Sidecar struct {

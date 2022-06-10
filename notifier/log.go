@@ -1,7 +1,7 @@
 package notifier
 
 import (
-	"github.com/hacdias/eagle/v3/log"
+	"github.com/hacdias/eagle/v4/log"
 	"go.uber.org/zap"
 )
 

@@ -8,8 +8,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hacdias/eagle/v3/entry"
-	"github.com/hacdias/eagle/v3/entry/mf2"
+	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/entry/mf2"
 	"github.com/thoas/go-funk"
 )
 

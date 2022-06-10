@@ -15,10 +15,10 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v3/config"
-	"github.com/hacdias/eagle/v3/contenttype"
-	"github.com/hacdias/eagle/v3/entry"
-	"github.com/hacdias/eagle/v3/util"
+	"github.com/hacdias/eagle/v4/config"
+	"github.com/hacdias/eagle/v4/contenttype"
+	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/util"
 	"github.com/thoas/go-funk"
 )
 

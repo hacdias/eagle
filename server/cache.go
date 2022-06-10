@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hacdias/eagle/v3/eagle"
+	"github.com/hacdias/eagle/v4/eagle"
 )
 
 func (s *Server) cacheScope(r *http.Request) eagle.CacheScope {

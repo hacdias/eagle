@@ -17,10 +17,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v3/contenttype"
-	"github.com/hacdias/eagle/v3/eagle"
-	"github.com/hacdias/eagle/v3/entry"
-	"github.com/hacdias/eagle/v3/log"
+	"github.com/hacdias/eagle/v4/contenttype"
+	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/indieauth/v2"
 	"github.com/hashicorp/go-multierror"
 

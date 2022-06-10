@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/dghubble/oauth1"
-	"github.com/hacdias/eagle/v3/config"
-	"github.com/hacdias/eagle/v3/entry"
-	"github.com/hacdias/eagle/v3/entry/mf2"
+	"github.com/hacdias/eagle/v4/config"
+	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/entry/mf2"
 )
 
 type Twitter struct {
