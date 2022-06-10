@@ -77,6 +77,10 @@ func (e *Eagle) PreCreateEntry(ee *entry.Entry) error {
 		return err
 	}
 
+	if err := e.DeduceSections(ee); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -232,10 +236,7 @@ func EntryTemplates(ee *entry.Entry) []string {
 }
 
 func (e *Eagle) saveEntry(entry *entry.Entry) error {
-	err := e.entryCheck(entry)
-	if err != nil {
-		return err
-	}
+	entry.Sections = funk.UniqString(entry.Sections)
 
 	path, err := e.guessPath(entry.ID)
 	if err != nil {
@@ -265,7 +266,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 	return nil
 }
 
-func (e *Eagle) entryCheck(entry *entry.Entry) error {
+func (e *Eagle) DeduceSections(entry *entry.Entry) error {
 	mm := entry.Helper()
 	postType := mm.PostType()
 
@@ -273,25 +274,17 @@ func (e *Eagle) entryCheck(entry *entry.Entry) error {
 		// Only add the sections to entries under the /year/month/date.
 		// This avoids adding sections to top-level pages that shouldn't
 		// have these sections.
-		if len(entry.Sections) == 0 && strings.HasPrefix(entry.ID, "/20") {
-			entry.Sections = e.Config.Site.MicropubTypes[postType]
+		if strings.HasPrefix(entry.ID, "/20") {
+			entry.Sections = append(entry.Sections, e.Config.Site.MicropubTypes[postType]...)
 		}
 	} else {
 		return errors.New("type not supported " + string(postType))
 	}
 
-	if entry.Description == "" {
-		switch mm.PostType() {
-		case mf2.TypeCheckin:
-			checkin := mm.Sub(mm.TypeProperty())
-			if name := checkin.Name(); name != "" {
-				entry.Description = "At " + name
-			}
-		}
-	}
-
-	// If there are any photos in the image, make sure it goes to the photos section!
-	if len(entry.Helper().Photos()) > 0 && !funk.ContainsString(entry.Sections, "photos") {
+	// Anything with a photo is also for the photo section. Sections are always
+	// de-duplicated before saving. NOTE: maybe remove this as we now support manually
+	// setting the sections when creating a post.
+	if len(mm.Photos()) > 0 {
 		entry.Sections = append(entry.Sections, "photos")
 	}
 
