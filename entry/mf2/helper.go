@@ -101,8 +101,8 @@ func (m *FlatHelper) Int(prop string) int {
 	return 0
 }
 
-func (m *FlatHelper) Photos() []map[string]interface{} {
-	v, ok := m.Properties["photo"]
+func (m *FlatHelper) videosOrPhotos(prop string) []map[string]interface{} {
+	v, ok := m.Properties[prop]
 	if !ok {
 		return nil
 	}
@@ -136,6 +136,14 @@ func (m *FlatHelper) Photos() []map[string]interface{} {
 	}
 
 	return parsed
+}
+
+func (m *FlatHelper) Videos() []map[string]interface{} {
+	return m.videosOrPhotos("video")
+}
+
+func (m *FlatHelper) Photos() []map[string]interface{} {
+	return m.videosOrPhotos("photo")
 }
 
 func (m *FlatHelper) Photo() map[string]interface{} {
