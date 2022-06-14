@@ -101,7 +101,7 @@ func (m *FlatHelper) Int(prop string) int {
 	return 0
 }
 
-func (m *FlatHelper) videosOrPhotos(prop string) []map[string]interface{} {
+func (m *FlatHelper) media(prop string) []map[string]interface{} {
 	v, ok := m.Properties[prop]
 	if !ok {
 		return nil
@@ -138,12 +138,16 @@ func (m *FlatHelper) videosOrPhotos(prop string) []map[string]interface{} {
 	return parsed
 }
 
-func (m *FlatHelper) Videos() []map[string]interface{} {
-	return m.videosOrPhotos("video")
+func (m *FlatHelper) Audios() []map[string]interface{} {
+	return m.media("audio")
 }
 
 func (m *FlatHelper) Photos() []map[string]interface{} {
-	return m.videosOrPhotos("photo")
+	return m.media("photo")
+}
+
+func (m *FlatHelper) Videos() []map[string]interface{} {
+	return m.media("video")
 }
 
 func (m *FlatHelper) Photo() map[string]interface{} {
