@@ -80,6 +80,11 @@ func (s *Server) bookGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !ee.IsListing {
+		s.log.Warnf("entry %s should be marked as listing", ee.ID)
+		ee.IsListing = true
+	}
+
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
