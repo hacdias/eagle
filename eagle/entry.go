@@ -55,7 +55,7 @@ func (e *Eagle) GetEntries(includeList bool) ([]*entry.Entry, error) {
 			return err
 		}
 
-		if !entry.IsListing {
+		if !entry.IsListing || includeList {
 			entries = append(entries, entry)
 		}
 
