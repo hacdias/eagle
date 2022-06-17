@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,8 +16,8 @@ import (
 )
 
 var (
-	entryTemplates = map[string]func() *entry.Entry{
-		"default": func() *entry.Entry {
+	entryTemplates = map[string]func(r *http.Request) *entry.Entry{
+		"default": func(r *http.Request) *entry.Entry {
 			return &entry.Entry{
 				Content: "Lorem ipsum...",
 				Frontmatter: entry.Frontmatter{
@@ -24,7 +25,7 @@ var (
 				},
 			}
 		},
-		"private": func() *entry.Entry {
+		"private": func(r *http.Request) *entry.Entry {
 			return &entry.Entry{
 				Content: "Lorem ipsum...",
 				Frontmatter: entry.Frontmatter{
@@ -39,7 +40,7 @@ var (
 				},
 			}
 		},
-		"recently": func() *entry.Entry {
+		"recently": func(r *http.Request) *entry.Entry {
 			t := time.Now().Local()
 			month := t.Format("January")
 
@@ -55,7 +56,7 @@ var (
 				},
 			}
 		},
-		"article": func() *entry.Entry {
+		"article": func(r *http.Request) *entry.Entry {
 			return &entry.Entry{
 				Content: "Code is poetry...",
 				Frontmatter: entry.Frontmatter{
@@ -68,12 +69,11 @@ var (
 				},
 			}
 		},
-		"book": func() *entry.Entry {
+		"book": func(r *http.Request) *entry.Entry {
 			return &entry.Entry{
 				ID: "/reads/isbn/ISBN",
 				Frontmatter: entry.Frontmatter{
-					Title:     "NAME by AUTHOR (ISBN: ISBN)",
-					IsListing: true,
+					Title: "NAME by AUTHOR (ISBN: ISBN)",
 					Properties: map[string]interface{}{
 						"read-of": map[string]interface{}{
 							"properties": map[string]interface{}{
@@ -89,7 +89,7 @@ var (
 				},
 			}
 		},
-		"want-to-read": func() *entry.Entry {
+		"want-to-read": func(r *http.Request) *entry.Entry {
 			return &entry.Entry{
 				Frontmatter: entry.Frontmatter{
 					Published: time.Now().Local(),
@@ -107,31 +107,61 @@ var (
 				},
 			}
 		},
-		"currently-reading": func() *entry.Entry {
-			return &entry.Entry{
+		"currently-reading": func(r *http.Request) *entry.Entry {
+			ee := &entry.Entry{
 				Frontmatter: entry.Frontmatter{
 					Published: time.Now().Local(),
 					Sections:  []string{"reads"},
 					Properties: map[string]interface{}{
 						"read-status": "reading",
-						"page":        "PAGE",
-						"read-of":     "/reads/isbn/ISBN",
 					},
 				},
 			}
+
+			if read := r.URL.Query().Get("read-of"); read != "" {
+				ee.Properties["read-of"] = read
+			} else {
+				ee.Properties["read-of"] = "/reads/isbn/ISBN"
+			}
+
+			if percentage := r.URL.Query().Get("percentage"); percentage != "" {
+				p, _ := strconv.Atoi(percentage)
+				ee.Properties["percentage"] = p
+			} else if page := r.URL.Query().Get("page"); page != "" {
+				p, _ := strconv.Atoi(page)
+				ee.Properties["page"] = p
+			} else {
+				ee.Properties["page"] = "PAGE"
+			}
+
+			return ee
 		},
-		"finished-reading": func() *entry.Entry {
-			return &entry.Entry{
+		"finished-reading": func(r *http.Request) *entry.Entry {
+			ee := &entry.Entry{
 				Frontmatter: entry.Frontmatter{
 					Published: time.Now().Local(),
 					Sections:  []string{"reads"},
 					Properties: map[string]interface{}{
 						"read-status": "finished",
-						"rating":      "RATING",
 						"read-of":     "/reads/isbn/ISBN",
 					},
 				},
 			}
+
+			if read := r.URL.Query().Get("read-of"); read != "" {
+				ee.Properties["read-of"] = read
+			} else {
+				ee.Properties["read-of"] = "/reads/isbn/ISBN"
+			}
+
+			if rating := r.URL.Query().Get("rating"); rating != "" {
+				r, _ := strconv.Atoi(rating)
+				ee.Properties["rating"] = r
+			} else {
+				ee.Properties["rating"] = "RATING"
+			}
+
+			return ee
 		},
 	}
 )
@@ -145,7 +175,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	var ee *entry.Entry
 
 	if fn, ok := entryTemplates[template]; ok {
-		ee = fn()
+		ee = fn(r)
 	} else {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("requested template does not exist"))
 		return
