@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/entry/mf2"
 	"github.com/thoas/go-funk"
 )
 
@@ -379,8 +380,9 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *entry.Entry) {
+	postType := ee.Helper().PostType()
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry:   ee,
-		NoIndex: ee.Visibility() != entry.VisibilityPublic,
+		NoIndex: ee.Visibility() != entry.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
 	}, eagle.EntryTemplates(ee))
 }
