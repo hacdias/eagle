@@ -12,7 +12,7 @@ postgres:
 		postgres
 
 ngrok:
-	ngrok http -region eu 8080
+	ngrok http --region eu 8080
 
 imgproxy:
 	docker run -p 8085:8080 -it \

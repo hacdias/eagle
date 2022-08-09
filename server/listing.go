@@ -178,15 +178,17 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	if query == "" {
 		s.serveHTML(w, r, &eagle.RenderData{
-			Entry: ee,
-			Data:  &listingPage{},
+			Entry:   ee,
+			NoIndex: true,
+			Data:    &listingPage{},
 		}, []string{eagle.TemplateSearch})
 		return
 	}
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: ee,
+			Entry:   ee,
+			NoIndex: true,
 		},
 		lp: listingPage{
 			SearchQuery: query,
