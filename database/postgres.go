@@ -48,9 +48,14 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 	for _, entry := range entries {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
+		date := entry.Published.UTC()
+		if !entry.Updated.IsZero() {
+			date = entry.Updated.UTC()
+		}
+
 		b.Queue("delete from entries where id=$1", entry.ID)
 		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, date, properties) values($1, $2, $3, $4, $5, $6, $7, $8)",
-			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), entry.Properties)
+			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), date, entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -281,38 +286,20 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 }
 
 func (d *Postgres) ReadsSummary() (*entry.ReadsSummary, error) {
-	sql := `select distinct on (read)
-	properties->>'read-of' as read,
+	sql := `select distinct on (id)
 	id,
 	date,
-	properties->>'read-status' as status,
-	properties->'read-of'->'properties'->>'name' as name,
+	properties->'read-status'->0->>'status' as status,
+ 	properties->'read-of'->'properties'->>'name' as name,
 	properties->'read-of'->'properties'->>'author' as author
-from entries`
+from entries
+where properties->'read-status'->0->>'status' is not null`
 
 	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
-		sql += " where " + strings.Join(ands, " and ")
+		sql += " and " + strings.Join(ands, " and ")
 	}
 
-	sql += " order by read, date desc"
-
-	sql = `with readings as (` + sql + `)
-	(select books.id, date, status, name, author
-	from
-		(select id, date, status, read
-		 from readings where name is null and status is not null
-		 order by read, date desc) as reads
-	inner join
-		(select id, name, author
-		from readings
-		where status is null and name is not null) as books
-	on reads.read = books.id)
-union
-	(select id, date, status, name, author
-	from readings
-	where status is not null and name is not null
-	order by name, date desc)
-order by name`
+	sql += " order by id, name, date desc"
 
 	rows, err := d.pool.Query(context.Background(), sql)
 	if err != nil {
