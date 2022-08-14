@@ -265,6 +265,7 @@ func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 	}
 
 	return &entry.Entry{
+		ID: id,
 		Frontmatter: entry.Frontmatter{
 			Title:     title,
 			IsListing: true,
