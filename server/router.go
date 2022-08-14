@@ -115,9 +115,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/tags/{tag}", s.tagGet)
 		r.Get("/emojis/{emoji}", s.emojiGet)
 
-		// Books are special types of listings.
-		r.Get("/reads/isbn/{isbn}", s.bookGet)
-
 		for _, section := range s.Config.Site.Sections {
 			if section != s.Config.Site.IndexSection {
 				r.Get("/"+section, s.sectionGet(section))

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -70,29 +69,6 @@ func (s *Server) emojiGet(w http.ResponseWriter, r *http.Request) {
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			return s.GetByEmoji(opts, emoji)
 		},
-	})
-}
-
-func (s *Server) bookGet(w http.ResponseWriter, r *http.Request) {
-	ee, err := s.GetEntry(r.URL.Path)
-	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
-		return
-	}
-
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
-			Entry: ee,
-		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetByProperty(opts, "read-of", ee.ID)
-		},
-		templates: []string{eagle.TemplateBook},
 	})
 }
 
