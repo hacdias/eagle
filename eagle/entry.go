@@ -281,13 +281,6 @@ func (e *Eagle) DeduceSections(entry *entry.Entry) error {
 		return errors.New("type not supported " + string(postType))
 	}
 
-	// Anything with a photo is also for the photo section. Sections are always
-	// de-duplicated before saving. NOTE: maybe remove this as we now support manually
-	// setting the sections when creating a post.
-	if len(mm.Photos()) > 0 {
-		entry.Sections = append(entry.Sections, "photos")
-	}
-
 	return nil
 }
 
