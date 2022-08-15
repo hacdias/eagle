@@ -319,6 +319,6 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *entry.En
 	postType := ee.Helper().PostType()
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry:   ee,
-		NoIndex: ee.Visibility() != entry.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
+		NoIndex: ee.NoIndex || ee.Visibility() != entry.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
 	}, eagle.EntryTemplates(ee))
 }
