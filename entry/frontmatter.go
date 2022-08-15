@@ -31,6 +31,7 @@ type Frontmatter struct {
 	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
 	PhotoClass         string                 `yaml:"photoClass,omitempty"`
 	Properties         map[string]interface{} `yaml:"properties,omitempty"` // "Flat" MF2 Properties.
+	NoIndex            bool                   `yaml:"noIndex,omitempty"`
 }
 
 func unmarshalFrontmatter(data []byte) (*Frontmatter, error) {
