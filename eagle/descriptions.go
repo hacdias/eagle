@@ -2,7 +2,6 @@ package eagle
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/entry/mf2"
@@ -45,8 +44,6 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 		// Matches OwnYourSwarm
 		checkin := mm.Sub(mm.TypeProperty())
 		description = "At " + checkin.Name()
-	case mf2.TypeRead:
-		description, err = e.generateReadDescription(ee)
 	case mf2.TypeItinerary:
 		description, err = e.generateItineraryDescription(ee)
 	case mf2.TypeRsvp:
@@ -65,55 +62,6 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 
 	ee.Description = description
 	return nil
-}
-
-func (e *Eagle) generateReadDescription(ee *entry.Entry) (string, error) {
-	mm := ee.Helper()
-
-	status := mm.String("read-status")
-	if status == "" {
-		return "", nil
-	}
-
-	description := ""
-
-	switch status {
-	case "to-read":
-		description = "Want to read"
-	case "reading":
-		description = "Currently reading"
-	case "finished":
-		description = "Finished reading"
-	}
-
-	sub := mm.Sub(mm.TypeProperty())
-	if sub == nil {
-		canonical := mm.String(mm.TypeProperty())
-		e, err := e.GetEntry(canonical)
-		if err != nil {
-			return "", err
-		}
-		sub = e.Helper().Sub(mm.TypeProperty())
-	}
-
-	if sub == nil {
-		return "", nil
-	}
-
-	name := sub.String("name")
-	author := sub.String("author")
-	uid := sub.String("uid")
-
-	description += ": " + name + " by " + author
-
-	if uid != "" {
-		parts := strings.Split(uid, ":")
-		if len(parts) == 2 {
-			description += ", " + strings.ToUpper(parts[0]) + ": " + parts[1]
-		}
-	}
-
-	return description, nil
 }
 
 func (e *Eagle) generateItineraryDescription(ee *entry.Entry) (string, error) {

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -71,10 +70,12 @@ var (
 			}
 		},
 		"book": func(r *http.Request) *entry.Entry {
+			date := time.Now().Local()
 			return &entry.Entry{
 				ID: "/reads/isbn/ISBN",
 				Frontmatter: entry.Frontmatter{
-					Title: "NAME by AUTHOR (ISBN: ISBN)",
+					Published: date,
+					Title:     "NAME by AUTHOR (ISBN: ISBN)",
 					Properties: map[string]interface{}{
 						"read-of": map[string]interface{}{
 							"properties": map[string]interface{}{
@@ -86,83 +87,15 @@ var (
 							},
 							"type": "h-cite",
 						},
-					},
-				},
-			}
-		},
-		"want-to-read": func(r *http.Request) *entry.Entry {
-			return &entry.Entry{
-				Frontmatter: entry.Frontmatter{
-					Published: time.Now().Local(),
-					Sections:  []string{"reads"},
-					Properties: map[string]interface{}{
-						"read-status": "to-read",
-						"read-of": map[string]interface{}{
-							"properties": map[string]interface{}{
-								"author": "AUTHOR",
-								"name":   "NAME",
+						"read-status": []interface{}{
+							map[string]interface{}{
+								"status": "to-read",
+								"date":   date,
 							},
-							"type": "h-cite",
 						},
 					},
 				},
 			}
-		},
-		"currently-reading": func(r *http.Request) *entry.Entry {
-			ee := &entry.Entry{
-				Frontmatter: entry.Frontmatter{
-					Published: time.Now().Local(),
-					Sections:  []string{"reads"},
-					Properties: map[string]interface{}{
-						"read-status": "reading",
-					},
-				},
-			}
-
-			if read := r.URL.Query().Get("read-of"); read != "" {
-				ee.Properties["read-of"] = read
-			} else {
-				ee.Properties["read-of"] = "/reads/isbn/ISBN"
-			}
-
-			if percentage := r.URL.Query().Get("percentage"); percentage != "" {
-				p, _ := strconv.Atoi(percentage)
-				ee.Properties["percentage"] = p
-			} else if page := r.URL.Query().Get("page"); page != "" {
-				p, _ := strconv.Atoi(page)
-				ee.Properties["page"] = p
-			} else {
-				ee.Properties["page"] = "PAGE"
-			}
-
-			return ee
-		},
-		"finished-reading": func(r *http.Request) *entry.Entry {
-			ee := &entry.Entry{
-				Frontmatter: entry.Frontmatter{
-					Published: time.Now().Local(),
-					Sections:  []string{"reads"},
-					Properties: map[string]interface{}{
-						"read-status": "finished",
-						"read-of":     "/reads/isbn/ISBN",
-					},
-				},
-			}
-
-			if read := r.URL.Query().Get("read-of"); read != "" {
-				ee.Properties["read-of"] = read
-			} else {
-				ee.Properties["read-of"] = "/reads/isbn/ISBN"
-			}
-
-			if rating := r.URL.Query().Get("rating"); rating != "" {
-				r, _ := strconv.Atoi(rating)
-				ee.Properties["rating"] = r
-			} else {
-				ee.Properties["rating"] = "RATING"
-			}
-
-			return ee
 		},
 	}
 )
