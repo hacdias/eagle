@@ -76,6 +76,7 @@ var (
 				Frontmatter: entry.Frontmatter{
 					Published:   date,
 					Description: "NAME by AUTHOR (ISBN: ISBN)",
+					Sections:    []string{"reads"},
 					Properties: map[string]interface{}{
 						"read-of": map[string]interface{}{
 							"properties": map[string]interface{}{
