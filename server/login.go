@@ -32,6 +32,7 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 	}
 	s.serveHTMLWithStatus(w, r, &eagle.RenderData{
 		Entry: &entry.Entry{
+			ID: r.URL.Path,
 			Frontmatter: entry.Frontmatter{
 				Title: "Login",
 			},

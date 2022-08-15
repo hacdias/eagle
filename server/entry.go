@@ -195,7 +195,9 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{},
+		Entry: &entry.Entry{
+			ID: r.URL.Path,
+		},
 		Data: map[string]interface{}{
 			"Title":       ee.Title,
 			"Content":     str,

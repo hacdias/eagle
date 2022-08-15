@@ -72,6 +72,7 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data interface{}) {
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: &entry.Entry{
+			ID: r.URL.Path,
 			Frontmatter: entry.Frontmatter{
 				Title: "Dashboard",
 			},
