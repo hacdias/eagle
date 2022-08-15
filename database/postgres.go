@@ -48,14 +48,14 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 	for _, entry := range entries {
 		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
-		date := entry.Published.UTC()
+		updated := entry.Published.UTC()
 		if !entry.Updated.IsZero() {
-			date = entry.Updated.UTC()
+			updated = entry.Updated.UTC()
 		}
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, date, properties) values($1, $2, $3, $4, $5, $6, $7, $8)",
-			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), date, entry.Properties)
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, date, updated, properties) values($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), updated, entry.Properties)
 
 		for _, tag := range entry.Tags() {
 			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
@@ -288,7 +288,7 @@ func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
 func (d *Postgres) ReadsSummary() (*entry.ReadsSummary, error) {
 	sql := `select distinct on (id)
 	id,
-	date,
+	updated as date,
 	properties->'read-status'->0->>'status' as status,
  	properties->'read-of'->'properties'->>'name' as name,
 	properties->'read-of'->'properties'->>'author' as author
