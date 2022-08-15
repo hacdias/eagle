@@ -40,7 +40,7 @@ var (
 				},
 			}
 		},
-		"recently": func(r *http.Request) *entry.Entry {
+		"now": func(r *http.Request) *entry.Entry {
 			t := time.Now().Local()
 			month := t.Format("January")
 
@@ -48,11 +48,9 @@ var (
 				Content: "How was last month?",
 				Frontmatter: entry.Frontmatter{
 					Draft:     true,
-					Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+					Title:     fmt.Sprintf("%s '%s", month, t.Format("06")),
 					Published: t,
-					Properties: map[string]interface{}{
-						"category": []string{"recently"},
-					},
+					Sections:  []string{"now"},
 				},
 			}
 		},
