@@ -77,6 +77,11 @@ func (e *Eagle) PreCreateEntry(ee *entry.Entry) error {
 		return err
 	}
 
+	postType := ee.Helper().PostType()
+	if !funk.Contains(e.allowedTypes, postType) {
+		return errors.New("type not supported " + string(postType))
+	}
+
 	if err := e.DeduceSections(ee); err != nil {
 		return err
 	}
@@ -267,18 +272,20 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 }
 
 func (e *Eagle) DeduceSections(entry *entry.Entry) error {
+	if len(entry.Sections) != 0 {
+		return nil
+	}
+
 	mm := entry.Helper()
 	postType := mm.PostType()
 
-	if funk.Contains(e.allowedTypes, postType) {
-		// Only add the sections to entries under the /year/month/date.
-		// This avoids adding sections to top-level pages that shouldn't
-		// have these sections.
-		if strings.HasPrefix(entry.ID, "/20") {
-			entry.Sections = append(entry.Sections, e.Config.Site.MicropubTypes[postType]...)
+	// Only add the sections to entries under the /year/month/date.
+	// This avoids adding sections to top-level pages that shouldn't
+	// have these sections.
+	if strings.HasPrefix(entry.ID, "/20") {
+		if sections, ok := e.Config.Site.MicropubTypes[postType]; ok {
+			entry.Sections = append(entry.Sections, sections...)
 		}
-	} else {
-		return errors.New("type not supported " + string(postType))
 	}
 
 	return nil
