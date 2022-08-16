@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/yuin/goldmark"
+	highlighting "github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -34,12 +35,20 @@ var defaultGoldmarkOptions = []goldmark.Option{
 }
 
 func newMarkdown(e *Eagle, absURLs bool) goldmark.Markdown {
-	return goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(
-		&customMarkdown{
-			absURLs: absURLs,
-			e:       e,
-		},
-	))...)
+	exts := []goldmark.Extender{}
+
+	if e.Config.Chroma != nil {
+		exts = append(exts, highlighting.NewHighlighting(
+			highlighting.WithStyle(e.Config.Chroma.Theme),
+		))
+	}
+
+	exts = append(exts, &customMarkdown{
+		absURLs: absURLs,
+		e:       e,
+	})
+
+	return goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(exts...))...)
 }
 
 type customMarkdown struct {
@@ -166,15 +175,16 @@ type figureWriter interface {
 }
 
 // Syntax
+//
 //	![Alt text](url "Title")
 //	url?class=my+class									--> Add class.
 //	url?id=someid												--> Add id.
 //	url?caption=false							  		--> Do not print "Title" as <figcaption>.
 //
 // URL should be either:
-//	- cdn:/slug-at-cdn									--> Renders <figure> with many <source>.
-// 	- /relative/to/image.jpeg						--> Renders an <img> by default.
-//	- http://example.com/example.jpg		-->	Renders an <img> by default.
+//   - cdn:/slug-at-cdn									--> Renders <figure> with many <source>.
+//   - /relative/to/image.jpeg					--> Renders an <img> by default.
+//   - http://example.com/example.jpg		-->	Renders an <img> by default.
 func (e *Eagle) writeFigure(w figureWriter, imgURL, alt, title string, absURLs, unsafe, uPhoto bool) error {
 	url, err := urlpkg.Parse(imgURL)
 	if err != nil {

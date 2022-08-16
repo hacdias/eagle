@@ -31,6 +31,7 @@ type Config struct {
 	MapBox            *MapBox
 	Lastfm            *Lastfm
 	ImgProxy          *ImgProxy
+	Chroma            *Chroma
 }
 
 func (c *Config) ID() string {
@@ -211,4 +212,8 @@ type Lastfm struct {
 type ImgProxy struct {
 	Directory string
 	Endpoint  string
+}
+
+type Chroma struct {
+	Theme string
 }
