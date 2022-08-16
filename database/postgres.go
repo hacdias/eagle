@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -277,23 +278,56 @@ func (d *Postgres) GetPrivate(opts *PaginationOptions, audience string) ([]strin
 	return d.queryEntries(sql, 0, audience)
 }
 
-func (d *Postgres) Search(opts *QueryOptions, query string) ([]string, error) {
-	sql := `select id from (
-		select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility, audience
-		from entries as e
-	) s
-	where score > 0`
+func (d *Postgres) Search(opts *QueryOptions, search *SearchOptions) ([]string, error) {
+	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility, audience"
+	mainFrom := "from entries as e"
 
-	args := []interface{}{query}
-	where, aargs := d.whereConstraints(opts, 1)
-	args = append(args, aargs...)
+	if len(search.Sections) > 0 {
+		mainSelect += ", section"
+		mainFrom += " inner join sections on e.id = sections.entry_id"
+	}
+
+	if len(search.Tags) > 0 {
+		mainSelect += ", tag"
+		mainFrom += " inner join tags on e.id = tags.entry_id"
+	}
+
+	sql := "select distinct (id) id, score from (" + mainSelect + " " + mainFrom + ") s where score > 0"
+	//  and (section = 'home' or section = 'articles') and (tag = 'meta')
+
+	args := []interface{}{search.Query}
+	where, wargs := d.whereConstraints(opts, 1)
+	args = append(args, wargs...)
 
 	if len(where) > 0 {
 		sql += " and " + strings.Join(where, " and ")
 	}
+
+	if len(search.Sections) > 0 {
+		sectionsSql := []string{}
+		for i, section := range search.Sections {
+			sectionsSql = append(sectionsSql, "section=$"+strconv.Itoa(i+2))
+			args = append(args, section)
+		}
+
+		sql += " and (" + strings.Join(sectionsSql, " or ") + ")"
+	}
+
+	if len(search.Tags) > 0 {
+		tagsSql := []string{}
+		for i, section := range search.Tags {
+			tagsSql = append(tagsSql, "tag=$"+strconv.Itoa(i+2+len(search.Sections)))
+			args = append(args, section)
+		}
+
+		sql += " and (" + strings.Join(tagsSql, " or ") + ")"
+	}
+
 	sql += ` order by score desc` + d.offset(opts.Pagination)
 
-	return d.queryEntries(sql, 0, args...)
+	fmt.Println(sql)
+
+	return d.queryEntries(sql, 1, args...)
 }
 
 func (d *Postgres) ReadsSummary() (*entry.ReadsSummary, error) {

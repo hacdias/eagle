@@ -23,6 +23,12 @@ type QueryOptions struct {
 	Audience string
 }
 
+type SearchOptions struct {
+	Query    string
+	Sections []string
+	Tags     []string
+}
+
 type Database interface {
 	Close()
 
@@ -31,7 +37,7 @@ type Database interface {
 
 	GetTags() ([]string, error)
 	GetEmojis() ([]string, error)
-	Search(opt *QueryOptions, query string) ([]string, error)
+	Search(opt *QueryOptions, search *SearchOptions) ([]string, error)
 
 	GetAll(opts *QueryOptions) ([]string, error)
 	GetDeleted(opts *PaginationOptions) ([]string, error)

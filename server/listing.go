@@ -183,6 +183,16 @@ func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
+	sections := []string{}
+	tags := []string{}
+
+	if q := r.URL.Query().Get("sections"); q != "" {
+		sections = strings.Split(q, ",")
+	}
+
+	if q := r.URL.Query().Get("tags"); q != "" {
+		tags = strings.Split(q, ",")
+	}
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	if ee.ID == "" {
@@ -213,7 +223,11 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 				opts.Visibility = nil
 			}
 
-			return s.Search(opts, query)
+			return s.Search(opts, &database.SearchOptions{
+				Query:    query,
+				Sections: sections,
+				Tags:     tags,
+			})
 		},
 		templates: []string{eagle.TemplateSearch},
 	})
