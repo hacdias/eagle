@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -48,7 +47,7 @@ func (m *Media) UploadMedia(filename string, data io.Reader) (string, error) {
 }
 
 func (e *Eagle) UploadAnonymousMedia(ext string, reader io.Reader) (string, error) {
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
@@ -57,7 +56,7 @@ func (e *Eagle) UploadAnonymousMedia(ext string, reader io.Reader) (string, erro
 }
 
 func (e *Eagle) UploadMedia(filename, ext string, reader io.Reader) (string, error) {
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +79,7 @@ func (e *Eagle) uploadFromURL(base, url string) (string, error) {
 		return url, fmt.Errorf("unexpected status code: %s", resp.Status)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

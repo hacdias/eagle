@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -261,7 +261,7 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	raw, err := ioutil.ReadAll(file)
+	raw, err := io.ReadAll(file)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return

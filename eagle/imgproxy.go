@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/spf13/afero"
@@ -25,7 +24,7 @@ type ImgProxySettings struct {
 }
 
 func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int) (io.Reader, error) {
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +50,7 @@ func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int
 		return nil, errors.New("status code is not ok")
 	}
 
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}

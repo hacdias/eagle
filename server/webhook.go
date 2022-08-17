@@ -4,7 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -16,7 +16,7 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload, err := ioutil.ReadAll(r.Body)
+	payload, err := io.ReadAll(r.Body)
 	if err != nil || len(payload) == 0 {
 		s.log.Warn("webhook: invalid request")
 		w.WriteHeader(http.StatusBadRequest)
