@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -293,7 +292,6 @@ func (d *Postgres) Search(opts *QueryOptions, search *SearchOptions) ([]string, 
 	}
 
 	sql := "select distinct (id) id, score from (" + mainSelect + " " + mainFrom + ") s where score > 0"
-	//  and (section = 'home' or section = 'articles') and (tag = 'meta')
 
 	args := []interface{}{search.Query}
 	where, wargs := d.whereConstraints(opts, 1)
@@ -324,9 +322,6 @@ func (d *Postgres) Search(opts *QueryOptions, search *SearchOptions) ([]string, 
 	}
 
 	sql += ` order by score desc` + d.offset(opts.Pagination)
-
-	fmt.Println(sql)
-
 	return d.queryEntries(sql, 1, args...)
 }
 

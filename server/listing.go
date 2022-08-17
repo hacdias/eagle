@@ -186,19 +186,15 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	sections := []string{}
 	tags := []string{}
 
-	if q := r.URL.Query().Get("sections"); q != "" {
+	if q := r.URL.Query().Get("section"); q != "" {
 		sections = strings.Split(q, ",")
 	}
 
-	if q := r.URL.Query().Get("tags"); q != "" {
+	if q := r.URL.Query().Get("tag"); q != "" {
 		tags = strings.Split(q, ",")
 	}
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
-	if ee.ID == "" {
-		ee.ID = strings.TrimSuffix(r.URL.Path, filepath.Ext(r.URL.Path))
-	}
-
 	if query == "" {
 		s.serveHTML(w, r, &eagle.RenderData{
 			Entry:   ee,
