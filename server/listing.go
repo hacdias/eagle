@@ -133,8 +133,8 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 		rd: &eagle.RenderData{
 			Entry: &entry.Entry{
 				Frontmatter: entry.Frontmatter{
-					Title:     title.String(),
-					IsListing: true,
+					Title:   title.String(),
+					Listing: &entry.Listing{},
 				},
 			},
 		},
@@ -189,7 +189,7 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetPrivate(&opts.PaginationOptions, s.getUser(r))
+			return s.GetPrivate(opts.Pagination, s.getUser(r))
 		},
 	})
 }
@@ -201,7 +201,7 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetDeleted(&opts.PaginationOptions)
+			return s.GetDeleted(opts.Pagination)
 		},
 	})
 }
@@ -213,7 +213,7 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetDrafts(&opts.PaginationOptions)
+			return s.GetDrafts(opts.Pagination)
 		},
 	})
 }
@@ -225,7 +225,7 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetUnlisted(&opts.PaginationOptions)
+			return s.GetUnlisted(opts.Pagination)
 		},
 	})
 }
@@ -233,9 +233,9 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 	id = strings.TrimSuffix(id, filepath.Ext(id))
 	if ee, err := s.GetEntry(id); err == nil {
-		if !ee.IsListing {
+		if ee.Listing == nil {
 			s.log.Warnf("entry %s should be marked as listing", ee.ID)
-			ee.IsListing = true
+			ee.Listing = &entry.Listing{}
 		}
 		return ee
 	}
@@ -243,8 +243,8 @@ func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 	return &entry.Entry{
 		ID: id,
 		Frontmatter: entry.Frontmatter{
-			Title:     title,
-			IsListing: true,
+			Title:   title,
+			Listing: &entry.Listing{},
 		},
 	}
 }
@@ -265,11 +265,7 @@ type listingPage struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	opts := &database.QueryOptions{
-		PaginationOptions: database.PaginationOptions{
-			Limit: s.Config.Site.Paginate,
-		},
-	}
+	opts := &database.QueryOptions{}
 
 	user := s.getUser(r)
 	if user == "" {
@@ -289,11 +285,17 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path, "")
 	}
 
-	if v := r.URL.Query().Get("page"); v != "" {
-		vv, _ := strconv.Atoi(v)
-		if vv >= 0 {
-			opts.Page = vv
-			ls.lp.Page = vv
+	if !ls.rd.Entry.Listing.DisablePagination {
+		opts.Pagination = &database.PaginationOptions{
+			Limit: s.Config.Site.Paginate,
+		}
+
+		if v := r.URL.Query().Get("page"); v != "" {
+			vv, _ := strconv.Atoi(v)
+			if vv >= 0 {
+				opts.Pagination.Page = vv
+				ls.lp.Page = vv
+			}
 		}
 	}
 
@@ -305,10 +307,10 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	ls.lp.Entries = entries
 
-	if len(entries) != 0 {
+	if len(entries) != 0 && !ls.rd.Entry.Listing.DisablePagination {
 		url, _ := urlpkg.Parse(r.URL.String())
 		values := url.Query()
-		values.Set("page", strconv.Itoa(opts.Page+1))
+		values.Set("page", strconv.Itoa(opts.Pagination.Page+1))
 		url.RawQuery = values.Encode()
 		ls.lp.NextPage = url.String()
 	}

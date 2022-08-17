@@ -54,9 +54,9 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	} else if len(data) == 2 {
 		// TODO: perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
-		isListing := nrd.Entry.IsListing
+		listing := nrd.Entry.Listing
 		nrd.Entry = data[1].(*entry.Entry)
-		nrd.Entry.IsListing = isListing
+		nrd.Entry.Listing = listing
 		nrd.sidecar = nil
 		err = e.templates[name].ExecuteTemplate(&buf, name, &nrd)
 	} else {

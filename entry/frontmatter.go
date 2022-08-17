@@ -16,6 +16,10 @@ const (
 	VisibilityPublic   Visibility = "public"
 )
 
+type Listing struct {
+	DisablePagination bool `yaml:"disablePagination,omitempty"`
+}
+
 type Frontmatter struct {
 	Title              string                 `yaml:"title,omitempty"`
 	Description        string                 `yaml:"description,omitempty"`
@@ -26,12 +30,12 @@ type Frontmatter struct {
 	Sections           []string               `yaml:"section,omitempty"`
 	Template           string                 `yaml:"template,omitempty"`
 	CreatedWith        string                 `yaml:"createdWith,omitempty"`
-	IsListing          bool                   `yaml:"isListing,omitempty"`
 	NoShowInteractions bool                   `yaml:"noShowInteractions,omitempty"`
 	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
 	PhotoClass         string                 `yaml:"photoClass,omitempty"`
 	Properties         map[string]interface{} `yaml:"properties,omitempty"` // "Flat" MF2 Properties.
 	NoIndex            bool                   `yaml:"noIndex,omitempty"`
+	Listing            *Listing               `yaml:"listing,omitempty"`
 }
 
 func unmarshalFrontmatter(data []byte) (*Frontmatter, error) {

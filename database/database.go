@@ -10,7 +10,8 @@ type PaginationOptions struct {
 }
 
 type QueryOptions struct {
-	PaginationOptions
+	Pagination *PaginationOptions
+
 	WithDrafts  bool
 	WithDeleted bool
 

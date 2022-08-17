@@ -55,7 +55,7 @@ func (e *Eagle) GetEntries(includeList bool) ([]*entry.Entry, error) {
 			return err
 		}
 
-		if !entry.IsListing || includeList {
+		if entry.Listing == nil || includeList {
 			entries = append(entries, entry)
 		}
 
@@ -90,7 +90,7 @@ func (e *Eagle) PreCreateEntry(ee *entry.Entry) error {
 }
 
 func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
-	if ee.IsListing {
+	if ee.Listing != nil {
 		// For lists, only remove from cache.
 		e.RemoveCache(ee)
 		return
