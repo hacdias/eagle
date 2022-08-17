@@ -47,7 +47,7 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
+			Entry: s.getListingEntryOrEmpty(r.URL.Path, tag),
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			return s.GetByTag(opts, tag)
