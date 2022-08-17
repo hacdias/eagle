@@ -198,6 +198,10 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 }
 
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
+	if data.Entry.ID == "" {
+		data.Entry.ID = r.URL.Path
+	}
+
 	data.TorUsed = s.isUsingTor(r)
 	data.OnionAddress = s.onionAddress
 	data.IsLoggedIn = s.getUser(r) != ""

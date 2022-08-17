@@ -169,6 +169,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	s.newEditHandler(w, r, ee)
 }
 
+// TODO: create new if not exist.
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "*")
 	if id == "" {
@@ -193,9 +194,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{
-			ID: r.URL.Path,
-		},
+		Entry: &entry.Entry{},
 		Data: map[string]interface{}{
 			"Title":       ee.Title,
 			"Content":     str,
