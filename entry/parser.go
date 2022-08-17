@@ -50,7 +50,7 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 	entry := &Entry{
 		ID:          id,
 		Permalink:   permalink,
-		Content:     strings.TrimSpace(splits[1]),
+		Content:     strings.TrimSpace(splits[1]) + "\n",
 		Frontmatter: Frontmatter{},
 	}
 
