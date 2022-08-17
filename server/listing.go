@@ -144,6 +144,36 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {
+	emojis, err := s.GetEmojis()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.serveHTML(w, r, &eagle.RenderData{
+		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Emojis"),
+		Data: listingPage{
+			Terms: emojis,
+		},
+	}, []string{eagle.TemplateEmojis})
+}
+
+func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
+	tags, err := s.GetTags()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.serveHTML(w, r, &eagle.RenderData{
+		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Tags"),
+		Data: listingPage{
+			Terms: tags,
+		},
+	}, []string{eagle.TemplateTags})
+}
+
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
