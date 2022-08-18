@@ -10,7 +10,8 @@ type PaginationOptions struct {
 }
 
 type QueryOptions struct {
-	Pagination *PaginationOptions
+	Pagination     *PaginationOptions
+	OrderByUpdated bool
 
 	WithDrafts  bool
 	WithDeleted bool
@@ -32,12 +33,11 @@ type Database interface {
 	GetEmojis() ([]string, error)
 	Search(opt *QueryOptions, query string) ([]string, error)
 
+	GetAll(opts *QueryOptions) ([]string, error)
 	GetDeleted(opts *PaginationOptions) ([]string, error)
 	GetDrafts(opts *PaginationOptions) ([]string, error)
 	GetUnlisted(opts *PaginationOptions) ([]string, error)
 	GetPrivate(opts *PaginationOptions, audience string) ([]string, error)
-
-	GetAll(opts *QueryOptions) ([]string, error)
 
 	ByTag(opt *QueryOptions, tag string) ([]string, error)
 	ByEmoji(opt *QueryOptions, emoji string) ([]string, error)
