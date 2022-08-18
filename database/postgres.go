@@ -46,7 +46,7 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
-		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
+		content := entry.Title + " " + entry.Description + " " + entry.TextContent() + " " + strings.Join(entry.Tags(), " ")
 
 		updated := entry.Published.UTC()
 		if !entry.Updated.IsZero() {
