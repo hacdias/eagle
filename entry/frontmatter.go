@@ -18,6 +18,8 @@ const (
 
 type Listing struct {
 	DisablePagination bool `yaml:"disablePagination,omitempty"`
+	OrderByUpdated    bool `yaml:"orderByUpdated,omitempty"`
+	ItemsPerPage      int  `yaml:"itemsPerPage,omitempty"`
 }
 
 type Frontmatter struct {

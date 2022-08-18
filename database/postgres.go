@@ -128,6 +128,7 @@ func (d *Postgres) GetEmojis() ([]string, error) {
 	return tags, rows.Err()
 }
 
+// TODO: support opts.OrderByUpdated?
 func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, error) {
 	if year == 0 && month == 0 && day == 0 {
 		return nil, errors.New("year, month or day must be set")
@@ -168,6 +169,7 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 	return d.queryEntries(sql, 0, args...)
 }
 
+// TODO: support opts.OrderByUpdated?
 func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	args := []interface{}{tag}
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
@@ -181,6 +183,7 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 	return d.queryEntries(sql, 0, args...)
 }
 
+// TODO: support opts.OrderByUpdated?
 func (d *Postgres) ByEmoji(opts *QueryOptions, emoji string) ([]string, error) {
 	args := []interface{}{emoji}
 	sql := "select id from emojis inner join entries on id=entry_id where emoji=$1"
@@ -195,7 +198,7 @@ func (d *Postgres) ByEmoji(opts *QueryOptions, emoji string) ([]string, error) {
 }
 
 func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
-	sql := "select distinct (id) id, date from sections inner join entries on id=entry_id"
+	sql := "select distinct (id) id, updated, date from sections inner join entries on id=entry_id"
 	where, args := d.whereConstraints(opts, 0)
 	i := len(args)
 
@@ -214,10 +217,17 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 		sql += " where " + strings.Join(where, " and ")
 	}
 
-	sql += " order by date desc" + d.offset(opts.Pagination)
-	return d.queryEntries(sql, 1, args...)
+	if opts.OrderByUpdated {
+		sql += " order by updated desc"
+	} else {
+		sql += " order by date desc"
+	}
+
+	sql += d.offset(opts.Pagination)
+	return d.queryEntries(sql, 2, args...)
 }
 
+// TODO: support opts.OrderByUpdated?
 func (d *Postgres) ByProperty(opts *QueryOptions, property, value string) ([]string, error) {
 	args := []interface{}{property, value}
 	sql := "select id from entries where properties->>$1=$2"

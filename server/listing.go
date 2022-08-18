@@ -315,9 +315,15 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path, "")
 	}
 
+	opts.OrderByUpdated = ls.rd.Entry.Listing.OrderByUpdated
+
 	if !ls.rd.Entry.Listing.DisablePagination {
-		opts.Pagination = &database.PaginationOptions{
-			Limit: s.Config.Site.Paginate,
+		opts.Pagination = &database.PaginationOptions{}
+
+		if ls.rd.Entry.Listing.ItemsPerPage > 0 {
+			opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
+		} else {
+			opts.Pagination.Limit = s.Config.Site.Paginate
 		}
 
 		if v := r.URL.Query().Get("page"); v != "" {
