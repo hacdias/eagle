@@ -47,10 +47,17 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 		return nil, err
 	}
 
+	content := strings.TrimSpace(splits[1])
+	if content != "" {
+		// Fixes issue where goldmark is adding a <blockquote>
+		// if the document ends with an HTML tag.
+		content += "\n"
+	}
+
 	entry := &Entry{
 		ID:          id,
 		Permalink:   permalink,
-		Content:     strings.TrimSpace(splits[1]) + "\n",
+		Content:     content,
 		Frontmatter: Frontmatter{},
 	}
 
