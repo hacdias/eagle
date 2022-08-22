@@ -8,6 +8,7 @@ import (
 
 	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/util"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -58,7 +59,7 @@ func (d *Postgres) Add(entries ...*entry.Entry) error {
 			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), updated, entry.Properties)
 
 		for _, tag := range entry.Tags() {
-			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, tag)
+			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, util.Slugify(tag))
 		}
 
 		for _, emoji := range entry.Emojis() {
