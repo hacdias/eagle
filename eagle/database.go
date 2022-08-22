@@ -16,8 +16,8 @@ func (e *Eagle) GetEmojis() ([]string, error) {
 	return e.db.GetEmojis()
 }
 
-func (e *Eagle) Search(opts *database.QueryOptions, query string) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.Search(opts, query))
+func (e *Eagle) Search(opts *database.QueryOptions, search *database.SearchOptions) ([]*entry.Entry, error) {
+	return e.idsToEntries(e.db.Search(opts, search))
 }
 
 func (e *Eagle) GetAll(opts *database.QueryOptions) ([]*entry.Entry, error) {

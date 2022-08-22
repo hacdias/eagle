@@ -149,6 +149,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"humanDomain":         humanDomain,
 		"strContains":         strings.Contains,
 		"strSplit":            strings.Split,
+		"strJoin":             strings.Join,
 		"containsString":      funk.ContainsString,
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
