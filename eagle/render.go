@@ -164,6 +164,8 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"sprintf":             fmt.Sprintf,
 		"durationFromSeconds": durationFromSeconds,
 		"asJSON":              asJSON,
+		"slugify":             util.Slugify,
+		"groupByFirstChar":    util.GroupByFirstChar,
 	}
 
 	if alwaysAbsolute {

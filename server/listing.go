@@ -15,6 +15,7 @@ import (
 	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/util"
 	"github.com/jlelse/feeds"
 )
 
@@ -45,9 +46,15 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	slug := util.Slugify(tag)
+	if slug != tag {
+		http.Redirect(w, r, "/tags/"+slug, http.StatusSeeOther)
+		return
+	}
+
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
-			Entry: s.getListingEntryOrEmpty(r.URL.Path, tag),
+			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			return s.GetByTag(opts, tag)
