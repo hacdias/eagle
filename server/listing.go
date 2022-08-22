@@ -17,6 +17,7 @@ import (
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/jlelse/feeds"
+	"github.com/thoas/go-funk"
 )
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
@@ -182,24 +183,30 @@ func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("query")
-	sections := []string{}
-	tags := []string{}
-
-	if q := r.URL.Query().Get("section"); q != "" {
-		sections = strings.Split(q, ",")
+	search := &database.SearchOptions{
+		Query:    r.URL.Query().Get("query"),
+		Sections: []string{},
+		Tags:     []string{},
 	}
 
-	if q := r.URL.Query().Get("tag"); q != "" {
-		tags = strings.Split(q, ",")
+	if r.URL.Query().Has("section") {
+		search.Sections = r.URL.Query()["section"]
+		search.Sections = funk.FilterString(search.Sections, func(s string) bool { return s != "" })
+	}
+
+	if r.URL.Query().Has("tag") {
+		search.Tags = r.URL.Query()["tag"]
+		search.Tags = funk.FilterString(search.Tags, func(s string) bool { return s != "" })
 	}
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
-	if query == "" {
+	if search.Query == "" {
 		s.serveHTML(w, r, &eagle.RenderData{
 			Entry:   ee,
 			NoIndex: true,
-			Data:    &listingPage{},
+			Data: &listingPage{
+				Search: search,
+			},
 		}, []string{eagle.TemplateSearch})
 		return
 	}
@@ -210,7 +217,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		lp: listingPage{
-			SearchQuery: query,
+			Search: search,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			if s.isAdmin(r) {
@@ -219,11 +226,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 				opts.Visibility = nil
 			}
 
-			return s.Search(opts, &database.SearchOptions{
-				Query:    query,
-				Sections: sections,
-				Tags:     tags,
-			})
+			return s.Search(opts, search)
 		},
 		templates: []string{eagle.TemplateSearch},
 	})
@@ -304,11 +307,11 @@ type listingSettings struct {
 }
 
 type listingPage struct {
-	SearchQuery string
-	Entries     []*entry.Entry
-	Page        int
-	NextPage    string
-	Terms       []string
+	Search   *database.SearchOptions
+	Entries  []*entry.Entry
+	Page     int
+	NextPage string
+	Terms    []string
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
