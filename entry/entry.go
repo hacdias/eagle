@@ -165,7 +165,7 @@ func (e *Entry) String() (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), e.Content), nil
+	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), strings.TrimSpace(e.Content)), nil
 }
 
 func (e *Entry) TextContent() string {
