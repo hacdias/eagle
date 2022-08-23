@@ -150,6 +150,10 @@ func (l *Lastfm) trackInfo(t *lastfmTrack) (*lastfmTrackInfo, error) {
 		return nil, err
 	}
 
+	if response.Track == nil {
+		return nil, fmt.Errorf("response is nil")
+	}
+
 	return response.Track, nil
 }
 
