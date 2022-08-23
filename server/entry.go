@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	urlpkg "net/url"
 	"os"
 	"sort"
 	"time"
@@ -122,7 +123,11 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 
 	id := ee.ID
 	if id == "" {
-		id = entry.NewID("", time.Now().Local())
+		if qid := r.URL.Query().Get("id"); qid != "" {
+			id = qid
+		} else {
+			id = entry.NewID("", time.Now().Local())
+		}
 	}
 
 	s.serveHTML(w, r, &eagle.RenderData{
@@ -166,7 +171,6 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	s.newEditHandler(w, r, ee)
 }
 
-// TODO: create new if not exist.
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "*")
 	if id == "" {
@@ -175,7 +179,9 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 
 	ee, err := s.GetEntry(id)
 	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		query := urlpkg.Values{}
+		query.Set("id", id)
+		http.Redirect(w, r, "/new?"+query.Encode(), http.StatusSeeOther)
 		return
 	}
 
