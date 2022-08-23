@@ -195,6 +195,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		Data: map[string]interface{}{
 			"Title":       ee.Title,
 			"Content":     str,
+			"Entry":       ee,
 			"Syndicators": s.GetSyndicators(),
 		},
 		NoIndex: true,
