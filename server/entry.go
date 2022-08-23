@@ -16,31 +16,28 @@ import (
 )
 
 var (
-	entryTemplates = map[string]func(r *http.Request) *entry.Entry{
-		"default": func(r *http.Request) *entry.Entry {
+	entryTemplates = map[string]func(r *http.Request, s *Server) *entry.Entry{
+		"default": func(r *http.Request, s *Server) *entry.Entry {
 			return &entry.Entry{
-				Content: "Lorem ipsum...",
+				Content: "What's on your mind?",
 				Frontmatter: entry.Frontmatter{
 					Published: time.Now().Local(),
 				},
 			}
 		},
-		"private": func(r *http.Request) *entry.Entry {
+		"private": func(r *http.Request, s *Server) *entry.Entry {
 			return &entry.Entry{
-				Content: "Lorem ipsum...",
+				Content: "What's on your mind?",
 				Frontmatter: entry.Frontmatter{
 					Published: time.Now().Local(),
 					Properties: map[string]interface{}{
 						"visibility": "private",
-						"audience":   "https://hacdias.com/",
-						"category": []string{
-							"example",
-						},
+						"audience":   s.getUser(r),
 					},
 				},
 			}
 		},
-		"now": func(r *http.Request) *entry.Entry {
+		"now": func(r *http.Request, s *Server) *entry.Entry {
 			t := time.Now().Local()
 			month := t.Format("January")
 
@@ -54,7 +51,7 @@ var (
 				},
 			}
 		},
-		"article": func(r *http.Request) *entry.Entry {
+		"article": func(r *http.Request, s *Server) *entry.Entry {
 			return &entry.Entry{
 				Content: "Code is poetry...",
 				Frontmatter: entry.Frontmatter{
@@ -67,7 +64,7 @@ var (
 				},
 			}
 		},
-		"book": func(r *http.Request) *entry.Entry {
+		"book": func(r *http.Request, s *Server) *entry.Entry {
 			date := time.Now().Local()
 			return &entry.Entry{
 				ID: "/reads/isbn/ISBN",
@@ -108,7 +105,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	var ee *entry.Entry
 
 	if fn, ok := entryTemplates[template]; ok {
-		ee = fn(r)
+		ee = fn(r, s)
 	} else {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("requested template does not exist"))
 		return
