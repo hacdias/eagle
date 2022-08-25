@@ -28,19 +28,19 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 		switch action {
 		case "clear-cache":
 			s.ResetCache()
-			data["Message"] = "Success!"
+			data["Success"] = true
 		case "sync-storage":
 			go s.SyncStorage()
-			data["Message"] = "Success!"
+			data["Success"] = true
 		case "update-blogroll":
 			err = s.UpdateBlogroll()
-			data["Message"] = "Success!"
+			data["Success"] = true
 		case "update-reads-statistics":
 			err = s.UpdateReadsSummary()
-			data["Message"] = "Success!"
+			data["Success"] = true
 		case "update-watches-statistics":
 			err = s.UpdateWatchesSummary()
-			data["Message"] = "Success!"
+			data["Success"] = true
 		case "token":
 			clientID := r.Form.Get("client_id")
 			scope := r.Form.Get("scope")
