@@ -49,7 +49,7 @@ func Parse() (*Config, error) {
 
 	viper.SetDefault("site.baseUrl", "http://localhost:8080")
 	viper.SetDefault("site.language", "en")
-	viper.SetDefault("site.paginate", 15)
+	viper.SetDefault("site.paginate", 10)
 
 	err := viper.ReadInConfig()
 	if err != nil {
