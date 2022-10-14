@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/indieauth/v2"
+	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
 	"golang.org/x/crypto/bcrypt"
 )

@@ -21,7 +21,7 @@ import (
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/log"
-	"github.com/hacdias/indieauth/v2"
+	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 
 	"go.uber.org/zap"
