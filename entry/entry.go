@@ -174,6 +174,11 @@ func (e *Entry) TextContent() string {
 
 func (e *Entry) Update(newProps map[string][]interface{}) error {
 	props := typed.New(mf2.Flatten(newProps))
+
+	// Micropublish.net sends the file name that was uploaded through
+	// the media endpoint as a property. This is unnecessary.
+	delete(props, "file")
+
 	mm := mf2.NewFlatHelper(props)
 	e.Properties = props
 
