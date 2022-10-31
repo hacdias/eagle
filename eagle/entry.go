@@ -120,8 +120,8 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
-	// Download location map if meets certain conditions.
-	err = e.ProcessLocationMap(ee)
+	// Generate GeoJSON for itineraries.
+	err = e.GenerateGeoJSON(ee)
 	if err != nil {
 		e.Error(err)
 	}
