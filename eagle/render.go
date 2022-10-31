@@ -285,15 +285,6 @@ type RenderData struct {
 	sidecar *Sidecar
 }
 
-func (rd *RenderData) HeadTitle() string {
-	title := rd.DisplayTitle()
-	if title != "" {
-		return fmt.Sprintf("%s - %s", title, rd.Site.Title)
-	}
-
-	return rd.Site.Title
-}
-
 func (rd *RenderData) GetSidecar() *Sidecar {
 	if rd.sidecar == nil {
 		rd.sidecar, _ = rd.eagle.GetSidecar(rd.Entry)

@@ -402,9 +402,9 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	feed := &feeds.Feed{
-		Title:       ls.rd.Entry.DisplayTitle(),
+		Title:       ls.rd.Entry.TextTitle(),
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.AbsoluteURL(r.URL.Path), "."+feedType)},
-		Description: ls.rd.Entry.DisplayDescription(),
+		Description: ls.rd.Entry.TextDescription(),
 		Author: &feeds.Author{
 			Name:  s.Config.Me.Name,
 			Email: s.Config.Me.Email,
@@ -423,10 +423,10 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		}
 
 		feed.Items = append(feed.Items, &feeds.Item{
-			Title:       entry.DisplayTitle(),
+			Title:       entry.TextTitle(),
 			Link:        &feeds.Link{Href: entry.Permalink},
 			Id:          entry.ID,
-			Description: entry.DisplayDescription(),
+			Description: entry.TextDescription(),
 			Content:     buf.String(),
 			Author: &feeds.Author{
 				Name:  s.Config.Me.Name,

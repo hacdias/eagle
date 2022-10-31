@@ -24,9 +24,10 @@ type Entry struct {
 	Permalink string
 	Content   string
 
-	helper  *mf2.FlatHelper
-	emojis  []string
-	excerpt string
+	helper      *mf2.FlatHelper
+	emojis      []string
+	excerpt     string
+	textExcerpt string
 }
 
 func (e *Entry) Helper() *mf2.FlatHelper {
@@ -117,7 +118,7 @@ func (e *Entry) Excerpt() string {
 
 	if strings.Contains(e.Content, "<!--more-->") {
 		firstPart := strings.Split(e.Content, "<!--more-->")[0]
-		e.excerpt = stripText(strings.TrimSpace(firstPart))
+		e.excerpt = strings.TrimSpace(firstPart)
 	} else if content := e.TextContent(); content != "" {
 		e.excerpt = util.TruncateStringWithEllipsis(content, 300)
 	}
@@ -125,7 +126,16 @@ func (e *Entry) Excerpt() string {
 	return e.excerpt
 }
 
-func (e *Entry) DisplayTitle() string {
+func (e *Entry) TextExcerpt() string {
+	if e.textExcerpt != "" {
+		return e.textExcerpt
+	}
+
+	e.textExcerpt = makePlainText(e.Excerpt())
+	return e.textExcerpt
+}
+
+func (e *Entry) TextTitle() string {
 	if e.Title != "" {
 		return e.Title
 	}
@@ -134,7 +144,7 @@ func (e *Entry) DisplayTitle() string {
 		return e.Description
 	}
 
-	excerpt := e.Excerpt()
+	excerpt := e.TextExcerpt()
 	if excerpt == "" {
 		return ""
 	}
@@ -147,12 +157,12 @@ func (e *Entry) DisplayTitle() string {
 	return excerpt
 }
 
-func (e *Entry) DisplayDescription() string {
+func (e *Entry) TextDescription() string {
 	if e.Description != "" {
 		return e.Description
 	}
 
-	return e.Excerpt()
+	return e.TextExcerpt()
 }
 
 func (e *Entry) InSection(section string) bool {
@@ -169,7 +179,7 @@ func (e *Entry) String() (string, error) {
 }
 
 func (e *Entry) TextContent() string {
-	return stripText(e.Content)
+	return makePlainText(e.Content)
 }
 
 func (e *Entry) Update(newProps map[string][]interface{}) error {
@@ -328,7 +338,7 @@ func (e *Entry) MF2() map[string]interface{} {
 
 var htmlRemover = bluemonday.StrictPolicy()
 
-func stripText(text string) string {
+func makePlainText(text string) string {
 	text = htmlRemover.Sanitize(text)
 	// Unescapes html entities.
 	text = html.UnescapeString(text)
