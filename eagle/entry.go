@@ -120,12 +120,6 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
-	// Download location map if meets certain conditions.
-	err = e.ProcessLocationMap(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
 	// Remove entry from the cache. Every other action from here on
 	// should not influence how the entry is rendered.
 	e.RemoveCache(ee)

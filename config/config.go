@@ -198,10 +198,10 @@ type Asset struct {
 type MapBox struct {
 	AccessToken string
 	MapStyle    string
-	PinColor    string
-	Size        string
-	Zoom        int
-	Use2X       bool
+}
+
+func (mb *MapBox) TileSource() string {
+	return "https://api.mapbox.com/styles/v1/mapbox/" + mb.MapStyle + "/tiles/{z}/{x}/{y}{r}?access_token=" + mb.AccessToken
 }
 
 type Lastfm struct {
