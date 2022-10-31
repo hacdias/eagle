@@ -1,28 +1,15 @@
-package eagle
+package entry
 
 import (
 	"errors"
-	"path/filepath"
 
-	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/entry/mf2"
 	geojson "github.com/paulmach/go.geojson"
 )
 
-func (e *Eagle) GenerateGeoJSON(ee *entry.Entry) error {
-	entryType := ee.Helper().PostType()
-
-	if entryType == mf2.TypeItinerary {
-		return e.generateItineraryGeoJSON(ee)
-	}
-
-	return nil
-}
-
-func (e *Eagle) generateItineraryGeoJSON(ee *entry.Entry) error {
-	legs := ee.Helper().Subs("itinerary")
+func (e *Entry) ItineraryGeoJSON() (string, error) {
+	legs := e.Helper().Subs("itinerary")
 	if legs == nil {
-		return errors.New("itinerary has no legs")
+		return "", errors.New("itinerary has no legs")
 	}
 
 	var paths []*geojson.Feature
@@ -31,12 +18,12 @@ func (e *Eagle) generateItineraryGeoJSON(ee *entry.Entry) error {
 	for i, leg := range legs {
 		origin := leg.Sub("origin")
 		if origin == nil {
-			return errors.New("origin is not microformat")
+			return "", errors.New("origin is not microformat")
 		}
 
 		destination := leg.Sub("destination")
 		if destination == nil {
-			return errors.New("origin is not microformat")
+			return "", errors.New("origin is not microformat")
 		}
 
 		ocoord := []float64{
@@ -77,11 +64,15 @@ func (e *Eagle) generateItineraryGeoJSON(ee *entry.Entry) error {
 
 	raw, err := fc.MarshalJSON()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	filename := filepath.Join(ContentDirectory, ee.ID, "_geo.json")
-	return e.fs.WriteFile(filename, raw, "geo json")
+	return string(raw), nil
+}
+
+func (e *Entry) SafeItineraryGeoJSON() string {
+	str, _ := e.ItineraryGeoJSON()
+	return str
 }
 
 func truncateFloat(i float64) float64 {
