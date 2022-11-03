@@ -213,7 +213,7 @@ func (e *Eagle) parseXRay(xray map[string]interface{}) map[string]interface{} {
 		author := typed.New(cauthor)
 
 		if photo, ok := author.StringIf("photo"); ok {
-			author["photo"] = e.safeUploadFromURL("wm", photo)
+			author["photo"] = e.safeUploadFromURL("wm", photo, true)
 		}
 
 		data["author"] = author
