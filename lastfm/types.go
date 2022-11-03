@@ -16,21 +16,12 @@ type Album = NameAndID
 
 type Track struct {
 	NameAndID
-	URL      string            `json:"url,omitempty"`
-	Artist   Artist            `json:"artist"`
-	Album    Album             `json:"album"`
-	Images   map[string]string `json:"images"`
-	Date     time.Time         `json:"date"`
-	Duration time.Duration     `json:"duration"`
-	Tags     []string          `json:"tags"`
-}
-
-func (t *Track) DurationOrAverage() time.Duration {
-	if t.Duration == 0 {
-		return time.Second * 150 // 3.5m
-	}
-
-	return t.Duration
+	URL           string    `json:"url,omitempty"`
+	Artist        Artist    `json:"artist"`
+	Album         Album     `json:"album"`
+	OriginalImage string    `json:"originalImage,omitempty"`
+	Image         string    `json:"image,omitempty"`
+	Date          time.Time `json:"date"`
 }
 
 type image struct {
@@ -103,12 +94,19 @@ func (t *track) convert() *Track {
 		Artist: t.Artist.convert(),
 		Album:  t.Album.convert(),
 		Date:   t.Date.convert(),
-		Images: map[string]string{},
 	}
 
+	images := map[string]string{}
 	for _, i := range t.Images {
 		if i.Size != "" && i.URL != "" {
-			track.Images[i.Size] = i.URL
+			images[i.Size] = i.URL
+		}
+	}
+
+	for _, v := range []string{"extralarge", "large", "medium", "small"} {
+		if img, ok := images[v]; ok {
+			track.OriginalImage = img
+			break
 		}
 	}
 

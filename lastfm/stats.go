@@ -6,10 +6,10 @@ import (
 )
 
 type IndividualStats struct {
+	Track     Track
 	Name      string
 	Duration  time.Duration
 	Scrobbles int
-	Track     Track
 }
 
 type ArtistsStats = IndividualStats
@@ -55,13 +55,13 @@ func ScrobblesStatistics(scrobbles []*Track) *Stats {
 		stats.WeekdayClock[s.Date.Weekday()]++
 
 		stats.TotalScrobbles++
-		stats.TotalDuration += s.DurationOrAverage()
+		stats.TotalDuration += time.Second * 150
 
 		key := s.Name + s.Artist.Name
 		if _, ok := tracksMap[key]; !ok {
 			tracksMap[key] = &IndividualStats{
 				Name:      s.Name,
-				Duration:  s.Duration,
+				Duration:  time.Second * 150,
 				Scrobbles: 0,
 				Track:     *s,
 			}
@@ -79,7 +79,7 @@ func ScrobblesStatistics(scrobbles []*Track) *Stats {
 			stats.Artists = append(stats.Artists, artistsMap[s.Artist.Name])
 		}
 		artistsMap[s.Artist.Name].Scrobbles++
-		artistsMap[s.Artist.Name].Duration += s.Duration
+		artistsMap[s.Artist.Name].Duration += time.Second * 150
 
 		if s.Album.Name != "" {
 			key := s.Album.Name + s.Artist.Name
@@ -93,7 +93,7 @@ func ScrobblesStatistics(scrobbles []*Track) *Stats {
 				stats.Albums = append(stats.Albums, albumsMap[key])
 			}
 			albumsMap[key].Scrobbles++
-			albumsMap[key].Duration += s.Duration
+			albumsMap[key].Duration += time.Second * 150
 		}
 	}
 
