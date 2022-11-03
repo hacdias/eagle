@@ -67,7 +67,7 @@ func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) err
 
 	ee := &entry.Entry{
 		ID:      id,
-		Content: "<!-- This post is automatically generated. -->",
+		Content: "<!-- This post is automatically generated. -->\n\n",
 		Frontmatter: entry.Frontmatter{
 			Sections:    []string{"listens"},
 			Description: fmt.Sprintf("Listened to %d tracks from %d artists across %d albums", stats.TotalTracks, stats.TotalArtists, stats.TotalAlbums),
@@ -96,26 +96,34 @@ func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) err
 	)
 
 	ee.Content += fmt.Sprintf(
-		"In total, I listened to **%.2f** hours of music.\n",
+		"I listened to approximately **%.2f** hours of music.\n",
 		stats.TotalDuration.Hours(),
 	)
 
-	ee.Content += "Today's tops are:\n"
+	if len(stats.Tracks)+len(stats.Albums)+len(stats.Artists) > 0 {
+		ee.Content += "Today's tops are:\n"
 
-	ee.Content += fmt.Sprintf(
-		"- 🎶 **Track**: %s <small>[%d scrobbles]</small>\n",
-		stats.Tracks[0].Name, stats.Tracks[0].Scrobbles,
-	)
+		if len(stats.Tracks) > 0 {
+			ee.Content += fmt.Sprintf(
+				"- 🎶 **Track**: %s <small>[%d scrobbles]</small>\n",
+				stats.Tracks[0].Name, stats.Tracks[0].Scrobbles,
+			)
+		}
 
-	ee.Content += fmt.Sprintf(
-		"- 💿 **Album**: %s <small>[%d scrobbles]</small>\n",
-		stats.Albums[0].Name, stats.Albums[0].Scrobbles,
-	)
+		if len(stats.Albums) > 0 {
+			ee.Content += fmt.Sprintf(
+				"- 💿 **Album**: %s <small>[%d scrobbles]</small>\n",
+				stats.Albums[0].Name, stats.Albums[0].Scrobbles,
+			)
+		}
 
-	ee.Content += fmt.Sprintf(
-		"- 🎤 **Artist**: %s <small>[%d scrobbles]</small>\n\n",
-		stats.Artists[0].Name, stats.Artists[0].Scrobbles,
-	)
+		if len(stats.Artists) > 0 {
+			ee.Content += fmt.Sprintf(
+				"- 🎤 **Artist**: %s <small>[%d scrobbles]</small>\n\n",
+				stats.Artists[0].Name, stats.Artists[0].Scrobbles,
+			)
+		}
+	}
 
 	ee.Content += "<details class=scrobbles-log>\n<summary>Scrobbles Log</summary>\n\n"
 

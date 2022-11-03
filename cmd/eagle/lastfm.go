@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/hacdias/eagle/v4/config"
@@ -52,7 +53,7 @@ var lastfmCmd = &cobra.Command{
 			year, month, day := cur.Date()
 			fmt.Printf("Processing %04d-%02d-%02d\n", year, month, day)
 
-			var created bool
+			created := true
 			var err error
 
 			if !noFetch {
@@ -64,7 +65,7 @@ var lastfmCmd = &cobra.Command{
 
 			if !noGenerate && created {
 				err := e.CreateDailyListensEntry(year, month, day)
-				if err != nil {
+				if err != nil && !os.IsNotExist(err) {
 					return err
 				}
 			}
