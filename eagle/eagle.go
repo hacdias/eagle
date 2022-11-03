@@ -35,7 +35,6 @@ import (
 const (
 	AssetsDirectory  string = "assets"
 	ContentDirectory string = "content"
-	DataDirectory    string = "data"
 )
 
 type Eagle struct {
