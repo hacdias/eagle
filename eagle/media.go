@@ -52,7 +52,7 @@ func (e *Eagle) UploadAnonymousMedia(ext string, reader io.Reader) (string, erro
 		return "", err
 	}
 
-	return e.uploadAnonymous("media", ext, data)
+	return e.uploadAnonymous("media", ext, data, false)
 }
 
 func (e *Eagle) UploadMedia(filename, ext string, reader io.Reader) (string, error) {
@@ -61,10 +61,10 @@ func (e *Eagle) UploadMedia(filename, ext string, reader io.Reader) (string, err
 		return "", err
 	}
 
-	return e.upload("media", filename, ext, data)
+	return e.upload("media", filename, ext, data, false)
 }
 
-func (e *Eagle) uploadFromURL(base, url string) (string, error) {
+func (e *Eagle) uploadFromURL(base, url string, skipImageCheck bool) (string, error) {
 	if e.media == nil {
 		return url, errors.New("media is not implemented")
 	}
@@ -84,11 +84,11 @@ func (e *Eagle) uploadFromURL(base, url string) (string, error) {
 		return "", err
 	}
 
-	return e.uploadAnonymous(base, path.Ext(url), data)
+	return e.uploadAnonymous(base, path.Ext(url), data, skipImageCheck)
 }
 
-func (e *Eagle) safeUploadFromURL(base, url string) string {
-	newURL, err := e.uploadFromURL(base, url)
+func (e *Eagle) safeUploadFromURL(base, url string, skipImageCheck bool) string {
+	newURL, err := e.uploadFromURL(base, url, skipImageCheck)
 	if err != nil {
 		e.log.Warnf("could not upload file %s: %s", url, err.Error())
 		return url
@@ -96,17 +96,17 @@ func (e *Eagle) safeUploadFromURL(base, url string) string {
 	return newURL
 }
 
-func (e *Eagle) uploadAnonymous(base, ext string, data []byte) (string, error) {
+func (e *Eagle) uploadAnonymous(base, ext string, data []byte, skipImageCheck bool) (string, error) {
 	filename := fmt.Sprintf("%x", sha256.Sum256(data))
-	return e.upload(base, filename, ext, data)
+	return e.upload(base, filename, ext, data, skipImageCheck)
 }
 
-func (e *Eagle) upload(base, filename, ext string, data []byte) (string, error) {
+func (e *Eagle) upload(base, filename, ext string, data []byte, skipImageCheck bool) (string, error) {
 	if e.media == nil {
 		return "", errors.New("media is not implemented")
 	}
 
-	if isImage(ext) && base == "media" {
+	if !skipImageCheck && isImage(ext) && base == "media" {
 		str, err := e.uploadImage(filename, data)
 		if err != nil {
 			e.log.Warnf("could not upload image: %s", err.Error())

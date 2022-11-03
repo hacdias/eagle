@@ -16,6 +16,7 @@ import (
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/entry/mf2"
 	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/lastfm"
 	"github.com/hacdias/eagle/v4/loctools"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
@@ -50,7 +51,7 @@ type Eagle struct {
 	media        *Media
 	imgProxy     *ImgProxy
 	miniflux     *Miniflux
-	lastfm       *Lastfm
+	lastfm       *lastfm.LastFm
 	Parser       *entry.Parser
 	Config       *config.Config
 	loctools     *loctools.LocTools
@@ -173,7 +174,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Lastfm != nil {
-		e.lastfm = &Lastfm{Lastfm: conf.Lastfm}
+		e.lastfm = lastfm.NewLastFm(conf.Lastfm.Key, conf.Lastfm.User)
 	}
 
 	err = e.initCache()
