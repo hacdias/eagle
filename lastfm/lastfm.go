@@ -37,22 +37,16 @@ func (l *LastFm) Fetch(year int, month time.Month, day int) ([]*Track, error) {
 			return nil, err
 		}
 
+		if res.Tracks == nil {
+			return nil, fmt.Errorf("response tracks is nil")
+		}
+
 		for _, rawTrack := range res.Tracks {
 			if rawTrack.NowPlaying {
 				continue
 			}
 
-			track := rawTrack.convert()
-
-			// info, err := l.trackInfo(rawTrack)
-			// if err == nil {
-			// 	track.Duration = time.Duration(info.Duration) * time.Millisecond
-			// 	track.Tags = info.Tags.convert()
-			// } else {
-			// 	log.S().Errorf("could not download track info: %s", err)
-			// } // When this fails, we assume an average time of 3m30s.
-
-			tracks = append(tracks, track)
+			tracks = append(tracks, rawTrack.convert())
 		}
 
 		if res.Page < res.TotalPages {
@@ -110,54 +104,4 @@ func (l *LastFm) recentTracks(page int, from, to int64) (*tracks, error) {
 	}
 
 	return response.RecentTracks, nil
-}
-
-var trackInfoCache = map[string]trackInfo{}
-
-func (l *LastFm) trackInfo(t *track) (*trackInfo, error) {
-	u, err := url.Parse("https://ws.audioscrobbler.com/2.0/")
-	if err != nil {
-		return nil, err
-	}
-
-	q := u.Query()
-	q.Set("method", "track.getInfo")
-	q.Set("api_key", l.key)
-
-	k := t.Name + "/" + t.Artist.Name
-	if v, ok := trackInfoCache[k]; ok {
-		return &v, nil
-	}
-
-	q.Set("track", t.Name)
-	q.Set("artist", t.Artist.Name)
-
-	u.RawQuery = q.Encode()
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	var response *trackInfoResponse
-	err = xml.NewDecoder(res.Body).Decode(&response)
-	if err != nil {
-		return nil, err
-	}
-
-	if response.Track == nil {
-		return nil, fmt.Errorf("response is nil")
-	}
-
-	trackInfoCache[k] = *response.Track
-	return response.Track, nil
 }

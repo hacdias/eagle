@@ -2,7 +2,6 @@ package lastfm
 
 import (
 	"encoding/xml"
-	"strings"
 	"time"
 )
 
@@ -125,29 +124,4 @@ type tracks struct {
 type recentTracksResponse struct {
 	XMLName      xml.Name `xml:"lfm"`
 	RecentTracks *tracks  `xml:"recenttracks"`
-}
-
-type tags struct {
-	XMLName xml.Name `xml:"toptags"`
-	Tags    []Tag    `xml:"tag"`
-}
-
-func (t tags) convert() []string {
-	tags := []string{}
-	for _, v := range t.Tags {
-		tags = append(tags, strings.ToLower(v.Name))
-	}
-	return tags
-}
-
-type trackInfo struct {
-	XMLName  xml.Name `xml:"track"`
-	Name     string   `xml:"name"`
-	Duration int64    `xml:"duration"`
-	Tags     tags     `xml:"toptags"`
-}
-
-type trackInfoResponse struct {
-	XMLName xml.Name   `xml:"lfm"`
-	Track   *trackInfo `xml:"track"`
 }
