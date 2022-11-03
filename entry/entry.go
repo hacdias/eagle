@@ -18,6 +18,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+const MoreSeparator = "<!--more-->"
+
 type Entry struct {
 	Frontmatter
 	ID        string
@@ -111,13 +113,17 @@ func (e *Entry) Audience() []string {
 	return nil
 }
 
+func (e *Entry) HasMore() bool {
+	return strings.Contains(e.Content, MoreSeparator)
+}
+
 func (e *Entry) Excerpt() string {
 	if e.excerpt != "" {
 		return e.excerpt
 	}
 
-	if strings.Contains(e.Content, "<!--more-->") {
-		firstPart := strings.Split(e.Content, "<!--more-->")[0]
+	if e.HasMore() {
+		firstPart := strings.Split(e.Content, MoreSeparator)[0]
 		e.excerpt = strings.TrimSpace(firstPart)
 	} else if content := e.TextContent(); content != "" {
 		e.excerpt = util.TruncateStringWithEllipsis(content, 300)
