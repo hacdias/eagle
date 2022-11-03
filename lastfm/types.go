@@ -107,7 +107,7 @@ func (t *track) convert() *Track {
 	}
 
 	for _, i := range t.Images {
-		if i.Size != "" {
+		if i.Size != "" && i.URL != "" {
 			track.Images[i.Size] = i.URL
 		}
 	}
