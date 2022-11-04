@@ -326,13 +326,6 @@ func (rd *RenderData) TryFiles(filenames ...string) string {
 	return ""
 }
 
-func (rd *RenderData) ReadsSummary() *entry.ReadsSummary {
-	filename := filepath.Join(ContentDirectory, ReadsSummary)
-	var data *entry.ReadsSummary
-	_ = rd.eagle.fs.ReadJSON(filename, &data)
-	return data
-}
-
 func (rd *RenderData) WatchesSummary() *entry.WatchesSummary {
 	filename := filepath.Join(ContentDirectory, WatchesSummary)
 	var data *entry.WatchesSummary
