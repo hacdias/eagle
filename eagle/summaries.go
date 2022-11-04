@@ -3,7 +3,6 @@ package eagle
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/hacdias/eagle/v4/entry"
@@ -15,19 +14,31 @@ const (
 	booksSummaryTagEnd   = "<!--/BOOKS-->"
 )
 
-func readListToMarkdown(list entry.ReadList) string {
-	md := ""
-
-	list.SortByName()
-	for _, book := range list {
-		md += fmt.Sprintf("- [%s](%s)", book.Name, book.ID)
-		if book.Author != "" {
-			md += fmt.Sprintf(" <small>by %s</small>", book.Author)
-		}
-		md += "\n"
+func (e *Eagle) UpdateReadsSummary() error {
+	stats, err := e.db.ReadsSummary()
+	if err != nil {
+		return err
 	}
 
-	return md
+	ee, err := e.GetEntry(booksSummaryEntryID)
+	if err != nil {
+		return err
+	}
+
+	md := readsSummaryToMarkdown(stats)
+
+	ee.Content, err = replaceBetween(ee.Content, booksSummaryTagStart, booksSummaryTagEnd, md)
+	if err != nil {
+		return err
+	}
+
+	err = e.saveEntry(ee)
+	if err != nil {
+		return err
+	}
+
+	e.RemoveCache(ee)
+	return nil
 }
 
 func readsSummaryToMarkdown(stats *entry.ReadsSummary) string {
@@ -64,34 +75,26 @@ func readsSummaryToMarkdown(stats *entry.ReadsSummary) string {
 	return summary
 }
 
-func (e *Eagle) UpdateReadsSummary() error {
-	stats, err := e.db.ReadsSummary()
-	if err != nil {
-		return err
+func readListToMarkdown(list entry.ReadList) string {
+	md := ""
+
+	list.SortByName()
+	for _, book := range list {
+		md += fmt.Sprintf("- [%s](%s)", book.Name, book.ID)
+		if book.Author != "" {
+			md += fmt.Sprintf(" <small>by %s</small>", book.Author)
+		}
+		md += "\n"
 	}
 
-	ee, err := e.GetEntry(booksSummaryEntryID)
-	if err != nil {
-		return err
-	}
-
-	md := readsSummaryToMarkdown(stats)
-
-	startIdx := strings.Index(ee.Content, booksSummaryTagStart)
-	endIdx := strings.LastIndex(ee.Content, booksSummaryTagEnd)
-
-	if startIdx == -1 || endIdx == -1 {
-		return errors.New("book summary tags not present")
-	}
-
-	ee.Content = ee.Content[0:startIdx] +
-		booksSummaryTagStart + "\n" + md + booksSummaryTagEnd + "\n" +
-		ee.Content[endIdx+len(booksSummaryTagEnd):]
-
-	return e.saveEntry(ee)
+	return md
 }
 
-const WatchesSummary = "_summary.watches.json"
+const (
+	watchesSummaryEntryID  = "/watches/summary"
+	watchesSummaryTagStart = "<!--WATCHES-->"
+	watchesSummaryTagEnd   = "<!--/WATCHES-->"
+)
 
 func (e *Eagle) UpdateWatchesSummary() error {
 	stats, err := e.db.WatchesSummary()
@@ -99,17 +102,56 @@ func (e *Eagle) UpdateWatchesSummary() error {
 		return err
 	}
 
-	filename := filepath.Join(ContentDirectory, WatchesSummary)
-	err = e.fs.WriteJSON(filename, stats, "update watches summary")
+	ee, err := e.GetEntry(watchesSummaryEntryID)
 	if err != nil {
 		return err
 	}
 
-	ee, err := e.GetEntry("/watches/summary")
+	md := watchesSummaryToMarkdown(stats)
+
+	ee.Content, err = replaceBetween(ee.Content, watchesSummaryTagStart, watchesSummaryTagEnd, md)
+	if err != nil {
+		return err
+	}
+
+	err = e.saveEntry(ee)
 	if err != nil {
 		return err
 	}
 
 	e.RemoveCache(ee)
 	return nil
+}
+
+func watchesSummaryToMarkdown(stats *entry.WatchesSummary) string {
+	summary := "## 📺 Series {#series}\n\n"
+	summary += "<div class='box'>\n\n"
+	summary += watchListToMarkdown(stats.Series)
+	summary += "\n</div>\n\n## 🎬 Movies {#movies}\n\n<div class='box'>\n\n"
+	summary += watchListToMarkdown(stats.Movies)
+	summary += "\n</div>"
+	return summary
+}
+
+func watchListToMarkdown(list []*entry.Watch) string {
+	md := ""
+
+	for _, watch := range list {
+		md += fmt.Sprintf("- [%s](%s) <small>last watched in %s</small>\n", watch.Name, watch.ID, watch.Date.Format("January 2006"))
+	}
+
+	return md
+}
+
+func replaceBetween(s, start, end, new string) (string, error) {
+	startIdx := strings.Index(s, start)
+	endIdx := strings.LastIndex(s, end)
+
+	if startIdx == -1 || endIdx == -1 {
+		return "", errors.New("start tag or end tag not present")
+	}
+
+	return s[0:startIdx] +
+		start + "\n" + new + end + "\n" +
+		s[endIdx+len(end):], nil
 }

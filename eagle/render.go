@@ -326,13 +326,6 @@ func (rd *RenderData) TryFiles(filenames ...string) string {
 	return ""
 }
 
-func (rd *RenderData) WatchesSummary() *entry.WatchesSummary {
-	filename := filepath.Join(ContentDirectory, WatchesSummary)
-	var data *entry.WatchesSummary
-	_ = rd.eagle.fs.ReadJSON(filename, &data)
-	return data
-}
-
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
 	data.Me = e.Config.Me
 	data.Site = e.Config.Site
