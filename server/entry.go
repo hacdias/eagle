@@ -68,11 +68,11 @@ var (
 		"book": func(r *http.Request, s *Server) *entry.Entry {
 			date := time.Now().Local()
 			return &entry.Entry{
-				ID: "/reads/isbn/ISBN",
+				ID: "/books/BOOK-NAME-SLUG",
 				Frontmatter: entry.Frontmatter{
 					Published:   date,
 					Description: "NAME by AUTHOR (ISBN: ISBN)",
-					Sections:    []string{"reads"},
+					Sections:    []string{"books"},
 					Properties: map[string]interface{}{
 						"read-of": map[string]interface{}{
 							"properties": map[string]interface{}{
