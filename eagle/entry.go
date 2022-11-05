@@ -328,19 +328,17 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 		return nil
 	}
 
-	context, err := e.getXRay(urlStr)
+	parsed, _, err := e.XRay.FetchXRay(urlStr)
 	if err != nil {
 		return fmt.Errorf("could not fetch context xray for %s: %w", ee.ID, err)
 	}
 
-	if typ, ok := context["type"]; ok {
-		if styp, ok := typ.(string); ok && styp == "unknown" {
-			return nil
-		}
+	if parsed.Author.URL != "" {
+		parsed.Author.URL = e.safeUploadFromURL("wm", parsed.Author.URL, true)
 	}
 
 	return e.UpdateSidecar(ee, func(data *Sidecar) (*Sidecar, error) {
-		data.Context = context
+		data.Context = parsed
 		return data, nil
 	})
 }
