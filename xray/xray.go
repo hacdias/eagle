@@ -30,7 +30,7 @@ type Author struct {
 }
 
 type Post struct {
-	Author    *Author   `json:"author,omitempty"`
+	Author    Author    `json:"author,omitempty"`
 	Published time.Time `json:"published,omitempty"`
 	Content   string    `json:"content,omitempty"`
 	URL       string    `json:"url,omitempty"`
@@ -99,8 +99,8 @@ func (x *XRay) FetchXRay(urlStr string) (*Post, interface{}, error) {
 	}
 
 	parsed := x.ParseXRay(xray.Data)
-	if parsed.Type == "" && parsed.URL == "" {
-		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrXRayNotFound)
+	if parsed.URL == "" {
+		parsed.URL = urlStr
 	}
 
 	return parsed, xray.Data, nil
@@ -109,11 +109,7 @@ func (x *XRay) FetchXRay(urlStr string) (*Post, interface{}, error) {
 func (x *XRay) ParseXRay(data map[string]interface{}) *Post {
 	raw := typed.New(data)
 	parsed := &Post{
-		URL: raw.StringOr("url", raw.String("wm-source")),
-	}
-
-	if parsed.URL == "" {
-		return nil
+		URL: raw.StringOr("wm-source", raw.String("url")),
 	}
 
 	if date := raw.StringOr("published", raw.String("wm-received")); date != "" {
@@ -131,23 +127,35 @@ func (x *XRay) ParseXRay(data map[string]interface{}) *Post {
 	}
 
 	if !hasContent {
-		if cmap, ok := raw.MapIf("content"); ok && !hasContent {
-			content := typed.New(cmap)
-			if text, ok := content.StringIf("text"); ok {
+		if contentMap, ok := raw.MapIf("content"); ok && !hasContent {
+			typedContentMap := typed.New(contentMap)
+			if text, ok := typedContentMap.StringIf("text"); ok {
 				parsed.Content = cleanContent(text)
-			} else if html, ok := content.StringIf("html"); ok {
+				hasContent = true
+			} else if html, ok := typedContentMap.StringIf("html"); ok {
 				parsed.Content = cleanContent(html)
+				hasContent = true
 			}
 		}
 	}
 
-	if cauthor, ok := raw.MapIf("author"); ok {
-		author := typed.New(cauthor)
+	if !hasContent {
+		if name, ok := raw.StringIf("name"); ok {
+			parsed.Content = cleanContent(name)
+			hasContent = true
+		}
+	}
 
-		parsed.Author = &Author{}
-		parsed.Author.Name = author.String("name")
-		parsed.Author.Photo = author.String("photo")
-		parsed.Author.URL = author.String("url")
+	if photos, ok := raw.StringsIf("photo"); ok {
+		parsed.Content += strings.Join(photos, " ")
+		parsed.Content = strings.TrimSpace(parsed.Content)
+	}
+
+	if author, ok := raw.MapIf("author"); ok {
+		typedAuthor := typed.New(author)
+		parsed.Author.Name = typedAuthor.String("name")
+		parsed.Author.Photo = typedAuthor.String("photo")
+		parsed.Author.URL = typedAuthor.String("url")
 	}
 
 	if wmProperty, ok := raw.StringIf("wm-property"); ok {

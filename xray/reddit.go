@@ -62,10 +62,8 @@ func (x *XRay) parseRedditComment(comment *reddit.Comment) (*Post, error) {
 	}
 
 	if comment.Author != "[deleted]" {
-		parsed.Author = &Author{
-			Name: comment.Author,
-			URL:  "https://www.reddit.com/u/" + comment.Author,
-		}
+		parsed.Author.Name = comment.Author
+		parsed.Author.URL = "https://www.reddit.com/u/" + comment.Author
 	}
 
 	return parsed, nil
@@ -115,10 +113,8 @@ func (x *XRay) parseRedditPost(post *reddit.Post) (*Post, error) {
 	}
 
 	if post.Author != "[deleted]" {
-		parsed.Author = &Author{
-			Name: post.Author,
-			URL:  "https://www.reddit.com/u/" + post.Author,
-		}
+		parsed.Author.Name = post.Author
+		parsed.Author.URL = "https://www.reddit.com/u/" + post.Author
 	}
 
 	return parsed, nil
