@@ -2,6 +2,7 @@ package xray
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
@@ -18,6 +19,10 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	ErrXRayNotFound = errors.New("xray not found")
+)
+
 type Author struct {
 	Name  string `json:"name,omitempty"`
 	Photo string `json:"photo,omitempty"`
@@ -30,6 +35,7 @@ type Post struct {
 	Content   string    `json:"content,omitempty"`
 	URL       string    `json:"url,omitempty"`
 	Type      mf2.Type  `json:"type,omitempty"`
+	Private   bool      `json:"private,omitempty"`
 }
 
 type XRay struct {
@@ -87,22 +93,27 @@ func (x *XRay) FetchXRay(urlStr string) (*Post, interface{}, error) {
 		return nil, nil, err
 	}
 
-	if xray.Data == nil {
-		return nil, nil, fmt.Errorf("no xray found for %s", url.String())
+	if xray.Data == nil ||
+		typed.New(xray.Data).String("type") == "unknown" {
+		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrXRayNotFound)
 	}
 
-	parsed := x.parseXRay(xray.Data)
-	if parsed == nil {
-		return nil, nil, fmt.Errorf("no xray found for %s", url.String())
+	parsed := x.ParseXRay(xray.Data)
+	if parsed.Type == "" && parsed.URL == "" {
+		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrXRayNotFound)
 	}
 
 	return parsed, xray.Data, nil
 }
 
-func (x *XRay) parseXRay(data map[string]interface{}) *Post {
+func (x *XRay) ParseXRay(data map[string]interface{}) *Post {
 	raw := typed.New(data)
 	parsed := &Post{
 		URL: raw.StringOr("url", raw.String("wm-source")),
+	}
+
+	if parsed.URL == "" {
+		return nil
 	}
 
 	if date := raw.StringOr("published", raw.String("wm-received")); date != "" {
@@ -140,9 +151,13 @@ func (x *XRay) parseXRay(data map[string]interface{}) *Post {
 	}
 
 	if wmProperty, ok := raw.StringIf("wm-property"); ok {
-		if v, ok := propertyToType[wmProperty]; ok {
-			parsed.Type = v
-		}
+		parsed.Type = mf2.PropertyToType(wmProperty)
+	}
+
+	if wmPrivate, ok := raw.BoolIf("wm-private"); ok {
+		parsed.Private = wmPrivate
+	} else {
+		parsed.Private = raw.String("wm-private") == "true"
 	}
 
 	return parsed

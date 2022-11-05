@@ -61,10 +61,20 @@ var propertyToType = []propTyp{
 	{"photo", TypePhoto},
 }
 
+func PropertyToType(prop string) Type {
+	for _, v := range propertyToType {
+		if v.prop == prop {
+			return v.typ
+		}
+	}
+
+	return ""
+}
+
 // DiscoverType discovers a post type from its properties according to the algorithm
 // described in the "Post Type Discovery" specification.
-// 	- https://www.w3.org/TR/post-type-discovery/
-// 	- https://indieweb.org/post-type-discovery
+//   - https://www.w3.org/TR/post-type-discovery/
+//   - https://indieweb.org/post-type-discovery
 //
 // This is a slightly modified version of @aaronpk's code to include reads and watches.
 // Original code: https://github.com/aaronpk/XRay/blob/master/lib/XRay/PostType.php
