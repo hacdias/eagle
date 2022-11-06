@@ -6,22 +6,34 @@ import (
 	"sort"
 
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/xray"
+)
+
+const (
+	SidecarFilename = ".sidecar.json"
 )
 
 type Sidecar struct {
-	Targets     []string                 `json:"targets"`
-	Context     map[string]interface{}   `json:"context"`
-	Webmentions []map[string]interface{} `json:"webmentions"`
+	Targets      []string     `json:"targets,omitempty"`
+	Context      *xray.Post   `json:"context,omitempty"`
+	Replies      []*xray.Post `json:"replies,omitempty"`
+	Interactions []*xray.Post `json:"interactions,omitempty"`
+}
+
+func (s *Sidecar) MentionsCount() int {
+	return len(s.Replies) + len(s.Interactions)
 }
 
 func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
-	filename := filepath.Join(ContentDirectory, entry.ID, "_sidecar.json")
+	filename := filepath.Join(ContentDirectory, entry.ID, SidecarFilename)
 
 	var sidecar *Sidecar
 
 	err := e.fs.ReadJSON(filename, &sidecar)
 	if os.IsNotExist(err) {
 		err = nil
+	} else if err != nil {
+		return nil, "", err
 	}
 
 	if sidecar == nil {
@@ -32,23 +44,13 @@ func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
 		sidecar.Targets = []string{}
 	}
 
-	if sidecar.Webmentions == nil {
-		sidecar.Webmentions = []map[string]interface{}{}
+	if sidecar.Replies == nil {
+		sidecar.Replies = []*xray.Post{}
 	}
 
-	sort.Slice(sidecar.Webmentions, func(i, j int) bool {
-		a, ok := sidecar.Webmentions[i]["published"].(string)
-		if !ok {
-			return false
-		}
-
-		b, ok := sidecar.Webmentions[j]["published"].(string)
-		if !ok {
-			return false
-		}
-
-		return a > b
-	})
+	if sidecar.Interactions == nil {
+		sidecar.Interactions = []*xray.Post{}
+	}
 
 	return sidecar, filename, err
 }
@@ -67,10 +69,18 @@ func (e *Eagle) UpdateSidecar(entry *entry.Entry, t func(*Sidecar) (*Sidecar, er
 		return err
 	}
 
-	newSidecar, err := t(oldSidecar)
+	newSd, err := t(oldSidecar)
 	if err != nil {
 		return err
 	}
 
-	return e.fs.WriteJSON(filename, newSidecar, "sidecar: "+entry.ID)
+	sort.SliceStable(newSd.Replies, func(i, j int) bool {
+		return newSd.Replies[i].Published.Before(newSd.Replies[j].Published)
+	})
+
+	sort.SliceStable(newSd.Interactions, func(i, j int) bool {
+		return newSd.Interactions[i].Published.Before(newSd.Interactions[j].Published)
+	})
+
+	return e.fs.WriteJSON(filename, newSd, "sidecar: "+entry.ID)
 }

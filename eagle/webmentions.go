@@ -10,19 +10,12 @@ import (
 	"os"
 
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/xray"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"
 )
-
-var webmentionTypes = map[string]string{
-	"like-of":     "like",
-	"repost-of":   "repost",
-	"mention-of":  "mention",
-	"in-reply-to": "reply",
-	"bookmark-of": "bookmark",
-	"rsvp":        "rsvp",
-}
 
 type WebmentionPayload struct {
 	Source  string                 `json:"source"`
@@ -88,12 +81,12 @@ func (e *Eagle) GetWebmentionTargets(entry *entry.Entry) ([]string, []string, []
 		}
 	}
 
-	entryData, err := e.GetSidecar(entry)
+	sidecar, err := e.GetSidecar(entry)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	oldTargets := entryData.Targets
+	oldTargets := sidecar.Targets
 	oldTargets = funk.UniqString(oldTargets)
 
 	targets := append(currentTargets, oldTargets...)
@@ -148,6 +141,26 @@ func (e *Eagle) sendWebmention(source, target string) error {
 	return nil
 }
 
+func (e *Eagle) DeleteWebmention(ee *entry.Entry, source string) error {
+	return e.UpdateSidecar(ee, func(sidecar *Sidecar) (*Sidecar, error) {
+		for i, reply := range sidecar.Replies {
+			if reply.URL == source {
+				sidecar.Replies = append(sidecar.Replies[:i], sidecar.Replies[i+1:]...)
+				return sidecar, nil
+			}
+		}
+
+		for i, reply := range sidecar.Interactions {
+			if reply.URL == source {
+				sidecar.Interactions = append(sidecar.Interactions[:i], sidecar.Interactions[i+1:]...)
+				return sidecar, nil
+			}
+		}
+
+		return sidecar, nil
+	})
+}
+
 func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	e.log.Infow("received webmention", "webmention", payload)
 
@@ -162,41 +175,45 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	}
 
 	if payload.Deleted {
-		return e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
-			for i, mention := range sidecar.Webmentions {
-				url, ok := mention["url"].(string)
-				if !ok {
-					continue
-				}
-				if url == payload.Source {
-					sidecar.Webmentions = append(sidecar.Webmentions[:i], sidecar.Webmentions[i+1:]...)
-					break
-				}
-			}
-			return sidecar, nil
-		})
+		return e.DeleteWebmention(entry, payload.Source)
 	}
 
-	data := e.parseXRay(payload.Post)
-	dataURL, ok := data["url"].(string)
-	if !ok {
-		dataURL = ""
+	parsed := e.XRay.ParseXRay(payload.Post)
+	parsed.URL = payload.Source
+
+	if parsed.Author.URL != "" {
+		parsed.Author.URL = e.safeUploadFromURL("wm", parsed.Author.URL, true)
 	}
+
+	isInteraction := IsPostInteraction(parsed)
 
 	err = e.UpdateSidecar(entry, func(sidecar *Sidecar) (*Sidecar, error) {
-		for i, mention := range sidecar.Webmentions {
-			url, ok := mention["url"].(string)
-			if !ok {
-				continue
-			}
+		var mentions []*xray.Post
+		if isInteraction {
+			mentions = sidecar.Interactions
+		} else {
+			mentions = sidecar.Replies
+		}
 
-			if url == payload.Source || url == dataURL {
-				sidecar.Webmentions[i] = data
-				return sidecar, nil
+		replaced := false
+		for i, mention := range mentions {
+			if mention.URL == payload.Source || mention.URL == parsed.URL {
+				mentions[i] = parsed
+				replaced = true
+				break
 			}
 		}
 
-		sidecar.Webmentions = append(sidecar.Webmentions, data)
+		if !replaced {
+			mentions = append(mentions, parsed)
+		}
+
+		if isInteraction {
+			sidecar.Interactions = mentions
+		} else {
+			sidecar.Replies = mentions
+		}
+
 		return sidecar, nil
 	})
 
@@ -229,4 +246,11 @@ func isPrivate(urlStr string) bool {
 	}
 
 	return ip.IsPrivate() || ip.IsLoopback()
+}
+
+func IsPostInteraction(post *xray.Post) bool {
+	return post.Type == mf2.TypeLike ||
+		post.Type == mf2.TypeRepost ||
+		post.Type == mf2.TypeBookmark ||
+		post.Type == mf2.TypeRsvp
 }

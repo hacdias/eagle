@@ -21,6 +21,7 @@ import (
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
 	"github.com/hacdias/eagle/v4/syndicator"
+	"github.com/hacdias/eagle/v4/xray"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
@@ -56,6 +57,8 @@ type Eagle struct {
 	Config       *config.Config
 	loctools     *loctools.LocTools
 	reddit       *reddit.Client
+
+	XRay *xray.XRay
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -177,6 +180,17 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.lastfm = lastfm.NewLastFm(conf.Lastfm.Key, conf.Lastfm.User)
 	}
 
+	e.XRay = &xray.XRay{
+		Reddit:  e.reddit,
+		Twitter: e.Config.Twitter,
+		HttpClient: &http.Client{
+			Timeout: time.Minute * 10,
+		},
+		Log:       log.S().Named("xray"),
+		Endpoint:  e.Config.XRayEndpoint,
+		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
+	}
+
 	err = e.initCache()
 	if err != nil {
 		return nil, err
@@ -229,10 +243,6 @@ func (e *Eagle) Close() {
 	if e.cron != nil {
 		e.cron.Stop()
 	}
-}
-
-func (e *Eagle) userAgent(comment string) string {
-	return fmt.Sprintf("Eagle/0.0 %s", comment)
 }
 
 func (e *Eagle) SyncStorage() {
