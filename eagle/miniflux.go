@@ -30,8 +30,11 @@ func (m *Miniflux) Fetch() ([]Feed, error) {
 		return nil, err
 	}
 
-	feeds := []Feed{}
+	sort.Slice(rawFeeds, func(i, j int) bool {
+		return rawFeeds[i].Title < rawFeeds[j].Title
+	})
 
+	var feeds []Feed
 	for _, feed := range rawFeeds {
 		feeds = append(feeds, Feed{
 			Title:    feed.Title,
@@ -41,12 +44,15 @@ func (m *Miniflux) Fetch() ([]Feed, error) {
 		})
 	}
 
-	sort.Slice(feeds, func(i, j int) bool {
-		return feeds[i].Title < feeds[j].Title
-	})
-
 	return feeds, nil
 }
+
+const (
+	blogrollEntryID  = "/links"
+	blogrollFileName = ".feeds.json"
+	blogrollTagStart = "<!--BLOGROLL-->"
+	blogrollTagEnd   = "<!--/BLOGROLL-->"
+)
 
 func (e *Eagle) UpdateBlogroll() error {
 	if e.miniflux == nil {
@@ -58,15 +64,24 @@ func (e *Eagle) UpdateBlogroll() error {
 		return err
 	}
 
-	// TODO: do not like this hardcoded.
-	filename := filepath.Join(ContentDirectory, "links/_blogroll.json")
+	ee, err := e.GetEntry(blogrollEntryID)
+	if err != nil {
+		return err
+	}
 
+	filename := filepath.Join(ContentDirectory, ee.ID, blogrollFileName)
 	err = e.fs.WriteJSON(filename, feeds, "update blogroll")
 	if err != nil {
 		return err
 	}
 
-	ee, err := e.GetEntry("/links")
+	md := minifluxFeedsToMarkdown(feeds)
+	ee.Content, err = replaceBetween(ee.Content, blogrollTagStart, blogrollTagEnd, md)
+	if err != nil {
+		return err
+	}
+
+	err = e.saveEntry(ee)
 	if err != nil {
 		return err
 	}
@@ -88,4 +103,15 @@ func (e *Eagle) initBlogrollCron() error {
 	})
 
 	return err
+}
+
+func minifluxFeedsToMarkdown(feeds []Feed) string {
+	md := ""
+	for _, feed := range feeds {
+		if strings.ToLower(feed.Category) == "following" {
+			md += fmt.Sprintf("- [%s](%s)\n", feed.Title, feed.Site)
+		}
+	}
+
+	return md
 }
