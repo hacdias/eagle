@@ -57,8 +57,7 @@ type Eagle struct {
 	Config       *config.Config
 	loctools     *loctools.LocTools
 	reddit       *reddit.Client
-
-	XRay *xray.XRay
+	XRay         *xray.XRay
 
 	// This can be changed while in development mode.
 	assets    *Assets
@@ -105,6 +104,13 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		minifier:     initMinifier(),
 		loctools:     loctools.NewLocTools(httpClient),
 		cron:         cron.New(),
+		XRay: &xray.XRay{
+			Twitter:    conf.Twitter,
+			HttpClient: httpClient,
+			Log:        log.S().Named("xray"),
+			Endpoint:   conf.XRayEndpoint,
+			UserAgent:  fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
+		},
 	}
 
 	for typ := range conf.Site.MicropubTypes {
@@ -169,6 +175,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			return nil, err
 		}
 
+		e.XRay.Reddit = e.reddit
 		e.syndication.Add(syndicator.NewReddit(e.reddit))
 	}
 
@@ -178,17 +185,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	if conf.Lastfm != nil {
 		e.lastfm = lastfm.NewLastFm(conf.Lastfm.Key, conf.Lastfm.User)
-	}
-
-	e.XRay = &xray.XRay{
-		Reddit:  e.reddit,
-		Twitter: e.Config.Twitter,
-		HttpClient: &http.Client{
-			Timeout: time.Minute * 10,
-		},
-		Log:       log.S().Named("xray"),
-		Endpoint:  e.Config.XRayEndpoint,
-		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
 	}
 
 	err = e.initCache()

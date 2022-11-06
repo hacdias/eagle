@@ -328,7 +328,7 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 		return nil
 	}
 
-	parsed, _, err := e.XRay.FetchXRay(urlStr)
+	parsed, _, err := e.XRay.Fetch(urlStr)
 	if err != nil {
 		return fmt.Errorf("could not fetch context xray for %s: %w", ee.ID, err)
 	}

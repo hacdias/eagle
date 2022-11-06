@@ -178,7 +178,7 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return e.DeleteWebmention(entry, payload.Source)
 	}
 
-	parsed := e.XRay.ParseXRay(payload.Post)
+	parsed := e.XRay.Parse(payload.Post)
 	parsed.URL = payload.Source
 
 	if parsed.Author.URL != "" {

@@ -48,7 +48,7 @@ type XRay struct {
 	UserAgent  string
 }
 
-func (x *XRay) FetchXRay(urlStr string) (*Post, interface{}, error) {
+func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return nil, nil, err
@@ -99,7 +99,7 @@ func (x *XRay) FetchXRay(urlStr string) (*Post, interface{}, error) {
 		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrXRayNotFound)
 	}
 
-	parsed := x.ParseXRay(xray.Data)
+	parsed := x.Parse(xray.Data)
 	if parsed.URL == "" {
 		parsed.URL = urlStr
 	}
@@ -107,7 +107,7 @@ func (x *XRay) FetchXRay(urlStr string) (*Post, interface{}, error) {
 	return parsed, xray.Data, nil
 }
 
-func (x *XRay) ParseXRay(data map[string]interface{}) *Post {
+func (x *XRay) Parse(data map[string]interface{}) *Post {
 	raw := typed.New(data)
 	parsed := &Post{
 		URL: raw.StringOr("wm-source", raw.String("url")),
