@@ -142,7 +142,6 @@ func (x *XRay) ParseXRay(data map[string]interface{}) *Post {
 	if !hasContent {
 		if name, ok := raw.StringIf("name"); ok {
 			parsed.Content = cleanContent(name)
-			hasContent = true
 		}
 	}
 
