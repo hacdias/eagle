@@ -333,8 +333,8 @@ func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
 		return fmt.Errorf("could not fetch context xray for %s: %w", ee.ID, err)
 	}
 
-	if parsed.Author.URL != "" {
-		parsed.Author.URL = e.safeUploadFromURL("wm", parsed.Author.URL, true)
+	if parsed.Author.Photo != "" {
+		parsed.Author.Photo = e.safeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
 	return e.UpdateSidecar(ee, func(data *Sidecar) (*Sidecar, error) {

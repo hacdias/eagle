@@ -181,8 +181,8 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 	parsed := e.XRay.Parse(payload.Post)
 	parsed.URL = payload.Source
 
-	if parsed.Author.URL != "" {
-		parsed.Author.URL = e.safeUploadFromURL("wm", parsed.Author.URL, true)
+	if parsed.Author.Photo != "" {
+		parsed.Author.Photo = e.safeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
 	isInteraction := IsPostInteraction(parsed)
