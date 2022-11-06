@@ -30,12 +30,13 @@ type Author struct {
 }
 
 type Post struct {
-	Author    Author    `json:"author,omitempty"`
-	Published time.Time `json:"published,omitempty"`
-	Content   string    `json:"content,omitempty"`
-	URL       string    `json:"url,omitempty"`
-	Type      mf2.Type  `json:"type,omitempty"`
-	Private   bool      `json:"private,omitempty"`
+	Author     Author    `json:"author,omitempty"`
+	Published  time.Time `json:"published,omitempty"`
+	Content    string    `json:"content,omitempty"`
+	URL        string    `json:"url,omitempty"`
+	Type       mf2.Type  `json:"type,omitempty"`
+	Private    bool      `json:"private,omitempty"`
+	SwarmCoins int       `json:"swarmCoins,omitempty"`
 }
 
 type XRay struct {
@@ -165,6 +166,10 @@ func (x *XRay) ParseXRay(data map[string]interface{}) *Post {
 		parsed.Private = wmPrivate
 	} else {
 		parsed.Private = raw.String("wm-private") == "true"
+	}
+
+	if coins, ok := raw.IntIf("swarm-coins"); ok {
+		parsed.SwarmCoins = coins
 	}
 
 	return parsed
