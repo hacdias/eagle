@@ -64,9 +64,9 @@ func readsSummaryToMarkdown(stats *entry.ReadsSummary) string {
 		books := stats.Finished.Map[year]
 
 		if year == 1 {
-			summary += fmt.Sprintf("### Others <small>(%d books)</small> {#others}\n\n", len(books))
+			summary += fmt.Sprintf("\n### Others <small>(%d books)</small> {#others}\n\n", len(books))
 		} else {
-			summary += fmt.Sprintf("### %d <small>(%d books)</small> {#%d}\n\n", year, len(books), year)
+			summary += fmt.Sprintf("\n### %d <small>(%d books)</small> {#%d}\n\n", year, len(books), year)
 		}
 
 		summary += readListToMarkdown(books)
@@ -152,6 +152,6 @@ func replaceBetween(s, start, end, new string) (string, error) {
 	}
 
 	return s[0:startIdx] +
-		start + "\n" + new + end + "\n" +
+		start + "\n" + new + "\n" + end +
 		s[endIdx+len(end):], nil
 }
