@@ -36,6 +36,14 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 		url := mm.String(mm.TypeProperty())
 		urlDomain := domain(url)
 		description = typeToDescription[mm.PostType()] + "a post on " + urlDomain
+	case mf2.TypePhoto:
+		description = "A photo"
+	case mf2.TypeVideo:
+		description = "A video"
+	case mf2.TypeAudio:
+		description = "An audio"
+	case mf2.TypeNote:
+		description = "A note"
 	case mf2.TypeAte, mf2.TypeDrank:
 		// Matches Teacup
 		food := mm.Sub(mm.TypeProperty())
