@@ -55,8 +55,8 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 
 		filename := filepath.Join(s.Config.SourceDirectory, eagle.ContentDirectory, r.URL.Path)
 		if stat, err := os.Stat(filename); err == nil && stat.Mode().IsRegular() {
-			// Do not serve _* or .* files.
-			if strings.HasPrefix(stat.Name(), "_") || strings.HasPrefix(stat.Name(), ".") {
+			// Do not serve .* (dot)files.
+			if strings.HasPrefix(stat.Name(), ".") {
 				s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 				return
 			}
