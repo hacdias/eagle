@@ -10,6 +10,8 @@ import (
 	"github.com/hacdias/eagle/v4/lastfm"
 )
 
+const lastfmFileName = ".lastfm.json"
+
 func getDailyListensID(year int, month time.Month, day int) string {
 	return entry.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
 }
@@ -44,7 +46,7 @@ func (e *Eagle) FetchLastFmListens(year int, month time.Month, day int) (bool, e
 		}
 	}
 
-	filename := filepath.Join(ContentDirectory, getDailyListensID(year, month, day), "_lastfm.json")
+	filename := filepath.Join(ContentDirectory, getDailyListensID(year, month, day), lastfmFileName)
 
 	err = e.fs.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
@@ -55,7 +57,7 @@ func (e *Eagle) FetchLastFmListens(year int, month time.Month, day int) (bool, e
 
 func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) error {
 	id := entry.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
-	filename := filepath.Join(ContentDirectory, id, "_lastfm.json")
+	filename := filepath.Join(ContentDirectory, id, lastfmFileName)
 	tracks := []*lastfm.Track{}
 
 	err := e.fs.ReadJSON(filename, &tracks)
