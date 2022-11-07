@@ -47,8 +47,8 @@ type Server struct {
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
-	clientID := e.Config.Site.BaseURL + "/"
-	redirectURL := e.Config.Site.BaseURL + "/login/callback"
+	clientID := e.Config.Server.BaseURL + "/"
+	redirectURL := e.Config.Server.BaseURL + "/login/callback"
 
 	s := &Server{
 		Eagle:   e,
@@ -62,7 +62,7 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		}),
 	}
 
-	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Auth.Secret))
+	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
 	s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
 
 	return s, nil
@@ -78,7 +78,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	if s.Config.Tor != nil {
+	if s.Config.Server.Tor != nil {
 		err = s.startTor(errCh, router)
 		if err != nil {
 			err = fmt.Errorf("onion service failed to start: %w", err)
@@ -117,7 +117,7 @@ func (s *Server) registerServer(srv *http.Server, name string) {
 }
 
 func (s *Server) startRegularServer(errCh chan error, h http.Handler) error {
-	addr := ":" + strconv.Itoa(s.Config.Port)
+	addr := ":" + strconv.Itoa(s.Config.Server.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err

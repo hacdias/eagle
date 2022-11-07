@@ -16,7 +16,7 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if wm.Secret != s.Config.WebmentionsSecret {
+	if wm.Secret != s.Config.Webmentions.Secret {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}

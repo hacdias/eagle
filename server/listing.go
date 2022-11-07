@@ -343,7 +343,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		if ls.rd.Entry.Listing.ItemsPerPage > 0 {
 			opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
 		} else {
-			opts.Pagination.Limit = s.Config.Site.Paginate
+			opts.Pagination.Limit = s.Config.Site.Pagination
 		}
 
 		if v := r.URL.Query().Get("page"); v != "" {
@@ -406,8 +406,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.AbsoluteURL(r.URL.Path), "."+feedType)},
 		Description: ls.rd.Entry.TextDescription(),
 		Author: &feeds.Author{
-			Name:  s.Config.Me.Name,
-			Email: s.Config.Me.Email,
+			Name:  s.Config.User.Name,
+			Email: s.Config.User.Email,
 		},
 		// TODO: support .Tags
 		Created: time.Now(),
@@ -429,8 +429,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Description: entry.TextDescription(),
 			Content:     buf.String(),
 			Author: &feeds.Author{
-				Name:  s.Config.Me.Name,
-				Email: s.Config.Me.Email,
+				Name:  s.Config.User.Name,
+				Email: s.Config.User.Email,
 			},
 			Created: entry.Published,
 			Updated: entry.Updated,

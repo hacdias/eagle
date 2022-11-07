@@ -88,9 +88,9 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	if conf.Development {
 		srcSync = fs.NewPlaceboSync()
 	} else {
-		srcSync = fs.NewGitSync(conf.SourceDirectory)
+		srcSync = fs.NewGitSync(conf.Source.Directory)
 	}
-	srcFs := fs.NewFS(conf.SourceDirectory, srcSync)
+	srcFs := fs.NewFS(conf.Source.Directory, srcSync)
 
 	e := &Eagle{
 		log:          log.S().Named("eagle"),
@@ -100,20 +100,13 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Config:       conf,
 		allowedTypes: []mf2.Type{},
 		syndication:  syndicator.NewManager(),
-		Parser:       entry.NewParser(conf.Site.BaseURL),
+		Parser:       entry.NewParser(conf.Server.BaseURL),
 		minifier:     initMinifier(),
 		loctools:     loctools.NewLocTools(httpClient),
 		cron:         cron.New(),
-		XRay: &xray.XRay{
-			Twitter:    conf.Twitter,
-			HttpClient: httpClient,
-			Log:        log.S().Named("xray"),
-			Endpoint:   conf.XRayEndpoint,
-			UserAgent:  fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
-		},
 	}
 
-	for typ := range conf.Site.MicropubTypes {
+	for typ := range conf.Micropub.Sections {
 		e.allowedTypes = append(e.allowedTypes, typ)
 	}
 
@@ -138,8 +131,8 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 	}
 
-	if conf.Telegram != nil {
-		notifications, err := notifier.NewTelegramNotifier(conf.Telegram)
+	if conf.Notifications.Telegram != nil {
+		notifications, err := notifier.NewTelegramNotifier(conf.Notifications.Telegram)
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +151,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.markdown = newMarkdown(e, false)
 	e.absoluteMarkdown = newMarkdown(e, true)
 
-	if conf.Twitter != nil {
+	if conf.Twitter != nil && conf.Syndication.Twitter {
 		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
 	}
 
@@ -176,7 +169,10 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 
 		e.XRay.Reddit = e.reddit
-		e.syndication.Add(syndicator.NewReddit(e.reddit))
+
+		if conf.Syndication.Reddit {
+			e.syndication.Add(syndicator.NewReddit(e.reddit))
+		}
 	}
 
 	if conf.Miniflux != nil {
@@ -185,6 +181,23 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	if conf.Lastfm != nil {
 		e.lastfm = lastfm.NewLastFm(conf.Lastfm.Key, conf.Lastfm.User)
+	}
+
+	if conf.XRay != nil && conf.XRay.Endpoint != "" {
+		e.XRay = &xray.XRay{
+			HttpClient: httpClient,
+			Log:        log.S().Named("xray"),
+			Endpoint:   conf.XRay.Endpoint,
+			UserAgent:  fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
+		}
+
+		if conf.XRay.Twitter {
+			e.XRay.Twitter = conf.Twitter
+		}
+
+		if conf.XRay.Reddit {
+			e.XRay.Reddit = e.reddit
+		}
 	}
 
 	err = e.initCache()

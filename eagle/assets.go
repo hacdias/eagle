@@ -52,8 +52,8 @@ func (e *Eagle) getAssets() (*Assets, error) {
 		assets: map[string]*Asset{},
 	}
 
-	for _, asset := range e.Config.Assets {
-		parsedAsset, err := e.buildAsset(asset)
+	for _, asset := range e.Config.Source.Assets {
+		parsedAsset, err := e.buildAsset(&asset)
 		if err != nil {
 			return nil, err
 		}

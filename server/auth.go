@@ -75,9 +75,9 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.Auth.Password), []byte(password)) == nil
+	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.User.Password), []byte(password)) == nil
 
-	if username != s.Config.Auth.Username || !correctPassword {
+	if username != s.Config.User.Username || !correctPassword {
 		s.serveErrorHTML(w, r, http.StatusUnauthorized, errors.New("wrong credentials"))
 		return
 	}
@@ -262,9 +262,9 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 
 	if strings.Contains(scope, "profile") {
 		profile = &tokenUser{
-			Name:  s.Config.Me.Name,
+			Name:  s.Config.User.Name,
 			URL:   s.Config.ID(),
-			Photo: s.Config.Me.Photo,
+			Photo: s.Config.User.Photo,
 		}
 	}
 
@@ -272,7 +272,7 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 		if profile == nil {
 			profile = &tokenUser{}
 		}
-		profile.Email = s.Config.Me.Email
+		profile.Email = s.Config.User.Email
 	}
 
 	return profile
