@@ -150,7 +150,7 @@ type Config struct {
 	PostgreSQL    PostgreSQL
 	Site          Site
 	User          User
-	Syndication   Syndication
+	Syndications  Syndication
 	Notifications Notifications
 	Micropub      Micropub
 	Webmentions   Webmentions
