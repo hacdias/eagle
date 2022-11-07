@@ -151,7 +151,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.markdown = newMarkdown(e, false)
 	e.absoluteMarkdown = newMarkdown(e, true)
 
-	if conf.Twitter != nil && conf.Syndication.Twitter {
+	if conf.Twitter != nil && conf.Syndications.Twitter {
 		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
 	}
 
@@ -168,7 +168,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			return nil, err
 		}
 
-		if conf.Syndication.Reddit {
+		if conf.Syndications.Reddit {
 			e.syndication.Add(syndicator.NewReddit(e.reddit))
 		}
 	}

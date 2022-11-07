@@ -146,11 +146,11 @@ func (c *Config) validate() error {
 		return err
 	}
 
-	if c.Syndication.Twitter && c.Twitter == nil {
+	if c.Syndications.Twitter && c.Twitter == nil {
 		return errors.New("syndication.twitter is true but twitter is not defined")
 	}
 
-	if c.Syndication.Reddit && c.Reddit == nil {
+	if c.Syndications.Reddit && c.Reddit == nil {
 		return errors.New("syndication.reddit is true but reddit is not defined")
 	}
 
