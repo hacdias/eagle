@@ -40,7 +40,6 @@ const (
 	TemplateEmojis    string = "emojis"
 	TemplateAuth      string = "auth"
 	TemplateDashboard string = "dashboard"
-	TemplateBook      string = "book"
 )
 
 func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML, error) {
