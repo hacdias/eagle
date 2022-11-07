@@ -34,7 +34,7 @@ require (
 	github.com/yuin/goldmark-highlighting v0.0.0-20220208100518-594be1970594
 	go.uber.org/zap v1.23.0
 	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
-	gopkg.in/tucnak/telebot.v2 v2.5.0
+	gopkg.in/telebot.v3 v3.1.2
 	gopkg.in/yaml.v2 v2.4.0
 	miniflux.app v0.0.0-20221009235825-d947b0194b55
 	willnorris.com/go/webmention v0.0.0-20220108183051-4a23794272f0

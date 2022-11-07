@@ -2,7 +2,7 @@ package notifier
 
 import (
 	"github.com/hacdias/eagle/v4/config"
-	tb "gopkg.in/tucnak/telebot.v2"
+	tb "gopkg.in/telebot.v3"
 )
 
 type TelegramNotifier struct {
