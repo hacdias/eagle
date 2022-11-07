@@ -30,12 +30,12 @@ source:
   assets:
     - name: styles.css
       files:
-        - css/base.css
-        - css/cards.css
+        - css/a.css
+        - css/b.css
     - name: app.js
       files:
-        - js/vendor/twemoji.min.js
-        - js/app.js
+        - js/vendor/a.min.js
+        - js/b.js
 
 # Database for indexing.
 postgresql:

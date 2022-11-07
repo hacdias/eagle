@@ -168,8 +168,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			return nil, err
 		}
 
-		e.XRay.Reddit = e.reddit
-
 		if conf.Syndication.Reddit {
 			e.syndication.Add(syndicator.NewReddit(e.reddit))
 		}
