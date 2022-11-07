@@ -296,6 +296,10 @@ func (e *Eagle) guessPath(id string) (string, error) {
 }
 
 func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
+	if e.XRay == nil {
+		return nil
+	}
+
 	mm := ee.Helper()
 	typ := mm.PostType()
 
