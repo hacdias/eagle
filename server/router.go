@@ -48,6 +48,7 @@ func (s *Server) makeRouter() http.Handler {
 
 	r.Get("/search", s.searchGet)
 	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
+	r.Get("/.well-known/webfinger", s.webfingerGet)
 
 	// IndieAuth Server
 	r.Get("/.well-known/oauth-authorization-server", s.indieauthGet)
