@@ -1,83 +1,41 @@
+# Enables development model. That entails:
+# - Request logging.
+# - Template loading every request.
+# - No git commit on save.
 development: false
-port: 8080
 
-# Website source directory.
-sourceDirectory: /app/source
-
-# Optional GitHub webhook secret to update the repository.
-webhookSecret: ThisIsTheSecret
-
-# XRay endpoint to use. By default, it is "https://xray.p3k.app" unless otherwise specified.
-xrayEndpoint: https://xray.p3k.app
-
-# WebmentionIO (https://webmention.io) secret to verify webmentions.
-webmentionsSecret: ThisIsTheSecret
-
-me:
-  name: Your Name
-  nickname: yournick
-  twitter: yourusername
-  email: your@email.com
-  photo: http://localhost:8080/your/photo.jpeg
-  rels:
-  - https://twitter.com/profile
-  - https://github.com/profile
-  - https://facebook.com/profile
-  - https://my.other/profile
-  pgp:
-  - https://example.com/pgp/key/path
-
-
-auth:
-  username:
-
-  # Use 'eagle pwd' to generate the password.
-  password:
-
-  # The secret to protect JWT tokens.
-  secret:
-
-site:
+# Server configuration.
+server:
+  port: 8080
+  # The base URL from which the website is served.
   baseUrl: "http://localhost:8080"
-  language: en
-  title: "The Website Title"
-  description: "The website long description".
+  # The secret to protect JWT tokens.
+  tokensSecret: SecureSecret
+  # Optional GitHub (https://docs.github.com/) webhook secret to update the source repository.
+  webhookSecret: GitHub
+  # Optional Tor configuration (https://www.torproject.org). 'tor' must be
+  # available on your PATH.
+  tor:
+    # Configuration directory of the Tor service.
+    directory: /path/to/conf/dir
+    # Enable Tor service logging (can be noisy).
+    logging: false
 
-  # The available sections at the website. The ones in micropubTypes do not need to be
-  # specified here as they are automatically derived.
-  sections: []
+# Website source directory. It is assumed to be a Git repository.
+source:
+  directory: /app/source
 
-  # The name of the section that will be shown in the home page. The option micropubTypes
-  # can be used to automatically add posts to this section.
-  indexSection: home
-
-  # Sections to automatically add to micropub posts that do not have sections already.
-  # The sections here are automatically added to sections (see above). Keys must be defined
-  # in ./entry/mf2/discovery.go.
-  micropubTypes:
-    reply:
-    - replies
-    - micro
-    like:
-    - likes
-
-  # Definition of the menus to be used in the templates.
-  menus:
-    main:
-      - name: Home
-        emoji: 🔒
-        link: /
-
-# Assets that are compiled and minimized at runtime. This can be used in the templates.
-assets:
-  - name: styles.css
-    files:
-    - css/base.css
-    - css/cards.css
-  - name: app.js
-    files:
-    - js/vendor/twemoji.min.js
-    - js/app.js
+  # Assets that are compiled and minimized at runtime and can be used in the
+  # templates. File path are relative to 'directory'.
+  assets:
+    - name: styles.css
+      files:
+        - css/a.css
+        - css/b.css
+    - name: app.js
+      files:
+        - js/vendor/a.min.js
+        - js/b.js
 
 # Database for indexing.
 postgresql:
@@ -87,31 +45,107 @@ postgresql:
   port: 5432
   database: some-database
 
-tor:
-  # The configuration directory of the Tor service. You don't need to create anything
-  # beforehand. All required keys will be generated automatically. 'tor' needs to be
-  # available on your PATH.
-  confDir: /path/to/conf/dir
-  # Whether or not to enable tor logging.
-  logging: false
+# Site configuration.
+site:
+  # The website language.
+  language: en
+  # The website title.
+  title: "The Website Title"
+  # The website description.
+  description: "The website long description"
+  # Number of items in lists.
+  pagination: 10
+  # Chroma theme for syntax highlighting.
+  chromaTheme: code
+  # The available sections at the website.
+  sections:
+    - home
+    - articles
+  # The name of the section that will be shown in the home page.
+  indexSection: home
+  # Definition of the menus to be used in the templates.
+  menus:
+    main:
+      - name: Home
+        link: /
 
-# Enables notifications through Telegram, such as when the website receives webmentions.
-# It is also used to send errors that happen in the background that would otherwise go unseen
-# unless we inspected the logs. This is optional. Errors are always logged.
-telegram:
-  token:
-  chatId:
+# User configuration.
+user:
+  # The user's full name.
+  name: John Doe
+  # The user's username.
+  username: johndoe
+  # Encrypted password. Use 'eagle pwd' to generate the password.
+  password: invalidSecret
+  # The user's email.
+  email: your@email.com
+  # The user's photo.
+  photo: https://example.com/beautiful.jpeg
+  # Other identities the user may have.
+  identities:
+    - https://twitter.com/profile
+    - https://github.com/profile
+    - https://facebook.com/profile
+    - https://my.other/profile
 
-# Optional BunnyCDN (https://bunny.net) credentials to upload Webmentions' users pictures.
-# Note that .base is also used to render figures in the format cdn:/some-slug so if you need
-# support for those, this must be defined.
-bunnycdn:
-  zone:
-  key:
-  base:
+# Syndications configuration.
+syndications:
+  # Enable Twitter syndication. Requires twitter to be set.
+  twitter: true
+  # Enable Twitter syndication. Requires reddit to be set.
+  reddit: true
 
-# Optional Twitter (https://developer.twitter.com) credentials to use with the XRay
-# or to cross-post posts to Twitter.
+# Notifications configuration.
+notifications:
+  # Telegram (https://core.telegram.org) credentials for notifications.
+  telegram:
+    token: TelegramToken
+    chatId: TelegramChat
+
+# Micropub configuration.
+micropub:
+  # Sections to automatically add to micropub posts that do not have a section.
+  # Valid types can be found in ./entry/mf2/discovery.go.
+  sections:
+    article:
+      - articles
+      - home
+    photos:
+      - photos
+      - home
+    likes:
+      - micro
+  # Optional support for 'post-types' Micropub extension:
+  # https://indieweb.org/Micropub-extensions#Post-Type
+  postTypes:
+    - type: note
+      name: Note
+      properties:
+        - content
+        - category
+        - location
+      required:
+        - content
+
+# Webmentions configurations.
+webmentions:
+  # Webmention.io (https://webmention.io) is used for incoming webmentions.
+  # Not setting secret disables receiving webmentions.
+  secret:
+
+  # Disables sending webmentions.
+  disableSending: true
+
+# Optional XRay configuration.
+xray:
+  endpoint: https://xray.p3k.app
+  # Enable Twitter integration. Requires twitter to be set.
+  twitter: true
+  # Enable Twitter syndication. Requires reddit to be set.
+  reddit: true
+
+# Optional Twitter (https://developer.twitter.com) credentials.
+# Can be used with xray and syndications.
 twitter:
   user:
   key:
@@ -119,19 +153,42 @@ twitter:
   token:
   tokenSecret:
 
+# Optional Reddit (https://www.reddit.com/dev/api) credentials.
+# Can be used with xray and syndications.
+reddit:
+  user:
+  password:
+  app:
+  secret:
+
+# Optional BunnyCDN (https://bunny.net) credentials used for the micropub
+# media endpoint, for media such as 'photos', for webmentions author photos,
+# and for xray author photos.
+bunnycdn:
+  zone: someBunnyZone
+  key: someBunnySecret
+  base: someBunnyBase
+
 # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
 miniflux:
-  endpoint:
-  key:
+  endpoint: minifluxEndpoint
+  key: minifluxKey
 
 # Optional Last.fm (https://last.fm) integration for scrobbles integration.
 lastfm:
-  key:
-  user: 
+  key: lastfmKey
+  user: lastfmUser
 
-# Optional ImgProxy (https://imgproxy.net/) integration for image resizing. Sizes are hardcoded.
+# Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
+# Sizes are hardcoded for now.
 imgproxy:
   # Temporary directory shared between Eagle and ImgProxy
   directory:
   # ImgProxy endpoint
   endpoint:
+
+# Optional Mapbox (https://docs.mapbox.com/) integration for tiling service.
+# OpenStreetMap will be proxied otherwise.
+mapbox:
+  token: SecretToken
+  mapStyle: streets-v11

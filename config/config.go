@@ -1,126 +1,78 @@
 package config
 
 import (
-	"fmt"
-	urlpkg "net/url"
-	"path/filepath"
-
 	"github.com/hacdias/eagle/v4/entry/mf2"
 	"github.com/spf13/viper"
-	"github.com/thoas/go-funk"
 )
 
-type Config struct {
-	Development       bool
-	Port              int
-	SourceDirectory   string
-	Site              Site
-	Me                Me
-	WebhookSecret     string
-	XRayEndpoint      string
-	WebmentionsSecret string
-	Assets            []*Asset
-	Auth              Auth
-	PostgreSQL        PostgreSQL
-	Tor               *Tor
-	BunnyCDN          *BunnyCDN
-	Telegram          *Telegram
-	Twitter           *Twitter
-	Reddit            *Reddit
-	Miniflux          *Miniflux
-	MapBox            *MapBox
-	Lastfm            *Lastfm
-	ImgProxy          *ImgProxy
-	Chroma            *Chroma
+type Tor struct {
+	Directory string
+	Logging   bool
 }
 
-func (c *Config) ID() string {
-	return c.Site.BaseURL + "/"
-}
-
-// Parse parses the configuration from the default files and paths.
-func Parse() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-
-	viper.SetDefault("port", 8080)
-	viper.SetDefault("sourceDirectory", "/app/source")
-	viper.SetDefault("xrayEndpoint", "https://xray.p3k.app")
-
-	viper.SetDefault("site.baseUrl", "http://localhost:8080")
-	viper.SetDefault("site.language", "en")
-	viper.SetDefault("site.paginate", 10)
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	conf := &Config{}
-	err = viper.Unmarshal(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	conf.SourceDirectory, err = filepath.Abs(conf.SourceDirectory)
-	if err != nil {
-		return nil, err
-	}
-
-	if conf.Tor != nil {
-		conf.Tor.ConfDir, err = filepath.Abs(conf.Tor.ConfDir)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	for typ, sections := range conf.Site.MicropubTypes {
-		if !mf2.IsType(typ) {
-			return nil, fmt.Errorf("%s is not a valid micropub type", typ)
-		}
-
-		conf.Site.Sections = append(conf.Site.Sections, sections...)
-	}
-
-	conf.Site.Sections = append(conf.Site.Sections, conf.Site.IndexSection)
-	conf.Site.Sections = funk.UniqString(conf.Site.Sections)
-
-	conf.Site.BaseURL, err = validateBaseURL(conf.Site.BaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: add more thorough verification.
-	return conf, nil
-}
-
-func validateBaseURL(url string) (string, error) {
-	baseUrl, err := urlpkg.Parse(url)
-	if err != nil {
-		return "", err
-	}
-
-	baseUrl.Path = ""
-	return baseUrl.String(), nil
-}
-
-type Site struct {
-	Language      string
-	Title         string
+type Server struct {
+	Port          int
 	BaseURL       string
-	Description   string
-	Sections      []string
-	MicropubTypes map[mf2.Type][]string
-	IndexSection  string
-	Paginate      int
-	Menus         map[string][]MenuItem
-	PostTypes     []PostType
+	TokensSecret  string
+	WebhookSecret string
+	Tor           *Tor
+}
+
+type Asset struct {
+	Name  string
+	Files []string
+}
+
+type Source struct {
+	Directory string
+	Assets    []Asset
+}
+
+type PostgreSQL struct {
+	User     string
+	Password string
+	Host     string
+	Port     string
+	Database string
 }
 
 type MenuItem struct {
-	Name  string
-	Emoji string
-	Link  string
+	Name string
+	Link string
+}
+
+type Site struct {
+	Language     string
+	Title        string
+	Description  string
+	Pagination   int
+	ChromaTheme  string
+	Sections     []string
+	IndexSection string
+	Menus        map[string][]MenuItem
+}
+
+type User struct {
+	Name       string
+	Username   string
+	Password   string
+	Email      string
+	Photo      string
+	Identities []string
+}
+
+type Syndication struct {
+	Twitter bool
+	Reddit  bool
+}
+
+type Telegram struct {
+	Token  string
+	ChatID int64
+}
+
+type Notifications struct {
+	Telegram *Telegram
 }
 
 type PostType struct {
@@ -130,36 +82,20 @@ type PostType struct {
 	Required   []string `json:"required-properties,omitempty"`
 }
 
-type Me struct {
-	Name     string
-	Nickname string
-	Twitter  string
-	Photo    string
-	Email    string
-	Rels     []string
-	PGP      string
+type Micropub struct {
+	Sections  map[mf2.Type][]string
+	PostTypes []PostType
 }
 
-type Auth struct {
-	Username string
-	Password string
-	Secret   string
+type Webmentions struct {
+	Secret         string
+	DisableSending bool
 }
 
-type Tor struct {
-	ConfDir string
-	Logging bool
-}
-
-type Telegram struct {
-	Token  string
-	ChatID int64
-}
-
-type BunnyCDN struct {
-	Zone string
-	Key  string
-	Base string
+type XRay struct {
+	Endpoint string
+	Twitter  bool
+	Reddit   bool
 }
 
 type Twitter struct {
@@ -177,31 +113,15 @@ type Reddit struct {
 	Secret   string
 }
 
+type BunnyCDN struct {
+	Zone string
+	Key  string
+	Base string
+}
+
 type Miniflux struct {
 	Endpoint string
 	Key      string
-}
-
-type PostgreSQL struct {
-	User     string
-	Password string
-	Host     string
-	Port     string
-	Database string
-}
-
-type Asset struct {
-	Name  string
-	Files []string
-}
-
-type MapBox struct {
-	AccessToken string
-	MapStyle    string
-}
-
-func (mb *MapBox) TileSource() string {
-	return "https://api.mapbox.com/styles/v1/mapbox/" + mb.MapStyle + "/tiles/{z}/{x}/{y}{r}?access_token=" + mb.AccessToken
 }
 
 type Lastfm struct {
@@ -214,6 +134,60 @@ type ImgProxy struct {
 	Endpoint  string
 }
 
-type Chroma struct {
-	Theme string
+type MapBox struct {
+	Token    string
+	MapStyle string
+}
+
+func (mb *MapBox) TileSource() string {
+	return "https://api.mapbox.com/styles/v1/mapbox/" + mb.MapStyle + "/tiles/{z}/{x}/{y}{r}?access_token=" + mb.Token
+}
+
+type Config struct {
+	Development   bool
+	Server        Server
+	Source        Source
+	PostgreSQL    PostgreSQL
+	Site          Site
+	User          User
+	Syndication   Syndication
+	Notifications Notifications
+	Micropub      Micropub
+	Webmentions   Webmentions
+	XRay          *XRay
+	Twitter       *Twitter
+	Reddit        *Reddit
+	BunnyCDN      *BunnyCDN
+	Miniflux      *Miniflux
+	Lastfm        *Lastfm
+	ImgProxy      *ImgProxy
+	MapBox        *MapBox
+}
+
+func (c *Config) ID() string {
+	return c.Server.BaseURL + "/"
+}
+
+// Parse parses the configuration from the default files and paths.
+func Parse() (*Config, error) {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	conf := &Config{}
+	err = viper.Unmarshal(conf)
+	if err != nil {
+		return nil, err
+	}
+
+	err = conf.validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return conf, nil
 }

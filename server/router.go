@@ -33,16 +33,16 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 
-	if s.Config.Tor != nil {
+	if s.Config.Server.Tor != nil {
 		r.Use(s.onionHeader)
 		r.Get("/onion", s.onionRedirGet)
 	}
 
-	if s.Config.WebhookSecret != "" {
+	if s.Config.Server.WebhookSecret != "" {
 		r.Post("/webhook", s.webhookPost)
 	}
 
-	if s.Config.WebmentionsSecret != "" {
+	if s.Config.Webmentions.Secret != "" {
 		r.Post("/webmention", s.webmentionPost)
 	}
 

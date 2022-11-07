@@ -177,14 +177,14 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 
 func (e *Eagle) AbsoluteURL(path string) string {
 	url, _ := urlpkg.Parse(path)
-	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
+	base, _ := urlpkg.Parse(e.Config.Server.BaseURL)
 	resolved := base.ResolveReference(url)
 	return resolved.String()
 }
 
 func (e *Eagle) relativeURL(path string) string {
 	url, _ := urlpkg.Parse(path)
-	base, _ := urlpkg.Parse(e.Config.Site.BaseURL)
+	base, _ := urlpkg.Parse(e.Config.Server.BaseURL)
 	resolved := base.ResolveReference(url)
 	// Take out everything before the path.
 	resolved.User = nil
@@ -265,7 +265,7 @@ type RenderData struct {
 	*entry.Entry
 
 	Assets *Assets
-	Me     config.Me
+	Me     config.User
 	Site   config.Site
 
 	// For page-specific variables.
@@ -326,7 +326,7 @@ func (rd *RenderData) TryFiles(filenames ...string) string {
 }
 
 func (e *Eagle) Render(w io.Writer, data *RenderData, tpls []string) error {
-	data.Me = e.Config.Me
+	data.Me = e.Config.User
 	data.Site = e.Config.Site
 	data.Assets = e.assets
 	data.eagle = e

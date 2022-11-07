@@ -71,8 +71,8 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 		"media-endpoint": s.AbsoluteURL("/micropub/media"),
 	}
 
-	if len(s.Config.Site.PostTypes) > 0 {
-		config["post-types"] = s.Config.Site.PostTypes
+	if len(s.Config.Micropub.PostTypes) > 0 {
+		config["post-types"] = s.Config.Micropub.PostTypes
 	}
 
 	s.serveJSON(w, http.StatusOK, config)
@@ -161,7 +161,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 	go s.PostSaveEntry(ee, syndicators)
 
-	http.Redirect(w, r, s.Config.Site.BaseURL+ee.ID, http.StatusAccepted)
+	http.Redirect(w, r, s.Config.Server.BaseURL+ee.ID, http.StatusAccepted)
 	return 0, nil
 }
 
@@ -236,11 +236,11 @@ func (s *Server) micropubParseURL(url string) (string, error) {
 		return "", errors.New("url must be set")
 	}
 
-	if !strings.HasPrefix(url, s.Config.Site.BaseURL) {
+	if !strings.HasPrefix(url, s.Config.Server.BaseURL) {
 		return "", errors.New("invalid domain in url")
 	}
 
-	return strings.Replace(url, s.Config.Site.BaseURL, "", 1), nil
+	return strings.Replace(url, s.Config.Server.BaseURL, "", 1), nil
 }
 
 func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {

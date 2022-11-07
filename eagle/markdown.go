@@ -37,9 +37,9 @@ var defaultGoldmarkOptions = []goldmark.Option{
 func newMarkdown(e *Eagle, absURLs bool) goldmark.Markdown {
 	exts := []goldmark.Extender{}
 
-	if e.Config.Chroma != nil {
+	if e.Config.Site.ChromaTheme != "" {
 		exts = append(exts, highlighting.NewHighlighting(
-			highlighting.WithStyle(e.Config.Chroma.Theme),
+			highlighting.WithStyle(e.Config.Site.ChromaTheme),
 		))
 	}
 
@@ -97,8 +97,8 @@ func (r *customRenderer) renderLink(w util.BufWriter, source []byte, node ast.No
 	if entering {
 		_, _ = w.WriteString("<a href=\"")
 		destination := util.URLEscape(n.Destination, true)
-		if r.absURLs && r.e.Config.Site.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
-			_, _ = w.Write(util.EscapeHTML([]byte(r.e.Config.Site.BaseURL)))
+		if r.absURLs && r.e.Config.Server.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
+			_, _ = w.Write(util.EscapeHTML([]byte(r.e.Config.Server.BaseURL)))
 		}
 		if r.Unsafe || !html.IsDangerousURL(destination) {
 			_, _ = w.Write(util.EscapeHTML(destination))
@@ -131,8 +131,8 @@ func (r *customRenderer) renderAutoLink(w util.BufWriter, source []byte, node as
 		_, _ = w.WriteString("mailto:")
 	}
 	destination := util.URLEscape(url, false)
-	if r.absURLs && r.e.Config.Site.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(r.e.Config.Site.BaseURL)))
+	if r.absURLs && r.e.Config.Server.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(r.e.Config.Server.BaseURL)))
 	}
 	_, _ = w.Write(util.EscapeHTML(destination))
 	if n.Attributes() != nil {
@@ -239,8 +239,8 @@ func (e *Eagle) writeFigure(w figureWriter, imgURL, alt, title string, absURLs, 
 	}
 
 	_, _ = w.WriteString("<img src=\"")
-	if absURLs && e.Config.Site.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(e.Config.Site.BaseURL)))
+	if absURLs && e.Config.Server.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
+		_, _ = w.Write(util.EscapeHTML([]byte(e.Config.Server.BaseURL)))
 	}
 	if unsafe || !html.IsDangerousURL(imgSrc) {
 		_, _ = w.Write(util.EscapeHTML(imgSrc))

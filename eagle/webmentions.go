@@ -26,7 +26,9 @@ type WebmentionPayload struct {
 }
 
 func (e *Eagle) SendWebmentions(entry *entry.Entry) error {
-	if entry.NoSendInteractions || entry.Draft {
+	if e.Config.Webmentions.DisableSending ||
+		entry.NoSendInteractions ||
+		entry.Draft {
 		return nil
 	}
 

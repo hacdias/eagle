@@ -277,7 +277,7 @@ func (e *Eagle) DeduceSections(entry *entry.Entry) error {
 	// This avoids adding sections to top-level pages that shouldn't
 	// have these sections.
 	if strings.HasPrefix(entry.ID, "/20") {
-		if sections, ok := e.Config.Site.MicropubTypes[postType]; ok {
+		if sections, ok := e.Config.Micropub.Sections[postType]; ok {
 			entry.Sections = append(entry.Sections, sections...)
 		}
 	}
@@ -296,6 +296,10 @@ func (e *Eagle) guessPath(id string) (string, error) {
 }
 
 func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
+	if e.XRay == nil {
+		return nil
+	}
+
 	mm := ee.Helper()
 	typ := mm.PostType()
 
