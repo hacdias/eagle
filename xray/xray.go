@@ -32,6 +32,7 @@ type Author struct {
 type Post struct {
 	Author     Author    `json:"author,omitempty"`
 	Published  time.Time `json:"published,omitempty"`
+	Name       string    `json:"name,omitempty"`
 	Content    string    `json:"content,omitempty"`
 	URL        string    `json:"url,omitempty"`
 	Type       mf2.Type  `json:"type,omitempty"`
@@ -118,6 +119,10 @@ func (x *XRay) Parse(data map[string]interface{}) *Post {
 		if err == nil {
 			parsed.Published = t
 		}
+	}
+
+	if name, ok := raw.StringIf("name"); ok {
+		parsed.Name = name
 	}
 
 	var hasContent bool
