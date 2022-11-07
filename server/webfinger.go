@@ -19,10 +19,10 @@ type link struct {
 }
 
 func (s *Server) webfingerGet(w http.ResponseWriter, r *http.Request) {
-	url, _ := urlpkg.Parse(s.Config.Site.BaseURL)
+	url, _ := urlpkg.Parse(s.Config.Server.BaseURL)
 
 	wf := &webfinger{
-		Subject: fmt.Sprintf("%s@%s", s.Config.Me.Nickname, url.Host),
+		Subject: fmt.Sprintf("%s@%s", s.Config.User.Username, url.Host),
 		Aliases: []string{
 			s.Config.ID(),
 		},
