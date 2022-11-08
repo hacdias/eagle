@@ -1,6 +1,8 @@
 package config
 
 import (
+	urlpkg "net/url"
+
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/spf13/viper"
 )
@@ -16,6 +18,33 @@ type Server struct {
 	TokensSecret  string
 	WebhookSecret string
 	Tor           *Tor
+}
+
+func (s *Server) resolvedURL(path string) *urlpkg.URL {
+	url, _ := urlpkg.Parse(path)
+	base, _ := urlpkg.Parse(s.BaseURL)
+	return base.ResolveReference(url)
+}
+
+func (s *Server) AbsoluteURL(path string) string {
+	resolved := s.resolvedURL(path)
+	if resolved == nil {
+		return ""
+	}
+	return resolved.String()
+}
+
+func (s *Server) RelativeURL(path string) string {
+	resolved := s.resolvedURL(path)
+	if resolved == nil {
+		return path
+	}
+
+	// Take out everything before the path.
+	resolved.User = nil
+	resolved.Host = ""
+	resolved.Scheme = ""
+	return resolved.String()
 }
 
 type Asset struct {

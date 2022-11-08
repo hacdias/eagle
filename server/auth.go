@@ -30,10 +30,10 @@ const (
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, map[string]interface{}{
 		"issuer":                           s.Config.ID(),
-		"authorization_endpoint":           s.AbsoluteURL("/auth"),
-		"token_endpoint":                   s.AbsoluteURL("/token"),
-		"introspection_endpoint":           s.AbsoluteURL("/token/verify"),
-		"userinfo_endpoint":                s.AbsoluteURL("/userinfo"),
+		"authorization_endpoint":           s.Config.Server.AbsoluteURL("/auth"),
+		"token_endpoint":                   s.Config.Server.AbsoluteURL("/token"),
+		"introspection_endpoint":           s.Config.Server.AbsoluteURL("/token/verify"),
+		"userinfo_endpoint":                s.Config.Server.AbsoluteURL("/userinfo"),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 		"grant_types_supported":            []string{"authorization_code"},
 		"response_types_supported":         []string{"code"},
