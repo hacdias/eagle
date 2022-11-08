@@ -5,7 +5,6 @@ import (
 
 	"github.com/dgraph-io/ristretto"
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
 )
 
 type CacheScope string
@@ -48,6 +47,8 @@ func (e *Eagle) RemoveCache(ee *entry.Entry) {
 		e.PurgeCache("/" + sec)
 	}
 
+	// Both tags and emojis could be replaced by taxonomies once
+	// those are implemented.
 	hasTags := false
 	for _, tag := range ee.Tags() {
 		hasTags = true
@@ -64,13 +65,6 @@ func (e *Eagle) RemoveCache(ee *entry.Entry) {
 	}
 	if hasEmojis {
 		e.PurgeCache("/emojis")
-	}
-
-	if mm := ee.Helper(); mm.PostType() == mf2.TypeRead {
-		canonical := mm.String(mm.TypeProperty())
-		if canonical != "" {
-			e.PurgeCache(canonical)
-		}
 	}
 }
 
