@@ -21,8 +21,8 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/miniflux"
+	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/syndicator"
-	"github.com/hacdias/eagle/v4/xray"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
@@ -185,20 +185,26 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.XRay != nil && conf.XRay.Endpoint != "" {
-		e.XRay = &xray.XRay{
-			HttpClient: httpClient,
-			Log:        log.S().Named("xray"),
-			Endpoint:   conf.XRay.Endpoint,
-			UserAgent:  fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
+		options := &xray.XRayOptions{
+			Log:       log.S().Named("xray"),
+			Endpoint:  conf.XRay.Endpoint,
+			UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
 		}
 
-		if conf.XRay.Twitter {
-			e.XRay.Twitter = conf.Twitter
+		if conf.XRay.Twitter && conf.Twitter != nil {
+			options.Twitter = &xray.Twitter{
+				Key:         conf.Twitter.Key,
+				Secret:      conf.Twitter.Secret,
+				Token:       conf.Twitter.Token,
+				TokenSecret: conf.Twitter.TokenSecret,
+			}
 		}
 
-		if conf.XRay.Reddit {
+		if conf.XRay.Reddit && conf.Reddit != nil {
 			e.XRay.Reddit = redditClient
 		}
+
+		e.XRay = xray.NewXRay(options)
 	}
 
 	err = e.initCache()

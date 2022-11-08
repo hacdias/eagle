@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/xray"
+	"github.com/hacdias/eagle/v4/pkg/xray"
 )
 
 const (
