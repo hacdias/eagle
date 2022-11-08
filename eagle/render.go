@@ -158,8 +158,8 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"now":                 time.Now,
 		"include":             e.includeTemplate,
 		"md":                  e.getRenderMarkdown(alwaysAbsolute),
-		"absURL":              e.AbsoluteURL,
-		"relURL":              e.relativeURL,
+		"absURL":              e.Config.Server.AbsoluteURL,
+		"relURL":              e.Config.Server.RelativeURL,
 		"stars":               stars,
 		"sprintf":             fmt.Sprintf,
 		"durationFromSeconds": durationFromSeconds,
@@ -169,28 +169,10 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	}
 
 	if alwaysAbsolute {
-		funcs["relURL"] = e.AbsoluteURL
+		funcs["relURL"] = e.Config.Server.AbsoluteURL
 	}
 
 	return funcs
-}
-
-func (e *Eagle) AbsoluteURL(path string) string {
-	url, _ := urlpkg.Parse(path)
-	base, _ := urlpkg.Parse(e.Config.Server.BaseURL)
-	resolved := base.ResolveReference(url)
-	return resolved.String()
-}
-
-func (e *Eagle) relativeURL(path string) string {
-	url, _ := urlpkg.Parse(path)
-	base, _ := urlpkg.Parse(e.Config.Server.BaseURL)
-	resolved := base.ResolveReference(url)
-	// Take out everything before the path.
-	resolved.User = nil
-	resolved.Host = ""
-	resolved.Scheme = ""
-	return resolved.String()
 }
 
 func (e *Eagle) initTemplates() error {

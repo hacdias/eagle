@@ -68,7 +68,7 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	config := map[string]interface{}{
 		"syndicate-to":   syndications,
 		"channels":       sections,
-		"media-endpoint": s.AbsoluteURL("/micropub/media"),
+		"media-endpoint": s.Config.Server.AbsoluteURL("/micropub/media"),
 	}
 
 	if len(s.Config.Micropub.PostTypes) > 0 {

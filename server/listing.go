@@ -403,7 +403,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	feed := &feeds.Feed{
 		Title:       ls.rd.Entry.TextTitle(),
-		Link:        &feeds.Link{Href: strings.TrimSuffix(s.AbsoluteURL(r.URL.Path), "."+feedType)},
+		Link:        &feeds.Link{Href: strings.TrimSuffix(s.Config.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
 		Description: ls.rd.Entry.TextDescription(),
 		Author: &feeds.Author{
 			Name:  s.Config.User.Name,
