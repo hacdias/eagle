@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/thoas/go-funk"
 )
 

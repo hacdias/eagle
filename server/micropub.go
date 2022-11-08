@@ -12,7 +12,7 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/server/micropub"
 	"github.com/thoas/go-funk"
 )

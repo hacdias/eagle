@@ -12,7 +12,7 @@ import (
 	"github.com/dghubble/oauth1"
 	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/pkg/mf2"
 )
 
 type Twitter struct {
