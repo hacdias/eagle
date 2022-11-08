@@ -5,11 +5,6 @@ import (
 	"strings"
 )
 
-type xrayResponse struct {
-	Data map[string]interface{} `json:"data"`
-	Code int                    `json:"code"`
-}
-
 var (
 	spaceCollapser = regexp.MustCompile(`\s+`)
 )

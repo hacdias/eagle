@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/karlseguin/typed"
@@ -20,33 +19,42 @@ import (
 )
 
 var (
-	ErrXRayNotFound = errors.New("xray not found")
+	ErrPostNotFound = errors.New("post xray not found")
 )
 
-type Author struct {
-	Name  string `json:"name,omitempty"`
-	Photo string `json:"photo,omitempty"`
-	URL   string `json:"url,omitempty"`
+type Twitter struct {
+	Key         string
+	Secret      string
+	Token       string
+	TokenSecret string
 }
 
-type Post struct {
-	Author     Author    `json:"author,omitempty"`
-	Published  time.Time `json:"published,omitempty"`
-	Name       string    `json:"name,omitempty"`
-	Content    string    `json:"content,omitempty"`
-	URL        string    `json:"url,omitempty"`
-	Type       mf2.Type  `json:"type,omitempty"`
-	Private    bool      `json:"private,omitempty"`
-	SwarmCoins int       `json:"swarmCoins,omitempty"`
+type XRayOptions struct {
+	Reddit      *reddit.Client
+	Twitter     *Twitter
+	GitHubToken string
+	Endpoint    string
+	UserAgent   string
+	Log         *zap.SugaredLogger
 }
 
 type XRay struct {
-	Reddit     *reddit.Client
-	Twitter    *config.Twitter
-	HttpClient *http.Client
-	Log        *zap.SugaredLogger
-	Endpoint   string
-	UserAgent  string
+	*XRayOptions
+	httpClient *http.Client
+}
+
+func NewXRay(options *XRayOptions) *XRay {
+	return &XRay{
+		XRayOptions: options,
+		httpClient: &http.Client{
+			Timeout: 2 * time.Minute,
+		},
+	}
+}
+
+type xrayResponse struct {
+	Data map[string]interface{} `json:"data"`
+	Code int                    `json:"code"`
 }
 
 func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
@@ -74,6 +82,10 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 		data.Set("twitter_access_token_secret", x.Twitter.TokenSecret)
 	}
 
+	if strings.Contains(url.Host, "github.com") && x.GitHubToken != "" {
+		data.Set("github_access_token", x.GitHubToken)
+	}
+
 	req, err := http.NewRequest(http.MethodPost, x.Endpoint+"/parse", strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, nil, err
@@ -83,7 +95,7 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	req.Header.Add("User-Agent", x.UserAgent)
 
-	res, err := x.HttpClient.Do(req)
+	res, err := x.httpClient.Do(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -97,7 +109,7 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 
 	if xray.Data == nil ||
 		typed.New(xray.Data).String("type") == "unknown" {
-		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrXRayNotFound)
+		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrPostNotFound)
 	}
 
 	parsed := x.Parse(xray.Data)
