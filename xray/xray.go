@@ -109,6 +109,10 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 }
 
 func (x *XRay) Parse(data map[string]interface{}) *Post {
+	return Parse(data)
+}
+
+func Parse(data map[string]interface{}) *Post {
 	raw := typed.New(data)
 	parsed := &Post{
 		URL: raw.StringOr("wm-source", raw.String("url")),
