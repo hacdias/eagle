@@ -44,32 +44,33 @@ type Eagle struct {
 
 	log          *zap.SugaredLogger
 	httpClient   *http.Client
-	wmClient     *webmention.Client
 	fs           *fs.FS
-	syndication  *syndicator.Manager
 	allowedTypes []mf2.Type
 	db           database.Database
-	cache        *ristretto.Cache
-	media        *Media
-	imgProxy     *ImgProxy
-	miniflux     *miniflux.Miniflux
-	lastfm       *lastfm.LastFm
 	Parser       *entry.Parser
 	Config       *config.Config
-	maze         *maze.Maze
-	reddit       *reddit.Client
-	XRay         *xray.XRay
 
-	// This can be changed while in development mode.
-	assets    *Assets
-	templates map[string]*template.Template
+	// TODO: concerns only the server. Move there.
+	cache     *ristretto.Cache
+	redirects map[string]string
+	cron      *cron.Cron
 
-	// Things that are initialized once.
-	redirects        map[string]string
+	// TODO: (likely) concerns only specific hooks. Modularize and move them.
+	wmClient    *webmention.Client
+	syndication *syndicator.Manager
+	media       *Media
+	imgProxy    *ImgProxy
+	miniflux    *miniflux.Miniflux
+	lastfm      *lastfm.LastFm
+	maze        *maze.Maze
+	XRay        *xray.XRay
+
+	// TODO: concerns only rendering. Modularize and make rendering package.
+	assets           *Assets
+	templates        map[string]*template.Template
 	markdown         goldmark.Markdown
 	absoluteMarkdown goldmark.Markdown
 	minifier         *minify.M
-	cron             *cron.Cron
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -156,6 +157,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
 	}
 
+	var redditClient *reddit.Client
 	if conf.Reddit != nil {
 		credentials := reddit.Credentials{
 			ID:       conf.Reddit.App,
@@ -164,13 +166,13 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			Password: conf.Reddit.Password,
 		}
 
-		e.reddit, err = reddit.NewClient(credentials)
+		redditClient, err = reddit.NewClient(credentials)
 		if err != nil {
 			return nil, err
 		}
 
 		if conf.Syndications.Reddit {
-			e.syndication.Add(syndicator.NewReddit(e.reddit))
+			e.syndication.Add(syndicator.NewReddit(redditClient))
 		}
 	}
 
@@ -195,7 +197,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 
 		if conf.XRay.Reddit {
-			e.XRay.Reddit = e.reddit
+			e.XRay.Reddit = redditClient
 		}
 	}
 
