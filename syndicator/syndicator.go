@@ -9,6 +9,7 @@ import (
 )
 
 type Syndicator interface {
+	// Add context.Context to syndicate
 	Syndicate(entry *entry.Entry) (url string, err error)
 	IsByContext(entry *entry.Entry) bool
 	Name() string
