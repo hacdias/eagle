@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/xray"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"

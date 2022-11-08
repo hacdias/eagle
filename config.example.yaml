@@ -105,7 +105,7 @@ notifications:
 # Micropub configuration.
 micropub:
   # Sections to automatically add to micropub posts that do not have a section.
-  # Valid types can be found in ./entry/mf2/discovery.go.
+  # Valid types can be found in ./pkg/mf2/discovery.go.
   sections:
     article:
       - articles

@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/entry/mf2"
+	"github.com/hacdias/eagle/v4/pkg/mf2"
 )
 
 var typeToDescription = map[mf2.Type]string{
