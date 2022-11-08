@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/contenttype"
+	"github.com/hacdias/eagle/v4/pkg/contenttype"
 )
 
 const (
