@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/lastfm"
+	"github.com/hacdias/eagle/v4/pkg/lastfm"
 )
 
 const lastfmFileName = ".lastfm.json"
