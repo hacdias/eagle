@@ -17,12 +17,6 @@ type ImgProxy struct {
 	endpoint   string
 }
 
-type ImgProxySettings struct {
-	Format  string
-	Width   int
-	Quality int
-}
-
 func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int) (io.Reader, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
