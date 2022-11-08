@@ -1,7 +1,7 @@
 package eagle
 
 import (
-	"github.com/hacdias/eagle/v4/contenttype"
+	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/tdewolff/minify/v2"
 	mCss "github.com/tdewolff/minify/v2/css"
 	mHtml "github.com/tdewolff/minify/v2/html"

@@ -16,8 +16,8 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/contenttype"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/thoas/go-funk"
 )
