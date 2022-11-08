@@ -33,7 +33,7 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 			go s.SyncStorage()
 			data["Success"] = true
 		case "update-blogroll":
-			err = s.UpdateBlogroll()
+			err = s.UpdateMinifluxBlogroll()
 			data["Success"] = true
 		case "update-reads-statistics":
 			err = s.UpdateReadsSummary()
