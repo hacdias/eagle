@@ -140,7 +140,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
 		rd: &eagle.RenderData{
 			Entry: &entry.Entry{
-				Frontmatter: entry.Frontmatter{
+				FrontMatter: entry.FrontMatter{
 					Title:   title.String(),
 					Listing: &entry.Listing{},
 				},
@@ -292,7 +292,7 @@ func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 
 	return &entry.Entry{
 		ID: id,
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Title:   title,
 			Listing: &entry.Listing{},
 		},

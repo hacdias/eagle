@@ -22,7 +22,7 @@ type Listing struct {
 	ItemsPerPage      int  `yaml:"itemsPerPage,omitempty"`
 }
 
-type Frontmatter struct {
+type FrontMatter struct {
 	Title              string                 `yaml:"title,omitempty"`
 	Description        string                 `yaml:"description,omitempty"`
 	Draft              bool                   `yaml:"draft,omitempty"`
@@ -40,8 +40,8 @@ type Frontmatter struct {
 	Listing            *Listing               `yaml:"listing,omitempty"`
 }
 
-func unmarshalFrontmatter(data []byte) (*Frontmatter, error) {
-	f := &Frontmatter{}
+func unmarshalFrontMatter(data []byte) (*FrontMatter, error) {
+	f := &FrontMatter{}
 	err := yaml.Unmarshal(data, &f)
 	if err != nil {
 		return nil, err

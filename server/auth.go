@@ -54,7 +54,7 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 
 	s.serveHTML(w, r, &eagle.RenderData{
 		Entry: &entry.Entry{
-			Frontmatter: entry.Frontmatter{
+			FrontMatter: entry.FrontMatter{
 				Title: "Authorization",
 			},
 		},
