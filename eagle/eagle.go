@@ -17,9 +17,9 @@ import (
 	"github.com/hacdias/eagle/v4/entry/mf2"
 	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/lastfm"
-	"github.com/hacdias/eagle/v4/loctools"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
+	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/eagle/v4/xray"
 	"github.com/robfig/cron/v3"
@@ -55,7 +55,7 @@ type Eagle struct {
 	lastfm       *lastfm.LastFm
 	Parser       *entry.Parser
 	Config       *config.Config
-	loctools     *loctools.LocTools
+	maze         *maze.Maze
 	reddit       *reddit.Client
 	XRay         *xray.XRay
 
@@ -102,7 +102,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		syndication:  syndicator.NewManager(),
 		Parser:       entry.NewParser(conf.Server.BaseURL),
 		minifier:     initMinifier(),
-		loctools:     loctools.NewLocTools(httpClient),
+		maze:         maze.NewMaze(httpClient),
 		cron:         cron.New(),
 	}
 
