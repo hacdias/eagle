@@ -70,7 +70,7 @@ func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) err
 	ee := &entry.Entry{
 		ID:      id,
 		Content: "<!-- This post is automatically generated. -->\n\n",
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Sections:    []string{"listens"},
 			Description: fmt.Sprintf("Listened to %d tracks from %d artists across %d albums", stats.TotalTracks, stats.TotalArtists, stats.TotalAlbums),
 			Properties: map[string]interface{}{

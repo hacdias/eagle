@@ -21,7 +21,7 @@ import (
 const MoreSeparator = "<!--more-->"
 
 type Entry struct {
-	Frontmatter
+	FrontMatter
 	ID        string
 	Permalink string
 	Content   string
@@ -176,7 +176,7 @@ func (e *Entry) InSection(section string) bool {
 }
 
 func (e *Entry) String() (string, error) {
-	val, err := yaml.Marshal(&e.Frontmatter)
+	val, err := yaml.Marshal(&e.FrontMatter)
 	if err != nil {
 		return "", err
 	}

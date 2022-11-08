@@ -19,7 +19,7 @@ func newTestTwitter() Syndicator {
 
 var isNotByContext = []*entry.Entry{
 	{
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Properties: map[string]interface{}{
 				"syndication": "https://twitter.com/status/some-status",
 				"like-of":     "https://twitter.com/status/some-status",
@@ -27,14 +27,14 @@ var isNotByContext = []*entry.Entry{
 		},
 	},
 	{
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Properties: map[string]interface{}{
 				"invalid-property": "https://twitter.com/status/some-status",
 			},
 		},
 	},
 	{
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Properties: map[string]interface{}{
 				"bookmark-of": "https://twitter.com/status/some-status",
 			},
@@ -54,21 +54,21 @@ func TestTwitterIsNotByContext(t *testing.T) {
 
 var isByContext = []*entry.Entry{
 	{
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Properties: map[string]interface{}{
 				"like-of": "https://twitter.com/status/some-status",
 			},
 		},
 	},
 	{
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Properties: map[string]interface{}{
 				"in-reply-to": []string{"https://twitter.com/status/some-status"},
 			},
 		},
 	},
 	{
-		Frontmatter: entry.Frontmatter{
+		FrontMatter: entry.FrontMatter{
 			Properties: map[string]interface{}{
 				"repost-of": "https://twitter.com/status/some-status",
 			},

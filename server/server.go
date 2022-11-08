@@ -255,7 +255,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 
 	rd := &eagle.RenderData{
 		Entry: &entry.Entry{
-			Frontmatter: entry.Frontmatter{
+			FrontMatter: entry.FrontMatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 			},
 		},

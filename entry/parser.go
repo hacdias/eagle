@@ -16,7 +16,7 @@ func NewParser(baseURL string) *Parser {
 
 func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry, error) {
 	entry := &Entry{
-		Frontmatter: Frontmatter{},
+		FrontMatter: FrontMatter{},
 	}
 
 	err := entry.Update(mf2Data)
@@ -58,15 +58,15 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 		ID:          id,
 		Permalink:   permalink,
 		Content:     content,
-		Frontmatter: Frontmatter{},
+		FrontMatter: FrontMatter{},
 	}
 
-	fr, err := unmarshalFrontmatter([]byte(splits[0]))
+	fr, err := unmarshalFrontMatter([]byte(splits[0]))
 	if err != nil {
 		return nil, err
 	}
 
-	entry.Frontmatter = *fr
+	entry.FrontMatter = *fr
 
 	if entry.Properties == nil {
 		entry.Properties = map[string]interface{}{}

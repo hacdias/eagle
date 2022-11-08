@@ -21,7 +21,7 @@ var (
 		"default": func(r *http.Request, s *Server) *entry.Entry {
 			return &entry.Entry{
 				Content: "What's on your mind?",
-				Frontmatter: entry.Frontmatter{
+				FrontMatter: entry.FrontMatter{
 					Published: time.Now().Local(),
 				},
 			}
@@ -29,7 +29,7 @@ var (
 		"private": func(r *http.Request, s *Server) *entry.Entry {
 			return &entry.Entry{
 				Content: "What's on your mind?",
-				Frontmatter: entry.Frontmatter{
+				FrontMatter: entry.FrontMatter{
 					Published: time.Now().Local(),
 					Properties: map[string]interface{}{
 						"visibility": "private",
@@ -44,7 +44,7 @@ var (
 
 			return &entry.Entry{
 				Content: "How was last month?",
-				Frontmatter: entry.Frontmatter{
+				FrontMatter: entry.FrontMatter{
 					Draft:     true,
 					Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
 					Published: t,
@@ -55,7 +55,7 @@ var (
 		"article": func(r *http.Request, s *Server) *entry.Entry {
 			return &entry.Entry{
 				Content: "Code is poetry...",
-				Frontmatter: entry.Frontmatter{
+				FrontMatter: entry.FrontMatter{
 					Draft:     true,
 					Title:     "Article Title",
 					Published: time.Now().Local(),
@@ -69,7 +69,7 @@ var (
 			date := time.Now().Local()
 			return &entry.Entry{
 				ID: "/books/BOOK-NAME-SLUG",
-				Frontmatter: entry.Frontmatter{
+				FrontMatter: entry.FrontMatter{
 					Published:   date,
 					Description: "NAME by AUTHOR (ISBN: ISBN)",
 					Sections:    []string{"books"},
