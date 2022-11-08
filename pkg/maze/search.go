@@ -1,4 +1,4 @@
-package loctools
+package maze
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
-func (l *LocTools) photonSearch(lang, query string) (*Location, error) {
+func (l *Maze) photonSearch(lang, query string) (*Location, error) {
 	uv := url.Values{}
 	uv.Set("q", query)
 	uv.Set("lang", lang)

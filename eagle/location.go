@@ -6,7 +6,7 @@ import (
 
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/entry/mf2"
-	"github.com/hacdias/eagle/v4/loctools"
+	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/karlseguin/typed"
 )
 
@@ -143,7 +143,7 @@ func (e *Eagle) parseAirportLocation(str string) (map[string]interface{}, error)
 		code = str
 	}
 
-	loc, err := e.loctools.Airport(code)
+	loc, err := e.maze.Airport(code)
 	if err != nil {
 		return nil, err
 	}
@@ -159,17 +159,17 @@ func (e *Eagle) parseAirportLocation(str string) (map[string]interface{}, error)
 
 func (e *Eagle) parseLocation(str string) (map[string]interface{}, error) {
 	var (
-		location *loctools.Location
+		location *maze.Location
 		err      error
 	)
 
 	if strings.HasPrefix(str, "geo:") {
-		location, err = e.loctools.FromGeoURI(e.Config.Site.Language, str)
+		location, err = e.maze.ReverseGeoURI(e.Config.Site.Language, str)
 	} else if strings.HasPrefix(str, "/") {
 		_, err = e.GetEntry(str)
 		return nil, err
 	} else {
-		location, err = e.loctools.Search(e.Config.Site.Language, str)
+		location, err = e.maze.Search(e.Config.Site.Language, str)
 	}
 
 	if err != nil {
@@ -179,7 +179,7 @@ func (e *Eagle) parseLocation(str string) (map[string]interface{}, error) {
 	return locationToMultiformat(location), nil
 }
 
-func locationToMultiformat(loc *loctools.Location) map[string]interface{} {
+func locationToMultiformat(loc *maze.Location) map[string]interface{} {
 	props := map[string]interface{}{
 		"latitude":  loc.Latitude,
 		"longitude": loc.Longitude,

@@ -1,4 +1,4 @@
-package loctools
+package maze
 
 import (
 	"net/http"
@@ -15,26 +15,26 @@ type Location struct {
 	Country   string  `json:"country-name,omitempty" yaml:"country-name,omitempty"`
 }
 
-type LocTools struct {
+type Maze struct {
 	httpClient *http.Client
 }
 
-func NewLocTools(client *http.Client) *LocTools {
+func NewMaze(client *http.Client) *Maze {
 	if client == nil {
 		client = &http.Client{}
 	}
 
-	return &LocTools{
+	return &Maze{
 		httpClient: client,
 	}
 }
 
-func (l *LocTools) Reverse(lang string, lon, lat float64) (*Location, error) {
+func (l *Maze) Reverse(lang string, lon, lat float64) (*Location, error) {
 	return l.photonReverse(lang, lon, lat)
 }
 
-func (l *LocTools) FromGeoURI(lang, geouri string) (*Location, error) {
-	geo, err := gogeouri.Parse(geouri)
+func (l *Maze) ReverseGeoURI(lang, geoUri string) (*Location, error) {
+	geo, err := gogeouri.Parse(geoUri)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +42,10 @@ func (l *LocTools) FromGeoURI(lang, geouri string) (*Location, error) {
 	return l.Reverse(lang, geo.Longitude, geo.Latitude)
 }
 
-func (l *LocTools) Search(lang, query string) (*Location, error) {
+func (l *Maze) Search(lang, query string) (*Location, error) {
 	return l.photonSearch(lang, query)
 }
 
-func (l *LocTools) Airport(query string) (*Location, error) {
+func (l *Maze) Airport(query string) (*Location, error) {
 	return l.aviowikiSearch(query)
 }

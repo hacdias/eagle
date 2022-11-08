@@ -1,4 +1,4 @@
-package loctools
+package maze
 
 import (
 	"encoding/json"
@@ -30,7 +30,7 @@ type aviowikiCountry struct {
 	Name string `json:"name"`
 }
 
-func (l *LocTools) aviowikiSearch(query string) (*Location, error) {
+func (l *Maze) aviowikiSearch(query string) (*Location, error) {
 	uv := url.Values{}
 	uv.Set("query", query)
 	uv.Set("size", "1")
