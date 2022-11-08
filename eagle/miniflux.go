@@ -4,48 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"sort"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/config"
-	miniflux "miniflux.app/client"
+	"github.com/hacdias/eagle/v4/pkg/miniflux"
 )
 
-type Feed struct {
-	Title    string `json:"title"`
-	Site     string `json:"site"`
-	Feed     string `json:"feed"`
-	Category string `json:"category"`
-}
-
-type Miniflux struct {
-	*config.Miniflux
-}
-
-func (m *Miniflux) Fetch() ([]Feed, error) {
-	client := miniflux.New(m.Endpoint, m.Key)
-
-	rawFeeds, err := client.Feeds()
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(rawFeeds, func(i, j int) bool {
-		return rawFeeds[i].Title < rawFeeds[j].Title
-	})
-
-	var feeds []Feed
-	for _, feed := range rawFeeds {
-		feeds = append(feeds, Feed{
-			Title:    feed.Title,
-			Feed:     feed.FeedURL,
-			Site:     feed.SiteURL,
-			Category: strings.ToLower(feed.Category.Title),
-		})
-	}
-
-	return feeds, nil
-}
+// TODO: this is something that could likely be more configurable, or added as an "add-on" to eagle.
+// For example, an interface that registers a function that is executed in a cron job. Same for summaries.
 
 const (
 	blogrollEntryID  = "/links"
@@ -54,7 +19,7 @@ const (
 	blogrollTagEnd   = "<!--/BLOGROLL-->"
 )
 
-func (e *Eagle) UpdateBlogroll() error {
+func (e *Eagle) UpdateMinifluxBlogroll() error {
 	if e.miniflux == nil {
 		return errors.New("miniflux is not implemented")
 	}
@@ -90,13 +55,13 @@ func (e *Eagle) UpdateBlogroll() error {
 	return nil
 }
 
-func (e *Eagle) initBlogrollCron() error {
+func (e *Eagle) initMinifluxCron() error {
 	if e.miniflux == nil {
 		return nil
 	}
 
 	_, err := e.cron.AddFunc("CRON_TZ=UTC 00 00 * * *", func() {
-		err := e.UpdateBlogroll()
+		err := e.UpdateMinifluxBlogroll()
 		if err != nil {
 			e.Notifier.Error(fmt.Errorf("blogroll updater: %w", err))
 		}
@@ -105,7 +70,7 @@ func (e *Eagle) initBlogrollCron() error {
 	return err
 }
 
-func minifluxFeedsToMarkdown(feeds []Feed) string {
+func minifluxFeedsToMarkdown(feeds []miniflux.Feed) string {
 	md := ""
 	for _, feed := range feeds {
 		if strings.ToLower(feed.Category) == "following" {

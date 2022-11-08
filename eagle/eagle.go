@@ -20,6 +20,7 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
 	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/eagle/v4/xray"
 	"github.com/robfig/cron/v3"
@@ -51,7 +52,7 @@ type Eagle struct {
 	cache        *ristretto.Cache
 	media        *Media
 	imgProxy     *ImgProxy
-	miniflux     *Miniflux
+	miniflux     *miniflux.Miniflux
 	lastfm       *lastfm.LastFm
 	Parser       *entry.Parser
 	Config       *config.Config
@@ -174,7 +175,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	if conf.Miniflux != nil {
-		e.miniflux = &Miniflux{Miniflux: conf.Miniflux}
+		e.miniflux = miniflux.NewMiniflux(conf.Miniflux.Endpoint, conf.Miniflux.Key)
 	}
 
 	if conf.Lastfm != nil {
@@ -218,7 +219,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	err = e.initBlogrollCron()
+	err = e.initMinifluxCron()
 	if err != nil {
 		return nil, err
 	}
