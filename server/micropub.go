@@ -146,7 +146,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		ee.Sections = append(ee.Sections, s...)
 	}
 
-	if err := s.PreCreateEntry(ee); err != nil {
+	if err := s.preSaveEntry(ee, true); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
@@ -159,8 +159,8 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	if s := cmds.Strings("mp-syndicate-to"); len(s) > 0 {
 		syndicators = s
 	}
-	go s.PostSaveEntry(ee, syndicators)
 
+	go s.postSaveHooks(ee, false, syndicators)
 	http.Redirect(w, r, s.Config.Server.BaseURL+ee.ID, http.StatusAccepted)
 	return 0, nil
 }
@@ -172,6 +172,10 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	ee, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+		if err := s.preSaveEntry(entry, false); err != nil {
+			return nil, err
+		}
+
 		mf := entry.MF2()
 		props := mf["properties"].(map[string][]interface{})
 		newMf, err := micropub.Update(props, mr)
@@ -190,7 +194,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.PostSaveEntry(ee, nil)
+	go s.postSaveHooks(ee, false, nil)
 	http.Redirect(w, r, ee.Permalink, http.StatusOK)
 	return 0, nil
 }
@@ -202,6 +206,10 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 	}
 
 	entry, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+		if err := s.preSaveEntry(entry, false); err != nil {
+			return nil, err
+		}
+
 		entry.Deleted = false
 		return entry, nil
 	})
@@ -209,7 +217,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusInternalServerError, err
 	}
 
-	go s.PostSaveEntry(entry, nil)
+	go s.postSaveHooks(entry, false, nil)
 	return http.StatusOK, nil
 }
 
@@ -220,6 +228,10 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	ee, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+		if err := s.preSaveEntry(entry, false); err != nil {
+			return nil, err
+		}
+
 		entry.Deleted = true
 		return entry, nil
 	})
@@ -227,7 +239,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.PostSaveEntry(ee, nil)
+	go s.postSaveHooks(ee, false, nil)
 	return http.StatusOK, nil
 }
 

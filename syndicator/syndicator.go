@@ -1,6 +1,7 @@
 package syndicator
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hacdias/eagle/v4/entry"
@@ -35,7 +36,23 @@ func (m *Manager) Add(s Syndicator) {
 	m.syndicators[s.Identifier()] = s
 }
 
-func (m *Manager) Syndicate(entry *entry.Entry, syndicators []string) ([]string, error) {
+func (m *Manager) Syndicate(ee *entry.Entry, syndicators []string) ([]string, error) {
+	if len(syndicators) == 0 {
+		return []string{}, nil
+	}
+
+	if ee.Draft {
+		return nil, errors.New("cannot syndicate draft entry")
+	}
+
+	if ee.Visibility() == entry.VisibilityPrivate {
+		return nil, errors.New("cannot syndicate private entry")
+	}
+
+	if ee.Deleted {
+		return nil, errors.New("cannot syndicate deleted entry")
+	}
+
 	// TODO: detect that this is a reply/like/repost to a post on my own
 	// website. If so, fetch the syndications to syndicate the replies directly
 	// there. For example, if I reply to a post on my website that is syndicated
@@ -43,7 +60,7 @@ func (m *Manager) Syndicate(entry *entry.Entry, syndicators []string) ([]string,
 	// directly reply to the Twitter version.
 
 	for id, syndicator := range m.syndicators {
-		if syndicator.IsByContext(entry) {
+		if syndicator.IsByContext(ee) {
 			syndicators = append(syndicators, id)
 		}
 	}
@@ -62,7 +79,7 @@ func (m *Manager) Syndicate(entry *entry.Entry, syndicators []string) ([]string,
 			continue
 		}
 
-		url, err := syndicator.Syndicate(entry)
+		url, err := syndicator.Syndicate(ee)
 		if err != nil {
 			errors = multierror.Append(errors, err)
 		} else {

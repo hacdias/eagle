@@ -44,6 +44,9 @@ type Server struct {
 
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
+
+	PreSaveHooks  []PreSaveHook
+	PostSaveHooks []PostSaveHook
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {

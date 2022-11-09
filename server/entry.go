@@ -163,12 +163,19 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 
 	ee.CreatedWith = s.Config.ID()
 
-	if err := s.PreCreateEntry(ee); err != nil {
+	if err := s.preSaveEntry(ee, true); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	s.newEditHandler(w, r, ee)
+	err = s.SaveEntry(ee)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	go s.postSaveHooks(ee, true, r.Form["syndication"])
+	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
@@ -243,34 +250,18 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		ee.Updated = time.Now().Local()
 	}
 
-	s.newEditHandler(w, r, ee)
-}
-
-func (s *Server) newEditHandler(w http.ResponseWriter, r *http.Request, ee *entry.Entry) {
-	syndications := r.Form["syndication"]
-
-	if len(syndications) > 0 && ee.Draft {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate draft entry"))
+	if err := s.preSaveEntry(ee, false); err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	if len(syndications) > 0 && ee.Visibility() == entry.VisibilityPrivate {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate private entry"))
-		return
-	}
-
-	if len(syndications) > 0 && ee.Deleted {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate deleted entry"))
-		return
-	}
-
-	err := s.SaveEntry(ee)
+	err = s.SaveEntry(ee)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	go s.PostSaveEntry(ee, syndications)
+	go s.postSaveHooks(ee, false, r.Form["syndication"])
 	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
 }
 
