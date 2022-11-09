@@ -17,7 +17,6 @@ import (
 	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
-	"github.com/robfig/cron/v3"
 	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
@@ -44,7 +43,7 @@ type Eagle struct {
 	// TODO: concerns only the server. Move there.
 	cache     *ristretto.Cache
 	redirects map[string]string
-	cron      *cron.Cron
+	// cron      *cron.Cron
 
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
 	media    *Media
@@ -86,7 +85,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		Config:     conf,
 		Parser:     entry.NewParser(conf.Server.BaseURL),
 		minifier:   initMinifier(),
-		cron:       cron.New(),
 	}
 
 	if conf.BunnyCDN != nil {
@@ -150,12 +148,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	_, err = e.cron.AddFunc("CRON_TZ=UTC 00 02 * * *", e.SyncStorage)
-	if err != nil {
-		return nil, err
-	}
-
-	e.cron.Start()
 	go e.indexAll()
 	return e, nil
 }
@@ -163,10 +155,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 func (e *Eagle) Close() {
 	if e.DB != nil {
 		e.DB.Close()
-	}
-
-	if e.cron != nil {
-		e.cron.Stop()
 	}
 }
 

@@ -226,6 +226,14 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		}
 	}
 
+	err = s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
+		e.SyncStorage()
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	s.cron.Start()
 	return s, nil
 }
@@ -284,6 +292,8 @@ func (s *Server) Stop() error {
 		s.log.Infof("shutting down %s", srv.Name)
 		errs = multierror.Append(errs, srv.Shutdown(ctx))
 	}
+
+	<-s.cron.Stop().Done()
 	return errs.ErrorOrNil()
 }
 
