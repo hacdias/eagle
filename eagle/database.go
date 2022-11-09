@@ -9,55 +9,55 @@ import (
 )
 
 func (e *Eagle) GetTags() ([]string, error) {
-	return e.db.GetTags()
+	return e.DB.GetTags()
 }
 
 func (e *Eagle) GetEmojis() ([]string, error) {
-	return e.db.GetEmojis()
+	return e.DB.GetEmojis()
 }
 
 func (e *Eagle) Search(opts *database.QueryOptions, search *database.SearchOptions) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.Search(opts, search))
+	return e.idsToEntries(e.DB.Search(opts, search))
 }
 
 func (e *Eagle) GetAll(opts *database.QueryOptions) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.GetAll(opts))
+	return e.idsToEntries(e.DB.GetAll(opts))
 }
 
 func (e *Eagle) GetByTag(opts *database.QueryOptions, tag string) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.ByTag(opts, tag))
+	return e.idsToEntries(e.DB.ByTag(opts, tag))
 }
 
 func (e *Eagle) GetByEmoji(opts *database.QueryOptions, emoji string) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.ByEmoji(opts, emoji))
+	return e.idsToEntries(e.DB.ByEmoji(opts, emoji))
 }
 
 func (e *Eagle) GetBySection(opts *database.QueryOptions, sections ...string) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.BySection(opts, sections...))
+	return e.idsToEntries(e.DB.BySection(opts, sections...))
 }
 
 func (e *Eagle) GetByDate(opts *database.QueryOptions, year, month, day int) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.ByDate(opts, year, month, day))
+	return e.idsToEntries(e.DB.ByDate(opts, year, month, day))
 }
 
 func (e *Eagle) GetByProperty(opts *database.QueryOptions, property, value string) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.ByProperty(opts, property, value))
+	return e.idsToEntries(e.DB.ByProperty(opts, property, value))
 }
 
 func (e *Eagle) GetDeleted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.GetDeleted(opts))
+	return e.idsToEntries(e.DB.GetDeleted(opts))
 }
 
 func (e *Eagle) GetDrafts(opts *database.PaginationOptions) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.GetDrafts(opts))
+	return e.idsToEntries(e.DB.GetDrafts(opts))
 }
 
 func (e *Eagle) GetUnlisted(opts *database.PaginationOptions) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.GetUnlisted(opts))
+	return e.idsToEntries(e.DB.GetUnlisted(opts))
 }
 
 func (e *Eagle) GetPrivate(opts *database.PaginationOptions, audience string) ([]*entry.Entry, error) {
-	return e.idsToEntries(e.db.GetPrivate(opts, audience))
+	return e.idsToEntries(e.DB.GetPrivate(opts, audience))
 }
 
 func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {
@@ -71,7 +71,7 @@ func (e *Eagle) idsToEntries(ids []string, err error) ([]*entry.Entry, error) {
 		entry, err := e.GetEntry(id)
 		if err != nil {
 			if os.IsNotExist(err) {
-				e.db.Remove(id)
+				e.DB.Remove(id)
 			} else {
 				return nil, err
 			}
@@ -91,7 +91,7 @@ func (e *Eagle) indexAll() {
 	}
 
 	start := time.Now()
-	err = e.db.Add(entries...)
+	err = e.DB.Add(entries...)
 	if err != nil {
 		e.Notifier.Error(err)
 	}

@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/hooks"
@@ -155,6 +156,10 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		}},
 		// Webmentions
 		// Reads
+		&hooks.IgnoreListing{Hook: &hooks.ReadsSummaryUpdater{
+			Eagle:    s.Eagle,
+			Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+		}},
 		// Watch
 	)
 

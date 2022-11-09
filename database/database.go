@@ -51,7 +51,6 @@ type Database interface {
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
 	ByProperty(opts *QueryOptions, property, value string) ([]string, error)
 
-	ReadsSummary() (*entry.ReadsSummary, error)
 	WatchesSummary() (*entry.WatchesSummary, error)
 	Been() ([]string, error)
 	SectionsCount() (map[string]int, error)

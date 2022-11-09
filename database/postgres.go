@@ -17,7 +17,7 @@ type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func NewDatabase(cfg *config.PostgreSQL) (Database, error) {
+func NewDatabase(cfg *config.PostgreSQL) (*Postgres, error) {
 	dsn := "user=" + cfg.User
 	dsn += " password=" + cfg.Password
 	dsn += " host=" + cfg.Host
@@ -325,7 +325,7 @@ func (d *Postgres) Search(opts *QueryOptions, search *SearchOptions) ([]string, 
 	return d.queryEntries(sql, 1, args...)
 }
 
-func (d *Postgres) ReadsSummary() (*entry.ReadsSummary, error) {
+func (d *Postgres) GetReadsSummary() (*entry.ReadsSummary, error) {
 	sql := `select distinct on (id)
 	id,
 	updated as date,

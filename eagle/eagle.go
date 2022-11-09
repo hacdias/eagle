@@ -41,7 +41,7 @@ type Eagle struct {
 	log        *zap.SugaredLogger
 	httpClient *http.Client
 	fs         *fs.FS
-	db         database.Database
+	DB         database.Database
 	Parser     *entry.Parser
 	Config     *config.Config
 
@@ -132,7 +132,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	var err error
 
-	e.db, err = database.NewDatabase(&conf.PostgreSQL)
+	e.DB, err = database.NewDatabase(&conf.PostgreSQL)
 	if err != nil {
 		return nil, err
 	}
@@ -212,8 +212,8 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 }
 
 func (e *Eagle) Close() {
-	if e.db != nil {
-		e.db.Close()
+	if e.DB != nil {
+		e.DB.Close()
 	}
 
 	if e.cron != nil {
@@ -252,7 +252,7 @@ func (e *Eagle) SyncStorage() {
 	for _, id := range ids {
 		entry, err := e.GetEntry(id)
 		if os.IsNotExist(err) {
-			e.db.Remove(id)
+			e.DB.Remove(id)
 			continue
 		} else if err != nil {
 			e.Notifier.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
@@ -262,7 +262,7 @@ func (e *Eagle) SyncStorage() {
 		e.RemoveCache(entry)
 	}
 
-	err = e.db.Add(entries...)
+	err = e.DB.Add(entries...)
 	if err != nil {
 		e.Notifier.Error(fmt.Errorf("sync failed: %w", err))
 	}

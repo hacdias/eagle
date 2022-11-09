@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v4/pkg/miniflux"
+	"github.com/hacdias/eagle/v4/util"
 )
 
 // TODO: this is something that could likely be more configurable, or added as an "add-on" to eagle.
@@ -41,7 +42,7 @@ func (e *Eagle) UpdateMinifluxBlogroll() error {
 	}
 
 	md := minifluxFeedsToMarkdown(feeds)
-	ee.Content, err = replaceBetween(ee.Content, blogrollTagStart, blogrollTagEnd, md)
+	ee.Content, err = util.ReplaceInBetween(ee.Content, blogrollTagStart, blogrollTagEnd, md)
 	if err != nil {
 		return err
 	}

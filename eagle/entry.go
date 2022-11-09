@@ -95,14 +95,6 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry) {
 		e.Error(err)
 	}
 
-	// Update read statistics if it's a read.
-	if ee.Helper().PostType() == mf2.TypeRead {
-		err = e.UpdateReadsSummary()
-		if err != nil {
-			e.Error(err)
-		}
-	}
-
 	// Update watches statistics if it's a watch.
 	if ee.Helper().PostType() == mf2.TypeWatch {
 		err = e.UpdateWatchesSummary()
@@ -226,7 +218,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
 
-	_ = e.db.Add(entry)
+	_ = e.DB.Add(entry)
 	return nil
 }
 

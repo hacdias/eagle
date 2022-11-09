@@ -36,7 +36,8 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 			err = s.UpdateMinifluxBlogroll()
 			data["Success"] = true
 		case "update-reads-statistics":
-			err = s.UpdateReadsSummary()
+			// wip: find a way to register "actions" type DashboardAction interface { ActionName() Action() error }
+			// err = s.UpdateReadsSummary()
 			data["Success"] = true
 		case "update-watches-statistics":
 			err = s.UpdateWatchesSummary()
