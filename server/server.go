@@ -19,8 +19,10 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
+	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 
@@ -45,8 +47,8 @@ type Server struct {
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
 
-	PreSaveHooks  []PreSaveHook
-	PostSaveHooks []PostSaveHook
+	PreSaveHooks  []EntryHook
+	PostSaveHooks []EntryHook
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
@@ -67,6 +69,18 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
 	s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
+
+	var allowedTypes []mf2.Type
+	for typ := range e.Config.Micropub.Sections {
+		allowedTypes = append(allowedTypes, typ)
+	}
+
+	s.PreSaveHooks = append(
+		s.PreSaveHooks,
+		hooks.AllowedType(allowedTypes),
+		&hooks.DescriptionGenerator{},
+		hooks.SectionDeducer(e.Config.Micropub.Sections),
+	)
 
 	return s, nil
 }

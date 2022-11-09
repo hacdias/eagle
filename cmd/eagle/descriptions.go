@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/spf13/cobra"
 )
 
@@ -31,9 +32,10 @@ var descriptionsCmd = &cobra.Command{
 		}
 
 		force, _ := cmd.Flags().GetBool("force")
+		generator := &hooks.DescriptionGenerator{}
 
 		for _, ee := range entries {
-			err = e.GenerateDescription(ee, force)
+			err = generator.GenerateDescription(ee, force)
 			if err != nil {
 				return err
 			}

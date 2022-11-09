@@ -72,23 +72,6 @@ func (e *Eagle) SaveEntry(entry *entry.Entry) error {
 	return e.saveEntry(entry)
 }
 
-func (e *Eagle) PreCreateEntry(ee *entry.Entry) error {
-	if err := e.GenerateDescription(ee, false); err != nil {
-		return err
-	}
-
-	postType := ee.Helper().PostType()
-	if !funk.Contains(e.allowedTypes, postType) {
-		return errors.New("type not supported " + string(postType))
-	}
-
-	if err := e.DeduceSections(ee); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 	if ee.Listing != nil {
 		// For lists, only remove from cache.
@@ -262,26 +245,6 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 	}
 
 	_ = e.db.Add(entry)
-	return nil
-}
-
-func (e *Eagle) DeduceSections(entry *entry.Entry) error {
-	if len(entry.Sections) != 0 {
-		return nil
-	}
-
-	mm := entry.Helper()
-	postType := mm.PostType()
-
-	// Only add the sections to entries under the /year/month/date.
-	// This avoids adding sections to top-level pages that shouldn't
-	// have these sections.
-	if strings.HasPrefix(entry.ID, "/20") {
-		if sections, ok := e.Config.Micropub.Sections[postType]; ok {
-			entry.Sections = append(entry.Sections, sections...)
-		}
-	}
-
 	return nil
 }
 

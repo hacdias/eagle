@@ -19,7 +19,6 @@ import (
 	"github.com/hacdias/eagle/v4/notifier"
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
 	"github.com/hacdias/eagle/v4/pkg/maze"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/syndicator"
@@ -42,13 +41,12 @@ const (
 type Eagle struct {
 	notifier.Notifier
 
-	log          *zap.SugaredLogger
-	httpClient   *http.Client
-	fs           *fs.FS
-	allowedTypes []mf2.Type
-	db           database.Database
-	Parser       *entry.Parser
-	Config       *config.Config
+	log        *zap.SugaredLogger
+	httpClient *http.Client
+	fs         *fs.FS
+	db         database.Database
+	Parser     *entry.Parser
+	Config     *config.Config
 
 	// TODO: concerns only the server. Move there.
 	cache     *ristretto.Cache
@@ -95,21 +93,16 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	srcFs := fs.NewFS(conf.Source.Directory, srcSync)
 
 	e := &Eagle{
-		log:          log.S().Named("eagle"),
-		httpClient:   httpClient,
-		fs:           srcFs,
-		wmClient:     webmention.New(httpClient),
-		Config:       conf,
-		allowedTypes: []mf2.Type{},
-		syndication:  syndicator.NewManager(),
-		Parser:       entry.NewParser(conf.Server.BaseURL),
-		minifier:     initMinifier(),
-		maze:         maze.NewMaze(httpClient),
-		cron:         cron.New(),
-	}
-
-	for typ := range conf.Micropub.Sections {
-		e.allowedTypes = append(e.allowedTypes, typ)
+		log:         log.S().Named("eagle"),
+		httpClient:  httpClient,
+		fs:          srcFs,
+		wmClient:    webmention.New(httpClient),
+		Config:      conf,
+		syndication: syndicator.NewManager(),
+		Parser:      entry.NewParser(conf.Server.BaseURL),
+		minifier:    initMinifier(),
+		maze:        maze.NewMaze(httpClient),
+		cron:        cron.New(),
 	}
 
 	if conf.BunnyCDN != nil {

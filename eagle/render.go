@@ -65,15 +65,6 @@ func (e *Eagle) includeTemplate(name string, data ...interface{}) (template.HTML
 	return template.HTML(buf.String()), err
 }
 
-func domain(text string) string {
-	u, err := urlpkg.Parse(text)
-	if err != nil {
-		return text
-	}
-
-	return u.Host
-}
-
 func humanDomain(text string) string {
 	u, err := urlpkg.Parse(text)
 	if err != nil {
@@ -144,7 +135,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 
 	funcs := template.FuncMap{
 		"truncate":            util.TruncateStringWithEllipsis,
-		"domain":              domain,
+		"domain":              util.Domain,
 		"humanDomain":         humanDomain,
 		"strContains":         strings.Contains,
 		"strSplit":            strings.Split,

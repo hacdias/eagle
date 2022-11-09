@@ -1,10 +1,11 @@
-package eagle
+package hooks
 
 import (
 	"strconv"
 
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/v4/util"
 )
 
 var typeToDescription = map[mf2.Type]string{
@@ -16,8 +17,18 @@ var typeToDescription = map[mf2.Type]string{
 	mf2.TypeDrank:    "Just drank: ",
 }
 
-func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
-	if ee.Description != "" && !force {
+type DescriptionGenerator struct{}
+
+func (d *DescriptionGenerator) EntryHook(e *entry.Entry, isNew bool) error {
+	if isNew {
+		return d.GenerateDescription(e, false)
+	}
+
+	return nil
+}
+
+func (d *DescriptionGenerator) GenerateDescription(e *entry.Entry, replaceDescription bool) error {
+	if e.Description != "" && !replaceDescription {
 		return nil
 	}
 
@@ -26,7 +37,7 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 		err         error
 	)
 
-	mm := ee.Helper()
+	mm := e.Helper()
 
 	switch mm.PostType() {
 	case mf2.TypeReply,
@@ -34,7 +45,7 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 		mf2.TypeRepost,
 		mf2.TypeBookmark:
 		url := mm.String(mm.TypeProperty())
-		urlDomain := domain(url)
+		urlDomain := util.Domain(url)
 		description = typeToDescription[mm.PostType()] + "a post on " + urlDomain
 	case mf2.TypePhoto:
 		description = "A photo"
@@ -53,26 +64,26 @@ func (e *Eagle) GenerateDescription(ee *entry.Entry, force bool) error {
 		checkin := mm.Sub(mm.TypeProperty())
 		description = "At " + checkin.Name()
 	case mf2.TypeItinerary:
-		description, err = e.generateItineraryDescription(ee)
+		description, err = d.generateItineraryDescription(e)
 	case mf2.TypeRsvp:
-		description, err = e.generateRsvpDescription(ee)
+		description, err = d.generateRsvpDescription(e)
 	case mf2.TypeWatch:
-		description, err = e.generateWatchDescription(ee)
+		description, err = d.generateWatchDescription(e)
 	}
 
 	if err != nil {
 		return err
 	}
 
-	if description == "" && ee.Description != "" {
+	if description == "" && e.Description != "" {
 		return nil
 	}
 
-	ee.Description = description
+	e.Description = description
 	return nil
 }
 
-func (e *Eagle) generateItineraryDescription(ee *entry.Entry) (string, error) {
+func (d *DescriptionGenerator) generateItineraryDescription(ee *entry.Entry) (string, error) {
 	mm := ee.Helper()
 
 	subs := mm.Subs(mm.TypeProperty())
@@ -96,11 +107,11 @@ func (e *Eagle) generateItineraryDescription(ee *entry.Entry) (string, error) {
 	return "Trip from " + origin + " to " + destination, nil
 }
 
-func (e *Eagle) generateRsvpDescription(ee *entry.Entry) (string, error) {
+func (d *DescriptionGenerator) generateRsvpDescription(ee *entry.Entry) (string, error) {
 	mm := ee.Helper()
 
 	rsvp := mm.String(mm.TypeProperty())
-	domain := domain(mm.String("in-reply-to"))
+	domain := util.Domain(mm.String("in-reply-to"))
 
 	if domain == "" {
 		return "", nil
@@ -121,7 +132,7 @@ func (e *Eagle) generateRsvpDescription(ee *entry.Entry) (string, error) {
 	return "", nil
 }
 
-func (e *Eagle) generateWatchDescription(ee *entry.Entry) (string, error) {
+func (d *DescriptionGenerator) generateWatchDescription(ee *entry.Entry) (string, error) {
 	// Matches OwnYourTrakt
 	mm := ee.Helper()
 	sub := mm.Sub(mm.TypeProperty())
