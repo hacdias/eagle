@@ -201,7 +201,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		}
 
 		if conf.XRay.Reddit && conf.Reddit != nil {
-			e.XRay.Reddit = redditClient
+			options.Reddit = redditClient
 		}
 
 		e.XRay = xray.NewXRay(options)
