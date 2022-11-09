@@ -27,7 +27,6 @@ import (
 
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
-	"willnorris.com/go/webmention"
 )
 
 const (
@@ -51,8 +50,6 @@ type Eagle struct {
 	cron      *cron.Cron
 
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
-	wmClient *webmention.Client
-
 	media    *Media
 	imgProxy *ImgProxy
 	miniflux *miniflux.Miniflux
@@ -92,7 +89,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		log:        log.S().Named("eagle"),
 		httpClient: httpClient,
 		fs:         srcFs,
-		wmClient:   webmention.New(httpClient),
 		Config:     conf,
 		Parser:     entry.NewParser(conf.Server.BaseURL),
 		minifier:   initMinifier(),

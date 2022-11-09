@@ -27,9 +27,11 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/syndicator"
+	"github.com/hacdias/eagle/v4/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
+	"willnorris.com/go/webmention"
 
 	"go.uber.org/zap"
 )
@@ -52,6 +54,7 @@ type Server struct {
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
 
+	Webmentions   *webmentions.WebmentionsService
 	syndicator    *syndicator.Manager
 	PreSaveHooks  []hooks.EntryHook
 	PostSaveHooks []hooks.EntryHook
@@ -71,7 +74,16 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		ias: indieauth.NewServer(false, &http.Client{
 			Timeout: time.Second * 30,
 		}),
+		Webmentions: &webmentions.WebmentionsService{
+			Eagle: e,
+		},
 		syndicator: syndicator.NewManager(),
+	}
+
+	if !e.Config.Webmentions.DisableSending {
+		s.Webmentions.Client = webmention.New(&http.Client{
+			Timeout: time.Minute,
+		})
 	}
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
@@ -154,7 +166,7 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 				Timeout: 1 * time.Minute,
 			}),
 		}},
-		// Webmentions
+		&hooks.IgnoreListing{Hook: s.Webmentions},
 		&hooks.IgnoreListing{Hook: &hooks.ReadsSummaryUpdater{
 			Eagle:    s.Eagle,
 			Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
