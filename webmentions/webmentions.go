@@ -5,6 +5,7 @@ import (
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/xray"
+	"github.com/hacdias/eagle/v4/renderer"
 	"willnorris.com/go/webmention"
 )
 
@@ -17,8 +18,9 @@ type WebmentionPayload struct {
 }
 
 type WebmentionsService struct {
-	Client *webmention.Client
-	Eagle  *eagle.Eagle // WIP: remove this once possible.
+	Client   *webmention.Client
+	Renderer *renderer.Renderer
+	Eagle    *eagle.Eagle // WIP: remove this once possible.
 }
 
 func (ws *WebmentionsService) EntryHook(e *entry.Entry, isNew bool) error {

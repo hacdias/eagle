@@ -11,6 +11,7 @@ import (
 
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"
@@ -90,9 +91,9 @@ func (ws *WebmentionsService) GetWebmentionTargets(entry *entry.Entry) ([]string
 
 func (ws *WebmentionsService) getTargetsFromHTML(entry *entry.Entry) ([]string, error) {
 	var buf bytes.Buffer
-	err := ws.Eagle.Render(&buf, &eagle.RenderData{
+	err := ws.Renderer.Render(&buf, &renderer.RenderData{
 		Entry: entry,
-	}, eagle.EntryTemplates(entry))
+	}, renderer.EntryTemplates(entry))
 	if err != nil {
 		return nil, err
 	}

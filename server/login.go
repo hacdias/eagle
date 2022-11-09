@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
 )
@@ -30,14 +30,14 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	s.serveHTMLWithStatus(w, r, &eagle.RenderData{
+	s.serveHTMLWithStatus(w, r, &renderer.RenderData{
 		Entry: &entry.Entry{
 			FrontMatter: entry.FrontMatter{
 				Title: "Login",
 			},
 		},
 		NoIndex: true,
-	}, []string{eagle.TemplateLogin}, http.StatusOK)
+	}, []string{renderer.TemplateLogin}, http.StatusOK)
 }
 
 func (s *Server) saveAuthInfo(w http.ResponseWriter, r *http.Request, i *indieauth.AuthInfo) error {

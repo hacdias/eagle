@@ -94,15 +94,6 @@ func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*en
 	return ee, err
 }
 
-func EntryTemplates(ee *entry.Entry) []string {
-	tpls := []string{}
-	if ee.Template != "" {
-		tpls = append(tpls, ee.Template)
-	}
-	tpls = append(tpls, TemplateSingle)
-	return tpls
-}
-
 func (e *Eagle) saveEntry(entry *entry.Entry) error {
 	entry.Sections = funk.UniqString(entry.Sections)
 

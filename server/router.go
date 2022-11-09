@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/renderer"
 )
 
 const (
@@ -47,7 +47,7 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	r.Get("/search", s.searchGet)
-	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
+	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
 	r.Get("/.well-known/webfinger", s.webfingerGet)
 
 	// IndieAuth Server

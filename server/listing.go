@@ -12,9 +12,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/v4/database"
-	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
+	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/jlelse/feeds"
 	"github.com/thoas/go-funk"
@@ -30,13 +30,13 @@ func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			IsHome: true,
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
 			return s.GetBySection(opts, s.Config.Site.IndexSection)
 		},
-		templates: []string{eagle.TemplateIndex},
+		templates: []string{renderer.TemplateIndex},
 	})
 }
 
@@ -54,7 +54,7 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -71,7 +71,7 @@ func (s *Server) emojiGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, emoji),
 		},
 		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -88,7 +88,7 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 		}
 
 		s.listingGet(w, r, &listingSettings{
-			rd: &eagle.RenderData{
+			rd: &renderer.RenderData{
 				Entry: ee,
 			},
 			exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
@@ -138,7 +138,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry: &entry.Entry{
 				FrontMatter: entry.FrontMatter{
 					Title:   title.String(),
@@ -159,12 +159,12 @@ func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Emojis"),
 		Data: listingPage{
 			Terms: emojis,
 		},
-	}, []string{eagle.TemplateEmojis})
+	}, []string{renderer.TemplateEmojis})
 }
 
 func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
@@ -174,12 +174,12 @@ func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Tags"),
 		Data: listingPage{
 			Terms: tags,
 		},
-	}, []string{eagle.TemplateTags})
+	}, []string{renderer.TemplateTags})
 }
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
@@ -201,18 +201,18 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	if search.Query == "" {
-		s.serveHTML(w, r, &eagle.RenderData{
+		s.serveHTML(w, r, &renderer.RenderData{
 			Entry:   ee,
 			NoIndex: true,
 			Data: &listingPage{
 				Search: search,
 			},
-		}, []string{eagle.TemplateSearch})
+		}, []string{renderer.TemplateSearch})
 		return
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   ee,
 			NoIndex: true,
 		},
@@ -228,13 +228,13 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 			return s.Search(opts, search)
 		},
-		templates: []string{eagle.TemplateSearch},
+		templates: []string{renderer.TemplateSearch},
 	})
 }
 
 func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
 			NoIndex: true,
 		},
@@ -246,7 +246,7 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 			NoIndex: true,
 		},
@@ -258,7 +258,7 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 			NoIndex: true,
 		},
@@ -270,7 +270,7 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
 			NoIndex: true,
 		},
@@ -301,7 +301,7 @@ func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
 
 type listingSettings struct {
 	exec      func(*database.QueryOptions) ([]*entry.Entry, error)
-	rd        *eagle.RenderData
+	rd        *renderer.RenderData
 	lp        listingPage
 	templates []string
 }
@@ -328,7 +328,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	if ls.rd == nil {
-		ls.rd = &eagle.RenderData{}
+		ls.rd = &renderer.RenderData{}
 	}
 
 	if ls.rd.Entry == nil {
@@ -379,10 +379,10 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		if ls.rd.Template != "" {
 			templates = append(templates, ls.rd.Template)
 		}
-		templates = append(templates, eagle.TemplateList)
+		templates = append(templates, renderer.TemplateList)
 		path := r.URL.Path
 
-		ls.rd.Alternates = []eagle.Alternate{
+		ls.rd.Alternates = []renderer.Alternate{
 			{
 				Type: contenttype.JSONFeed,
 				Href: path + ".json",
@@ -416,7 +416,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	for _, entry := range entries {
 		var buf bytes.Buffer
-		err = s.Render(&buf, &eagle.RenderData{Entry: entry}, []string{eagle.TemplateFeed})
+		err = s.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed})
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -52,7 +52,7 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &entry.Entry{
 			FrontMatter: entry.FrontMatter{
 				Title: "Authorization",
@@ -60,7 +60,7 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		},
 		Data:    req,
 		NoIndex: true,
-	}, []string{eagle.TemplateAuth})
+	}, []string{renderer.TemplateAuth})
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {

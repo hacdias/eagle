@@ -1,4 +1,4 @@
-package eagle
+package renderer
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/hacdias/eagle/v4/config"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 )
 
@@ -33,27 +34,27 @@ type Asset struct {
 	Body []byte
 }
 
-func (e *Eagle) initAssets() error {
-	assets, err := e.getAssets()
+func (r *Renderer) initAssets() error {
+	assets, err := r.getAssets()
 	if err != nil {
 		return err
 	}
-	e.assets = assets
+	r.assets = assets
 	return nil
 }
 
-func (e *Eagle) GetAssets() *Assets {
-	return e.assets
+func (r *Renderer) GetAssets() *Assets {
+	return r.assets
 }
 
-func (e *Eagle) getAssets() (*Assets, error) {
+func (r *Renderer) getAssets() (*Assets, error) {
 	assets := &Assets{
 		paths:  map[string]string{},
 		assets: map[string]*Asset{},
 	}
 
-	for _, asset := range e.Config.Source.Assets {
-		parsedAsset, err := e.buildAsset(&asset)
+	for _, asset := range r.c.Source.Assets {
+		parsedAsset, err := r.buildAsset(&asset)
 		if err != nil {
 			return nil, err
 		}
@@ -65,12 +66,12 @@ func (e *Eagle) getAssets() (*Assets, error) {
 	return assets, nil
 }
 
-func (e *Eagle) buildAsset(asset *config.Asset) (*Asset, error) {
+func (r *Renderer) buildAsset(asset *config.Asset) (*Asset, error) {
 	var data bytes.Buffer
 
 	for _, file := range asset.Files {
-		filename := filepath.Join(AssetsDirectory, file)
-		raw, err := e.FS.ReadFile(filename)
+		filename := filepath.Join(eagle.AssetsDirectory, file)
+		raw, err := r.eagle.FS.ReadFile(filename)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +100,7 @@ func (e *Eagle) buildAsset(asset *config.Asset) (*Asset, error) {
 	if contentType != "" {
 		var w bytes.Buffer
 
-		err := e.minifier.Minify(contentType, &w, &data)
+		err := r.minify.Minify(contentType, &w, &data)
 		if err != nil {
 			return nil, err
 		}

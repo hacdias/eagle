@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/thoas/go-funk"
 )
 
@@ -130,7 +130,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &entry.Entry{},
 		Data: map[string]interface{}{
 			"ID":          id,
@@ -139,7 +139,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 			"Templates":   templates,
 		},
 		NoIndex: true,
-	}, []string{eagle.TemplateNew})
+	}, []string{renderer.TemplateNew})
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +203,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &entry.Entry{},
 		Data: map[string]interface{}{
 			"Title":       ee.Title,
@@ -212,7 +212,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 			"Syndicators": s.syndicator.Config(),
 		},
 		NoIndex: true,
-	}, []string{eagle.TemplateEditor})
+	}, []string{renderer.TemplateEditor})
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
@@ -309,8 +309,8 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *entry.Entry) {
 	postType := ee.Helper().PostType()
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry:   ee,
 		NoIndex: ee.NoIndex || ee.Visibility() != entry.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
-	}, eagle.EntryTemplates(ee))
+	}, renderer.EntryTemplates(ee))
 }

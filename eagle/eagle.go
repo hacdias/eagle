@@ -2,7 +2,6 @@ package eagle
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,10 +17,8 @@ import (
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
 	"github.com/spf13/afero"
-	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
 
-	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
 )
 
@@ -48,13 +45,6 @@ type Eagle struct {
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
 	media    *Media
 	imgProxy *ImgProxy
-
-	// TODO: concerns only rendering. Modularize and make rendering package.
-	assets           *Assets
-	templates        map[string]*template.Template
-	markdown         goldmark.Markdown
-	absoluteMarkdown goldmark.Markdown
-	minifier         *minify.M
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -84,7 +74,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		FS:         srcFs,
 		Config:     conf,
 		Parser:     entry.NewParser(conf.Server.BaseURL),
-		minifier:   initMinifier(),
 	}
 
 	if conf.BunnyCDN != nil {
@@ -125,25 +114,12 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	e.markdown = newMarkdown(e, false)
-	e.absoluteMarkdown = newMarkdown(e, true)
-
 	err = e.initCache()
 	if err != nil {
 		return nil, err
 	}
 
 	err = e.initRedirects()
-	if err != nil {
-		return nil, err
-	}
-
-	err = e.initAssets()
-	if err != nil {
-		return nil, err
-	}
-
-	err = e.initTemplates()
 	if err != nil {
 		return nil, err
 	}

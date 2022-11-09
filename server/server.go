@@ -30,6 +30,7 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/pkg/xray"
+	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/eagle/v4/webmentions"
 	"github.com/hacdias/indieauth/v3"
@@ -62,6 +63,8 @@ type Server struct {
 	actions map[string]func() error
 	cron    *cron.Cron
 
+	*renderer.Renderer
+
 	Webmentions   *webmentions.WebmentionsService
 	syndicator    *syndicator.Manager
 	PreSaveHooks  []hooks.EntryHook
@@ -71,6 +74,11 @@ type Server struct {
 func NewServer(e *eagle.Eagle) (*Server, error) {
 	clientID := e.Config.Server.BaseURL + "/"
 	redirectURL := e.Config.Server.BaseURL + "/login/callback"
+
+	renderer, err := renderer.NewRenderer(e.Config, e)
+	if err != nil {
+		return nil, err
+	}
 
 	s := &Server{
 		Eagle:   e,
@@ -83,11 +91,13 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 			Timeout: time.Second * 30,
 		}),
 		Webmentions: &webmentions.WebmentionsService{
-			Eagle: e,
+			Eagle:    e,
+			Renderer: renderer,
 		},
 		syndicator: syndicator.NewManager(),
 		actions:    map[string]func() error{},
 		cron:       cron.New(),
+		Renderer:   renderer,
 	}
 
 	if !e.Config.Webmentions.DisableSending {
@@ -109,7 +119,6 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 	}
 
 	var (
-		err          error
 		redditClient *reddit.Client
 	)
 
@@ -388,7 +397,7 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 	})
 }
 
-func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string, code int) {
+func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *renderer.RenderData, tpls []string, code int) {
 	if data.Entry.ID == "" {
 		data.Entry.ID = r.URL.Path
 	}
@@ -425,7 +434,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 	}
 }
 
-func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *eagle.RenderData, tpls []string) {
+func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *renderer.RenderData, tpls []string) {
 	s.serveHTMLWithStatus(w, r, data, tpls, http.StatusOK)
 }
 
@@ -444,7 +453,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 		data["Error"] = err.Error()
 	}
 
-	rd := &eagle.RenderData{
+	rd := &renderer.RenderData{
 		Entry: &entry.Entry{
 			FrontMatter: entry.FrontMatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
@@ -454,5 +463,5 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 		Data:    data,
 	}
 
-	s.serveHTMLWithStatus(w, r, rd, []string{eagle.TemplateError}, code)
+	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
 }
