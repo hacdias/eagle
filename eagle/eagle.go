@@ -17,8 +17,6 @@ import (
 	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
-	"github.com/hacdias/eagle/v4/pkg/lastfm"
-	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
@@ -51,8 +49,6 @@ type Eagle struct {
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
 	media    *Media
 	imgProxy *ImgProxy
-	lastfm   *lastfm.LastFm
-	xray     *xray.XRay
 
 	// TODO: concerns only rendering. Modularize and make rendering package.
 	assets           *Assets
@@ -134,33 +130,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.markdown = newMarkdown(e, false)
 	e.absoluteMarkdown = newMarkdown(e, true)
 
-	if conf.Lastfm != nil {
-		e.lastfm = lastfm.NewLastFm(conf.Lastfm.Key, conf.Lastfm.User)
-	}
-
-	if conf.XRay != nil && conf.XRay.Endpoint != "" {
-		options := &xray.XRayOptions{
-			Log:       log.S().Named("xray"),
-			Endpoint:  conf.XRay.Endpoint,
-			UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", conf.ID()),
-		}
-
-		if conf.XRay.Twitter && conf.Twitter != nil {
-			options.Twitter = &xray.Twitter{
-				Key:         conf.Twitter.Key,
-				Secret:      conf.Twitter.Secret,
-				Token:       conf.Twitter.Token,
-				TokenSecret: conf.Twitter.TokenSecret,
-			}
-		}
-
-		// if conf.XRay.Reddit && conf.Reddit != nil {
-		// 	options.Reddit = redditClient
-		// }
-
-		e.xray = xray.NewXRay(options)
-	}
-
 	err = e.initCache()
 	if err != nil {
 		return nil, err
@@ -177,11 +146,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	}
 
 	err = e.initTemplates()
-	if err != nil {
-		return nil, err
-	}
-
-	err = e.initScrobbleCron()
 	if err != nil {
 		return nil, err
 	}

@@ -64,7 +64,7 @@ func (e *Eagle) UploadMedia(filename, ext string, reader io.Reader) (string, err
 	return e.upload("media", filename, ext, data, false)
 }
 
-func (e *Eagle) uploadFromURL(base, url string, skipImageCheck bool) (string, error) {
+func (e *Eagle) UploadFromURL(base, url string, skipImageCheck bool) (string, error) {
 	if e.media == nil {
 		return url, errors.New("media is not implemented")
 	}
@@ -88,7 +88,7 @@ func (e *Eagle) uploadFromURL(base, url string, skipImageCheck bool) (string, er
 }
 
 func (e *Eagle) SafeUploadFromURL(base, url string, skipImageCheck bool) string {
-	newURL, err := e.uploadFromURL(base, url, skipImageCheck)
+	newURL, err := e.UploadFromURL(base, url, skipImageCheck)
 	if err != nil {
 		e.log.Warnf("could not upload file %s: %s", url, err.Error())
 		return url

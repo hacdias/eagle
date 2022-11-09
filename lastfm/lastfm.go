@@ -1,11 +1,11 @@
-package eagle
+package lastfm
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"time"
 
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
 )
@@ -16,12 +16,20 @@ func getDailyListensID(year int, month time.Month, day int) string {
 	return entry.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
 }
 
-func (e *Eagle) FetchLastFmListens(year int, month time.Month, day int) (bool, error) {
-	if e.lastfm == nil {
-		return false, errors.New("lastfm is not implemented")
-	}
+type LastFm struct {
+	client *lastfm.LastFm
+	eagle  *eagle.Eagle // wip: remove this
+}
 
-	tracks, err := e.lastfm.Fetch(year, month, day)
+func NewLastFm(key, user string, eagle *eagle.Eagle) *LastFm {
+	return &LastFm{
+		eagle:  eagle,
+		client: lastfm.NewLastFm(key, user),
+	}
+}
+
+func (l *LastFm) FetchLastFmListens(year int, month time.Month, day int) (bool, error) {
+	tracks, err := l.client.Fetch(year, month, day)
 	if err != nil {
 		return false, err
 	}
@@ -37,7 +45,7 @@ func (e *Eagle) FetchLastFmListens(year int, month time.Month, day int) (bool, e
 			if dst, ok := coverUploads[t.OriginalImage]; ok {
 				t.Image = dst
 			} else {
-				url, err := e.uploadFromURL("media", t.OriginalImage, true)
+				url, err := l.eagle.UploadFromURL("media", t.OriginalImage, true)
 				if err == nil {
 					t.Image = url
 					coverUploads[t.OriginalImage] = url
@@ -46,21 +54,21 @@ func (e *Eagle) FetchLastFmListens(year int, month time.Month, day int) (bool, e
 		}
 	}
 
-	filename := filepath.Join(ContentDirectory, getDailyListensID(year, month, day), lastfmFileName)
+	filename := filepath.Join(eagle.ContentDirectory, getDailyListensID(year, month, day), lastfmFileName)
 
-	err = e.FS.MkdirAll(filepath.Dir(filename), 0777)
+	err = l.eagle.FS.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
 		return false, err
 	}
-	return true, e.FS.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
+	return true, l.eagle.FS.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
 }
 
-func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) error {
+func (l *LastFm) CreateDailyListensEntry(year int, month time.Month, day int) error {
 	id := entry.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
-	filename := filepath.Join(ContentDirectory, id, lastfmFileName)
+	filename := filepath.Join(eagle.ContentDirectory, id, lastfmFileName)
 	tracks := []*lastfm.Track{}
 
-	err := e.FS.ReadJSON(filename, &tracks)
+	err := l.eagle.FS.ReadJSON(filename, &tracks)
 	if err != nil {
 		return err
 	}
@@ -143,37 +151,28 @@ func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) err
 
 	ee.Content += "\n\n</details>\n"
 
-	err = e.SaveEntry(ee)
+	err = l.eagle.SaveEntry(ee)
 	if err != nil {
 		return err
 	}
 
-	e.RemoveCache(ee)
+	l.eagle.RemoveCache(ee)
 	return nil
 }
 
-func (e *Eagle) initScrobbleCron() error {
-	_, err := e.cron.AddFunc("CRON_TZ=UTC 00 05 * * *", func() {
-		today := time.Now().UTC()
-		yesterday := today.AddDate(0, 0, -1)
-		year, month, day := yesterday.Date()
+func (l *LastFm) DailyJob() error {
+	today := time.Now().UTC()
+	yesterday := today.AddDate(0, 0, -1)
+	year, month, day := yesterday.Date()
 
-		created, err := e.FetchLastFmListens(year, month, day)
-		if err != nil {
-			e.Notifier.Error(fmt.Errorf("daily scrobbles cron job: %w", err))
-			return
-		}
+	created, err := l.FetchLastFmListens(year, month, day)
+	if err != nil {
+		return err
+	}
 
-		if !created {
-			return
-		}
+	if !created {
+		return nil
+	}
 
-		err = e.CreateDailyListensEntry(year, month, day)
-		if err != nil {
-			e.Notifier.Error(fmt.Errorf("daily scrobbles cron job: %w", err))
-			return
-		}
-	})
-
-	return err
+	return l.CreateDailyListensEntry(year, month, day)
 }

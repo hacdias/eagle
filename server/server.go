@@ -23,6 +23,7 @@ import (
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/hooks"
+	"github.com/hacdias/eagle/v4/lastfm"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/pkg/maze"
@@ -206,12 +207,20 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 			Client: miniflux.NewMiniflux(e.Config.Miniflux.Endpoint, e.Config.Miniflux.Key),
 		}
 
-		err = s.RegisterCron(" 00 00 * * *", "Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
+		err = s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
 		if err != nil {
 			return nil, err
 		}
 
 		err = s.RegisterAction("Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if e.Config.Lastfm != nil {
+		lastfm := lastfm.NewLastFm(e.Config.Lastfm.Key, e.Config.Lastfm.User, e)
+		err = s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob)
 		if err != nil {
 			return nil, err
 		}

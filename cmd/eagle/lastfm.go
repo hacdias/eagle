@@ -7,6 +7,7 @@ import (
 
 	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/lastfm"
 	"github.com/spf13/cobra"
 )
 
@@ -49,6 +50,8 @@ var lastfmCmd = &cobra.Command{
 		}
 		defer e.Close()
 
+		lastfm := lastfm.NewLastFm(e.Config.Lastfm.Key, e.Config.Lastfm.User, e)
+
 		for cur := from; !cur.Equal(to); cur = cur.AddDate(0, 0, 1) {
 			year, month, day := cur.Date()
 			fmt.Printf("Processing %04d-%02d-%02d\n", year, month, day)
@@ -57,14 +60,14 @@ var lastfmCmd = &cobra.Command{
 			var err error
 
 			if !noFetch {
-				created, err = e.FetchLastFmListens(year, month, day)
+				created, err = lastfm.FetchLastFmListens(year, month, day)
 				if err != nil {
 					return err
 				}
 			}
 
 			if !noGenerate && created {
-				err := e.CreateDailyListensEntry(year, month, day)
+				err := lastfm.CreateDailyListensEntry(year, month, day)
 				if err != nil && !os.IsNotExist(err) {
 					return err
 				}
