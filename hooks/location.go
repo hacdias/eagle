@@ -18,10 +18,6 @@ type LocationFetcher struct {
 }
 
 func (l *LocationFetcher) EntryHook(e *entry.Entry, isNew bool) error {
-	if e.Listing != nil {
-		return nil
-	}
-
 	return l.FetchLocation(e)
 }
 

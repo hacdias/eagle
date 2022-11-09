@@ -52,8 +52,8 @@ type Server struct {
 	jwtAuth      *jwtauth.JWTAuth
 
 	syndicator    *syndicator.Manager
-	PreSaveHooks  []EntryHook
-	PostSaveHooks []EntryHook
+	PreSaveHooks  []hooks.EntryHook
+	PostSaveHooks []hooks.EntryHook
 }
 
 func NewServer(e *eagle.Eagle) (*Server, error) {
@@ -110,9 +110,9 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 	s.PreSaveHooks = append(
 		s.PreSaveHooks,
-		hooks.AllowedType(allowedTypes),
-		&hooks.DescriptionGenerator{},
-		hooks.SectionDeducer(e.Config.Micropub.Sections),
+		&hooks.IgnoreListing{Hook: hooks.AllowedType(allowedTypes)},
+		&hooks.IgnoreListing{Hook: &hooks.DescriptionGenerator{}},
+		&hooks.IgnoreListing{Hook: hooks.SectionDeducer(e.Config.Micropub.Sections)},
 	)
 
 	if e.Config.XRay != nil && e.Config.XRay.Endpoint != "" {
@@ -137,22 +137,22 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 		xray := xray.NewXRay(options)
 
-		s.PostSaveHooks = append(s.PostSaveHooks, &hooks.ContextXRay{
+		s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: &hooks.ContextXRay{
 			XRay:  xray,
 			Eagle: s.Eagle,
-		})
+		}})
 	}
 
 	s.PostSaveHooks = append(
 		s.PostSaveHooks,
 		// Process Photos
-		&hooks.LocationFetcher{
+		&hooks.IgnoreListing{Hook: &hooks.LocationFetcher{
 			Language: e.Config.Site.Language,
 			Eagle:    e,
 			Maze: maze.NewMaze(&http.Client{
 				Timeout: 1 * time.Minute,
 			}),
-		},
+		}},
 		// Webmentions
 		// Reads
 		// Watch
