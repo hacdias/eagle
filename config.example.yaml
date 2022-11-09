@@ -189,9 +189,3 @@ imgproxy:
   directory:
   # ImgProxy endpoint
   endpoint:
-
-# Optional Mapbox (https://docs.mapbox.com/) integration for tiling service.
-# OpenStreetMap will be proxied otherwise.
-mapbox:
-  token: SecretToken
-  mapStyle: streets-v11
