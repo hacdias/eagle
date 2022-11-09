@@ -9,7 +9,7 @@ import (
 )
 
 type PhotosProcessor struct {
-	Eagle *eagle.Eagle
+	Eagle *eagle.Eagle // wip: do not do this
 }
 
 func (p *PhotosProcessor) EntryHook(e *entry.Entry, isNew bool) error {

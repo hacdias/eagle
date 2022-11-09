@@ -9,7 +9,7 @@ func (e *Eagle) GetRedirects() map[string]string {
 func (e *Eagle) initRedirects() error {
 	redirects := map[string]string{}
 
-	data, err := e.fs.ReadFile("redirects")
+	data, err := e.FS.ReadFile("redirects")
 	if err != nil {
 		return err
 	}

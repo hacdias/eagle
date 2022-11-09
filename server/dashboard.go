@@ -33,14 +33,15 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 			go s.SyncStorage()
 			data["Success"] = true
 		case "update-blogroll":
-			err = s.UpdateMinifluxBlogroll()
+			// wip: use dashboardActions
+			// err = s.UpdateMinifluxBlogroll()
 			data["Success"] = true
 		case "update-reads-statistics":
-			// wip: find a way to register "actions" type DashboardAction interface { ActionName() Action() error }
+			// wip: use dashboardActions
 			// err = s.UpdateReadsSummary()
 			data["Success"] = true
 		case "update-watches-statistics":
-			// wip: find a way to register "actions" type DashboardAction interface { ActionName() Action() error }
+			// wip: use dashboardActions
 			// err = s.UpdateWatchesSummary()
 			data["Success"] = true
 		case "token":

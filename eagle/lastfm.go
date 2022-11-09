@@ -48,11 +48,11 @@ func (e *Eagle) FetchLastFmListens(year int, month time.Month, day int) (bool, e
 
 	filename := filepath.Join(ContentDirectory, getDailyListensID(year, month, day), lastfmFileName)
 
-	err = e.fs.MkdirAll(filepath.Dir(filename), 0777)
+	err = e.FS.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
 		return false, err
 	}
-	return true, e.fs.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
+	return true, e.FS.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
 }
 
 func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) error {
@@ -60,7 +60,7 @@ func (e *Eagle) CreateDailyListensEntry(year int, month time.Month, day int) err
 	filename := filepath.Join(ContentDirectory, id, lastfmFileName)
 	tracks := []*lastfm.Track{}
 
-	err := e.fs.ReadJSON(filename, &tracks)
+	err := e.FS.ReadJSON(filename, &tracks)
 	if err != nil {
 		return err
 	}

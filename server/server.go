@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/hacdias/eagle/v4/blogroll"
 	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
@@ -25,11 +27,13 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/eagle/v4/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
+	"github.com/robfig/cron/v3"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"willnorris.com/go/webmention"
 
@@ -53,6 +57,9 @@ type Server struct {
 
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
+
+	actions map[string]func() error
+	cron    *cron.Cron
 
 	Webmentions   *webmentions.WebmentionsService
 	syndicator    *syndicator.Manager
@@ -78,6 +85,8 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 			Eagle: e,
 		},
 		syndicator: syndicator.NewManager(),
+		actions:    map[string]func() error{},
+		cron:       cron.New(),
 	}
 
 	if !e.Config.Webmentions.DisableSending {
@@ -169,17 +178,66 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 			}),
 		}},
 		&hooks.IgnoreListing{Hook: s.Webmentions},
-		&hooks.IgnoreListing{Hook: &hooks.ReadsSummaryUpdater{
-			Eagle:    s.Eagle,
-			Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
-		}},
-		&hooks.IgnoreListing{Hook: &hooks.WatchesSummaryUpdater{
-			Eagle:    s.Eagle,
-			Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
-		}},
 	)
 
+	readsSummaryUpdater := &hooks.ReadsSummaryUpdater{
+		Eagle:    s.Eagle,
+		Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+	}
+	s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: readsSummaryUpdater})
+	err = s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary)
+	if err != nil {
+		return nil, err
+	}
+
+	watchesSummaryUpdater := &hooks.WatchesSummaryUpdater{
+		Eagle:    s.Eagle,
+		Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+	}
+	s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: watchesSummaryUpdater})
+	err = s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary)
+	if err != nil {
+		return nil, err
+	}
+
+	if e.Config.Miniflux != nil {
+		mf := blogroll.MinifluxBlogrollUpdater{
+			Eagle:  e,
+			Client: miniflux.NewMiniflux(e.Config.Miniflux.Endpoint, e.Config.Miniflux.Key),
+		}
+
+		err = s.RegisterCron(" 00 00 * * *", "Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
+		if err != nil {
+			return nil, err
+		}
+
+		err = s.RegisterAction("Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	s.cron.Start()
 	return s, nil
+}
+
+func (s *Server) RegisterAction(name string, action func() error) error {
+	if _, ok := s.actions[name]; ok {
+		return errors.New("action already registered")
+	}
+
+	s.actions[name] = action
+	return nil
+}
+
+func (s *Server) RegisterCron(schedule, name string, job func() error) error {
+	_, err := s.cron.AddFunc(schedule, func() {
+		err := job()
+		if err != nil {
+			s.Notifier.Error(fmt.Errorf("%s cron job: %w", name, err))
+		}
+	})
+	return err
 }
 
 func (s *Server) Start() error {

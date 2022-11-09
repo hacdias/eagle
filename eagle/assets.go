@@ -70,7 +70,7 @@ func (e *Eagle) buildAsset(asset *config.Asset) (*Asset, error) {
 
 	for _, file := range asset.Files {
 		filename := filepath.Join(AssetsDirectory, file)
-		raw, err := e.fs.ReadFile(filename)
+		raw, err := e.FS.ReadFile(filename)
 		if err != nil {
 			return nil, err
 		}

@@ -168,7 +168,7 @@ func (e *Eagle) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 
 func (e *Eagle) initTemplates() error {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
-	baseTemplateData, err := e.fs.ReadFile(baseTemplateFilename)
+	baseTemplateData, err := e.FS.ReadFile(baseTemplateFilename)
 	if err != nil {
 		return err
 	}
@@ -182,7 +182,7 @@ func (e *Eagle) initTemplates() error {
 
 	parsed := map[string]*template.Template{}
 
-	err = e.fs.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
+	err = e.FS.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -203,7 +203,7 @@ func (e *Eagle) initTemplates() error {
 			return nil
 		}
 
-		raw, err := e.fs.ReadFile(filename)
+		raw, err := e.FS.ReadFile(filename)
 		if err != nil {
 			return err
 		}
@@ -267,13 +267,13 @@ func (rd *RenderData) GetSidecar() *Sidecar {
 func (rd *RenderData) GetJSON(path string) interface{} {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
 	var data interface{}
-	_ = rd.eagle.fs.ReadJSON(filename, &data)
+	_ = rd.eagle.FS.ReadJSON(filename, &data)
 	return data
 }
 
 func (rd *RenderData) GetFile(path string) string {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
-	v, _ := rd.eagle.fs.ReadFile(filename)
+	v, _ := rd.eagle.FS.ReadFile(filename)
 	return string(v)
 }
 
@@ -284,7 +284,7 @@ func (rd *RenderData) GetEntry(id string) *entry.Entry {
 
 func (rd *RenderData) HasFile(path string) bool {
 	filename := filepath.Join(ContentDirectory, rd.ID, path)
-	stat, err := rd.eagle.fs.Stat(filename)
+	stat, err := rd.eagle.FS.Stat(filename)
 	return err == nil && stat.Mode().IsRegular()
 }
 

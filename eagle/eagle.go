@@ -18,7 +18,6 @@ import (
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
-	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/afero"
@@ -39,7 +38,7 @@ type Eagle struct {
 
 	log        *zap.SugaredLogger
 	httpClient *http.Client
-	fs         *fs.FS
+	FS         *fs.FS
 	DB         database.Database
 	Parser     *entry.Parser
 	Config     *config.Config
@@ -52,7 +51,6 @@ type Eagle struct {
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
 	media    *Media
 	imgProxy *ImgProxy
-	miniflux *miniflux.Miniflux
 	lastfm   *lastfm.LastFm
 	xray     *xray.XRay
 
@@ -88,7 +86,7 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e := &Eagle{
 		log:        log.S().Named("eagle"),
 		httpClient: httpClient,
-		fs:         srcFs,
+		FS:         srcFs,
 		Config:     conf,
 		Parser:     entry.NewParser(conf.Server.BaseURL),
 		minifier:   initMinifier(),
@@ -135,10 +133,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 
 	e.markdown = newMarkdown(e, false)
 	e.absoluteMarkdown = newMarkdown(e, true)
-
-	if conf.Miniflux != nil {
-		e.miniflux = miniflux.NewMiniflux(conf.Miniflux.Endpoint, conf.Miniflux.Key)
-	}
 
 	if conf.Lastfm != nil {
 		e.lastfm = lastfm.NewLastFm(conf.Lastfm.Key, conf.Lastfm.User)
@@ -187,11 +181,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	err = e.initMinifluxCron()
-	if err != nil {
-		return nil, err
-	}
-
 	err = e.initScrobbleCron()
 	if err != nil {
 		return nil, err
@@ -218,7 +207,7 @@ func (e *Eagle) Close() {
 }
 
 func (e *Eagle) SyncStorage() {
-	changedFiles, err := e.fs.Sync()
+	changedFiles, err := e.FS.Sync()
 	if err != nil {
 		e.Notifier.Error(fmt.Errorf("sync storage: %w", err))
 		return

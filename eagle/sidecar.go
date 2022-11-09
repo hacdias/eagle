@@ -29,7 +29,7 @@ func (e *Eagle) getSidecar(entry *entry.Entry) (*Sidecar, string, error) {
 
 	var sidecar *Sidecar
 
-	err := e.fs.ReadJSON(filename, &sidecar)
+	err := e.FS.ReadJSON(filename, &sidecar)
 	if os.IsNotExist(err) {
 		err = nil
 	} else if err != nil {
@@ -82,5 +82,5 @@ func (e *Eagle) UpdateSidecar(entry *entry.Entry, t func(*Sidecar) (*Sidecar, er
 		return newSd.Interactions[i].Published.Before(newSd.Interactions[j].Published)
 	})
 
-	return e.fs.WriteJSON(filename, newSd, "sidecar: "+entry.ID)
+	return e.FS.WriteJSON(filename, newSd, "sidecar: "+entry.ID)
 }

@@ -19,7 +19,7 @@ func (e *Eagle) GetEntry(id string) (*entry.Entry, error) {
 		return nil, err
 	}
 
-	raw, err := e.fs.ReadFile(filepath)
+	raw, err := e.FS.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (e *Eagle) GetEntry(id string) (*entry.Entry, error) {
 
 func (e *Eagle) GetEntries(includeList bool) ([]*entry.Entry, error) {
 	entries := []*entry.Entry{}
-	err := e.fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
+	err := e.FS.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -115,7 +115,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 		path = filepath.Join(ContentDirectory, entry.ID, "index.md")
 	}
 
-	err = e.fs.MkdirAll(filepath.Dir(path), 0777)
+	err = e.FS.MkdirAll(filepath.Dir(path), 0777)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 		return err
 	}
 
-	err = e.fs.WriteFile(path, []byte(str), "update "+entry.ID)
+	err = e.FS.WriteFile(path, []byte(str), "update "+entry.ID)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -136,7 +136,7 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 
 func (e *Eagle) guessPath(id string) (string, error) {
 	path := filepath.Join(ContentDirectory, id, "index.md")
-	_, err := e.fs.Stat(path)
+	_, err := e.FS.Stat(path)
 	if err == nil {
 		return path, nil
 	}
