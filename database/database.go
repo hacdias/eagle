@@ -49,9 +49,4 @@ type Database interface {
 	ByEmoji(opt *QueryOptions, emoji string) ([]string, error)
 	BySection(opt *QueryOptions, sections ...string) ([]string, error)
 	ByDate(opts *QueryOptions, year, month, day int) ([]string, error)
-	ByProperty(opts *QueryOptions, property, value string) ([]string, error)
-
-	WatchesSummary() (*entry.WatchesSummary, error)
-	Been() ([]string, error)
-	SectionsCount() (map[string]int, error)
 }

@@ -40,7 +40,8 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 			// err = s.UpdateReadsSummary()
 			data["Success"] = true
 		case "update-watches-statistics":
-			err = s.UpdateWatchesSummary()
+			// wip: find a way to register "actions" type DashboardAction interface { ActionName() Action() error }
+			// err = s.UpdateWatchesSummary()
 			data["Success"] = true
 		case "token":
 			clientID := r.Form.Get("client_id")

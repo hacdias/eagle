@@ -155,12 +155,14 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 			}),
 		}},
 		// Webmentions
-		// Reads
 		&hooks.IgnoreListing{Hook: &hooks.ReadsSummaryUpdater{
 			Eagle:    s.Eagle,
 			Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
 		}},
-		// Watch
+		&hooks.IgnoreListing{Hook: &hooks.WatchesSummaryUpdater{
+			Eagle:    s.Eagle,
+			Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+		}},
 	)
 
 	return s, nil

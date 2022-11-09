@@ -40,24 +40,17 @@ func (u *ReadsSummaryUpdater) UpdateReadsSummary() error {
 		return err
 	}
 
-	ee, err := u.Eagle.GetEntry(booksSummaryEntryID)
+	e, err := u.Eagle.TransformEntry(booksSummaryEntryID, func(e *entry.Entry) (*entry.Entry, error) {
+		var err error
+		md := readsSummaryToMarkdown(stats)
+		e.Content, err = util.ReplaceInBetween(e.Content, booksSummaryTagStart, booksSummaryTagEnd, md)
+		return e, err
+	})
 	if err != nil {
 		return err
 	}
 
-	md := readsSummaryToMarkdown(stats)
-
-	ee.Content, err = util.ReplaceInBetween(ee.Content, booksSummaryTagStart, booksSummaryTagEnd, md)
-	if err != nil {
-		return err
-	}
-
-	err = u.Eagle.SaveEntry(ee)
-	if err != nil {
-		return err
-	}
-
-	u.Eagle.RemoveCache(ee)
+	u.Eagle.RemoveCache(e)
 	return nil
 }
 

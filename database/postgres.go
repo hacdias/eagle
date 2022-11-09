@@ -414,7 +414,7 @@ func (d *Postgres) watches(baseSql string) ([]*entry.Watch, error) {
 	return watches, nil
 }
 
-func (d *Postgres) WatchesSummary() (*entry.WatchesSummary, error) {
+func (d *Postgres) GetWatchesSummary() (*entry.WatchesSummary, error) {
 	watches := &entry.WatchesSummary{
 		Series: []*entry.Watch{},
 		Movies: []*entry.Watch{},

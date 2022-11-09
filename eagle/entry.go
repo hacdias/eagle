@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/thoas/go-funk"
 )
 
@@ -93,14 +92,6 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry) {
 	err = e.SendWebmentions(ee)
 	if err != nil {
 		e.Error(err)
-	}
-
-	// Update watches statistics if it's a watch.
-	if ee.Helper().PostType() == mf2.TypeWatch {
-		err = e.UpdateWatchesSummary()
-		if err != nil {
-			e.Error(err)
-		}
 	}
 }
 
