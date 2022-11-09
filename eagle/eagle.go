@@ -18,7 +18,6 @@ import (
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/notifier"
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
-	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/syndicator"
@@ -60,7 +59,6 @@ type Eagle struct {
 	imgProxy    *ImgProxy
 	miniflux    *miniflux.Miniflux
 	lastfm      *lastfm.LastFm
-	maze        *maze.Maze
 	XRay        *xray.XRay
 
 	// TODO: concerns only rendering. Modularize and make rendering package.
@@ -101,7 +99,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		syndication: syndicator.NewManager(),
 		Parser:      entry.NewParser(conf.Server.BaseURL),
 		minifier:    initMinifier(),
-		maze:        maze.NewMaze(httpClient),
 		cron:        cron.New(),
 	}
 

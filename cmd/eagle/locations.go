@@ -1,8 +1,12 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/hooks"
+	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/spf13/cobra"
 )
 
@@ -29,8 +33,14 @@ var locationsCmd = &cobra.Command{
 			return err
 		}
 
+		locationFetcher := &hooks.LocationFetcher{
+			Language: c.Site.Language,
+			Eagle:    e,
+			Maze:     maze.NewMaze(&http.Client{}),
+		}
+
 		for _, ee := range entries {
-			err = e.ProcessLocation(ee)
+			err = locationFetcher.FetchLocation(ee)
 			if err != nil {
 				e.Error(err)
 			}

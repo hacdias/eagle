@@ -1,30 +1,45 @@
-package eagle
+package hooks
 
 import (
 	"errors"
 	"strings"
 
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/karlseguin/typed"
 )
 
-func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
-	if ee.Properties == nil {
+type LocationFetcher struct {
+	Language string
+	Eagle    *eagle.Eagle
+	Maze     *maze.Maze
+}
+
+func (l *LocationFetcher) EntryHook(e *entry.Entry, isNew bool) error {
+	if e.Listing != nil {
 		return nil
 	}
 
-	if ee.Helper().PostType() == mf2.TypeItinerary {
-		return e.processItineraryLocations(ee)
+	return l.FetchLocation(e)
+}
+
+func (l *LocationFetcher) FetchLocation(e *entry.Entry) error {
+	if e.Properties == nil {
+		return nil
 	}
 
-	locationStr, ok := ee.Properties["location"].(string)
+	if e.Helper().PostType() == mf2.TypeItinerary {
+		return l.processItineraryLocations(e)
+	}
+
+	locationStr, ok := e.Properties["location"].(string)
 	if locationStr == "" || !ok {
 		return nil
 	}
 
-	location, err := e.parseLocation(locationStr)
+	location, err := l.parseLocation(locationStr)
 	if err != nil {
 		return err
 	}
@@ -33,7 +48,7 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 		return nil
 	}
 
-	_, err = e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+	_, err = l.Eagle.TransformEntry(e.ID, func(ee *entry.Entry) (*entry.Entry, error) {
 		ee.Properties["location"] = location
 		return ee, nil
 	})
@@ -41,12 +56,12 @@ func (e *Eagle) ProcessLocation(ee *entry.Entry) error {
 	return err
 }
 
-func (e *Eagle) processItineraryLocations(ee *entry.Entry) error {
-	if ee.Properties == nil {
+func (l *LocationFetcher) processItineraryLocations(e *entry.Entry) error {
+	if e.Properties == nil {
 		return nil
 	}
 
-	props := typed.Typed(ee.Properties)
+	props := typed.Typed(e.Properties)
 
 	var legs []typed.Typed
 
@@ -78,19 +93,19 @@ func (e *Eagle) processItineraryLocations(ee *entry.Entry) error {
 			return nil
 		}
 
-		_, err := e.parseItineraryLocation(props, "origin", transitType)
+		_, err := l.parseItineraryLocation(props, "origin", transitType)
 		if err != nil {
 			return err
 		}
 
-		loc, err := e.parseItineraryLocation(props, "destination", transitType)
+		loc, err := l.parseItineraryLocation(props, "destination", transitType)
 		if err != nil {
 			return err
 		}
 		lastDest = loc
 	}
 
-	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+	_, err := l.Eagle.TransformEntry(e.ID, func(ee *entry.Entry) (*entry.Entry, error) {
 		if lastDest != nil {
 			ee.Properties["location"] = lastDest
 		}
@@ -107,7 +122,7 @@ func (e *Eagle) processItineraryLocations(ee *entry.Entry) error {
 	return err
 }
 
-func (e *Eagle) parseItineraryLocation(props typed.Typed, prop, transitType string) (map[string]interface{}, error) {
+func (l *LocationFetcher) parseItineraryLocation(props typed.Typed, prop, transitType string) (map[string]interface{}, error) {
 	str := props.String(prop)
 	if str == "" {
 		return nil, errors.New(prop + " missing")
@@ -119,19 +134,20 @@ func (e *Eagle) parseItineraryLocation(props typed.Typed, prop, transitType stri
 	)
 
 	if transitType == "air" {
-		location, err = e.parseAirportLocation(str)
+		location, err = l.parseAirportLocation(str)
 	} else {
-		location, err = e.parseLocation(str)
+		location, err = l.parseLocation(str)
 	}
 
 	if err != nil {
 		return nil, err
 	}
+
 	props[prop] = location
 	return location, nil
 }
 
-func (e *Eagle) parseAirportLocation(str string) (map[string]interface{}, error) {
+func (l *LocationFetcher) parseAirportLocation(str string) (map[string]interface{}, error) {
 	var code string
 
 	if strings.Contains(str, "(") {
@@ -143,7 +159,7 @@ func (e *Eagle) parseAirportLocation(str string) (map[string]interface{}, error)
 		code = str
 	}
 
-	loc, err := e.maze.Airport(code)
+	loc, err := l.Maze.Airport(code)
 	if err != nil {
 		return nil, err
 	}
@@ -157,19 +173,19 @@ func (e *Eagle) parseAirportLocation(str string) (map[string]interface{}, error)
 	return locationToMultiformat(location), nil
 }
 
-func (e *Eagle) parseLocation(str string) (map[string]interface{}, error) {
+func (l *LocationFetcher) parseLocation(str string) (map[string]interface{}, error) {
 	var (
 		location *maze.Location
 		err      error
 	)
 
 	if strings.HasPrefix(str, "geo:") {
-		location, err = e.maze.ReverseGeoURI(e.Config.Site.Language, str)
+		location, err = l.Maze.ReverseGeoURI(l.Language, str)
 	} else if strings.HasPrefix(str, "/") {
-		_, err = e.GetEntry(str)
+		_, err = l.Eagle.GetEntry(str)
 		return nil, err
 	} else {
-		location, err = e.maze.Search(e.Config.Site.Language, str)
+		location, err = l.Maze.Search(l.Language, str)
 	}
 
 	if err != nil {

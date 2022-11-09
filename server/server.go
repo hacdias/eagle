@@ -22,6 +22,7 @@ import (
 	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
+	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
@@ -80,6 +81,24 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		hooks.AllowedType(allowedTypes),
 		&hooks.DescriptionGenerator{},
 		hooks.SectionDeducer(e.Config.Micropub.Sections),
+	)
+
+	s.PostSaveHooks = append(
+		s.PostSaveHooks,
+		// Remove cache
+		// Ensure XRAY
+		// Syndication
+		// Process Photos
+		&hooks.LocationFetcher{
+			Language: e.Config.Site.Language,
+			Eagle:    e,
+			Maze: maze.NewMaze(&http.Client{
+				Timeout: 1 * time.Minute,
+			}),
+		},
+		// Webmentions
+		// Reads
+		// Watch
 	)
 
 	return s, nil

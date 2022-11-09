@@ -97,12 +97,6 @@ func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
 		e.Error(err)
 	}
 
-	// Check if the post has a 'location' Geo URI and parse it.
-	err = e.ProcessLocation(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
 	// Remove entry from the cache. Every other action from here on
 	// should not influence how the entry is rendered.
 	e.RemoveCache(ee)
