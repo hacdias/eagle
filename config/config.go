@@ -17,6 +17,7 @@ type Server struct {
 	BaseURL       string
 	TokensSecret  string
 	WebhookSecret string
+	TilesSource   string
 	Tor           *Tor
 }
 
@@ -163,15 +164,6 @@ type ImgProxy struct {
 	Endpoint  string
 }
 
-type MapBox struct {
-	Token    string
-	MapStyle string
-}
-
-func (mb *MapBox) TileSource() string {
-	return "https://api.mapbox.com/styles/v1/mapbox/" + mb.MapStyle + "/tiles/{z}/{x}/{y}{r}?access_token=" + mb.Token
-}
-
 type Config struct {
 	Development   bool
 	Server        Server
@@ -190,7 +182,6 @@ type Config struct {
 	Miniflux      *Miniflux
 	Lastfm        *Lastfm
 	ImgProxy      *ImgProxy
-	MapBox        *MapBox
 }
 
 func (c *Config) ID() string {
