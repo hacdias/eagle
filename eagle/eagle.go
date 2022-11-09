@@ -20,12 +20,10 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
 	"github.com/hacdias/eagle/v4/pkg/miniflux"
 	"github.com/hacdias/eagle/v4/pkg/xray"
-	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/afero"
 	"github.com/tdewolff/minify/v2"
 	"github.com/thoas/go-funk"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
 
 	"github.com/yuin/goldmark"
 	"go.uber.org/zap"
@@ -53,13 +51,13 @@ type Eagle struct {
 	cron      *cron.Cron
 
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
-	wmClient    *webmention.Client
-	syndication *syndicator.Manager
-	media       *Media
-	imgProxy    *ImgProxy
-	miniflux    *miniflux.Miniflux
-	lastfm      *lastfm.LastFm
-	XRay        *xray.XRay
+	wmClient *webmention.Client
+
+	media    *Media
+	imgProxy *ImgProxy
+	miniflux *miniflux.Miniflux
+	lastfm   *lastfm.LastFm
+	xray     *xray.XRay
 
 	// TODO: concerns only rendering. Modularize and make rendering package.
 	assets           *Assets
@@ -91,15 +89,14 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	srcFs := fs.NewFS(conf.Source.Directory, srcSync)
 
 	e := &Eagle{
-		log:         log.S().Named("eagle"),
-		httpClient:  httpClient,
-		fs:          srcFs,
-		wmClient:    webmention.New(httpClient),
-		Config:      conf,
-		syndication: syndicator.NewManager(),
-		Parser:      entry.NewParser(conf.Server.BaseURL),
-		minifier:    initMinifier(),
-		cron:        cron.New(),
+		log:        log.S().Named("eagle"),
+		httpClient: httpClient,
+		fs:         srcFs,
+		wmClient:   webmention.New(httpClient),
+		Config:     conf,
+		Parser:     entry.NewParser(conf.Server.BaseURL),
+		minifier:   initMinifier(),
+		cron:       cron.New(),
 	}
 
 	if conf.BunnyCDN != nil {
@@ -143,29 +140,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.markdown = newMarkdown(e, false)
 	e.absoluteMarkdown = newMarkdown(e, true)
 
-	if conf.Twitter != nil && conf.Syndications.Twitter {
-		e.syndication.Add(syndicator.NewTwitter(conf.Twitter))
-	}
-
-	var redditClient *reddit.Client
-	if conf.Reddit != nil {
-		credentials := reddit.Credentials{
-			ID:       conf.Reddit.App,
-			Secret:   conf.Reddit.Secret,
-			Username: conf.Reddit.User,
-			Password: conf.Reddit.Password,
-		}
-
-		redditClient, err = reddit.NewClient(credentials)
-		if err != nil {
-			return nil, err
-		}
-
-		if conf.Syndications.Reddit {
-			e.syndication.Add(syndicator.NewReddit(redditClient))
-		}
-	}
-
 	if conf.Miniflux != nil {
 		e.miniflux = miniflux.NewMiniflux(conf.Miniflux.Endpoint, conf.Miniflux.Key)
 	}
@@ -190,11 +164,11 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 			}
 		}
 
-		if conf.XRay.Reddit && conf.Reddit != nil {
-			options.Reddit = redditClient
-		}
+		// if conf.XRay.Reddit && conf.Reddit != nil {
+		// 	options.Reddit = redditClient
+		// }
 
-		e.XRay = xray.NewXRay(options)
+		e.xray = xray.NewXRay(options)
 	}
 
 	err = e.initCache()
@@ -235,10 +209,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 	e.cron.Start()
 	go e.indexAll()
 	return e, nil
-}
-
-func (e *Eagle) GetSyndicators() []*syndicator.Config {
-	return e.syndication.Config()
 }
 
 func (e *Eagle) Close() {

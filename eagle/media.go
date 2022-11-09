@@ -87,7 +87,7 @@ func (e *Eagle) uploadFromURL(base, url string, skipImageCheck bool) (string, er
 	return e.uploadAnonymous(base, path.Ext(url), data, skipImageCheck)
 }
 
-func (e *Eagle) safeUploadFromURL(base, url string, skipImageCheck bool) string {
+func (e *Eagle) SafeUploadFromURL(base, url string, skipImageCheck bool) string {
 	newURL, err := e.uploadFromURL(base, url, skipImageCheck)
 	if err != nil {
 		e.log.Warnf("could not upload file %s: %s", url, err.Error())

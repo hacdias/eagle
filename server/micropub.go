@@ -50,7 +50,7 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	syndications := []map[string]string{}
-	for _, s := range s.GetSyndicators() {
+	for _, s := range s.syndicator.Config() {
 		syndications = append(syndications, map[string]string{
 			"uid":  s.UID,
 			"name": s.Name,

@@ -24,8 +24,11 @@ import (
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/v4/pkg/xray"
+	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
+	"github.com/vartanbeno/go-reddit/v2/reddit"
 
 	"go.uber.org/zap"
 )
@@ -48,6 +51,7 @@ type Server struct {
 	onionAddress string
 	jwtAuth      *jwtauth.JWTAuth
 
+	syndicator    *syndicator.Manager
 	PreSaveHooks  []EntryHook
 	PostSaveHooks []EntryHook
 }
@@ -66,6 +70,7 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		ias: indieauth.NewServer(false, &http.Client{
 			Timeout: time.Second * 30,
 		}),
+		syndicator: syndicator.NewManager(),
 	}
 
 	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
@@ -76,6 +81,33 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		allowedTypes = append(allowedTypes, typ)
 	}
 
+	if e.Config.Twitter != nil && e.Config.Syndications.Twitter {
+		s.syndicator.Add(syndicator.NewTwitter(e.Config.Twitter))
+	}
+
+	var (
+		err          error
+		redditClient *reddit.Client
+	)
+
+	if e.Config.Reddit != nil {
+		credentials := reddit.Credentials{
+			ID:       e.Config.Reddit.App,
+			Secret:   e.Config.Reddit.Secret,
+			Username: e.Config.Reddit.User,
+			Password: e.Config.Reddit.Password,
+		}
+
+		redditClient, err = reddit.NewClient(credentials)
+		if err != nil {
+			return nil, err
+		}
+
+		if e.Config.Syndications.Reddit {
+			s.syndicator.Add(syndicator.NewReddit(redditClient))
+		}
+	}
+
 	s.PreSaveHooks = append(
 		s.PreSaveHooks,
 		hooks.AllowedType(allowedTypes),
@@ -83,11 +115,36 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		hooks.SectionDeducer(e.Config.Micropub.Sections),
 	)
 
+	if e.Config.XRay != nil && e.Config.XRay.Endpoint != "" {
+		options := &xray.XRayOptions{
+			Log:       log.S().Named("xray"),
+			Endpoint:  e.Config.XRay.Endpoint,
+			UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", e.Config.ID()),
+		}
+
+		if e.Config.XRay.Twitter && e.Config.Twitter != nil {
+			options.Twitter = &xray.Twitter{
+				Key:         e.Config.Twitter.Key,
+				Secret:      e.Config.Twitter.Secret,
+				Token:       e.Config.Twitter.Token,
+				TokenSecret: e.Config.Twitter.TokenSecret,
+			}
+		}
+
+		if e.Config.XRay.Reddit && e.Config.Reddit != nil {
+			options.Reddit = redditClient
+		}
+
+		xray := xray.NewXRay(options)
+
+		s.PostSaveHooks = append(s.PostSaveHooks, &hooks.ContextXRay{
+			XRay:  xray,
+			Eagle: s.Eagle,
+		})
+	}
+
 	s.PostSaveHooks = append(
 		s.PostSaveHooks,
-		// Remove cache
-		// Ensure XRAY
-		// Syndication
 		// Process Photos
 		&hooks.LocationFetcher{
 			Language: e.Config.Site.Language,

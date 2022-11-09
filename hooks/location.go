@@ -13,7 +13,7 @@ import (
 
 type LocationFetcher struct {
 	Language string
-	Eagle    *eagle.Eagle
+	Eagle    *eagle.Eagle // WIP: remove this once possible.
 	Maze     *maze.Maze
 }
 

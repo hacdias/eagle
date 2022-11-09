@@ -37,10 +37,6 @@ func (m *Manager) Add(s Syndicator) {
 }
 
 func (m *Manager) Syndicate(ee *entry.Entry, syndicators []string) ([]string, error) {
-	if len(syndicators) == 0 {
-		return []string{}, nil
-	}
-
 	if ee.Draft {
 		return nil, errors.New("cannot syndicate draft entry")
 	}
@@ -58,7 +54,6 @@ func (m *Manager) Syndicate(ee *entry.Entry, syndicators []string) ([]string, er
 	// there. For example, if I reply to a post on my website that is syndicated
 	// on Twitter, I will want to syndicate that on Twitter. For now, I have to
 	// directly reply to the Twitter version.
-
 	for id, syndicator := range m.syndicators {
 		if syndicator.IsByContext(ee) {
 			syndicators = append(syndicators, id)

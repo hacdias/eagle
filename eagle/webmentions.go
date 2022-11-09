@@ -180,11 +180,11 @@ func (e *Eagle) ReceiveWebmentions(payload *WebmentionPayload) error {
 		return e.DeleteWebmention(entry, payload.Source)
 	}
 
-	parsed := e.XRay.Parse(payload.Post)
+	parsed := e.xray.Parse(payload.Post)
 	parsed.URL = payload.Source
 
 	if parsed.Author.Photo != "" {
-		parsed.Author.Photo = e.safeUploadFromURL("wm", parsed.Author.Photo, true)
+		parsed.Author.Photo = e.SafeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
 	isInteraction := IsPostInteraction(parsed)

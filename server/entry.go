@@ -135,7 +135,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		Data: map[string]interface{}{
 			"ID":          id,
 			"Content":     str,
-			"Syndicators": s.GetSyndicators(),
+			"Syndicators": s.syndicator.Config(),
 			"Templates":   templates,
 		},
 		NoIndex: true,
@@ -209,7 +209,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 			"Title":       ee.Title,
 			"Content":     str,
 			"Entry":       ee,
-			"Syndicators": s.GetSyndicators(),
+			"Syndicators": s.syndicator.Config(),
 		},
 		NoIndex: true,
 	}, []string{eagle.TemplateEditor})

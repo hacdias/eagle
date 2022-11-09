@@ -72,27 +72,15 @@ func (e *Eagle) SaveEntry(entry *entry.Entry) error {
 	return e.saveEntry(entry)
 }
 
-func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
+func (e *Eagle) PostSaveEntry(ee *entry.Entry) {
 	if ee.Listing != nil {
 		// For lists, only remove from cache.
 		e.RemoveCache(ee)
 		return
 	}
 
-	// Check for context URL and fetch the data if needed.
-	err := e.ensureContextXRay(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Syndicate. This may change the entry.
-	err = e.syndicate(ee, syndicators)
-	if err != nil {
-		e.Error(err)
-	}
-
 	// Uploads photos if they exist. This may change the entry.
-	err = e.processPhotos(ee)
+	err := e.processPhotos(ee)
 	if err != nil {
 		e.Error(err)
 	}
@@ -136,7 +124,7 @@ func (e *Eagle) processPhotos(ee *entry.Entry) error {
 
 	upload := func(url string) string {
 		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, e.Config.BunnyCDN.Base) {
-			return e.safeUploadFromURL("media", url, false)
+			return e.SafeUploadFromURL("media", url, false)
 		}
 		return url
 	}
@@ -250,75 +238,4 @@ func (e *Eagle) guessPath(id string) (string, error) {
 	}
 
 	return "", err
-}
-
-func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
-	if e.XRay == nil {
-		return nil
-	}
-
-	mm := ee.Helper()
-	typ := mm.PostType()
-
-	switch typ {
-	case mf2.TypeLike,
-		mf2.TypeRepost,
-		mf2.TypeReply,
-		mf2.TypeRsvp:
-		// Keep going
-	default:
-		return nil
-	}
-
-	property := mm.TypeProperty()
-	if typ == mf2.TypeRsvp {
-		property = "in-reply-to"
-	}
-
-	urlStr := mm.String(property)
-	if urlStr == "" {
-		return fmt.Errorf("expected context url to be non-empty for %s", ee.ID)
-	}
-
-	sidecar, err := e.GetSidecar(ee)
-	if err != nil {
-		return fmt.Errorf("could not fetch sidecar for %s: %w", ee.ID, err)
-	}
-
-	if sidecar.Context != nil {
-		return nil
-	}
-
-	parsed, _, err := e.XRay.Fetch(urlStr)
-	if err != nil {
-		return fmt.Errorf("could not fetch context xray for %s: %w", ee.ID, err)
-	}
-
-	if parsed.Author.Photo != "" {
-		parsed.Author.Photo = e.safeUploadFromURL("wm", parsed.Author.Photo, true)
-	}
-
-	return e.UpdateSidecar(ee, func(data *Sidecar) (*Sidecar, error) {
-		data.Context = parsed
-		return data, nil
-	})
-}
-
-func (e *Eagle) syndicate(ee *entry.Entry, syndicators []string) error {
-	syndications, err := e.syndication.Syndicate(ee, syndicators)
-	if err != nil {
-		return err
-	}
-
-	if len(syndications) == 0 {
-		return nil
-	}
-
-	_, err = e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
-		mm := ee.Helper()
-		syndications := append(mm.Strings("syndication"), syndications...)
-		ee.Properties["syndication"] = syndications
-		return ee, nil
-	})
-	return err
 }
