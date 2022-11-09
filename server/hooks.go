@@ -29,7 +29,7 @@ func (s *Server) postSaveHooks(e *entry.Entry, isNew bool, syndicators []string)
 		}
 	}
 
-	s.Eagle.PostSaveEntry(e)
+	s.RemoveCache(e)
 }
 
 func (s *Server) syndicate(e *entry.Entry, syndicators []string) error {

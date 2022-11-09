@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"github.com/hacdias/eagle/v4/entry"
@@ -69,78 +68,6 @@ func (e *Eagle) SaveEntry(entry *entry.Entry) error {
 	defer e.entriesMu.Unlock()
 
 	return e.saveEntry(entry)
-}
-
-func (e *Eagle) PostSaveEntry(ee *entry.Entry) {
-	if ee.Listing != nil {
-		// For lists, only remove from cache.
-		e.RemoveCache(ee)
-		return
-	}
-
-	// Uploads photos if they exist. This may change the entry.
-	err := e.processPhotos(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Remove entry from the cache. Every other action from here on
-	// should not influence how the entry is rendered.
-	e.RemoveCache(ee)
-}
-
-func (e *Eagle) processPhotos(ee *entry.Entry) error {
-	if ee.Properties == nil {
-		return nil
-	}
-
-	v, ok := ee.Properties["photo"]
-	if !ok {
-		return nil
-	}
-
-	upload := func(url string) string {
-		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, e.Config.BunnyCDN.Base) {
-			return e.SafeUploadFromURL("media", url, false)
-		}
-		return url
-	}
-
-	var newPhotos interface{}
-
-	if vv, ok := v.(string); ok {
-		newPhotos = upload(vv)
-	} else {
-		value := reflect.ValueOf(v)
-		kind := value.Kind()
-		parsed := []interface{}{}
-
-		if kind != reflect.Array && kind != reflect.Slice {
-			return nil
-		}
-
-		for i := 0; i < value.Len(); i++ {
-			v = value.Index(i).Interface()
-
-			if vv, ok := v.(string); ok {
-				parsed = append(parsed, upload(vv))
-			} else if vv, ok := v.(map[string]interface{}); ok {
-				if value, ok := vv["value"].(string); ok {
-					vv["value"] = upload(value)
-				}
-				parsed = append(parsed, vv)
-			}
-		}
-
-		newPhotos = parsed
-	}
-
-	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
-		ee.Properties["photo"] = newPhotos
-		return ee, nil
-	})
-
-	return err
 }
 
 func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*entry.Entry, error) {

@@ -158,7 +158,9 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 
 	s.PostSaveHooks = append(
 		s.PostSaveHooks,
-		// Process Photos
+		&hooks.IgnoreListing{Hook: &hooks.PhotosProcessor{
+			Eagle: e,
+		}},
 		&hooks.IgnoreListing{Hook: &hooks.LocationFetcher{
 			Language: e.Config.Site.Language,
 			Eagle:    e,
