@@ -8,16 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-const defaultTileSource = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-
 func (s *Server) tilesGet(w http.ResponseWriter, r *http.Request) {
-	tileSource := defaultTileSource
-
-	if s.Config.MapBox != nil {
-		tileSource = s.Config.MapBox.TileSource()
-	}
-
-	urlStr := strings.ReplaceAll(tileSource, "{s}", chi.URLParam(r, "s"))
+	urlStr := strings.ReplaceAll(s.Config.Server.TilesSource, "{s}", chi.URLParam(r, "s"))
 	urlStr = strings.ReplaceAll(urlStr, "{z}", chi.URLParam(r, "z"))
 	urlStr = strings.ReplaceAll(urlStr, "{x}", chi.URLParam(r, "x"))
 	urlStr = strings.ReplaceAll(urlStr, "{y}", chi.URLParam(r, "y"))

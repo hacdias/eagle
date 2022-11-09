@@ -59,8 +59,10 @@ func (s *Server) makeRouter() http.Handler {
 	r.Post("/token/verify", s.tokenVerifyPost)
 
 	// Tiles API
-	r.Get("/tiles/{s}/{z}/{x}/{y}", s.tilesGet)
-	r.Get("/tiles/{s}/{z}/{x}/{y}@{r}", s.tilesGet)
+	if s.Config.Server.TilesSource != "" {
+		r.Get("/tiles/{s}/{z}/{x}/{y}", s.tilesGet)
+		r.Get("/tiles/{s}/{z}/{x}/{y}@{r}", s.tilesGet)
+	}
 
 	// IndieAuth Client
 	r.Get("/login", s.loginGet)
