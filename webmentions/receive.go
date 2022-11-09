@@ -73,7 +73,6 @@ func (ws *WebmentionsService) ReceiveWebmentions(payload *WebmentionPayload) err
 		ws.Eagle.Notifier.Info("💬 Received webmention at " + payload.Target)
 	}
 
-	ws.Eagle.RemoveCache(entry)
 	return err
 }
 

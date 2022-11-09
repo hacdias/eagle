@@ -27,7 +27,7 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 	for _, action := range actions {
 		switch action {
 		case "clear-cache":
-			s.ResetCache()
+			s.cache.Clear()
 			data["Success"] = true
 		case "sync-storage":
 			go s.SyncStorage()

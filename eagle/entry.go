@@ -122,6 +122,9 @@ func (e *Eagle) saveEntry(entry *entry.Entry) error {
 	}
 
 	_ = e.DB.Add(entry)
+	if e.Cache != nil {
+		e.Cache.Delete(entry)
+	}
 	return nil
 }
 

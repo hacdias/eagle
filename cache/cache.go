@@ -1,4 +1,4 @@
-package eagle
+package cache
 
 import (
 	"time"
@@ -14,17 +14,23 @@ const (
 	CacheTor     CacheScope = "tor"
 )
 
-func (e *Eagle) initCache() error {
-	cache, err := ristretto.NewCache(&ristretto.Config{
+type Cache struct {
+	r *ristretto.Cache
+}
+
+func NewCache() (*Cache, error) {
+	r, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: 1000 * 10,        // 1000 items when full with 30 KB items -> x10
 		MaxCost:     30 * 1000 * 1000, // 30 MB
 		BufferItems: 64,               // recommended value
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	e.cache = cache
-	return nil
+
+	return &Cache{
+		r: r,
+	}, nil
 }
 
 type cacheEntry struct {
@@ -32,19 +38,19 @@ type cacheEntry struct {
 	modtime time.Time
 }
 
-func (e *Eagle) SaveCache(scope CacheScope, filename string, data []byte, modtime time.Time) {
+func (c *Cache) Save(scope CacheScope, filename string, data []byte, modtime time.Time) {
 	value := &cacheEntry{data, modtime}
 	cost := int64(len(data))
-	e.cache.SetWithTTL(e.cacheKey(scope, filename), value, cost, time.Hour*24)
+	c.r.SetWithTTL(c.cacheKey(scope, filename), value, cost, time.Hour*24)
 }
 
-func (e *Eagle) RemoveCache(ee *entry.Entry) {
-	e.PurgeCache("/")
-	e.PurgeCache("/all")
-	e.PurgeCache(ee.ID)
+func (c *Cache) Delete(ee *entry.Entry) {
+	c.delete("/")
+	c.delete("/all")
+	c.delete(ee.ID)
 
 	for _, sec := range ee.Sections {
-		e.PurgeCache("/" + sec)
+		c.delete("/" + sec)
 	}
 
 	// Both tags and emojis could be replaced by taxonomies once
@@ -52,33 +58,28 @@ func (e *Eagle) RemoveCache(ee *entry.Entry) {
 	hasTags := false
 	for _, tag := range ee.Tags() {
 		hasTags = true
-		e.PurgeCache("/tag/" + tag)
+		c.delete("/tag/" + tag)
 	}
 	if hasTags {
-		e.PurgeCache("/tags")
+		c.delete("/tags")
 	}
 
 	hasEmojis := false
 	for _, emoji := range ee.Emojis() {
 		hasEmojis = true
-		e.PurgeCache("/emoji/" + emoji)
+		c.delete("/emoji/" + emoji)
 	}
 	if hasEmojis {
-		e.PurgeCache("/emojis")
+		c.delete("/emojis")
 	}
 }
 
-func (e *Eagle) PurgeCache(filename string) {
-	e.cache.Del(e.cacheKey(CacheRegular, filename))
-	e.cache.Del(e.cacheKey(CacheTor, filename))
+func (c *Cache) Clear() {
+	c.r.Clear()
 }
 
-func (e *Eagle) ResetCache() {
-	e.cache.Clear()
-}
-
-func (e *Eagle) IsCached(scope CacheScope, filename string) ([]byte, time.Time, bool) {
-	data, ok := e.cache.Get(e.cacheKey(scope, filename))
+func (c *Cache) Cached(scope CacheScope, filename string) ([]byte, time.Time, bool) {
+	data, ok := c.r.Get(c.cacheKey(scope, filename))
 	if ok {
 		ce := data.(*cacheEntry)
 		return ce.data, ce.modtime, true
@@ -86,6 +87,11 @@ func (e *Eagle) IsCached(scope CacheScope, filename string) ([]byte, time.Time, 
 	return nil, time.Time{}, false
 }
 
-func (e *Eagle) cacheKey(scope CacheScope, filename string) string {
+func (c *Cache) cacheKey(scope CacheScope, filename string) string {
 	return string(scope) + filename
+}
+
+func (c *Cache) delete(filename string) {
+	c.r.Del(c.cacheKey(CacheRegular, filename))
+	c.r.Del(c.cacheKey(CacheTor, filename))
 }

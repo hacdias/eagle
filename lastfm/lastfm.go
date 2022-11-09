@@ -156,7 +156,6 @@ func (l *LastFm) CreateDailyListensEntry(year int, month time.Month, day int) er
 		return err
 	}
 
-	l.eagle.RemoveCache(ee)
 	return nil
 }
 

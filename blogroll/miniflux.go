@@ -48,7 +48,6 @@ func (u *MinifluxBlogrollUpdater) UpdateMinifluxBlogroll() error {
 		return err
 	}
 
-	u.Eagle.RemoveCache(e)
 	return nil
 }
 

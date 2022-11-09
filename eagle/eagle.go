@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dgraph-io/ristretto"
+	"github.com/hacdias/eagle/v4/cache"
 	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/entry"
@@ -30,6 +30,8 @@ const (
 type Eagle struct {
 	notifier.Notifier
 
+	Cache *cache.Cache
+
 	log        *zap.SugaredLogger
 	httpClient *http.Client
 	FS         *fs.FS
@@ -38,9 +40,7 @@ type Eagle struct {
 	Config     *config.Config
 
 	// TODO: concerns only the server. Move there.
-	cache     *ristretto.Cache
 	redirects map[string]string
-	// cron      *cron.Cron
 
 	// TODO: (likely) concerns only specific hooks. Modularize and move them.
 	media    *Media
@@ -114,11 +114,6 @@ func NewEagle(conf *config.Config) (*Eagle, error) {
 		return nil, err
 	}
 
-	err = e.initCache()
-	if err != nil {
-		return nil, err
-	}
-
 	err = e.initRedirects()
 	if err != nil {
 		return nil, err
@@ -172,7 +167,10 @@ func (e *Eagle) SyncStorage() {
 			continue
 		}
 		entries = append(entries, entry)
-		e.RemoveCache(entry)
+
+		if e.Cache != nil {
+			e.Cache.Delete(entry)
+		}
 	}
 
 	err = e.DB.Add(entries...)

@@ -39,18 +39,13 @@ func (u *WatchesSummaryUpdater) UpdateWatchesSummary() error {
 		return err
 	}
 
-	e, err := u.Eagle.TransformEntry(watchesSummaryEntryID, func(e *entry.Entry) (*entry.Entry, error) {
+	_, err = u.Eagle.TransformEntry(watchesSummaryEntryID, func(e *entry.Entry) (*entry.Entry, error) {
 		var err error
 		md := watchesSummaryToMarkdown(stats)
 		e.Content, err = util.ReplaceInBetween(e.Content, watchesSummaryTagStart, watchesSummaryTagEnd, md)
 		return e, err
 	})
-	if err != nil {
-		return err
-	}
-
-	u.Eagle.RemoveCache(e)
-	return nil
+	return err
 }
 
 func watchesSummaryToMarkdown(stats *entry.WatchesSummary) string {

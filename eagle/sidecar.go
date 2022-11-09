@@ -82,5 +82,8 @@ func (e *Eagle) UpdateSidecar(entry *entry.Entry, t func(*Sidecar) (*Sidecar, er
 		return newSd.Interactions[i].Published.Before(newSd.Interactions[j].Published)
 	})
 
+	if e.Cache != nil {
+		e.Cache.Delete(entry)
+	}
 	return e.FS.WriteJSON(filename, newSd, "sidecar: "+entry.ID)
 }

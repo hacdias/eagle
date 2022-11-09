@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v4/blogroll"
+	"github.com/hacdias/eagle/v4/cache"
 	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/entry"
@@ -65,6 +66,8 @@ type Server struct {
 
 	*renderer.Renderer
 
+	cache *cache.Cache
+
 	Webmentions   *webmentions.WebmentionsService
 	syndicator    *syndicator.Manager
 	PreSaveHooks  []hooks.EntryHook
@@ -79,6 +82,12 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cache, err := cache.NewCache()
+	if err != nil {
+		return nil, err
+	}
+	e.Cache = cache // wip: ckean this
 
 	s := &Server{
 		Eagle:   e,
@@ -98,6 +107,7 @@ func NewServer(e *eagle.Eagle) (*Server, error) {
 		actions:    map[string]func() error{},
 		cron:       cron.New(),
 		Renderer:   renderer,
+		cache:      cache,
 	}
 
 	if !e.Config.Webmentions.DisableSending {
