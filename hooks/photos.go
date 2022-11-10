@@ -22,6 +22,10 @@ func NewPhotosProcessor(fs *fs.FS, media *media.Media) *PhotosProcessor {
 }
 
 func (p *PhotosProcessor) EntryHook(e *eagle.Entry, isNew bool) error {
+	if e.Listing != nil {
+		return nil
+	}
+
 	return p.ProcessPhotos(e)
 }
 

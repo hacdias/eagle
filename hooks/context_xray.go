@@ -5,9 +5,11 @@ import (
 
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/media"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/xray"
+	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 
 type ContextXRay struct {
@@ -16,12 +18,36 @@ type ContextXRay struct {
 	media *media.Media
 }
 
-func NewContentXRay(xray *xray.XRay, fs *fs.FS, media *media.Media) *ContextXRay {
+func NewContentXRay(c *eagle.Config, fs *fs.FS, media *media.Media) (*ContextXRay, error) {
+	xrayConf := &xray.Config{
+		Endpoint:  c.XRay.Endpoint,
+		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", c.ID()),
+	}
+
+	if c.XRay.Twitter && c.Twitter != nil {
+		xrayConf.Twitter = &xray.Twitter{
+			Key:         c.Twitter.Key,
+			Secret:      c.Twitter.Secret,
+			Token:       c.Twitter.Token,
+			TokenSecret: c.Twitter.TokenSecret,
+		}
+	}
+
+	if c.XRay.Reddit && c.Reddit != nil {
+		xrayConf.Reddit = &reddit.Credentials{
+			ID:       c.Reddit.App,
+			Secret:   c.Reddit.Secret,
+			Username: c.Reddit.User,
+			Password: c.Reddit.Password,
+		}
+	}
+
+	xray, err := xray.NewXRay(xrayConf, log.S().Named("xray"))
 	return &ContextXRay{
 		xray:  xray,
 		fs:    fs,
 		media: media,
-	}
+	}, err
 }
 
 func (c *ContextXRay) EntryHook(e *eagle.Entry, isNew bool) error {

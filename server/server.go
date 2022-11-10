@@ -24,6 +24,7 @@ import (
 	"github.com/hacdias/eagle/v4/cache"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/hacdias/eagle/v4/indexer"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/media"
@@ -31,7 +32,10 @@ import (
 	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/eagle/v4/services/bunny"
 	"github.com/hacdias/eagle/v4/services/imgproxy"
+	"github.com/hacdias/eagle/v4/services/lastfm"
+	"github.com/hacdias/eagle/v4/services/miniflux"
 	"github.com/hacdias/eagle/v4/services/postgres"
+	"github.com/hacdias/eagle/v4/services/reddit"
 	"github.com/hacdias/eagle/v4/services/telegram"
 	"github.com/hacdias/eagle/v4/services/twitter"
 	"github.com/hacdias/eagle/v4/webmentions"
@@ -132,7 +136,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		return nil, err
 	}
 
-	backend, err := postgres.NewPostgres(&c.PostgreSQL)
+	postgres, err := postgres.NewPostgres(&c.PostgreSQL)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +144,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	s := &Server{
 		n:             notifier,
 		c:             c,
-		i:             indexer.NewIndexer(fs, backend),
+		i:             indexer.NewIndexer(fs, postgres),
 		log:           log.S().Named("server"),
 		iac:           indieauth.NewClient(clientID, redirectURL, &http.Client{Timeout: time.Second * 30}),
 		ias:           indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
@@ -159,143 +163,85 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		postSaveHooks: []eagle.EntryHook{},
 	}
 
+	s.AppendPreSaveHook(
+		hooks.AllowedType(c.Micropub.AllowedTypes()),
+		&hooks.DescriptionGenerator{},
+		hooks.SectionDeducer(c.Micropub.Sections),
+	)
+
 	s.initActions()
 
 	if c.Twitter != nil && c.Syndications.Twitter {
 		s.syndicator.Add(twitter.NewTwitter(c.Twitter))
 	}
 
-	// var (
-	// 	redditClient *reddit.Client
-	// )
-
-	// if e.Config.Reddit != nil {
-	// 	credentials := reddit.Credentials{
-	// 		ID:       e.Config.Reddit.App,
-	// 		Secret:   e.Config.Reddit.Secret,
-	// 		Username: e.Config.Reddit.User,
-	// 		Password: e.Config.Reddit.Password,
-	// 	}
-
-	// 	redditClient, err = reddit.NewClient(credentials)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	if e.Config.Syndications.Reddit {
-	// 		s.syndicator.Add(syndicator.NewReddit(redditClient))
-	// 	}
-	// }
-
-	// s.PreSaveHooks = append(
-	// 	s.PreSaveHooks,
-	// 	&hooks.IgnoreListing{Hook: hooks.AllowedType(c.Micropub.AllowedTypes())},
-	// 	&hooks.IgnoreListing{Hook: &hooks.DescriptionGenerator{}},
-	// 	&hooks.IgnoreListing{Hook: hooks.SectionDeducer(c.Micropub.Sections)},
-	// )
-
-	// if e.Config.XRay != nil && e.Config.XRay.Endpoint != "" {
-	// 	options := &xray.XRayOptions{
-	// 		Log:       log.S().Named("xray"),
-	// 		Endpoint:  e.Config.XRay.Endpoint,
-	// 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", e.Config.ID()),
-	// 	}
-
-	// 	if e.Config.XRay.Twitter && e.Config.Twitter != nil {
-	// 		options.Twitter = &xray.Twitter{
-	// 			Key:         e.Config.Twitter.Key,
-	// 			Secret:      e.Config.Twitter.Secret,
-	// 			Token:       e.Config.Twitter.Token,
-	// 			TokenSecret: e.Config.Twitter.TokenSecret,
-	// 		}
-	// 	}
-
-	// 	if e.Config.XRay.Reddit && e.Config.Reddit != nil {
-	// 		options.Reddit = redditClient
-	// 	}
-
-	// 	xray := xray.NewXRay(options)
-
-	// 	s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: &hooks.ContextXRay{
-	// 		XRay:  xray,
-	// 		Eagle: s.Eagle,
-	// 	}})
-	// }
-
-	// s.PostSaveHooks = append(
-	// 	s.PostSaveHooks,
-	// 	&hooks.IgnoreListing{Hook: &hooks.PhotosProcessor{
-	// 		Eagle: e,
-	// 	}},
-	// 	&hooks.IgnoreListing{Hook: &hooks.LocationFetcher{
-	// 		Language: e.Config.Site.Language,
-	// 		Eagle:    e,
-	// 		Maze: maze.NewMaze(&http.Client{
-	// 			Timeout: 1 * time.Minute,
-	// 		}),
-	// 	}},
-	// 	&hooks.IgnoreListing{Hook: s.Webmentions}, // if not disable sending
-	// )
-
-	// readsSummaryUpdater := &hooks.ReadsSummaryUpdater{
-	// 	Eagle:    s.Eagle,
-	// 	Provider: s.Eagle.DB.(*database.Postgres),
-	// }
-	// s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: readsSummaryUpdater})
-	// err = s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// watchesSummaryUpdater := &hooks.WatchesSummaryUpdater{
-	// 	Eagle:    s.Eagle,
-	// 	Provider: s.Eagle.DB.(*database.Postgres)
-	// }
-	// s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: watchesSummaryUpdater})
-	// err = s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// if e.Config.Miniflux != nil {
-	// 	mf := blogroll.MinifluxBlogrollUpdater{
-	// 		Eagle:  e,
-	// 		Client: miniflux.NewMiniflux(e.Config.Miniflux.Endpoint, e.Config.Miniflux.Key),
-	// 	}
-
-	// 	err = s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	err = s.RegisterAction("Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
-	// if e.Config.Lastfm != nil {
-	// 	lastfm := lastfm.NewLastFm(e.Config.Lastfm.Key, e.Config.Lastfm.User, e)
-	// 	err = s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
-	// err = s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
-	// 	s.SyncStorage()
-	// 	return nil
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	err = s.initRedirects()
-	if err != nil {
-		return nil, err
+	if c.Reddit != nil && c.Syndications.Reddit {
+		reddit, err := reddit.NewReddit(c.Reddit)
+		if err != nil {
+			return nil, err
+		}
+		s.syndicator.Add(reddit)
 	}
 
-	return s, nil
+	if c.XRay != nil && c.XRay.Endpoint != "" {
+		xray, err := hooks.NewContentXRay(c, s.fs, s.media)
+		if err != nil {
+			return nil, err
+		}
+		s.AppendPostSaveHook(xray)
+	}
+
+	if s.media != nil {
+		s.AppendPostSaveHook(hooks.NewPhotosProcessor(s.fs, s.media))
+	}
+
+	s.AppendPostSaveHook(hooks.NewLocationFetcher(s.fs, c.Site.Language))
+
+	if !c.Webmentions.DisableSending {
+		s.AppendPostSaveHook(s.webmentions)
+	}
+
+	var errs *multierror.Error
+	readsSummaryUpdater := hooks.NewReadsSummaryUpdater(s.fs, postgres)
+	watchesSummaryUpdater := hooks.NewWatchesSummaryUpdater(s.fs, postgres)
+	s.AppendPostSaveHook(readsSummaryUpdater, watchesSummaryUpdater)
+
+	errs = multierror.Append(
+		errs,
+		s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary),
+		s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary),
+	)
+
+	if c.Miniflux != nil {
+		mf := miniflux.NewBlogrollUpdater(c.Miniflux, s.fs)
+
+		errs = multierror.Append(
+			errs,
+			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateBlogroll),
+			s.RegisterAction("Miniflux Blogroll", mf.UpdateBlogroll),
+		)
+	}
+
+	if c.Lastfm != nil {
+		lastfm := lastfm.NewLastFm(c.Lastfm.Key, c.Lastfm.User, s.fs, s.media)
+		errs = multierror.Append(errs, s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob))
+	}
+
+	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
+		s.syncStorage()
+		return nil
+	}), s.initRedirects())
+
+	err = errs.ErrorOrNil()
+	return s, err
+}
+
+func (s *Server) AppendPreSaveHook(hooks ...eagle.EntryHook) {
+	s.preSaveHooks = append(s.preSaveHooks, hooks...)
+}
+
+func (s *Server) AppendPostSaveHook(hooks ...eagle.EntryHook) {
+	s.postSaveHooks = append(s.postSaveHooks, hooks...)
 }
 
 func (s *Server) RegisterAction(name string, action func() error) error {

@@ -20,7 +20,7 @@ var typeToDescription = map[mf2.Type]string{
 type DescriptionGenerator struct{}
 
 func (d *DescriptionGenerator) EntryHook(e *eagle.Entry, isNew bool) error {
-	if isNew {
+	if isNew && e.Listing == nil {
 		return d.GenerateDescription(e, false)
 	}
 

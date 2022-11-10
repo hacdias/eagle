@@ -29,27 +29,41 @@ type Twitter struct {
 	TokenSecret string
 }
 
-type XRayOptions struct {
-	Reddit      *reddit.Client
+type Reddit = reddit.Credentials
+
+type Config struct {
+	Reddit      *Reddit
 	Twitter     *Twitter
 	GitHubToken string
 	Endpoint    string
 	UserAgent   string
-	Log         *zap.SugaredLogger
 }
 
 type XRay struct {
-	*XRayOptions
-	httpClient *http.Client
+	c            *Config
+	log          *zap.SugaredLogger
+	redditClient *reddit.Client
+	httpClient   *http.Client
 }
 
-func NewXRay(options *XRayOptions) *XRay {
-	return &XRay{
-		XRayOptions: options,
+func NewXRay(c *Config, log *zap.SugaredLogger) (*XRay, error) {
+	x := &XRay{
+		c:   c,
+		log: log,
 		httpClient: &http.Client{
 			Timeout: 2 * time.Minute,
 		},
 	}
+
+	if c.Reddit != nil {
+		client, err := reddit.NewClient(*c.Reddit)
+		if err != nil {
+			return nil, err
+		}
+		x.redditClient = client
+	}
+
+	return x, nil
 }
 
 type xrayResponse struct {
@@ -63,37 +77,37 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 		return nil, nil, err
 	}
 
-	if strings.Contains(url.Host, "reddit.com") && x.Reddit != nil {
+	if strings.Contains(url.Host, "reddit.com") && x.redditClient != nil {
 		parsed, raw, err := x.fetchAndParseRedditURL(urlStr)
 		if err == nil {
 			return parsed, raw, nil
 		} else {
-			x.Log.Warnf("could not download info from reddit %s: %s", urlStr, err.Error())
+			x.log.Warnf("could not download info from reddit %s: %s", urlStr, err.Error())
 		}
 	}
 
 	data := urlpkg.Values{}
 	data.Set("url", url.String())
 
-	if strings.Contains(url.Host, "twitter.com") && x.Twitter != nil {
-		data.Set("twitter_api_key", x.Twitter.Key)
-		data.Set("twitter_api_secret", x.Twitter.Secret)
-		data.Set("twitter_access_token", x.Twitter.Token)
-		data.Set("twitter_access_token_secret", x.Twitter.TokenSecret)
+	if strings.Contains(url.Host, "twitter.com") && x.c.Twitter != nil {
+		data.Set("twitter_api_key", x.c.Twitter.Key)
+		data.Set("twitter_api_secret", x.c.Twitter.Secret)
+		data.Set("twitter_access_token", x.c.Twitter.Token)
+		data.Set("twitter_access_token_secret", x.c.Twitter.TokenSecret)
 	}
 
-	if strings.Contains(url.Host, "github.com") && x.GitHubToken != "" {
-		data.Set("github_access_token", x.GitHubToken)
+	if strings.Contains(url.Host, "github.com") && x.c.GitHubToken != "" {
+		data.Set("github_access_token", x.c.GitHubToken)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, x.Endpoint+"/parse", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(http.MethodPost, x.c.Endpoint+"/parse", strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, nil, err
 	}
 
 	req.Header.Add("Content-Type", contenttype.WWWForm)
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-	req.Header.Add("User-Agent", x.UserAgent)
+	req.Header.Add("User-Agent", x.c.UserAgent)
 
 	res, err := x.httpClient.Do(req)
 	if err != nil {

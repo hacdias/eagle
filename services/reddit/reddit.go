@@ -17,13 +17,21 @@ type Reddit struct {
 	client *reddit.Client
 }
 
-func NewReddit(client *reddit.Client) *Reddit {
-	reddit := &Reddit{
-		User:   client.Username,
-		client: client,
+func NewReddit(c *eagle.Reddit) (*Reddit, error) {
+	client, err := reddit.NewClient(reddit.Credentials{
+		ID:       c.App,
+		Secret:   c.Secret,
+		Username: c.User,
+		Password: c.Password,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return reddit
+	return &Reddit{
+		User:   client.Username,
+		client: client,
+	}, nil
 }
 
 func (r *Reddit) Syndicate(entry *eagle.Entry) (url string, err error) {

@@ -38,6 +38,10 @@ func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Rende
 }
 
 func (ws *Webmentions) EntryHook(e *eagle.Entry, isNew bool) error {
+	if e.Listing != nil {
+		return nil
+	}
+
 	return ws.SendWebmentions(e)
 }
 

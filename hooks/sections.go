@@ -28,7 +28,7 @@ func (s SectionDeducer) DeduceSections(e *eagle.Entry) {
 }
 
 func (s SectionDeducer) EntryHook(e *eagle.Entry, isNew bool) error {
-	if isNew {
+	if isNew && e.Listing == nil {
 		s.DeduceSections(e)
 	}
 
