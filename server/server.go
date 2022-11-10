@@ -164,7 +164,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	s.AppendPreSaveHook(
-		hooks.AllowedType(c.Micropub.AllowedTypes()),
+		hooks.TypeChecker(c.Micropub.AllowedTypes()),
 		&hooks.DescriptionGenerator{},
 		hooks.SectionDeducer(c.Micropub.Sections),
 	)
@@ -184,7 +184,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
-		xray, err := hooks.NewContentXRay(c, s.fs, s.media)
+		xray, err := hooks.NewContextFetcher(c, s.fs, s.media)
 		if err != nil {
 			return nil, err
 		}
@@ -192,7 +192,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	if s.media != nil {
-		s.AppendPostSaveHook(hooks.NewPhotosProcessor(s.fs, s.media))
+		s.AppendPostSaveHook(hooks.NewPhotosUploader(s.fs, s.media))
 	}
 
 	s.AppendPostSaveHook(hooks.NewLocationFetcher(s.fs, c.Site.Language))

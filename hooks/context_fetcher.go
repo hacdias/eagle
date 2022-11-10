@@ -12,13 +12,13 @@ import (
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 
-type ContextXRay struct {
+type ContextFetcher struct {
 	xray  *xray.XRay
 	fs    *fs.FS
 	media *media.Media
 }
 
-func NewContentXRay(c *eagle.Config, fs *fs.FS, media *media.Media) (*ContextXRay, error) {
+func NewContextFetcher(c *eagle.Config, fs *fs.FS, media *media.Media) (*ContextFetcher, error) {
 	xrayConf := &xray.Config{
 		Endpoint:  c.XRay.Endpoint,
 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", c.ID()),
@@ -43,18 +43,18 @@ func NewContentXRay(c *eagle.Config, fs *fs.FS, media *media.Media) (*ContextXRa
 	}
 
 	xray, err := xray.NewXRay(xrayConf, log.S().Named("xray"))
-	return &ContextXRay{
+	return &ContextFetcher{
 		xray:  xray,
 		fs:    fs,
 		media: media,
 	}, err
 }
 
-func (c *ContextXRay) EntryHook(e *eagle.Entry, isNew bool) error {
+func (c *ContextFetcher) EntryHook(e *eagle.Entry, isNew bool) error {
 	return c.EnsureXRay(e, false)
 }
 
-func (c *ContextXRay) EnsureXRay(e *eagle.Entry, replace bool) error {
+func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 	mm := e.Helper()
 	typ := mm.PostType()
 

@@ -9,19 +9,19 @@ import (
 	"github.com/hacdias/eagle/v4/media"
 )
 
-type PhotosProcessor struct {
+type PhotosUploader struct {
 	fs    *fs.FS
 	media *media.Media
 }
 
-func NewPhotosProcessor(fs *fs.FS, media *media.Media) *PhotosProcessor {
-	return &PhotosProcessor{
+func NewPhotosUploader(fs *fs.FS, media *media.Media) *PhotosUploader {
+	return &PhotosUploader{
 		fs:    fs,
 		media: media,
 	}
 }
 
-func (p *PhotosProcessor) EntryHook(e *eagle.Entry, isNew bool) error {
+func (p *PhotosUploader) EntryHook(e *eagle.Entry, isNew bool) error {
 	if e.Listing != nil {
 		return nil
 	}
@@ -29,7 +29,7 @@ func (p *PhotosProcessor) EntryHook(e *eagle.Entry, isNew bool) error {
 	return p.ProcessPhotos(e)
 }
 
-func (p *PhotosProcessor) ProcessPhotos(e *eagle.Entry) error {
+func (p *PhotosUploader) ProcessPhotos(e *eagle.Entry) error {
 	if e.Properties == nil {
 		return nil
 	}
