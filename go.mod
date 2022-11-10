@@ -1,4 +1,4 @@
-module github.com/hacdias/eagle/v4
+module github.com/hacdias/eagle
 
 go 1.19
 

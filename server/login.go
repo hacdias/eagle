@@ -10,19 +10,17 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
 const (
-	SessionSubject string = "Eagle Session"
-
-	OAuthSubject    string = "Eagle OAuth Client"
-	OAuthCookieName string = "eagle-oauth"
-
-	userContextKey contextKey = "user"
+	SessionSubject  string     = "Eagle Session"
+	OAuthSubject    string     = "Eagle OAuth Client"
+	OAuthCookieName string     = "eagle-oauth"
+	userContextKey  contextKey = "user"
 )
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
@@ -30,14 +28,14 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	s.serveHTMLWithStatus(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{
-			FrontMatter: entry.FrontMatter{
+	s.serveHTMLWithStatus(w, r, &renderer.RenderData{
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
 				Title: "Login",
 			},
 		},
 		NoIndex: true,
-	}, []string{eagle.TemplateLogin}, http.StatusOK)
+	}, []string{renderer.TemplateLogin}, http.StatusOK)
 }
 
 func (s *Server) saveAuthInfo(w http.ResponseWriter, r *http.Request, i *indieauth.AuthInfo) error {
@@ -291,5 +289,5 @@ func (s *Server) getUser(r *http.Request) (me string) {
 
 func (s *Server) isAdmin(r *http.Request) bool {
 	user := s.getUser(r)
-	return user == s.Config.ID()
+	return user == s.c.ID()
 }

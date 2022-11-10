@@ -10,26 +10,27 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/renderer"
 	"github.com/thoas/go-funk"
 )
 
 var (
-	entryTemplates = map[string]func(r *http.Request, s *Server) *entry.Entry{
-		"default": func(r *http.Request, s *Server) *entry.Entry {
-			return &entry.Entry{
+	// TODO: make this archetypes instead of hard-coding them.
+	entryTemplates = map[string]func(r *http.Request, s *Server) *eagle.Entry{
+		"default": func(r *http.Request, s *Server) *eagle.Entry {
+			return &eagle.Entry{
 				Content: "What's on your mind?",
-				FrontMatter: entry.FrontMatter{
+				FrontMatter: eagle.FrontMatter{
 					Published: time.Now().Local(),
 				},
 			}
 		},
-		"private": func(r *http.Request, s *Server) *entry.Entry {
-			return &entry.Entry{
+		"private": func(r *http.Request, s *Server) *eagle.Entry {
+			return &eagle.Entry{
 				Content: "What's on your mind?",
-				FrontMatter: entry.FrontMatter{
+				FrontMatter: eagle.FrontMatter{
 					Published: time.Now().Local(),
 					Properties: map[string]interface{}{
 						"visibility": "private",
@@ -38,13 +39,13 @@ var (
 				},
 			}
 		},
-		"now": func(r *http.Request, s *Server) *entry.Entry {
+		"now": func(r *http.Request, s *Server) *eagle.Entry {
 			t := time.Now().Local()
 			month := t.Format("January")
 
-			return &entry.Entry{
+			return &eagle.Entry{
 				Content: "How was last month?",
-				FrontMatter: entry.FrontMatter{
+				FrontMatter: eagle.FrontMatter{
 					Draft:     true,
 					Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
 					Published: t,
@@ -52,10 +53,10 @@ var (
 				},
 			}
 		},
-		"article": func(r *http.Request, s *Server) *entry.Entry {
-			return &entry.Entry{
+		"article": func(r *http.Request, s *Server) *eagle.Entry {
+			return &eagle.Entry{
 				Content: "Code is poetry...",
-				FrontMatter: entry.FrontMatter{
+				FrontMatter: eagle.FrontMatter{
 					Draft:     true,
 					Title:     "Article Title",
 					Published: time.Now().Local(),
@@ -65,11 +66,11 @@ var (
 				},
 			}
 		},
-		"book": func(r *http.Request, s *Server) *entry.Entry {
+		"book": func(r *http.Request, s *Server) *eagle.Entry {
 			date := time.Now().Local()
-			return &entry.Entry{
+			return &eagle.Entry{
 				ID: "/books/BOOK-NAME-SLUG",
-				FrontMatter: entry.FrontMatter{
+				FrontMatter: eagle.FrontMatter{
 					Published:   date,
 					Description: "NAME by AUTHOR (ISBN: ISBN)",
 					Sections:    []string{"books"},
@@ -103,7 +104,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		template = "default"
 	}
 
-	var ee *entry.Entry
+	var ee *eagle.Entry
 
 	if fn, ok := entryTemplates[template]; ok {
 		ee = fn(r, s)
@@ -126,20 +127,20 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		if qid := r.URL.Query().Get("id"); qid != "" {
 			id = qid
 		} else {
-			id = entry.NewID("", time.Now().Local())
+			id = eagle.NewID("", time.Now().Local())
 		}
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{},
+	s.serveHTML(w, r, &renderer.RenderData{
+		Entry: &eagle.Entry{},
 		Data: map[string]interface{}{
 			"ID":          id,
 			"Content":     str,
-			"Syndicators": s.GetSyndicators(),
+			"Syndicators": s.syndicator.Config(),
 			"Templates":   templates,
 		},
 		NoIndex: true,
-	}, []string{eagle.TemplateNew})
+	}, []string{renderer.TemplateNew})
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -155,20 +156,27 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee, err := s.Parser.FromRaw(id, content)
+	ee, err := s.parser.FromRaw(id, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	ee.CreatedWith = s.Config.ID()
+	ee.CreatedWith = s.c.ID()
 
-	if err := s.PreCreateEntry(ee); err != nil {
+	if err := s.preSaveEntry(ee, true); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	s.newEditHandler(w, r, ee)
+	err = s.fs.SaveEntry(ee)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	go s.postSaveEntry(ee, true, r.Form["syndication"])
+	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
@@ -177,7 +185,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		id = "/"
 	}
 
-	ee, err := s.GetEntry(id)
+	ee, err := s.fs.GetEntry(id)
 	if os.IsNotExist(err) {
 		query := urlpkg.Values{}
 		query.Set("id", id)
@@ -196,16 +204,16 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{},
+	s.serveHTML(w, r, &renderer.RenderData{
+		Entry: &eagle.Entry{},
 		Data: map[string]interface{}{
 			"Title":       ee.Title,
 			"Content":     str,
 			"Entry":       ee,
-			"Syndicators": s.GetSyndicators(),
+			"Syndicators": s.syndicator.Config(),
 		},
 		NoIndex: true,
-	}, []string{eagle.TemplateEditor})
+	}, []string{renderer.TemplateEditor})
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
@@ -214,7 +222,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		id = "/"
 	}
 
-	ee, err := s.GetEntry(id)
+	ee, err := s.fs.GetEntry(id)
 	if os.IsNotExist(err) {
 		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
@@ -232,7 +240,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee, err = s.Parser.FromRaw(ee.ID, content)
+	ee, err = s.parser.FromRaw(ee.ID, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -243,39 +251,23 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		ee.Updated = time.Now().Local()
 	}
 
-	s.newEditHandler(w, r, ee)
-}
-
-func (s *Server) newEditHandler(w http.ResponseWriter, r *http.Request, ee *entry.Entry) {
-	syndications := r.Form["syndication"]
-
-	if len(syndications) > 0 && ee.Draft {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate draft entry"))
+	if err := s.preSaveEntry(ee, false); err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	if len(syndications) > 0 && ee.Visibility() == entry.VisibilityPrivate {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate private entry"))
-		return
-	}
-
-	if len(syndications) > 0 && ee.Deleted {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("cannot syndicate deleted entry"))
-		return
-	}
-
-	err := s.SaveEntry(ee)
+	err = s.fs.SaveEntry(ee)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	go s.PostSaveEntry(ee, syndications)
+	go s.postSaveEntry(ee, false, r.Form["syndication"])
 	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
 }
 
 func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
-	ee, err := s.GetEntry(r.URL.Path)
+	ee, err := s.fs.GetEntry(r.URL.Path)
 	if os.IsNotExist(err) {
 		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
@@ -297,7 +289,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ee.Visibility() == entry.VisibilityPrivate && !admin {
+	if ee.Visibility() == eagle.VisibilityPrivate && !admin {
 		user := s.getUser(r)
 		hasUser := user != ""
 		hasAudience := len(ee.Audience()) != 0
@@ -316,10 +308,10 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	s.serveEntry(w, r, ee)
 }
 
-func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *entry.Entry) {
+func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.Entry) {
 	postType := ee.Helper().PostType()
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry:   ee,
-		NoIndex: ee.NoIndex || ee.Visibility() != entry.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
-	}, eagle.EntryTemplates(ee))
+		NoIndex: ee.NoIndex || ee.Visibility() != eagle.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
+	}, renderer.EntryTemplates(ee))
 }

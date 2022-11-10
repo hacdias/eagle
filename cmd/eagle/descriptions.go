@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/hooks"
 	"github.com/spf13/cobra"
 )
 
@@ -14,31 +15,27 @@ func init() {
 var descriptionsCmd = &cobra.Command{
 	Use: "descriptions",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := config.Parse()
+		c, err := eagle.ParseConfig()
 		if err != nil {
 			return err
 		}
 
-		e, err := eagle.NewEagle(c)
-		if err != nil {
-			return err
-		}
-		defer e.Close()
-
-		entries, err := e.GetEntries(false)
+		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err
 		}
 
+		gen := hooks.NewDescriptionGenerator(fs)
 		force, _ := cmd.Flags().GetBool("force")
 
-		for _, ee := range entries {
-			err = e.GenerateDescription(ee, force)
+		for _, e := range ee {
+			err = gen.GenerateDescription(e, force)
 			if err != nil {
 				return err
 			}
 
-			err = e.SaveEntry(ee)
+			err = fs.SaveEntry(e)
 			if err != nil {
 				return err
 			}

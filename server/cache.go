@@ -5,15 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/cache"
 )
 
-func (s *Server) cacheScope(r *http.Request) eagle.CacheScope {
+func (s *Server) cacheScope(r *http.Request) cache.CacheScope {
 	if s.isUsingTor(r) {
-		return eagle.CacheTor
+		return cache.CacheTor
 	}
 
-	return eagle.CacheRegular
+	return cache.CacheRegular
 }
 
 func (s *Server) isCacheable(r *http.Request) bool {
@@ -25,11 +25,11 @@ func (s *Server) isCached(r *http.Request) ([]byte, time.Time, bool) {
 		return nil, time.Time{}, false
 	}
 
-	return s.IsCached(s.cacheScope(r), r.URL.Path)
+	return s.cache.Cached(s.cacheScope(r), r.URL.Path)
 }
 
 func (s *Server) saveCache(r *http.Request, data []byte) {
-	s.SaveCache(s.cacheScope(r), r.URL.Path, data, time.Now())
+	s.cache.Save(s.cacheScope(r), r.URL.Path, data, time.Now())
 }
 
 func (s *Server) withCache(next http.Handler) http.Handler {

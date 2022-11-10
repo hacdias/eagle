@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) tilesGet(w http.ResponseWriter, r *http.Request) {
-	urlStr := strings.ReplaceAll(s.Config.Server.TilesSource, "{s}", chi.URLParam(r, "s"))
+	urlStr := strings.ReplaceAll(s.c.Server.TilesSource, "{s}", chi.URLParam(r, "s"))
 	urlStr = strings.ReplaceAll(urlStr, "{z}", chi.URLParam(r, "z"))
 	urlStr = strings.ReplaceAll(urlStr, "{x}", chi.URLParam(r, "x"))
 	urlStr = strings.ReplaceAll(urlStr, "{y}", chi.URLParam(r, "y"))

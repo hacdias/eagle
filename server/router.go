@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/renderer"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	if s.Config.Development {
+	if s.c.Development {
 		r.Use(middleware.Logger)
 	}
 
@@ -33,21 +33,21 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 
-	if s.Config.Server.Tor != nil {
+	if s.c.Server.Tor != nil {
 		r.Use(s.onionHeader)
 		r.Get("/onion", s.onionRedirGet)
 	}
 
-	if s.Config.Server.WebhookSecret != "" {
+	if s.c.Server.WebhookSecret != "" {
 		r.Post("/webhook", s.webhookPost)
 	}
 
-	if s.Config.Webmentions.Secret != "" {
+	if s.c.Webmentions.Secret != "" {
 		r.Post("/webmention", s.webmentionPost)
 	}
 
 	r.Get("/search", s.searchGet)
-	r.Get(eagle.AssetsBaseURL+"*", s.serveAssets)
+	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
 	r.Get("/.well-known/webfinger", s.webfingerGet)
 
 	// IndieAuth Server
@@ -59,7 +59,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Post("/token/verify", s.tokenVerifyPost)
 
 	// Tiles API
-	if s.Config.Server.TilesSource != "" {
+	if s.c.Server.TilesSource != "" {
 		r.Get("/tiles/{s}/{z}/{x}/{y}", s.tilesGet)
 		r.Get("/tiles/{s}/{z}/{x}/{y}@{r}", s.tilesGet)
 	}
@@ -122,8 +122,8 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/tags/{tag}", s.tagGet)
 		r.Get("/emojis/{emoji}", s.emojiGet)
 
-		for _, section := range s.Config.Site.Sections {
-			if section != s.Config.Site.IndexSection {
+		for _, section := range s.c.Site.Sections {
+			if section != s.c.Site.IndexSection {
 				r.Get("/"+section, s.sectionGet(section))
 			}
 		}
@@ -138,8 +138,8 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/tags/{tag}"+feedPath, s.tagGet)
 	r.Get("/emojis/{emoji}"+feedPath, s.emojiGet)
 
-	for _, section := range s.Config.Site.Sections {
-		if section != s.Config.Site.IndexSection {
+	for _, section := range s.c.Site.Sections {
+		if section != s.c.Site.IndexSection {
 			r.Get("/"+section+feedPath, s.sectionGet(section))
 		}
 	}

@@ -6,10 +6,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/log"
-	"github.com/hacdias/eagle/v4/server"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/log"
+	"github.com/hacdias/eagle/server"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +17,7 @@ var rootCmd = &cobra.Command{
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	Short:             "Eagle is a website CMS",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := config.Parse()
+		c, err := eagle.ParseConfig()
 		if err != nil {
 			return err
 		}
@@ -27,14 +26,8 @@ var rootCmd = &cobra.Command{
 			_ = log.L().Sync()
 		}()
 
-		e, err := eagle.NewEagle(c)
-		if err != nil {
-			return err
-		}
-		defer e.Close()
-
 		quit := make(chan os.Signal, 1)
-		server, err := server.NewServer(e)
+		server, err := server.NewServer(c)
 		if err != nil {
 			return err
 		}

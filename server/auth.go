@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -29,11 +29,11 @@ const (
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, map[string]interface{}{
-		"issuer":                           s.Config.ID(),
-		"authorization_endpoint":           s.Config.Server.AbsoluteURL("/auth"),
-		"token_endpoint":                   s.Config.Server.AbsoluteURL("/token"),
-		"introspection_endpoint":           s.Config.Server.AbsoluteURL("/token/verify"),
-		"userinfo_endpoint":                s.Config.Server.AbsoluteURL("/userinfo"),
+		"issuer":                           s.c.ID(),
+		"authorization_endpoint":           s.c.Server.AbsoluteURL("/auth"),
+		"token_endpoint":                   s.c.Server.AbsoluteURL("/token"),
+		"introspection_endpoint":           s.c.Server.AbsoluteURL("/token/verify"),
+		"userinfo_endpoint":                s.c.Server.AbsoluteURL("/userinfo"),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 		"grant_types_supported":            []string{"authorization_code"},
 		"response_types_supported":         []string{"code"},
@@ -52,15 +52,15 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
-		Entry: &entry.Entry{
-			FrontMatter: entry.FrontMatter{
+	s.serveHTML(w, r, &renderer.RenderData{
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
 				Title: "Authorization",
 			},
 		},
 		Data:    req,
 		NoIndex: true,
-	}, []string{eagle.TemplateAuth})
+	}, []string{renderer.TemplateAuth})
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {
@@ -75,9 +75,9 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.Config.User.Password), []byte(password)) == nil
+	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.User.Password), []byte(password)) == nil
 
-	if username != s.Config.User.Username || !correctPassword {
+	if username != s.c.User.Username || !correctPassword {
 		s.serveErrorHTML(w, r, http.StatusUnauthorized, errors.New("wrong credentials"))
 		return
 	}
@@ -107,7 +107,7 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 	query := urlpkg.Values{}
 	query.Set("code", signed)
 	query.Set("state", req.State)
-	query.Set("iss", s.Config.ID())
+	query.Set("iss", s.c.ID())
 
 	http.Redirect(w, r, req.RedirectURI+"?"+query.Encode(), http.StatusFound)
 }
@@ -134,7 +134,7 @@ func (s *Server) tokenGet(w http.ResponseWriter, r *http.Request) {
 	// - Old Access Token Verifications: https://indieauth.spec.indieweb.org/20201126/#access-token-verification
 	// - New Access Token Verifications: https://indieauth.spec.indieweb.org/#access-token-verification
 	s.serveJSON(w, http.StatusOK, &tokenResponse{
-		Me:       s.Config.ID(),
+		Me:       s.c.ID(),
 		Scope:    strings.Join(s.getScopes(r), " "),
 		ClientID: s.getClient(r),
 	})
@@ -174,7 +174,7 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 
 	info := map[string]interface{}{
 		"active":    true,
-		"me":        s.Config.ID(),
+		"me":        s.c.ID(),
 		"client_id": getString(token, "client_id"),
 		"scope":     getString(token, "scope"),
 		"iat":       token.IssuedAt().Unix(),
@@ -220,7 +220,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	}
 
 	at := &tokenResponse{
-		Me: s.Config.ID(),
+		Me: s.c.ID(),
 	}
 
 	scope := getString(token, "scope")
@@ -262,9 +262,9 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 
 	if strings.Contains(scope, "profile") {
 		profile = &tokenUser{
-			Name:  s.Config.User.Name,
-			URL:   s.Config.ID(),
-			Photo: s.Config.User.Photo,
+			Name:  s.c.User.Name,
+			URL:   s.c.ID(),
+			Photo: s.c.User.Photo,
 		}
 	}
 
@@ -272,7 +272,7 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 		if profile == nil {
 			profile = &tokenUser{}
 		}
-		profile.Email = s.Config.User.Email
+		profile.Email = s.c.User.Email
 	}
 
 	return profile

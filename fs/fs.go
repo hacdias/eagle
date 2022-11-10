@@ -2,28 +2,60 @@ package fs
 
 import (
 	"encoding/json"
+	"sync"
 
+	"github.com/hacdias/eagle/eagle"
 	"github.com/spf13/afero"
 )
 
-type FSSync interface {
+const (
+	AssetsDirectory    string = "assets"
+	ContentDirectory   string = "content"
+	TemplatesDirectory string = "templates"
+)
+
+type Sync interface {
 	Sync() (updated []string, err error)
 	Persist(message, filename string) error
 }
 
-type FS struct {
-	*afero.Afero
-	sync FSSync
+type NopSync struct{}
+
+func (g *NopSync) Persist(msg string, file string) error {
+	return nil
 }
 
-func NewFS(path string, sync FSSync) *FS {
+func (g *NopSync) Sync() ([]string, error) {
+	return []string{}, nil
+}
+
+type FS struct {
+	*afero.Afero
+	sync   Sync
+	parser *eagle.Parser
+
+	// Mutexes to lock the updates to entries and sidecars.
+	// Only for writes and not for reads. Hope this won't
+	// become a problem with traffic and simultaneous
+	// reads-writes from files. Adding a mutex for all reads
+	// would probably make it much slower though.
+	entriesMu  sync.Mutex
+	sidecarsMu sync.Mutex
+
+	// AfterSaveHook is a hook that is executed after
+	// saving an entry to the file system.
+	AfterSaveHook func(*eagle.Entry)
+}
+
+func NewFS(path, baseURL string, sync Sync) *FS {
 	afero := &afero.Afero{
 		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
 	}
 
 	return &FS{
-		Afero: afero,
-		sync:  sync,
+		Afero:  afero,
+		sync:   sync,
+		parser: eagle.NewParser(baseURL),
 	}
 }
 

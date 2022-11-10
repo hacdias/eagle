@@ -3,7 +3,7 @@ package xray
 import (
 	"time"
 
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/pkg/mf2"
 )
 
 type Author struct {

@@ -3,365 +3,351 @@ package eagle
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-	"reflect"
+	"html"
 	"strings"
+	"time"
 
-	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/araddon/dateparse"
+	"github.com/forPelevin/gomoji"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/util"
+	"github.com/karlseguin/typed"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/thoas/go-funk"
+	stripMarkdown "github.com/writeas/go-strip-markdown"
+	yaml "gopkg.in/yaml.v2"
 )
 
-type EntryTransformer func(*entry.Entry) (*entry.Entry, error)
+const MoreSeparator = "<!--more-->"
 
-func (e *Eagle) GetEntry(id string) (*entry.Entry, error) {
-	filepath, err := e.guessPath(id)
-	if err != nil {
-		return nil, err
-	}
+type Entry struct {
+	FrontMatter
+	ID        string
+	Permalink string
+	Content   string
 
-	raw, err := e.fs.ReadFile(filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	entry, err := e.Parser.FromRaw(id, string(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	return entry, nil
+	helper      *mf2.FlatHelper
+	emojis      []string
+	excerpt     string
+	textExcerpt string
 }
 
-func (e *Eagle) GetEntries(includeList bool) ([]*entry.Entry, error) {
-	entries := []*entry.Entry{}
-	err := e.fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+func (e *Entry) Helper() *mf2.FlatHelper {
+	if e.helper == nil {
+		e.helper = mf2.NewFlatHelper(e.FlatMF2())
+	}
 
-		if !strings.HasSuffix(p, ".md") {
-			return nil
-		}
-
-		id := strings.TrimPrefix(p, ContentDirectory)
-		id = strings.TrimSuffix(id, ".md")
-		id = strings.TrimSuffix(id, "_index")
-		id = strings.TrimSuffix(id, "index")
-
-		entry, err := e.GetEntry(id)
-		if err != nil {
-			return err
-		}
-
-		if entry.Listing == nil || includeList {
-			entries = append(entries, entry)
-		}
-
-		return nil
-	})
-
-	return entries, err
+	return e.helper
 }
 
-func (e *Eagle) SaveEntry(entry *entry.Entry) error {
-	e.entriesMu.Lock()
-	defer e.entriesMu.Unlock()
+func (e *Entry) Tags() []string {
+	m := typed.New(e.Properties)
 
-	return e.saveEntry(entry)
-}
-
-func (e *Eagle) PreCreateEntry(ee *entry.Entry) error {
-	if err := e.GenerateDescription(ee, false); err != nil {
-		return err
+	if v, ok := m.StringIf("category"); ok {
+		return []string{v}
 	}
 
-	postType := ee.Helper().PostType()
-	if !funk.Contains(e.allowedTypes, postType) {
-		return errors.New("type not supported " + string(postType))
-	}
-
-	if err := e.DeduceSections(ee); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (e *Eagle) PostSaveEntry(ee *entry.Entry, syndicators []string) {
-	if ee.Listing != nil {
-		// For lists, only remove from cache.
-		e.RemoveCache(ee)
-		return
-	}
-
-	// Check for context URL and fetch the data if needed.
-	err := e.ensureContextXRay(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Syndicate. This may change the entry.
-	err = e.syndicate(ee, syndicators)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Uploads photos if they exist. This may change the entry.
-	err = e.processPhotos(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Check if the post has a 'location' Geo URI and parse it.
-	err = e.ProcessLocation(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Remove entry from the cache. Every other action from here on
-	// should not influence how the entry is rendered.
-	e.RemoveCache(ee)
-
-	// Send webmentions.
-	err = e.SendWebmentions(ee)
-	if err != nil {
-		e.Error(err)
-	}
-
-	// Update read statistics if it's a read.
-	if ee.Helper().PostType() == mf2.TypeRead {
-		err = e.UpdateReadsSummary()
-		if err != nil {
-			e.Error(err)
-		}
-	}
-
-	// Update watches statistics if it's a watch.
-	if ee.Helper().PostType() == mf2.TypeWatch {
-		err = e.UpdateWatchesSummary()
-		if err != nil {
-			e.Error(err)
-		}
-	}
-}
-
-func (e *Eagle) processPhotos(ee *entry.Entry) error {
-	if ee.Properties == nil {
-		return nil
-	}
-
-	v, ok := ee.Properties["photo"]
+	// Slight modification of StringsIf so we capture
+	// all string elements instead of blocking when there is none.
+	// Tags can also be objects, such as tagged people as seen in
+	// here: https://ownyourswarm.p3k.io/docs
+	value, ok := m["category"]
 	if !ok {
-		return nil
+		return []string{}
 	}
 
-	upload := func(url string) string {
-		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, e.Config.BunnyCDN.Base) {
-			return e.safeUploadFromURL("media", url, false)
-		}
-		return url
+	if n, ok := value.([]string); ok {
+		return n
 	}
 
-	var newPhotos interface{}
-
-	if vv, ok := v.(string); ok {
-		newPhotos = upload(vv)
-	} else {
-		value := reflect.ValueOf(v)
-		kind := value.Kind()
-		parsed := []interface{}{}
-
-		if kind != reflect.Array && kind != reflect.Slice {
-			return nil
-		}
-
-		for i := 0; i < value.Len(); i++ {
-			v = value.Index(i).Interface()
-
-			if vv, ok := v.(string); ok {
-				parsed = append(parsed, upload(vv))
-			} else if vv, ok := v.(map[string]interface{}); ok {
-				if value, ok := vv["value"].(string); ok {
-					vv["value"] = upload(value)
-				}
-				parsed = append(parsed, vv)
+	if a, ok := value.([]interface{}); ok {
+		n := []string{}
+		for i := 0; i < len(a); i++ {
+			if v, ok := a[i].(string); ok {
+				n = append(n, v)
 			}
 		}
-
-		newPhotos = parsed
+		return n
 	}
 
-	_, err := e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
-		ee.Properties["photo"] = newPhotos
-		return ee, nil
-	})
-
-	return err
+	return []string{}
 }
 
-func (e *Eagle) TransformEntry(id string, transformers ...EntryTransformer) (*entry.Entry, error) {
-	if len(transformers) == 0 {
-		return nil, errors.New("at least one entry transformer must be provided")
+func (e *Entry) Emojis() []string {
+	if e.emojis != nil {
+		return e.emojis
 	}
 
-	e.entriesMu.Lock()
-	defer e.entriesMu.Unlock()
+	emojis := gomoji.FindAll(e.Content)
+	for _, emoji := range emojis {
+		e.emojis = append(e.emojis, emoji.Character)
+	}
 
-	ee, err := e.GetEntry(id)
+	e.emojis = funk.UniqString(e.emojis)
+	return e.emojis
+}
+
+func (e *Entry) Visibility() Visibility {
+	m := typed.New(e.Properties)
+	switch m.String("visibility") {
+	case "private":
+		return VisibilityPrivate
+	case "unlisted":
+		return VisibilityUnlisted
+	default:
+		return VisibilityPublic
+	}
+}
+
+func (e *Entry) Audience() []string {
+	m := typed.New(e.Properties)
+
+	if a := m.String("audience"); a != "" {
+		return []string{a}
+	}
+
+	if aa := m.Strings("audience"); len(aa) != 0 {
+		return aa
+	}
+
+	return nil
+}
+
+func (e *Entry) HasMore() bool {
+	return strings.Contains(e.Content, MoreSeparator)
+}
+
+func (e *Entry) Excerpt() string {
+	if e.excerpt != "" {
+		return e.excerpt
+	}
+
+	if e.HasMore() {
+		firstPart := strings.Split(e.Content, MoreSeparator)[0]
+		e.excerpt = strings.TrimSpace(firstPart)
+	} else if content := e.TextContent(); content != "" {
+		e.excerpt = util.TruncateStringWithEllipsis(content, 300)
+	}
+
+	return e.excerpt
+}
+
+func (e *Entry) TextExcerpt() string {
+	if e.textExcerpt != "" {
+		return e.textExcerpt
+	}
+
+	e.textExcerpt = makePlainText(e.Excerpt())
+	return e.textExcerpt
+}
+
+func (e *Entry) TextTitle() string {
+	if e.Title != "" {
+		return e.Title
+	}
+
+	if e.Description != "" {
+		return e.Description
+	}
+
+	excerpt := e.TextExcerpt()
+	if excerpt == "" {
+		return ""
+	}
+
+	if len(excerpt) > 100 {
+		excerpt = strings.TrimSuffix(excerpt, "…")
+		excerpt = util.TruncateStringWithEllipsis(excerpt, 100)
+	}
+
+	return excerpt
+}
+
+func (e *Entry) TextDescription() string {
+	if e.Description != "" {
+		return e.Description
+	}
+
+	return e.TextExcerpt()
+}
+
+func (e *Entry) InSection(section string) bool {
+	return funk.ContainsString(e.Sections, section)
+}
+
+func (e *Entry) String() (string, error) {
+	val, err := yaml.Marshal(&e.FrontMatter)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	for _, t := range transformers {
-		ee, err = t(ee)
+	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), strings.TrimSpace(e.Content)), nil
+}
+
+func (e *Entry) TextContent() string {
+	return makePlainText(e.Content)
+}
+
+func (e *Entry) Update(newProps map[string][]interface{}) error {
+	props := typed.New(mf2.Flatten(newProps))
+
+	// Micropublish.net sends the file name that was uploaded through
+	// the media endpoint as a property. This is unnecessary.
+	delete(props, "file")
+
+	mm := mf2.NewFlatHelper(props)
+	e.Properties = props
+
+	if published, ok := props.StringIf("published"); ok {
+		p, err := dateparse.ParseStrict(published)
 		if err != nil {
-			return nil, err
-		}
-	}
-
-	err = e.saveEntry(ee)
-	return ee, err
-}
-
-func EntryTemplates(ee *entry.Entry) []string {
-	tpls := []string{}
-	if ee.Template != "" {
-		tpls = append(tpls, ee.Template)
-	}
-	tpls = append(tpls, TemplateSingle)
-	return tpls
-}
-
-func (e *Eagle) saveEntry(entry *entry.Entry) error {
-	entry.Sections = funk.UniqString(entry.Sections)
-
-	path, err := e.guessPath(entry.ID)
-	if err != nil {
-		if !os.IsNotExist(err) {
 			return err
 		}
-		// Default path for new files is content/{slug}/index.md
-		path = filepath.Join(ContentDirectory, entry.ID, "index.md")
+		e.Published = p
+		delete(props, "published")
 	}
 
-	err = e.fs.MkdirAll(filepath.Dir(path), 0777)
-	if err != nil {
-		return err
+	if updated, ok := props.StringIf("updated"); ok {
+		p, err := dateparse.ParseStrict(updated)
+		if err != nil {
+			return err
+		}
+		e.Updated = p
+		delete(props, "updated")
 	}
 
-	str, err := entry.String()
-	if err != nil {
-		return err
+	if content, ok := props.StringIf("content"); ok {
+		e.Content = content
+		delete(props, "content")
+	} else if content, ok := props.ObjectIf("content"); ok {
+		if text, ok := content.StringIf("text"); ok {
+			e.Content = text
+		} else if html, ok := content.StringIf("html"); ok {
+			e.Content = html
+		} else {
+			return errors.New("could not parse content field")
+		}
+	} else if _, ok := props["content"]; ok {
+		return errors.New("could not parse content field")
 	}
 
-	err = e.fs.WriteFile(path, []byte(str), "update "+entry.ID)
-	if err != nil {
-		return fmt.Errorf("could not save entry: %w", err)
+	e.Content = strings.TrimSpace(e.Content)
+
+	if name, ok := props.StringIf("name"); ok {
+		e.Title = name
+		delete(props, "name")
 	}
 
-	_ = e.db.Add(entry)
-	return nil
-}
-
-func (e *Eagle) DeduceSections(entry *entry.Entry) error {
-	if len(entry.Sections) != 0 {
-		return nil
+	if summary, ok := props.StringIf("summary"); ok {
+		e.Description = summary
+		delete(props, "summary")
 	}
 
-	mm := entry.Helper()
-	postType := mm.PostType()
+	if status, ok := props.StringIf("post-status"); ok {
+		if status == "draft" {
+			e.Draft = true
+		}
+		delete(props, "post-status")
+	}
 
-	// Only add the sections to entries under the /year/month/date.
-	// This avoids adding sections to top-level pages that shouldn't
-	// have these sections.
-	if strings.HasPrefix(entry.ID, "/20") {
-		if sections, ok := e.Config.Micropub.Sections[postType]; ok {
-			entry.Sections = append(entry.Sections, sections...)
+	switch mm.PostType() {
+	case mf2.TypeItinerary:
+		if err := e.parseDateFromItinerary(props, mm); err != nil {
+			return err
+		}
+
+		// Make itineraries private if they're in the future.
+		if e.Published.After(time.Now()) {
+			e.Properties["visibility"] = VisibilityPrivate
 		}
 	}
 
+	if e.Published.IsZero() {
+		e.Published = time.Now().Local()
+	}
+
 	return nil
 }
 
-func (e *Eagle) guessPath(id string) (string, error) {
-	path := filepath.Join(ContentDirectory, id, "index.md")
-	_, err := e.fs.Stat(path)
-	if err == nil {
-		return path, nil
+func (e *Entry) parseDateFromItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
+	if !e.Published.IsZero() {
+		return nil
 	}
 
-	return "", err
+	dateFromLeg := func(leg typed.Typed) error {
+		props, ok := leg.ObjectIf("properties")
+		if !ok {
+			return nil
+		}
+
+		if arrival, ok := props.StringIf("arrival"); ok {
+			p, err := dateparse.ParseStrict(arrival)
+			if err != nil {
+				return err
+			}
+			e.Published = p
+		}
+
+		return nil
+	}
+
+	if leg, ok := data.ObjectIf(mm.TypeProperty()); ok {
+		return dateFromLeg(leg)
+	} else if legs, ok := data.ObjectsIf(mm.TypeProperty()); ok {
+		return dateFromLeg(legs[len(legs)-1])
+	}
+
+	return nil
 }
 
-func (e *Eagle) ensureContextXRay(ee *entry.Entry) error {
-	if e.XRay == nil {
-		return nil
+func (e *Entry) FlatMF2() map[string]interface{} {
+	// Shallow copy of the map because we are not changing
+	// the values inside.
+	properties := map[string]interface{}{}
+	for k, v := range e.Properties {
+		properties[k] = v
 	}
 
-	mm := ee.Helper()
-	typ := mm.PostType()
-
-	switch typ {
-	case mf2.TypeLike,
-		mf2.TypeRepost,
-		mf2.TypeReply,
-		mf2.TypeRsvp:
-		// Keep going
-	default:
-		return nil
+	if !e.Published.IsZero() {
+		properties["published"] = e.Published.Format(time.RFC3339)
 	}
 
-	property := mm.TypeProperty()
-	if typ == mf2.TypeRsvp {
-		property = "in-reply-to"
+	if !e.Updated.IsZero() {
+		properties["updated"] = e.Updated.Format(time.RFC3339)
 	}
 
-	urlStr := mm.String(property)
-	if urlStr == "" {
-		return fmt.Errorf("expected context url to be non-empty for %s", ee.ID)
+	properties["content"] = e.Content
+
+	if e.Title != "" {
+		properties["name"] = e.Title
 	}
 
-	sidecar, err := e.GetSidecar(ee)
-	if err != nil {
-		return fmt.Errorf("could not fetch sidecar for %s: %w", ee.ID, err)
+	if e.Description != "" {
+		properties["summary"] = e.Description
 	}
 
-	if sidecar.Context != nil {
-		return nil
+	if e.Draft {
+		properties["post-status"] = "draft"
+	} else {
+		properties["post-status"] = "published"
 	}
 
-	parsed, _, err := e.XRay.Fetch(urlStr)
-	if err != nil {
-		return fmt.Errorf("could not fetch context xray for %s: %w", ee.ID, err)
+	return map[string]interface{}{
+		"type":       "h-entry",
+		"properties": properties,
 	}
-
-	if parsed.Author.Photo != "" {
-		parsed.Author.Photo = e.safeUploadFromURL("wm", parsed.Author.Photo, true)
-	}
-
-	return e.UpdateSidecar(ee, func(data *Sidecar) (*Sidecar, error) {
-		data.Context = parsed
-		return data, nil
-	})
 }
 
-func (e *Eagle) syndicate(ee *entry.Entry, syndicators []string) error {
-	syndications, err := e.syndication.Syndicate(ee, syndicators)
-	if err != nil {
-		return err
-	}
+func (e *Entry) MF2() map[string]interface{} {
+	return mf2.Deflatten(e.FlatMF2())
+}
 
-	if len(syndications) == 0 {
-		return nil
-	}
+var htmlRemover = bluemonday.StrictPolicy()
 
-	_, err = e.TransformEntry(ee.ID, func(ee *entry.Entry) (*entry.Entry, error) {
-		mm := ee.Helper()
-		syndications := append(mm.Strings("syndication"), syndications...)
-		ee.Properties["syndication"] = syndications
-		return ee, nil
-	})
-	return err
+func makePlainText(text string) string {
+	text = htmlRemover.Sanitize(text)
+	// Unescapes html entities.
+	text = html.UnescapeString(text)
+	text = stripMarkdown.Strip(text)
+	return text
 }

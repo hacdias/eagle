@@ -37,7 +37,7 @@ func (x *XRay) fetchAndParseRedditURL(urlStr string) (*Post, interface{}, error)
 }
 
 func (x *XRay) fetchRedditComment(id string) (*reddit.Comment, error) {
-	_, comments, _, _, err := x.Reddit.Listings.Get(context.Background(), id)
+	_, comments, _, _, err := x.redditClient.Listings.Get(context.Background(), id)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (x *XRay) fetchAndParseRedditComment(id string) (*Post, interface{}, error)
 }
 
 func (x *XRay) fetchRedditPost(postID string) (*reddit.Post, error) {
-	posts, _, _, _, err := x.Reddit.Listings.Get(context.Background(), postID)
+	posts, _, _, _, err := x.redditClient.Listings.Get(context.Background(), postID)
 	if err != nil {
 		return nil, err
 	}

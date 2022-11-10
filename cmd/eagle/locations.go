@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/hooks"
 	"github.com/spf13/cobra"
 )
 
@@ -13,26 +14,22 @@ func init() {
 var locationsCmd = &cobra.Command{
 	Use: "locations",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := config.Parse()
+		c, err := eagle.ParseConfig()
 		if err != nil {
 			return err
 		}
 
-		e, err := eagle.NewEagle(c)
-		if err != nil {
-			return err
-		}
-		defer e.Close()
-
-		entries, err := e.GetEntries(false)
+		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err
 		}
 
-		for _, ee := range entries {
-			err = e.ProcessLocation(ee)
+		locationsFetcher := hooks.NewLocationFetcher(fs, c.Site.Language)
+		for _, e := range ee {
+			err = locationsFetcher.FetchLocation(e)
 			if err != nil {
-				e.Error(err)
+				return err
 			}
 		}
 

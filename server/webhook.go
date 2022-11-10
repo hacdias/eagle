@@ -23,7 +23,7 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mac := hmac.New(sha1.New, []byte(s.Config.Server.WebhookSecret))
+	mac := hmac.New(sha1.New, []byte(s.c.Server.WebhookSecret))
 	_, err = mac.Write(payload)
 	if err != nil {
 		s.log.Error("webook: could not write mac", err)
@@ -37,6 +37,6 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.SyncStorage()
+	go s.syncStorage()
 	w.WriteHeader(http.StatusOK)
 }

@@ -11,32 +11,32 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v4/database"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/pkg/contenttype"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/indexer"
+	"github.com/hacdias/eagle/pkg/contenttype"
+	"github.com/hacdias/eagle/renderer"
+	"github.com/hacdias/eagle/util"
 	"github.com/jlelse/feeds"
 	"github.com/thoas/go-funk"
 )
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetAll(opts)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetAll(opts)
 		},
 	})
 }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			IsHome: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetBySection(opts, s.Config.Site.IndexSection)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetBySection(opts, s.c.Site.IndexSection)
 		},
-		templates: []string{eagle.TemplateIndex},
+		templates: []string{renderer.TemplateIndex},
 	})
 }
 
@@ -54,11 +54,11 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetByTag(opts, tag)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetByTag(opts, tag)
 		},
 	})
 }
@@ -71,11 +71,11 @@ func (s *Server) emojiGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, emoji),
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetByEmoji(opts, emoji)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetByEmoji(opts, emoji)
 		},
 	})
 }
@@ -88,11 +88,11 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 		}
 
 		s.listingGet(w, r, &listingSettings{
-			rd: &eagle.RenderData{
+			rd: &renderer.RenderData{
 				Entry: ee,
 			},
-			exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-				return s.GetBySection(opts, section)
+			exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+				return s.i.GetBySection(opts, section)
 			},
 			templates: []string{},
 		})
@@ -138,52 +138,52 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
-			Entry: &entry.Entry{
-				FrontMatter: entry.FrontMatter{
+		rd: &renderer.RenderData{
+			Entry: &eagle.Entry{
+				FrontMatter: eagle.FrontMatter{
 					Title:   title.String(),
-					Listing: &entry.Listing{},
+					Listing: &eagle.Listing{},
 				},
 			},
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetByDate(opts, year, month, day)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetByDate(opts, year, month, day)
 		},
 	})
 }
 
 func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {
-	emojis, err := s.GetEmojis()
+	emojis, err := s.i.GetEmojis()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Emojis"),
 		Data: listingPage{
 			Terms: emojis,
 		},
-	}, []string{eagle.TemplateEmojis})
+	}, []string{renderer.TemplateEmojis})
 }
 
 func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
-	tags, err := s.GetTags()
+	tags, err := s.i.GetTags()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	s.serveHTML(w, r, &eagle.RenderData{
+	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Tags"),
 		Data: listingPage{
 			Terms: tags,
 		},
-	}, []string{eagle.TemplateTags})
+	}, []string{renderer.TemplateTags})
 }
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
-	search := &database.SearchOptions{
+	search := &indexer.Search{
 		Query:    r.URL.Query().Get("query"),
 		Sections: []string{},
 		Tags:     []string{},
@@ -201,134 +201,134 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	if search.Query == "" {
-		s.serveHTML(w, r, &eagle.RenderData{
+		s.serveHTML(w, r, &renderer.RenderData{
 			Entry:   ee,
 			NoIndex: true,
 			Data: &listingPage{
 				Search: search,
 			},
-		}, []string{eagle.TemplateSearch})
+		}, []string{renderer.TemplateSearch})
 		return
 	}
 
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   ee,
 			NoIndex: true,
 		},
 		lp: listingPage{
 			Search: search,
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
 			if s.isAdmin(r) {
 				opts.WithDrafts = true
 				opts.WithDeleted = true
 				opts.Visibility = nil
 			}
 
-			return s.Search(opts, search)
+			return s.i.Search(opts, search)
 		},
-		templates: []string{eagle.TemplateSearch},
+		templates: []string{renderer.TemplateSearch},
 	})
 }
 
 func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetPrivate(opts.Pagination, s.getUser(r))
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetPrivate(opts.Pagination, s.getUser(r))
 		},
 	})
 }
 
 func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetDeleted(opts.Pagination)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetDeleted(opts.Pagination)
 		},
 	})
 }
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetDrafts(opts.Pagination)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetDrafts(opts.Pagination)
 		},
 	})
 }
 
 func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		rd: &eagle.RenderData{
+		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*entry.Entry, error) {
-			return s.GetUnlisted(opts.Pagination)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetUnlisted(opts.Pagination)
 		},
 	})
 }
 
-func (s *Server) getListingEntryOrEmpty(id, title string) *entry.Entry {
+func (s *Server) getListingEntryOrEmpty(id, title string) *eagle.Entry {
 	id = strings.TrimSuffix(id, filepath.Ext(id))
-	if ee, err := s.GetEntry(id); err == nil {
+	if ee, err := s.fs.GetEntry(id); err == nil {
 		if ee.Listing == nil {
 			s.log.Warnf("entry %s should be marked as listing", ee.ID)
-			ee.Listing = &entry.Listing{}
+			ee.Listing = &eagle.Listing{}
 		}
 		return ee
 	}
 
-	return &entry.Entry{
+	return &eagle.Entry{
 		ID: id,
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Title:   title,
-			Listing: &entry.Listing{},
+			Listing: &eagle.Listing{},
 		},
 	}
 }
 
 type listingSettings struct {
-	exec      func(*database.QueryOptions) ([]*entry.Entry, error)
-	rd        *eagle.RenderData
+	exec      func(*indexer.Query) ([]*eagle.Entry, error)
+	rd        *renderer.RenderData
 	lp        listingPage
 	templates []string
 }
 
 type listingPage struct {
-	Search   *database.SearchOptions
-	Entries  []*entry.Entry
+	Search   *indexer.Search
+	Entries  []*eagle.Entry
 	Page     int
 	NextPage string
 	Terms    []string
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	opts := &database.QueryOptions{}
+	opts := &indexer.Query{}
 
 	user := s.getUser(r)
 	if user == "" {
-		opts.Visibility = []entry.Visibility{entry.VisibilityPublic}
+		opts.Visibility = []eagle.Visibility{eagle.VisibilityPublic}
 	} else {
-		opts.Visibility = []entry.Visibility{entry.VisibilityPublic, entry.VisibilityPrivate}
+		opts.Visibility = []eagle.Visibility{eagle.VisibilityPublic, eagle.VisibilityPrivate}
 		if !s.isAdmin(r) {
 			opts.Audience = s.getUser(r)
 		}
 	}
 
 	if ls.rd == nil {
-		ls.rd = &eagle.RenderData{}
+		ls.rd = &renderer.RenderData{}
 	}
 
 	if ls.rd.Entry == nil {
@@ -338,12 +338,12 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	opts.OrderByUpdated = ls.rd.Entry.Listing.OrderByUpdated
 
 	if !ls.rd.Entry.Listing.DisablePagination {
-		opts.Pagination = &database.PaginationOptions{}
+		opts.Pagination = &indexer.Pagination{}
 
 		if ls.rd.Entry.Listing.ItemsPerPage > 0 {
 			opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
 		} else {
-			opts.Pagination.Limit = s.Config.Site.Pagination
+			opts.Pagination.Limit = s.c.Site.Pagination
 		}
 
 		if v := r.URL.Query().Get("page"); v != "" {
@@ -379,10 +379,10 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		if ls.rd.Template != "" {
 			templates = append(templates, ls.rd.Template)
 		}
-		templates = append(templates, eagle.TemplateList)
+		templates = append(templates, renderer.TemplateList)
 		path := r.URL.Path
 
-		ls.rd.Alternates = []eagle.Alternate{
+		ls.rd.Alternates = []renderer.Alternate{
 			{
 				Type: contenttype.JSONFeed,
 				Href: path + ".json",
@@ -403,20 +403,19 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	feed := &feeds.Feed{
 		Title:       ls.rd.Entry.TextTitle(),
-		Link:        &feeds.Link{Href: strings.TrimSuffix(s.Config.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
+		Link:        &feeds.Link{Href: strings.TrimSuffix(s.c.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
 		Description: ls.rd.Entry.TextDescription(),
 		Author: &feeds.Author{
-			Name:  s.Config.User.Name,
-			Email: s.Config.User.Email,
+			Name:  s.c.User.Name,
+			Email: s.c.User.Email,
 		},
-		// TODO: support .Tags
 		Created: time.Now(),
 		Items:   []*feeds.Item{},
 	}
 
 	for _, entry := range entries {
 		var buf bytes.Buffer
-		err = s.Render(&buf, &eagle.RenderData{Entry: entry}, []string{eagle.TemplateFeed})
+		err = s.renderer.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed})
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
@@ -429,8 +428,8 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Description: entry.TextDescription(),
 			Content:     buf.String(),
 			Author: &feeds.Author{
-				Name:  s.Config.User.Name,
-				Email: s.Config.User.Email,
+				Name:  s.c.User.Name,
+				Email: s.c.User.Email,
 			},
 			Created: entry.Published,
 			Updated: entry.Updated,
@@ -459,6 +458,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	w.Header().Set("Content-Type", feedMediaType+contenttype.CharsetUtf8Suffix)
 	_, err = w.Write([]byte(feedString))
 	if err != nil {
-		s.Notifier.Error(fmt.Errorf("error while serving feed: %w", err))
+		s.n.Error(fmt.Errorf("error while serving feed: %w", err))
 	}
 }

@@ -15,7 +15,7 @@ type GitSync struct {
 	mu  sync.Mutex
 }
 
-func NewGitSync(path string) FSSync {
+func NewGitSync(path string) Sync {
 	return &GitSync{dir: path}
 }
 

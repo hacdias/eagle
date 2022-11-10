@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/pkg/micropub"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/pkg/micropub"
 	"github.com/thoas/go-funk"
 )
 
@@ -35,7 +35,7 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := s.GetEntry(id)
+	entry, err := s.fs.GetEntry(id)
 	if err != nil {
 		if os.IsNotExist(err) {
 			s.serveErrorJSON(w, http.StatusNotFound, "invalid_request", fmt.Sprintf("Post cannot be found: %s.", id))
@@ -50,7 +50,7 @@ func (s *Server) micropubSource(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	syndications := []map[string]string{}
-	for _, s := range s.GetSyndicators() {
+	for _, s := range s.syndicator.Config() {
 		syndications = append(syndications, map[string]string{
 			"uid":  s.UID,
 			"name": s.Name,
@@ -58,7 +58,7 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sections := []map[string]string{}
-	for _, s := range s.Config.Site.Sections {
+	for _, s := range s.c.Site.Sections {
 		sections = append(sections, map[string]string{
 			"uid":  s,
 			"name": s,
@@ -68,11 +68,11 @@ func (s *Server) micropubConfig(w http.ResponseWriter, r *http.Request) {
 	config := map[string]interface{}{
 		"syndicate-to":   syndications,
 		"channels":       sections,
-		"media-endpoint": s.Config.Server.AbsoluteURL("/micropub/media"),
+		"media-endpoint": s.c.Server.AbsoluteURL("/micropub/media"),
 	}
 
-	if len(s.Config.Micropub.PostTypes) > 0 {
-		config["post-types"] = s.Config.Micropub.PostTypes
+	if len(s.c.Micropub.PostTypes) > 0 {
+		config["post-types"] = s.c.Micropub.PostTypes
 	}
 
 	s.serveJSON(w, http.StatusOK, config)
@@ -104,12 +104,12 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 		if !s.checkScope(w, r, "delete") {
 			return
 		}
-		code, err = s.micropubRemove(w, r, mr)
+		code, err = s.micropubDelete(w, r, mr)
 	case micropub.ActionUndelete:
 		if !s.checkScope(w, r, "undelete") {
 			return
 		}
-		code, err = s.micropubUnremove(w, r, mr)
+		code, err = s.micropubUndelete(w, r, mr)
 	default:
 		code, err = http.StatusBadRequest, errors.New("invalid action")
 	}
@@ -122,7 +122,7 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 		s.log.Errorf("micropub: error on post: %s", err)
 		s.serveErrorJSON(w, code, "server_error", err.Error())
 	} else if err != nil {
-		s.Error(fmt.Errorf("micropub: %w", err))
+		s.n.Error(fmt.Errorf("micropub: %w", err))
 	}
 }
 
@@ -133,7 +133,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		slug = s
 	}
 
-	ee, err := s.Parser.FromMF2(mr.Properties, slug)
+	ee, err := s.parser.FromMF2(mr.Properties, slug)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -146,11 +146,11 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		ee.Sections = append(ee.Sections, s...)
 	}
 
-	if err := s.PreCreateEntry(ee); err != nil {
+	if err := s.preSaveEntry(ee, true); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.SaveEntry(ee)
+	err = s.fs.SaveEntry(ee)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -159,9 +159,9 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 	if s := cmds.Strings("mp-syndicate-to"); len(s) > 0 {
 		syndicators = s
 	}
-	go s.PostSaveEntry(ee, syndicators)
 
-	http.Redirect(w, r, s.Config.Server.BaseURL+ee.ID, http.StatusAccepted)
+	go s.postSaveEntry(ee, false, syndicators)
+	http.Redirect(w, r, s.c.Server.BaseURL+ee.ID, http.StatusAccepted)
 	return 0, nil
 }
 
@@ -171,7 +171,11 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	ee, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+	ee, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		if err := s.preSaveEntry(entry, false); err != nil {
+			return nil, err
+		}
+
 		mf := entry.MF2()
 		props := mf["properties"].(map[string][]interface{})
 		newMf, err := micropub.Update(props, mr)
@@ -190,18 +194,22 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.PostSaveEntry(ee, nil)
+	go s.postSaveEntry(ee, false, nil)
 	http.Redirect(w, r, ee.Permalink, http.StatusOK)
 	return 0, nil
 }
 
-func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
+func (s *Server) micropubUndelete(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
 	id, err := s.micropubParseURL(mr.URL)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	entry, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+	entry, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		if err := s.preSaveEntry(entry, false); err != nil {
+			return nil, err
+		}
+
 		entry.Deleted = false
 		return entry, nil
 	})
@@ -209,17 +217,21 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusInternalServerError, err
 	}
 
-	go s.PostSaveEntry(entry, nil)
+	go s.postSaveEntry(entry, false, nil)
 	return http.StatusOK, nil
 }
 
-func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
+func (s *Server) micropubDelete(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
 	id, err := s.micropubParseURL(mr.URL)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
-	ee, err := s.TransformEntry(id, func(entry *entry.Entry) (*entry.Entry, error) {
+	ee, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		if err := s.preSaveEntry(entry, false); err != nil {
+			return nil, err
+		}
+
 		entry.Deleted = true
 		return entry, nil
 	})
@@ -227,7 +239,7 @@ func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusInternalServerError, err
 	}
 
-	go s.PostSaveEntry(ee, nil)
+	go s.postSaveEntry(ee, false, nil)
 	return http.StatusOK, nil
 }
 
@@ -236,11 +248,11 @@ func (s *Server) micropubParseURL(url string) (string, error) {
 		return "", errors.New("url must be set")
 	}
 
-	if !strings.HasPrefix(url, s.Config.Server.BaseURL) {
+	if !strings.HasPrefix(url, s.c.Server.BaseURL) {
 		return "", errors.New("invalid domain in url")
 	}
 
-	return strings.Replace(url, s.Config.Server.BaseURL, "", 1), nil
+	return strings.Replace(url, s.c.Server.BaseURL, "", 1), nil
 }
 
 func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
@@ -286,7 +298,7 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 		ext = mime.Extension()
 	}
 
-	location, err := s.UploadAnonymousMedia(ext, bytes.NewReader(raw))
+	location, err := s.media.UploadAnonymousMedia(ext, bytes.NewReader(raw))
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return

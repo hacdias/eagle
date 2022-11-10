@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/webmentions"
 )
 
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
-	wm := &eagle.WebmentionPayload{}
+	wm := &webmentions.Payload{}
 	err := json.NewDecoder(r.Body).Decode(&wm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -16,13 +16,13 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if wm.Secret != s.Config.Webmentions.Secret {
+	if wm.Secret != s.c.Webmentions.Secret {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	wm.Secret = ""
-	err = s.ReceiveWebmentions(wm)
+	err = s.webmentions.ReceiveWebmentions(wm)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		s.log.Error("could not parse webmention", err)

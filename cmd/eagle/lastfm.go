@@ -5,8 +5,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/media"
+	"github.com/hacdias/eagle/services/bunny"
+	"github.com/hacdias/eagle/services/lastfm"
 	"github.com/spf13/cobra"
 )
 
@@ -38,16 +41,15 @@ var lastfmCmd = &cobra.Command{
 			return err
 		}
 
-		c, err := config.Parse()
+		c, err := eagle.ParseConfig()
 		if err != nil {
 			return err
 		}
 
-		e, err := eagle.NewEagle(c)
-		if err != nil {
-			return err
-		}
-		defer e.Close()
+		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		media := media.NewMedia(bunny.NewBunny(c.BunnyCDN), nil)
+
+		lastfm := lastfm.NewLastFm(c.Lastfm.Key, c.Lastfm.User, fs, media)
 
 		for cur := from; !cur.Equal(to); cur = cur.AddDate(0, 0, 1) {
 			year, month, day := cur.Date()
@@ -57,14 +59,14 @@ var lastfmCmd = &cobra.Command{
 			var err error
 
 			if !noFetch {
-				created, err = e.FetchLastFmListens(year, month, day)
+				created, err = lastfm.FetchLastFmListens(year, month, day)
 				if err != nil {
 					return err
 				}
 			}
 
 			if !noGenerate && created {
-				err := e.CreateDailyListensEntry(year, month, day)
+				err := lastfm.CreateDailyListensEntry(year, month, day)
 				if err != nil && !os.IsNotExist(err) {
 					return err
 				}
