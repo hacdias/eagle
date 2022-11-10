@@ -43,7 +43,7 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 	isInteraction := IsInteraction(parsed)
 
 	err = ws.fs.UpdateSidecar(entry, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
-		var mentions []*xray.Post
+		var mentions []*eagle.Mention
 		if isInteraction {
 			mentions = sidecar.Interactions
 		} else {
@@ -53,14 +53,14 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 		replaced := false
 		for i, mention := range mentions {
 			if mention.URL == payload.Source || mention.URL == parsed.URL {
-				mentions[i] = parsed
+				mentions[i] = &eagle.Mention{Post: *parsed, Hidden: mentions[i].Hidden}
 				replaced = true
 				break
 			}
 		}
 
 		if !replaced {
-			mentions = append(mentions, parsed)
+			mentions = append(mentions, &eagle.Mention{Post: *parsed})
 		}
 
 		if isInteraction {
