@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/hacdias/eagle/v4/indexer"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/jackc/pgx/v4"
@@ -325,7 +326,7 @@ func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string
 	return d.queryEntries(sql, 1, args...)
 }
 
-func (d *Postgres) GetReadsSummary() (*eagle.ReadsSummary, error) {
+func (d *Postgres) GetReadsSummary() (*hooks.ReadsSummary, error) {
 	sql := `select distinct on (id)
 	id,
 	updated as date,
@@ -347,15 +348,15 @@ where properties->'read-status'->0->>'status' is not null`
 	}
 	defer rows.Close()
 
-	stats := &eagle.ReadsSummary{
-		ToRead:  []*eagle.Read{},
-		Reading: []*eagle.Read{},
+	stats := &hooks.ReadsSummary{
+		ToRead:  []*hooks.Read{},
+		Reading: []*hooks.Read{},
 	}
 
-	finished := eagle.ReadList([]*eagle.Read{})
+	finished := hooks.ReadList([]*hooks.Read{})
 
 	for rows.Next() {
-		read := &eagle.Read{}
+		read := &hooks.Read{}
 		status := ""
 
 		err := rows.Scan(&read.ID, &read.Date, &status, &read.Name, &read.Author)
@@ -381,7 +382,7 @@ where properties->'read-status'->0->>'status' is not null`
 	return stats, nil
 }
 
-func (d *Postgres) watches(baseSql string) ([]*eagle.Watch, error) {
+func (d *Postgres) watches(baseSql string) ([]*hooks.Watch, error) {
 	sql := "select id, date, name from (" + baseSql
 
 	if ands, _ := d.whereConstraints(&indexer.Query{}, 0); len(ands) > 0 {
@@ -396,10 +397,10 @@ func (d *Postgres) watches(baseSql string) ([]*eagle.Watch, error) {
 	}
 	defer rows.Close()
 
-	watches := []*eagle.Watch{}
+	watches := []*hooks.Watch{}
 
 	for rows.Next() {
-		watch := &eagle.Watch{}
+		watch := &hooks.Watch{}
 		err := rows.Scan(&watch.ID, &watch.Date, &watch.Name)
 		if err != nil {
 			return nil, err
@@ -414,10 +415,10 @@ func (d *Postgres) watches(baseSql string) ([]*eagle.Watch, error) {
 	return watches, nil
 }
 
-func (d *Postgres) GetWatchesSummary() (*eagle.WatchesSummary, error) {
-	watches := &eagle.WatchesSummary{
-		Series: []*eagle.Watch{},
-		Movies: []*eagle.Watch{},
+func (d *Postgres) GetWatchesSummary() (*hooks.WatchesSummary, error) {
+	watches := &hooks.WatchesSummary{
+		Series: []*hooks.Watch{},
+		Movies: []*hooks.Watch{},
 	}
 
 	series, err := d.watches(`select distinct on (ttid)

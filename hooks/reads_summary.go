@@ -2,6 +2,8 @@ package hooks
 
 import (
 	"fmt"
+	"sort"
+	"time"
 
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/fs"
@@ -11,8 +13,62 @@ import (
 
 // WIP: perhaps this should live in a separate package and include ReadsSummary there.
 
+type Read struct {
+	ID     string    `json:"id"`
+	Date   time.Time `json:"date"`
+	Name   string    `json:"name"`
+	Author string    `json:"author"`
+}
+
+type ReadList []*Read
+
+type ReadsSummary struct {
+	ToRead   ReadList    `json:"to-read"`
+	Reading  ReadList    `json:"reading"`
+	Finished ReadsByYear `json:"finished"`
+}
+
+type ReadsByYear struct {
+	Years []int
+	Map   map[int]ReadList
+}
+
+func (rd ReadList) ByYear() *ReadsByYear {
+	years := []int{}
+	byYear := map[int]ReadList{}
+
+	for _, r := range rd {
+		year := r.Date.Year()
+
+		_, ok := byYear[year]
+		if !ok {
+			years = append(years, year)
+			byYear[year] = ReadList{}
+		}
+
+		byYear[year] = append(byYear[year], r)
+	}
+
+	sort.Sort(sort.Reverse(sort.IntSlice(years)))
+
+	for _, year := range years {
+		byYear[year].SortByName()
+	}
+
+	return &ReadsByYear{
+		Years: years,
+		Map:   byYear,
+	}
+}
+
+func (rd ReadList) SortByName() {
+	sort.SliceStable(rd, func(i, j int) bool {
+		return rd[i].Name < rd[j].Name
+	})
+}
+
 type ReadsSummaryProvider interface {
-	GetReadsSummary() (*eagle.ReadsSummary, error)
+	GetReadsSummary() (*ReadsSummary, error)
 }
 
 const (
@@ -56,7 +112,7 @@ func (u *ReadsSummaryUpdater) UpdateReadsSummary() error {
 	return err
 }
 
-func readsSummaryToMarkdown(stats *eagle.ReadsSummary) string {
+func readsSummaryToMarkdown(stats *ReadsSummary) string {
 	summary := "## 📖 Reading {#reading}\n\n"
 
 	if len(stats.Reading) == 0 {
@@ -90,7 +146,7 @@ func readsSummaryToMarkdown(stats *eagle.ReadsSummary) string {
 	return summary
 }
 
-func readListToMarkdown(list eagle.ReadList) string {
+func readListToMarkdown(list ReadList) string {
 	md := ""
 
 	list.SortByName()

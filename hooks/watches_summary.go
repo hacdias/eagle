@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/fs"
@@ -11,8 +12,19 @@ import (
 
 // WIP: perhaps this should live in a separate package and include ReadsSummary there.
 
+type Watch struct {
+	ID   string    `json:"id"`
+	Date time.Time `json:"date"`
+	Name string    `json:"name"`
+}
+
+type WatchesSummary struct {
+	Series []*Watch `json:"series"`
+	Movies []*Watch `json:"movies"`
+}
+
 type WatchesSummaryProvider interface {
-	GetWatchesSummary() (*eagle.WatchesSummary, error)
+	GetWatchesSummary() (*WatchesSummary, error)
 }
 
 type WatchesSummaryUpdater struct {
@@ -55,7 +67,7 @@ func (u *WatchesSummaryUpdater) UpdateWatchesSummary() error {
 	return err
 }
 
-func watchesSummaryToMarkdown(stats *eagle.WatchesSummary) string {
+func watchesSummaryToMarkdown(stats *WatchesSummary) string {
 	summary := "## 📺 Series {#series}\n\n"
 	summary += "<div class='box'>\n\n"
 	summary += watchListToMarkdown(stats.Series)
@@ -65,7 +77,7 @@ func watchesSummaryToMarkdown(stats *eagle.WatchesSummary) string {
 	return summary
 }
 
-func watchListToMarkdown(list []*eagle.Watch) string {
+func watchListToMarkdown(list []*Watch) string {
 	md := ""
 
 	for _, watch := range list {
