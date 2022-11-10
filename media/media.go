@@ -13,39 +13,37 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/thoas/go-funk"
 	"go.uber.org/zap"
 )
 
-// wip: make interface for bunny (media storage) and imgproxy (media transformer)? make sure it's initialized evertywhere
+type Storage interface {
+	BaseURL() string
+	UploadMedia(filename string, data io.Reader) (string, error)
+}
+
+type Transformer interface {
+	Transform(reader io.Reader, format string, width, quality int) (io.Reader, error)
+}
+
 type Media struct {
-	httpClient *http.Client
-	log        *zap.SugaredLogger
-	bunnyCDN   *BunnyCDN
-	imgProxy   *ImgProxy
+	log         *zap.SugaredLogger
+	httpClient  *http.Client
+	storage     Storage
+	transformer Transformer
 }
 
 func (m *Media) BaseURL() string {
-	if m.bunnyCDN == nil {
-		return ""
-	}
-	return m.bunnyCDN.Base
+	return m.storage.BaseURL()
 }
 
-func NewMedia(conf *eagle.Config) *Media {
+func NewMedia(storage Storage, transformer Transformer) *Media {
 	m := &Media{
-		httpClient: &http.Client{Timeout: 2 * time.Minute},
-		log:        log.S().Named("media"),
-	}
-
-	if conf.BunnyCDN != nil {
-		m.bunnyCDN = NewBunnyCDN(conf.BunnyCDN)
-	}
-
-	if conf.ImgProxy != nil {
-		m.imgProxy = NewImgProxy(conf.ImgProxy)
+		log:         log.S().Named("media"),
+		httpClient:  &http.Client{Timeout: 2 * time.Minute},
+		storage:     storage,
+		transformer: transformer,
 	}
 
 	return m
@@ -70,7 +68,7 @@ func (m *Media) UploadMedia(filename, ext string, reader io.Reader) (string, err
 }
 
 func (m *Media) UploadFromURL(base, url string, skipImageCheck bool) (string, error) {
-	if m.bunnyCDN == nil {
+	if m.storage == nil {
 		return url, errors.New("media is not implemented")
 	}
 
@@ -107,7 +105,7 @@ func (e *Media) uploadAnonymous(base, ext string, data []byte, skipImageCheck bo
 }
 
 func (m *Media) upload(base, filename, ext string, data []byte, skipImageCheck bool) (string, error) {
-	if m.bunnyCDN == nil {
+	if m.storage == nil {
 		return "", errors.New("media is not implemented")
 	}
 
@@ -121,7 +119,7 @@ func (m *Media) upload(base, filename, ext string, data []byte, skipImageCheck b
 	}
 
 	filename = filepath.Join(base, filename+ext)
-	return m.bunnyCDN.UploadMedia(filename, bytes.NewBuffer(data))
+	return m.storage.UploadMedia(filename, bytes.NewBuffer(data))
 }
 
 var imageExtensions []string = []string{
@@ -140,28 +138,28 @@ func (m *Media) uploadImage(filename string, data []byte) (string, error) {
 		return "", errors.New("image is smaller than 100 KB, ignore")
 	}
 
-	if m.imgProxy == nil {
-		return "", errors.New("imgproxy is not implemented")
+	if m.transformer == nil {
+		return "", errors.New("transformer not implemented")
 	}
 
-	imgReader, err := m.imgProxy.Transform(bytes.NewReader(data), "jpeg", 3000, 100)
+	imgReader, err := m.transformer.Transform(bytes.NewReader(data), "jpeg", 3000, 100)
 	if err != nil {
 		return "", err
 	}
 
-	_, err = m.bunnyCDN.UploadMedia(filepath.Join("media", filename+".jpeg"), imgReader)
+	_, err = m.storage.UploadMedia(filepath.Join("media", filename+".jpeg"), imgReader)
 	if err != nil {
 		return "", err
 	}
 
 	for _, format := range []string{"webp", "jpeg"} {
 		for _, width := range []int{250, 500, 1000, 2000} {
-			imgReader, err = m.imgProxy.Transform(bytes.NewReader(data), format, width, 80)
+			imgReader, err = m.transformer.Transform(bytes.NewReader(data), format, width, 80)
 			if err != nil {
 				return "", err
 			}
 
-			_, err = m.bunnyCDN.UploadMedia(filepath.Join("img", strconv.Itoa(width), filename+"."+format), imgReader)
+			_, err = m.storage.UploadMedia(filepath.Join("img", strconv.Itoa(width), filename+"."+format), imgReader)
 			if err != nil {
 				return "", err
 			}

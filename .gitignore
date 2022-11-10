@@ -7,5 +7,4 @@ testing
 main
 node_modules
 source
-imgproxy
 cmd/eagle/tmp.go

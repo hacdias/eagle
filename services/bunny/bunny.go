@@ -1,4 +1,4 @@
-package media
+package bunny
 
 import (
 	"errors"
@@ -10,31 +10,35 @@ import (
 	"github.com/hacdias/eagle/v4/eagle"
 )
 
-type BunnyCDN struct {
+type Bunny struct {
 	httpClient *http.Client
-	*eagle.BunnyCDN
+	conf       *eagle.BunnyCDN
 }
 
-func NewBunnyCDN(conf *eagle.BunnyCDN) *BunnyCDN {
-	return &BunnyCDN{
-		BunnyCDN: conf,
+func NewBunny(conf *eagle.BunnyCDN) *Bunny {
+	return &Bunny{
+		conf: conf,
 		httpClient: &http.Client{
 			Timeout: time.Minute * 10,
 		},
 	}
 }
 
-func (m *BunnyCDN) UploadMedia(filename string, data io.Reader) (string, error) {
+func (m *Bunny) BaseURL() string {
+	return m.conf.Base
+}
+
+func (m *Bunny) UploadMedia(filename string, data io.Reader) (string, error) {
 	if !strings.HasPrefix(filename, "/") {
 		filename = "/" + filename
 	}
 
-	req, err := http.NewRequest(http.MethodPut, "https://storage.bunnycdn.com/"+m.Zone+filename, data)
+	req, err := http.NewRequest(http.MethodPut, "https://storage.bunnycdn.com/"+m.conf.Zone+filename, data)
 	if err != nil {
 		return "", err
 	}
 
-	req.Header.Set("AccessKey", m.Key)
+	req.Header.Set("AccessKey", m.conf.Key)
 
 	res, err := m.httpClient.Do(req)
 	if err != nil {
@@ -46,5 +50,5 @@ func (m *BunnyCDN) UploadMedia(filename string, data io.Reader) (string, error) 
 		return "", errors.New("status code is not ok")
 	}
 
-	return m.Base + filename, nil
+	return m.conf.Base + filename, nil
 }
