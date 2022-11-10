@@ -10,15 +10,14 @@ import (
 	"os"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
 	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 	"willnorris.com/go/webmention"
 )
 
-func (ws *WebmentionsService) SendWebmentions(e *entry.Entry) error {
-	if ws.Client == nil ||
+func (ws *Webmentions) SendWebmentions(e *eagle.Entry) error {
+	if ws.client == nil ||
 		e.NoSendInteractions ||
 		e.Draft {
 		return nil
@@ -45,7 +44,7 @@ func (ws *WebmentionsService) SendWebmentions(e *entry.Entry) error {
 
 	if !e.Deleted {
 		// If it's not a deleted entry, update the targets list.
-		err = ws.Eagle.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
+		err = ws.fs.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
 			data.Targets = curr
 			return data, nil
 		})
@@ -61,7 +60,7 @@ func (ws *WebmentionsService) SendWebmentions(e *entry.Entry) error {
 	return fmt.Errorf("webmention errors for %s: %w", e.ID, err)
 }
 
-func (ws *WebmentionsService) GetWebmentionTargets(entry *entry.Entry) ([]string, []string, []string, error) {
+func (ws *Webmentions) GetWebmentionTargets(entry *eagle.Entry) ([]string, []string, []string, error) {
 	currentTargets, err := ws.getTargetsFromHTML(entry)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -75,7 +74,7 @@ func (ws *WebmentionsService) GetWebmentionTargets(entry *entry.Entry) ([]string
 		}
 	}
 
-	sidecar, err := ws.Eagle.GetSidecar(entry)
+	sidecar, err := ws.fs.GetSidecar(entry)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -89,9 +88,9 @@ func (ws *WebmentionsService) GetWebmentionTargets(entry *entry.Entry) ([]string
 	return targets, currentTargets, oldTargets, nil
 }
 
-func (ws *WebmentionsService) getTargetsFromHTML(entry *entry.Entry) ([]string, error) {
+func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) {
 	var buf bytes.Buffer
-	err := ws.Renderer.Render(&buf, &renderer.RenderData{
+	err := ws.renderer.Render(&buf, &renderer.RenderData{
 		Entry: entry,
 	}, renderer.EntryTemplates(entry))
 	if err != nil {
@@ -115,8 +114,8 @@ func (ws *WebmentionsService) getTargetsFromHTML(entry *entry.Entry) ([]string, 
 	return funk.UniqString(targets), nil
 }
 
-func (ws *WebmentionsService) sendWebmention(source, target string) error {
-	endpoint, err := ws.Client.DiscoverEndpoint(target)
+func (ws *Webmentions) sendWebmention(source, target string) error {
+	endpoint, err := ws.client.DiscoverEndpoint(target)
 	if err != nil {
 		return err
 	}
@@ -125,7 +124,7 @@ func (ws *WebmentionsService) sendWebmention(source, target string) error {
 		return fmt.Errorf("webmention endpoint is a private address: %s", endpoint)
 	}
 
-	res, err := ws.Client.SendWebmention(endpoint, source, target)
+	res, err := ws.client.SendWebmention(endpoint, source, target)
 	if err != nil {
 		return err
 	}
