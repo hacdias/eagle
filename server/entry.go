@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/renderer"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/renderer"
 	"github.com/thoas/go-funk"
 )
 

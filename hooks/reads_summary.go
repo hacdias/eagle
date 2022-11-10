@@ -5,10 +5,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/fs"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/util"
 )
 
 // WIP: perhaps this should live in a separate package and include ReadsSummary there.

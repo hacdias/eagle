@@ -1,6 +1,6 @@
 package server
 
-import "github.com/hacdias/eagle/v4/eagle"
+import "github.com/hacdias/eagle/eagle"
 
 // preSaveEntry runs pre saving hooks. These hooks are blocking and they stop
 // at the first error. All changes made to the entry in these hooks is saved

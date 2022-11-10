@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/fs"
-	"github.com/hacdias/eagle/v4/pkg/maze"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/pkg/maze"
+	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/karlseguin/typed"
 )
 

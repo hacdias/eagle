@@ -5,11 +5,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/fs"
-	"github.com/hacdias/eagle/v4/media"
-	"github.com/hacdias/eagle/v4/services/bunny"
-	"github.com/hacdias/eagle/v4/services/lastfm"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/media"
+	"github.com/hacdias/eagle/services/bunny"
+	"github.com/hacdias/eagle/services/lastfm"
 	"github.com/spf13/cobra"
 )
 

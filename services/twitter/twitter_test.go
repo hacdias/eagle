@@ -3,7 +3,7 @@ package twitter
 import (
 	"testing"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
 )
 
 func newTestTwitter() *Twitter {

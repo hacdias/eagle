@@ -4,8 +4,8 @@ import (
 	"fmt"
 	urlpkg "net/url"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/pkg/xray"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/xray"
 )
 
 type Payload struct {

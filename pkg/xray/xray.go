@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v4/pkg/contenttype"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/pkg/contenttype"
+	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/karlseguin/typed"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"go.uber.org/zap"

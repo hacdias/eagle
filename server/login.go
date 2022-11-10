@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/renderer"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
 )

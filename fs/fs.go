@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
 	"github.com/spf13/afero"
 )
 

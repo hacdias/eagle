@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/fs"
-	"github.com/hacdias/eagle/v4/hooks"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/hooks"
 	"github.com/spf13/cobra"
 )
 

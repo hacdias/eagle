@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/ristretto"
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
 )
 
 type CacheScope string

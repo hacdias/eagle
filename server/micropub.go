@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/pkg/micropub"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/pkg/micropub"
 	"github.com/thoas/go-funk"
 )
 

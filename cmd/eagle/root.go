@@ -6,9 +6,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/log"
-	"github.com/hacdias/eagle/v4/server"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/log"
+	"github.com/hacdias/eagle/server"
 	"github.com/spf13/cobra"
 )
 

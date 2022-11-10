@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/fs"
-	"github.com/hacdias/eagle/v4/media"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/media"
 )
 
 type PhotosUploader struct {

@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/hooks"
-	"github.com/hacdias/eagle/v4/indexer"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/hooks"
+	"github.com/hacdias/eagle/indexer"
+	"github.com/hacdias/eagle/util"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )

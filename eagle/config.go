@@ -6,7 +6,7 @@ import (
 	urlpkg "net/url"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/spf13/viper"
 	"github.com/thoas/go-funk"
 )

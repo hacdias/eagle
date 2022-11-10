@@ -3,8 +3,8 @@ package hooks
 import (
 	"strings"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/mf2"
 )
 
 type SectionDeducer map[mf2.Type][]string

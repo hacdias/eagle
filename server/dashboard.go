@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/renderer"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 )

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
 	"github.com/spf13/afero"
 )
 

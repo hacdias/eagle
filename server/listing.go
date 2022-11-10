@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/indexer"
-	"github.com/hacdias/eagle/v4/pkg/contenttype"
-	"github.com/hacdias/eagle/v4/renderer"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/indexer"
+	"github.com/hacdias/eagle/pkg/contenttype"
+	"github.com/hacdias/eagle/renderer"
+	"github.com/hacdias/eagle/util"
 	"github.com/jlelse/feeds"
 	"github.com/thoas/go-funk"
 )

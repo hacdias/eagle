@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/fs"
 )
 
 func (s *Server) withRedirects(next http.Handler) http.Handler {

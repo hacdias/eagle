@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/util"
 	"github.com/thoas/go-funk"
 )
 

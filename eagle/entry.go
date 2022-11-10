@@ -9,8 +9,8 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/forPelevin/gomoji"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/util"
 	"github.com/karlseguin/typed"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/thoas/go-funk"

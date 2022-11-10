@@ -1,6 +1,6 @@
 package eagle
 
-import "github.com/hacdias/eagle/v4/pkg/xray"
+import "github.com/hacdias/eagle/pkg/xray"
 
 type Sidecar struct {
 	Targets      []string     `json:"targets,omitempty"`

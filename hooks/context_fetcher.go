@@ -3,12 +3,12 @@ package hooks
 import (
 	"fmt"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/fs"
-	"github.com/hacdias/eagle/v4/log"
-	"github.com/hacdias/eagle/v4/media"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/pkg/xray"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/log"
+	"github.com/hacdias/eagle/media"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/pkg/xray"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 

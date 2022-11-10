@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/v4/log"
+	"github.com/hacdias/eagle/log"
 	"github.com/thoas/go-funk"
 	"go.uber.org/zap"
 )

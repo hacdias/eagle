@@ -1,8 +1,8 @@
 package telegram
 
 import (
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/log"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/log"
 	"go.uber.org/zap"
 	tb "gopkg.in/telebot.v3"
 )

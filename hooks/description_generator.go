@@ -3,9 +3,9 @@ package hooks
 import (
 	"strconv"
 
-	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/util"
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/util"
 )
 
 var typeToDescription = map[mf2.Type]string{

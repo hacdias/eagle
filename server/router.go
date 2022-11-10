@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/renderer"
+	"github.com/hacdias/eagle/renderer"
 )
 
 const (

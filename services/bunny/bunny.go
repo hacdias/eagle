@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/eagle"
 )
 
 type Bunny struct {
