@@ -1,4 +1,4 @@
-package database
+package postgres
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/indexer"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -16,7 +17,7 @@ type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func NewDatabase(cfg *eagle.PostgreSQL) (*Postgres, error) {
+func NewPostgres(cfg *eagle.PostgreSQL) (*Postgres, error) {
 	dsn := "user=" + cfg.User
 	dsn += " password=" + cfg.Password
 	dsn += " host=" + cfg.Host
@@ -129,7 +130,7 @@ func (d *Postgres) GetEmojis() ([]string, error) {
 }
 
 // TODO: support opts.OrderByUpdated?
-func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, error) {
+func (d *Postgres) ByDate(opts *indexer.Query, year, month, day int) ([]string, error) {
 	if year == 0 && month == 0 && day == 0 {
 		return nil, errors.New("year, month or day must be set")
 	}
@@ -170,7 +171,7 @@ func (d *Postgres) ByDate(opts *QueryOptions, year, month, day int) ([]string, e
 }
 
 // TODO: support opts.OrderByUpdated?
-func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
+func (d *Postgres) ByTag(opts *indexer.Query, tag string) ([]string, error) {
 	args := []interface{}{tag}
 	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
 
@@ -184,7 +185,7 @@ func (d *Postgres) ByTag(opts *QueryOptions, tag string) ([]string, error) {
 }
 
 // TODO: support opts.OrderByUpdated?
-func (d *Postgres) ByEmoji(opts *QueryOptions, emoji string) ([]string, error) {
+func (d *Postgres) ByEmoji(opts *indexer.Query, emoji string) ([]string, error) {
 	args := []interface{}{emoji}
 	sql := "select id from emojis inner join entries on id=entry_id where emoji=$1"
 
@@ -197,7 +198,7 @@ func (d *Postgres) ByEmoji(opts *QueryOptions, emoji string) ([]string, error) {
 	return d.queryEntries(sql, 0, args...)
 }
 
-func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, error) {
+func (d *Postgres) BySection(opts *indexer.Query, sections ...string) ([]string, error) {
 	sql := "select distinct (id) id, updated, date from sections inner join entries on id=entry_id"
 	where, args := d.whereConstraints(opts, 0)
 	i := len(args)
@@ -228,7 +229,7 @@ func (d *Postgres) BySection(opts *QueryOptions, sections ...string) ([]string, 
 }
 
 // TODO: support opts.OrderByUpdated?
-func (d *Postgres) ByProperty(opts *QueryOptions, property, value string) ([]string, error) {
+func (d *Postgres) ByProperty(opts *indexer.Query, property, value string) ([]string, error) {
 	args := []interface{}{property, value}
 	sql := "select id from entries where properties->>$1=$2"
 
@@ -241,7 +242,7 @@ func (d *Postgres) ByProperty(opts *QueryOptions, property, value string) ([]str
 	return d.queryEntries(sql, 0, args...)
 }
 
-func (d *Postgres) GetAll(opts *QueryOptions) ([]string, error) {
+func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
 	sql := "select id from entries"
 
 	where, args := d.whereConstraints(opts, 0)
@@ -252,22 +253,22 @@ func (d *Postgres) GetAll(opts *QueryOptions) ([]string, error) {
 	return d.queryEntries(sql+" order by date desc"+d.offset(opts.Pagination), 0, args...)
 }
 
-func (d *Postgres) GetDeleted(opts *PaginationOptions) ([]string, error) {
+func (d *Postgres) GetDeleted(opts *indexer.Pagination) ([]string, error) {
 	sql := "select id from entries where isDeleted=true order by date desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetDrafts(opts *PaginationOptions) ([]string, error) {
+func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
 	sql := "select id from entries where isDraft=true order by date desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetUnlisted(opts *PaginationOptions) ([]string, error) {
+func (d *Postgres) GetUnlisted(opts *indexer.Pagination) ([]string, error) {
 	sql := "select id from entries where visibility='unlisted' order by date desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetPrivate(opts *PaginationOptions, audience string) ([]string, error) {
+func (d *Postgres) GetPrivate(opts *indexer.Pagination, audience string) ([]string, error) {
 	if audience == "" {
 		return nil, errors.New("audience is required")
 	}
@@ -276,7 +277,7 @@ func (d *Postgres) GetPrivate(opts *PaginationOptions, audience string) ([]strin
 	return d.queryEntries(sql, 0, audience)
 }
 
-func (d *Postgres) Search(opts *QueryOptions, search *SearchOptions) ([]string, error) {
+func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string, error) {
 	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility, audience"
 	mainFrom := "from entries as e"
 
@@ -334,7 +335,7 @@ func (d *Postgres) GetReadsSummary() (*eagle.ReadsSummary, error) {
 from entries
 where properties->'read-status'->0->>'status' is not null`
 
-	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
+	if ands, _ := d.whereConstraints(&indexer.Query{}, 0); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
@@ -383,7 +384,7 @@ where properties->'read-status'->0->>'status' is not null`
 func (d *Postgres) watches(baseSql string) ([]*eagle.Watch, error) {
 	sql := "select id, date, name from (" + baseSql
 
-	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
+	if ands, _ := d.whereConstraints(&indexer.Query{}, 0); len(ands) > 0 {
 		sql += " and " + strings.Join(ands, " and ")
 	}
 
@@ -450,7 +451,7 @@ where
 	return watches, nil
 }
 
-func (d *Postgres) whereConstraints(opts *QueryOptions, i int) ([]string, []interface{}) {
+func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []interface{}) {
 	var where []string
 	var args []interface{}
 
@@ -481,7 +482,7 @@ func (d *Postgres) whereConstraints(opts *QueryOptions, i int) ([]string, []inte
 	return where, args
 }
 
-func (d *Postgres) offset(opts *PaginationOptions) string {
+func (d *Postgres) offset(opts *indexer.Pagination) string {
 	if opts == nil {
 		return ""
 	}
@@ -525,8 +526,9 @@ func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]
 	return ids, nil
 }
 
-func (d *Postgres) Close() {
+func (d *Postgres) Close() error {
 	d.pool.Close()
+	return nil
 }
 
 func (d *Postgres) Been() ([]string, error) {

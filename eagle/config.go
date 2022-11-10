@@ -230,6 +230,14 @@ type Micropub struct {
 	PostTypes []PostType
 }
 
+func (m *Micropub) AllowedTypes() []mf2.Type {
+	var allowedTypes []mf2.Type
+	for typ := range m.Sections {
+		allowedTypes = append(allowedTypes, typ)
+	}
+	return allowedTypes
+}
+
 type Webmentions struct {
 	Secret         string
 	DisableSending bool

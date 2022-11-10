@@ -1,4 +1,4 @@
-package notifier
+package telegram
 
 import (
 	"github.com/hacdias/eagle/v4/eagle"

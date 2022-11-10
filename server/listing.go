@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/indexer"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/eagle/v4/util"
@@ -22,8 +22,8 @@ import (
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetAll(opts)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetAll(opts)
 		},
 	})
 }
@@ -33,8 +33,8 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 		rd: &renderer.RenderData{
 			IsHome: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetBySection(opts, s.c.Site.IndexSection)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetBySection(opts, s.c.Site.IndexSection)
 		},
 		templates: []string{renderer.TemplateIndex},
 	})
@@ -57,8 +57,8 @@ func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
 		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetByTag(opts, tag)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetByTag(opts, tag)
 		},
 	})
 }
@@ -74,8 +74,8 @@ func (s *Server) emojiGet(w http.ResponseWriter, r *http.Request) {
 		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, emoji),
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetByEmoji(opts, emoji)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetByEmoji(opts, emoji)
 		},
 	})
 }
@@ -91,8 +91,8 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 			rd: &renderer.RenderData{
 				Entry: ee,
 			},
-			exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-				return s.db.GetBySection(opts, section)
+			exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+				return s.i.GetBySection(opts, section)
 			},
 			templates: []string{},
 		})
@@ -146,14 +146,14 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetByDate(opts, year, month, day)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetByDate(opts, year, month, day)
 		},
 	})
 }
 
 func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {
-	emojis, err := s.db.GetEmojis()
+	emojis, err := s.i.GetEmojis()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
@@ -168,7 +168,7 @@ func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
-	tags, err := s.db.GetTags()
+	tags, err := s.i.GetTags()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
@@ -183,7 +183,7 @@ func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
-	search := &database.SearchOptions{
+	search := &indexer.Search{
 		Query:    r.URL.Query().Get("query"),
 		Sections: []string{},
 		Tags:     []string{},
@@ -219,14 +219,14 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		lp: listingPage{
 			Search: search,
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
 			if s.isAdmin(r) {
 				opts.WithDrafts = true
 				opts.WithDeleted = true
 				opts.Visibility = nil
 			}
 
-			return s.db.Search(opts, search)
+			return s.i.Search(opts, search)
 		},
 		templates: []string{renderer.TemplateSearch},
 	})
@@ -238,8 +238,8 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetPrivate(opts.Pagination, s.getUser(r))
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetPrivate(opts.Pagination, s.getUser(r))
 		},
 	})
 }
@@ -250,8 +250,8 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetDeleted(opts.Pagination)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetDeleted(opts.Pagination)
 		},
 	})
 }
@@ -262,8 +262,8 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetDrafts(opts.Pagination)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetDrafts(opts.Pagination)
 		},
 	})
 }
@@ -274,8 +274,8 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
 			NoIndex: true,
 		},
-		exec: func(opts *database.QueryOptions) ([]*eagle.Entry, error) {
-			return s.db.GetUnlisted(opts.Pagination)
+		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			return s.i.GetUnlisted(opts.Pagination)
 		},
 	})
 }
@@ -300,14 +300,14 @@ func (s *Server) getListingEntryOrEmpty(id, title string) *eagle.Entry {
 }
 
 type listingSettings struct {
-	exec      func(*database.QueryOptions) ([]*eagle.Entry, error)
+	exec      func(*indexer.Query) ([]*eagle.Entry, error)
 	rd        *renderer.RenderData
 	lp        listingPage
 	templates []string
 }
 
 type listingPage struct {
-	Search   *database.SearchOptions
+	Search   *indexer.Search
 	Entries  []*eagle.Entry
 	Page     int
 	NextPage string
@@ -315,7 +315,7 @@ type listingPage struct {
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	opts := &database.QueryOptions{}
+	opts := &indexer.Query{}
 
 	user := s.getUser(r)
 	if user == "" {
@@ -338,7 +338,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	opts.OrderByUpdated = ls.rd.Entry.Listing.OrderByUpdated
 
 	if !ls.rd.Entry.Listing.DisablePagination {
-		opts.Pagination = &database.PaginationOptions{}
+		opts.Pagination = &indexer.Pagination{}
 
 		if ls.rd.Entry.Listing.ItemsPerPage > 0 {
 			opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage

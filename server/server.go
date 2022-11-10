@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,12 +22,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/v4/cache"
-	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/indexer"
+	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/media"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/renderer"
+	"github.com/hacdias/eagle/v4/services/bunny"
+	"github.com/hacdias/eagle/v4/services/imgproxy"
+	"github.com/hacdias/eagle/v4/services/postgres"
+	"github.com/hacdias/eagle/v4/services/telegram"
+	"github.com/hacdias/eagle/v4/services/twitter"
 	"github.com/hacdias/eagle/v4/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
@@ -46,6 +53,7 @@ type httpServer struct {
 type Server struct {
 	n eagle.Notifier
 	c *eagle.Config
+	i *indexer.Indexer
 
 	log          *zap.SugaredLogger
 	iac          *indieauth.Client
@@ -64,7 +72,6 @@ type Server struct {
 	webmentions *webmentions.Webmentions
 	syndicator  *eagle.Manager
 	renderer    *renderer.Renderer
-	db          *database.DatabaseWrapper
 	parser      *eagle.Parser
 
 	preSaveHooks  []eagle.EntryHook
@@ -74,56 +81,88 @@ type Server struct {
 func NewServer(c *eagle.Config) (*Server, error) {
 	clientID := c.Server.BaseURL + "/"
 	redirectURL := c.Server.BaseURL + "/login/callback"
+	secret := base64.StdEncoding.EncodeToString([]byte(c.Server.TokensSecret))
 
-	// renderer, err := renderer.NewRenderer(e.Config, e)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	var notifier eagle.Notifier
+	if c.Notifications.Telegram != nil {
+		notifications, err := telegram.NewTelegram(c.Notifications.Telegram)
+		if err != nil {
+			return nil, err
+		}
+		notifier = notifications
+	} else {
+		notifier = log.NewLogNotifier()
+	}
 
-	// cache, err := cache.NewCache()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// e.Cache = cache // wip: ckean this
+	var srcSync fs.FSSync
+	if c.Development {
+		srcSync = fs.NewPlaceboSync()
+	} else {
+		srcSync = fs.NewGitSync(c.Source.Directory)
+	}
+	fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, srcSync)
 
-	// s := &Server{
-	// 	Eagle:   e,
-	// 	log:     log.S().Named("server"),
-	// 	servers: []*httpServer{},
-	// 	iac: indieauth.NewClient(clientID, redirectURL, &http.Client{
-	// 		Timeout: time.Second * 30,
-	// 	}),
-	// 	ias: indieauth.NewServer(false, &http.Client{
-	// 		Timeout: time.Second * 30,
-	// 	}),
-	// 	Webmentions: &webmentions.WebmentionsService{
-	// 		Eagle:    e,
-	// 		Renderer: renderer,
-	// 	},
-	// 	syndicator: syndicator.NewManager(),
-	// 	actions:    map[string]func() error{},
-	// 	cron:       cron.New(),
-	// 	Renderer:   renderer,
-	// 	cache:      cache,
-	// }
+	var (
+		m           *media.Media
+		mBaseURL    string
+		storage     media.Storage
+		transformer media.Transformer
+	)
 
-	// if !e.Config.Webmentions.DisableSending {
-	// 	s.Webmentions.Client = webmention.New(&http.Client{
-	// 		Timeout: time.Minute,
-	// 	})
-	// }
+	if c.BunnyCDN != nil {
+		storage = bunny.NewBunny(c.BunnyCDN)
+	}
 
-	// secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
-	// s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
+	if c.ImgProxy != nil {
+		transformer = imgproxy.NewImgProxy(c.ImgProxy)
+	}
 
-	// var allowedTypes []mf2.Type
-	// for typ := range e.Config.Micropub.Sections {
-	// 	allowedTypes = append(allowedTypes, typ)
-	// }
+	if storage != nil {
+		m = media.NewMedia(storage, transformer)
+		mBaseURL = m.BaseURL()
+	}
 
-	// if e.Config.Twitter != nil && e.Config.Syndications.Twitter {
-	// 	s.syndicator.Add(syndicator.NewTwitter(e.Config.Twitter))
-	// }
+	renderer, err := renderer.NewRenderer(c, fs, mBaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := cache.NewCache()
+	if err != nil {
+		return nil, err
+	}
+
+	backend, err := postgres.NewPostgres(&c.PostgreSQL)
+	if err != nil {
+		return nil, err
+	}
+
+	s := &Server{
+		n:             notifier,
+		c:             c,
+		i:             indexer.NewIndexer(fs, backend),
+		log:           log.S().Named("server"),
+		iac:           indieauth.NewClient(clientID, redirectURL, &http.Client{Timeout: time.Second * 30}),
+		ias:           indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		jwtAuth:       jwtauth.New("HS256", []byte(secret), nil),
+		servers:       []*httpServer{},
+		actions:       map[string]func() error{},
+		cron:          cron.New(),
+		redirects:     map[string]string{},
+		fs:            fs,
+		media:         m,
+		cache:         cache,
+		webmentions:   webmentions.NewWebmentions(fs, notifier, renderer, m),
+		syndicator:    eagle.NewManager(),
+		renderer:      renderer,
+		parser:        eagle.NewParser(c.Server.BaseURL),
+		preSaveHooks:  []eagle.EntryHook{},
+		postSaveHooks: []eagle.EntryHook{},
+	}
+
+	if c.Twitter != nil && c.Syndications.Twitter {
+		s.syndicator.Add(twitter.NewTwitter(c.Twitter))
+	}
 
 	// var (
 	// 	redditClient *reddit.Client
@@ -149,9 +188,9 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	// s.PreSaveHooks = append(
 	// 	s.PreSaveHooks,
-	// 	&hooks.IgnoreListing{Hook: hooks.AllowedType(allowedTypes)},
+	// 	&hooks.IgnoreListing{Hook: hooks.AllowedType(c.Micropub.AllowedTypes())},
 	// 	&hooks.IgnoreListing{Hook: &hooks.DescriptionGenerator{}},
-	// 	&hooks.IgnoreListing{Hook: hooks.SectionDeducer(e.Config.Micropub.Sections)},
+	// 	&hooks.IgnoreListing{Hook: hooks.SectionDeducer(c.Micropub.Sections)},
 	// )
 
 	// if e.Config.XRay != nil && e.Config.XRay.Endpoint != "" {
@@ -194,7 +233,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	// 			Timeout: 1 * time.Minute,
 	// 		}),
 	// 	}},
-	// 	&hooks.IgnoreListing{Hook: s.Webmentions},
+	// 	&hooks.IgnoreListing{Hook: s.Webmentions}, // if not disable sending
 	// )
 
 	// readsSummaryUpdater := &hooks.ReadsSummaryUpdater{
@@ -250,14 +289,12 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	// 	return nil, err
 	// }
 
-	// err = s.initRedirects()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = s.initRedirects()
+	if err != nil {
+		return nil, err
+	}
 
-	// return s, nil
-
-	return nil, nil
+	return s, nil
 }
 
 func (s *Server) RegisterAction(name string, action func() error) error {
@@ -280,10 +317,8 @@ func (s *Server) RegisterCron(schedule, name string, job func() error) error {
 }
 
 func (s *Server) Start() error {
-	// Start cron jobs
+	go s.indexAll()
 	s.cron.Start()
-
-	//wip: indexall
 
 	errCh := make(chan error)
 	router := s.makeRouter()
@@ -321,7 +356,23 @@ func (s *Server) Stop() error {
 	}
 
 	<-s.cron.Stop().Done()
+	errs = multierror.Append(errs, s.i.Close())
 	return errs.ErrorOrNil()
+}
+
+func (s *Server) indexAll() {
+	entries, err := s.fs.GetEntries(false)
+	if err != nil {
+		s.n.Error(err)
+		return
+	}
+
+	start := time.Now()
+	err = s.i.Add(entries...)
+	if err != nil {
+		s.n.Error(err)
+	}
+	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
 }
 
 func (s *Server) registerServer(srv *http.Server, name string) {
@@ -515,7 +566,7 @@ func (s *Server) SyncStorage() {
 	for _, id := range ids {
 		entry, err := s.fs.GetEntry(id)
 		if os.IsNotExist(err) {
-			s.db.Remove(id)
+			s.i.Remove(id)
 			continue
 		} else if err != nil {
 			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
@@ -528,7 +579,7 @@ func (s *Server) SyncStorage() {
 		}
 	}
 
-	err = s.db.Add(entries...)
+	err = s.i.Add(entries...)
 	if err != nil {
 		s.n.Error(fmt.Errorf("sync failed: %w", err))
 	}

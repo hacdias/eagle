@@ -17,8 +17,7 @@ import (
 )
 
 func (ws *Webmentions) SendWebmentions(e *eagle.Entry) error {
-	if ws.client == nil ||
-		e.NoSendInteractions ||
+	if e.NoSendInteractions ||
 		e.Draft {
 		return nil
 	}

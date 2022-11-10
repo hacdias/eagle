@@ -20,11 +20,12 @@ type FSSync interface {
 
 type FS struct {
 	*afero.Afero
-	sync FSSync
 
-	afterSaveHook func(*eagle.Entry)
-
+	sync   FSSync
 	parser *eagle.Parser
+
+	// WIP
+	afterSaveHook func(*eagle.Entry)
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -35,14 +36,15 @@ type FS struct {
 	sidecarsMu sync.Mutex
 }
 
-func NewFS(path string, sync FSSync) *FS {
+func NewFS(path, baseURL string, sync FSSync) *FS {
 	afero := &afero.Afero{
 		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
 	}
 
 	return &FS{
-		Afero: afero,
-		sync:  sync,
+		Afero:  afero,
+		sync:   sync,
+		parser: eagle.NewParser(baseURL),
 	}
 }
 
