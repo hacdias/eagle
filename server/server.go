@@ -224,7 +224,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		errs = multierror.Append(
 			errs,
 			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateBlogroll),
-			s.RegisterAction("Miniflux Blogroll", mf.UpdateBlogroll),
+			s.RegisterAction("Update Miniflux Blogroll", mf.UpdateBlogroll),
 		)
 	}
 
