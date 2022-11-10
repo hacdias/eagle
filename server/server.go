@@ -98,9 +98,9 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		notifier = log.NewLogNotifier()
 	}
 
-	var srcSync fs.FSSync
+	var srcSync fs.Sync
 	if c.Development {
-		srcSync = fs.NewPlaceboSync()
+		srcSync = &fs.NopSync{}
 	} else {
 		srcSync = fs.NewGitSync(c.Source.Directory)
 	}

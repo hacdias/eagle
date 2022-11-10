@@ -9,18 +9,29 @@ import (
 )
 
 const (
-	AssetsDirectory  string = "assets"
-	ContentDirectory string = "content"
+	AssetsDirectory    string = "assets"
+	ContentDirectory   string = "content"
+	TemplatesDirectory string = "templates"
 )
 
-type FSSync interface {
+type Sync interface {
 	Sync() (updated []string, err error)
 	Persist(message, filename string) error
 }
 
+type NopSync struct{}
+
+func (g *NopSync) Persist(msg string, file string) error {
+	return nil
+}
+
+func (g *NopSync) Sync() ([]string, error) {
+	return []string{}, nil
+}
+
 type FS struct {
 	*afero.Afero
-	sync   FSSync
+	sync   Sync
 	parser *eagle.Parser
 
 	// Mutexes to lock the updates to entries and sidecars.
@@ -36,7 +47,7 @@ type FS struct {
 	AfterSaveHook func(*eagle.Entry)
 }
 
-func NewFS(path, baseURL string, sync FSSync) *FS {
+func NewFS(path, baseURL string, sync Sync) *FS {
 	afero := &afero.Afero{
 		Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
 	}

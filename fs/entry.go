@@ -13,28 +13,28 @@ import (
 
 type EntryTransformer func(*eagle.Entry) (*eagle.Entry, error)
 
-func (e *FS) GetEntry(id string) (*eagle.Entry, error) {
-	filepath, err := e.guessPath(id)
+func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
+	filepath, err := fs.guessPath(id)
 	if err != nil {
 		return nil, err
 	}
 
-	raw, err := e.ReadFile(filepath)
+	raw, err := fs.ReadFile(filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	entry, err := e.parser.FromRaw(id, string(raw))
+	e, err := fs.parser.FromRaw(id, string(raw))
 	if err != nil {
 		return nil, err
 	}
 
-	return entry, nil
+	return e, nil
 }
 
-func (e *FS) GetEntries(includeList bool) ([]*eagle.Entry, error) {
-	entries := []*eagle.Entry{}
-	err := e.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
+func (fs *FS) GetEntries(includeList bool) ([]*eagle.Entry, error) {
+	ee := []*eagle.Entry{}
+	err := fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -48,89 +48,89 @@ func (e *FS) GetEntries(includeList bool) ([]*eagle.Entry, error) {
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")
 
-		entry, err := e.GetEntry(id)
+		e, err := fs.GetEntry(id)
 		if err != nil {
 			return err
 		}
 
-		if entry.Listing == nil || includeList {
-			entries = append(entries, entry)
+		if e.Listing == nil || includeList {
+			ee = append(ee, e)
 		}
 
 		return nil
 	})
 
-	return entries, err
+	return ee, err
 }
 
-func (e *FS) SaveEntry(entry *eagle.Entry) error {
-	e.entriesMu.Lock()
-	defer e.entriesMu.Unlock()
+func (f *FS) SaveEntry(entry *eagle.Entry) error {
+	f.entriesMu.Lock()
+	defer f.entriesMu.Unlock()
 
-	return e.saveEntry(entry)
+	return f.saveEntry(entry)
 }
 
-func (e *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle.Entry, error) {
+func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle.Entry, error) {
 	if len(transformers) == 0 {
 		return nil, errors.New("at least one entry transformer must be provided")
 	}
 
-	e.entriesMu.Lock()
-	defer e.entriesMu.Unlock()
+	f.entriesMu.Lock()
+	defer f.entriesMu.Unlock()
 
-	ee, err := e.GetEntry(id)
+	e, err := f.GetEntry(id)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, t := range transformers {
-		ee, err = t(ee)
+		e, err = t(e)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	err = e.saveEntry(ee)
-	return ee, err
+	err = f.saveEntry(e)
+	return e, err
 }
 
-func (e *FS) saveEntry(entry *eagle.Entry) error {
-	entry.Sections = funk.UniqString(entry.Sections)
+func (f *FS) saveEntry(e *eagle.Entry) error {
+	e.Sections = funk.UniqString(e.Sections)
 
-	path, err := e.guessPath(entry.ID)
+	path, err := f.guessPath(e.ID)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
 		}
 		// Default path for new files is content/{slug}/index.md
-		path = filepath.Join(ContentDirectory, entry.ID, "index.md")
+		path = filepath.Join(ContentDirectory, e.ID, "index.md")
 	}
 
-	err = e.MkdirAll(filepath.Dir(path), 0777)
+	err = f.MkdirAll(filepath.Dir(path), 0777)
 	if err != nil {
 		return err
 	}
 
-	str, err := entry.String()
+	str, err := e.String()
 	if err != nil {
 		return err
 	}
 
-	err = e.WriteFile(path, []byte(str), "update "+entry.ID)
+	err = f.WriteFile(path, []byte(str), "update "+e.ID)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
 
-	if e.AfterSaveHook != nil {
-		e.AfterSaveHook(entry)
+	if f.AfterSaveHook != nil {
+		f.AfterSaveHook(e)
 	}
 
 	return nil
 }
 
-func (e *FS) guessPath(id string) (string, error) {
+func (f *FS) guessPath(id string) (string, error) {
 	path := filepath.Join(ContentDirectory, id, "index.md")
-	_, err := e.Stat(path)
+	_, err := f.Stat(path)
 	if err == nil {
 		return path, nil
 	}
