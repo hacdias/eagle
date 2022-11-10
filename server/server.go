@@ -171,7 +171,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	s.AppendPreSaveHook(
 		hooks.TypeChecker(c.Micropub.AllowedTypes()),
-		&hooks.DescriptionGenerator{},
+		hooks.NewDescriptionGenerator(s.fs),
 		hooks.SectionDeducer(c.Micropub.Sections),
 	)
 

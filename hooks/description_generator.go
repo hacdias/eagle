@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/util"
 )
@@ -17,7 +18,15 @@ var typeToDescription = map[mf2.Type]string{
 	mf2.TypeDrank:    "Just drank: ",
 }
 
-type DescriptionGenerator struct{}
+type DescriptionGenerator struct {
+	fs *fs.FS
+}
+
+func NewDescriptionGenerator(fs *fs.FS) *DescriptionGenerator {
+	return &DescriptionGenerator{
+		fs: fs,
+	}
+}
 
 func (d *DescriptionGenerator) EntryHook(e *eagle.Entry, isNew bool) error {
 	if isNew && e.Listing == nil {
@@ -83,8 +92,8 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 	return nil
 }
 
-func (d *DescriptionGenerator) generateItineraryDescription(ee *eagle.Entry) (string, error) {
-	mm := ee.Helper()
+func (d *DescriptionGenerator) generateItineraryDescription(e *eagle.Entry) (string, error) {
+	mm := e.Helper()
 
 	subs := mm.Subs(mm.TypeProperty())
 	if len(subs) == 0 {
@@ -107,34 +116,43 @@ func (d *DescriptionGenerator) generateItineraryDescription(ee *eagle.Entry) (st
 	return "Trip from " + origin + " to " + destination, nil
 }
 
-func (d *DescriptionGenerator) generateRsvpDescription(ee *eagle.Entry) (string, error) {
-	mm := ee.Helper()
-
+func (d *DescriptionGenerator) generateRsvpDescription(e *eagle.Entry) (string, error) {
+	mm := e.Helper()
 	rsvp := mm.String(mm.TypeProperty())
-	domain := util.Domain(mm.String("in-reply-to"))
 
-	if domain == "" {
+	var name string
+
+	sidecar, err := d.fs.GetSidecar(e)
+	if err == nil && sidecar.Context != nil && sidecar.Context.Name != "" {
+		name = `"` + sidecar.Context.Name + `"`
+	} else {
+		domain := util.Domain(mm.String("in-reply-to"))
+		if domain != "" {
+			name = "an event on " + domain
+		}
+	}
+
+	if name == "" {
 		return "", nil
 	}
 
 	switch rsvp {
 	case "interested":
-		return "Interested in going to an event on " + domain, nil
+		return "Interested in " + name, nil
 	case "yes":
-		return "Going to an event on " + domain, nil
+		return "Going to " + name, nil
 	case "no":
-		return "Not going to an event on " + domain, nil
+		return "Not going to " + name, nil
 	case "maybe":
-		return "Maybe going to an event on " + domain, nil
+		return "Maybe going to " + name, nil
 	}
 
-	// TODO: leverage context information.
 	return "", nil
 }
 
-func (d *DescriptionGenerator) generateWatchDescription(ee *eagle.Entry) (string, error) {
+func (d *DescriptionGenerator) generateWatchDescription(e *eagle.Entry) (string, error) {
 	// Matches OwnYourTrakt
-	mm := ee.Helper()
+	mm := e.Helper()
 	sub := mm.Sub(mm.TypeProperty())
 	series := sub.Sub("episode-of")
 

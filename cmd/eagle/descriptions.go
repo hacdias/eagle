@@ -26,7 +26,7 @@ var descriptionsCmd = &cobra.Command{
 			return err
 		}
 
-		gen := &hooks.DescriptionGenerator{}
+		gen := hooks.NewDescriptionGenerator(fs)
 		force, _ := cmd.Flags().GetBool("force")
 
 		for _, e := range ee {
