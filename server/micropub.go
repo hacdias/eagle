@@ -104,12 +104,12 @@ func (s *Server) micropubPost(w http.ResponseWriter, r *http.Request) {
 		if !s.checkScope(w, r, "delete") {
 			return
 		}
-		code, err = s.micropubRemove(w, r, mr)
+		code, err = s.micropubDelete(w, r, mr)
 	case micropub.ActionUndelete:
 		if !s.checkScope(w, r, "undelete") {
 			return
 		}
-		code, err = s.micropubUnremove(w, r, mr)
+		code, err = s.micropubUndelete(w, r, mr)
 	default:
 		code, err = http.StatusBadRequest, errors.New("invalid action")
 	}
@@ -199,7 +199,7 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	return 0, nil
 }
 
-func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
+func (s *Server) micropubUndelete(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
 	id, err := s.micropubParseURL(mr.URL)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -221,7 +221,7 @@ func (s *Server) micropubUnremove(w http.ResponseWriter, r *http.Request, mr *mi
 	return http.StatusOK, nil
 }
 
-func (s *Server) micropubRemove(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
+func (s *Server) micropubDelete(w http.ResponseWriter, r *http.Request, mr *micropub.Request) (int, error) {
 	id, err := s.micropubParseURL(mr.URL)
 	if err != nil {
 		return http.StatusBadRequest, err

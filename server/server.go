@@ -146,7 +146,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		ias:           indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 		jwtAuth:       jwtauth.New("HS256", []byte(secret), nil),
 		servers:       []*httpServer{},
-		actions:       map[string]func() error{},
 		cron:          cron.New(),
 		redirects:     map[string]string{},
 		fs:            fs,
@@ -159,6 +158,8 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		preSaveHooks:  []eagle.EntryHook{},
 		postSaveHooks: []eagle.EntryHook{},
 	}
+
+	s.initActions()
 
 	if c.Twitter != nil && c.Syndications.Twitter {
 		s.syndicator.Add(twitter.NewTwitter(c.Twitter))
@@ -238,7 +239,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	// readsSummaryUpdater := &hooks.ReadsSummaryUpdater{
 	// 	Eagle:    s.Eagle,
-	// 	Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+	// 	Provider: s.Eagle.DB.(*database.Postgres),
 	// }
 	// s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: readsSummaryUpdater})
 	// err = s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary)
@@ -248,7 +249,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	// watchesSummaryUpdater := &hooks.WatchesSummaryUpdater{
 	// 	Eagle:    s.Eagle,
-	// 	Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+	// 	Provider: s.Eagle.DB.(*database.Postgres)
 	// }
 	// s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: watchesSummaryUpdater})
 	// err = s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary)
@@ -358,6 +359,54 @@ func (s *Server) Stop() error {
 	<-s.cron.Stop().Done()
 	errs = multierror.Append(errs, s.i.Close())
 	return errs.ErrorOrNil()
+}
+
+func (s *Server) initActions() {
+	s.actions = map[string]func() error{
+		"Clear Cache": func() error {
+			s.cache.Clear()
+			return nil
+		},
+		"Sync Storage": func() error {
+			go s.syncStorage()
+			return nil
+		},
+	}
+}
+
+func (s *Server) getActions() []string {
+	actions := []string{}
+	for action := range s.actions {
+		actions = append(actions, action)
+	}
+	return actions
+}
+
+func (s *Server) initRedirects() error {
+	redirects := map[string]string{}
+
+	data, err := s.fs.ReadFile("redirects")
+	if err != nil {
+		return err
+	}
+
+	strs := strings.Split(string(data), "\n")
+
+	for _, str := range strs {
+		if strings.TrimSpace(str) == "" {
+			continue
+		}
+
+		parts := strings.Split(str, " ")
+		if len(parts) != 2 {
+			s.log.Warnf("found invalid redirect entry: %s", str)
+		}
+
+		redirects[parts[0]] = parts[1]
+	}
+
+	s.redirects = redirects
+	return nil
 }
 
 func (s *Server) indexAll() {
@@ -535,7 +584,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
 }
 
-func (s *Server) SyncStorage() {
+func (s *Server) syncStorage() {
 	changedFiles, err := s.fs.Sync()
 	if err != nil {
 		s.n.Error(fmt.Errorf("sync storage: %w", err))
@@ -560,6 +609,8 @@ func (s *Server) SyncStorage() {
 
 	// NOTE: we do not reload the templates and assets because
 	// doing so is not concurrent-safe.
+	// TODO: we may add an option to the dashboard to reload the templates
+	// and assets on-demand.
 	ids = funk.UniqString(ids)
 	entries := []*eagle.Entry{}
 

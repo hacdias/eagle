@@ -17,12 +17,10 @@ import (
 )
 
 const (
-	SessionSubject string = "Eagle Session"
-
-	OAuthSubject    string = "Eagle OAuth Client"
-	OAuthCookieName string = "eagle-oauth"
-
-	userContextKey contextKey = "user"
+	SessionSubject  string     = "Eagle Session"
+	OAuthSubject    string     = "Eagle OAuth Client"
+	OAuthCookieName string     = "eagle-oauth"
+	userContextKey  contextKey = "user"
 )
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {

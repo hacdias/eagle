@@ -37,6 +37,6 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.SyncStorage()
+	go s.syncStorage()
 	w.WriteHeader(http.StatusOK)
 }

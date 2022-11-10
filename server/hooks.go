@@ -2,9 +2,12 @@ package server
 
 import "github.com/hacdias/eagle/v4/eagle"
 
-func (s *Server) preSaveEntry(ee *eagle.Entry, isNew bool) error {
+// preSaveEntry runs pre saving hooks. These hooks are blocking and they stop
+// at the first error. All changes made to the entry in these hooks is saved
+// by the caller.
+func (s *Server) preSaveEntry(e *eagle.Entry, isNew bool) error {
 	for _, hook := range s.preSaveHooks {
-		err := hook.EntryHook(ee, isNew)
+		err := hook.EntryHook(e, isNew)
 		if err != nil {
 			return err
 		}
@@ -13,7 +16,7 @@ func (s *Server) preSaveEntry(ee *eagle.Entry, isNew bool) error {
 	return nil
 }
 
-// postSaveHooks runs post saving hooks. These hooks are non-blocking and the error
+// postSaveEntry runs post saving hooks. These hooks are non-blocking and the error
 // of one does not prevent the execution of others. The implementer should be careful
 // to make sure they save the changes.
 func (s *Server) postSaveEntry(e *eagle.Entry, isNew bool, syndicators []string) {

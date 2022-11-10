@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	// TODO: make this archetypes instead of hard-coding them.
 	entryTemplates = map[string]func(r *http.Request, s *Server) *eagle.Entry{
 		"default": func(r *http.Request, s *Server) *eagle.Entry {
 			return &eagle.Entry{

@@ -409,7 +409,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 			Name:  s.c.User.Name,
 			Email: s.c.User.Email,
 		},
-		// TODO: support .Tags
 		Created: time.Now(),
 		Items:   []*feeds.Item{},
 	}
