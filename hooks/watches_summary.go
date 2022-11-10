@@ -4,20 +4,27 @@ import (
 	"fmt"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/util"
 )
 
-// wip: WatchesSummary type should probably live with this package (make this a package?)
+// WIP: perhaps this should live in a separate package and include ReadsSummary there.
 
 type WatchesSummaryProvider interface {
-	GetWatchesSummary() (*entry.WatchesSummary, error)
+	GetWatchesSummary() (*eagle.WatchesSummary, error)
 }
 
 type WatchesSummaryUpdater struct {
-	Provider WatchesSummaryProvider
-	Eagle    *eagle.Eagle // WIP: remove this once possible.
+	fs       *fs.FS
+	provider WatchesSummaryProvider
+}
+
+func NewWatchesSummaryUpdater(fs *fs.FS, provider WatchesSummaryProvider) *WatchesSummaryUpdater {
+	return &WatchesSummaryUpdater{
+		fs:       fs,
+		provider: provider,
+	}
 }
 
 const (
@@ -26,7 +33,7 @@ const (
 	watchesSummaryTagEnd   = "<!--/WATCHES-->"
 )
 
-func (u *WatchesSummaryUpdater) EntryHook(e *entry.Entry, isNew bool) error {
+func (u *WatchesSummaryUpdater) EntryHook(e *eagle.Entry, isNew bool) error {
 	if e.Helper().PostType() == mf2.TypeWatch {
 		return u.UpdateWatchesSummary()
 	}
@@ -34,12 +41,12 @@ func (u *WatchesSummaryUpdater) EntryHook(e *entry.Entry, isNew bool) error {
 }
 
 func (u *WatchesSummaryUpdater) UpdateWatchesSummary() error {
-	stats, err := u.Provider.GetWatchesSummary()
+	stats, err := u.provider.GetWatchesSummary()
 	if err != nil {
 		return err
 	}
 
-	_, err = u.Eagle.TransformEntry(watchesSummaryEntryID, func(e *entry.Entry) (*entry.Entry, error) {
+	_, err = u.fs.TransformEntry(watchesSummaryEntryID, func(e *eagle.Entry) (*eagle.Entry, error) {
 		var err error
 		md := watchesSummaryToMarkdown(stats)
 		e.Content, err = util.ReplaceInBetween(e.Content, watchesSummaryTagStart, watchesSummaryTagEnd, md)
@@ -48,7 +55,7 @@ func (u *WatchesSummaryUpdater) UpdateWatchesSummary() error {
 	return err
 }
 
-func watchesSummaryToMarkdown(stats *entry.WatchesSummary) string {
+func watchesSummaryToMarkdown(stats *eagle.WatchesSummary) string {
 	summary := "## 📺 Series {#series}\n\n"
 	summary += "<div class='box'>\n\n"
 	summary += watchListToMarkdown(stats.Series)
@@ -58,7 +65,7 @@ func watchesSummaryToMarkdown(stats *entry.WatchesSummary) string {
 	return summary
 }
 
-func watchListToMarkdown(list []*entry.Watch) string {
+func watchListToMarkdown(list []*eagle.Watch) string {
 	md := ""
 
 	for _, watch := range list {

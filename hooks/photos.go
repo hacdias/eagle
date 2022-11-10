@@ -5,18 +5,27 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/media"
 )
 
 type PhotosProcessor struct {
-	Eagle *eagle.Eagle // wip: do not do this
+	fs    *fs.FS
+	media *media.Media
 }
 
-func (p *PhotosProcessor) EntryHook(e *entry.Entry, isNew bool) error {
+func NewPhotosProcessor(fs *fs.FS, media *media.Media) *PhotosProcessor {
+	return &PhotosProcessor{
+		fs:    fs,
+		media: media,
+	}
+}
+
+func (p *PhotosProcessor) EntryHook(e *eagle.Entry, isNew bool) error {
 	return p.ProcessPhotos(e)
 }
 
-func (p *PhotosProcessor) ProcessPhotos(e *entry.Entry) error {
+func (p *PhotosProcessor) ProcessPhotos(e *eagle.Entry) error {
 	if e.Properties == nil {
 		return nil
 	}
@@ -27,8 +36,8 @@ func (p *PhotosProcessor) ProcessPhotos(e *entry.Entry) error {
 	}
 
 	upload := func(url string) string {
-		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, p.Eagle.Config.BunnyCDN.Base) {
-			return p.Eagle.SafeUploadFromURL("media", url, false)
+		if strings.HasPrefix(url, "http") && !strings.HasPrefix(url, p.media.BaseURL()) {
+			return p.media.SafeUploadFromURL("media", url, false)
 		}
 		return url
 	}
@@ -62,7 +71,7 @@ func (p *PhotosProcessor) ProcessPhotos(e *entry.Entry) error {
 		newPhotos = parsed
 	}
 
-	_, err := p.Eagle.TransformEntry(e.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+	_, err := p.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
 		ee.Properties["photo"] = newPhotos
 		return ee, nil
 	})

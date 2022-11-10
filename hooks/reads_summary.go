@@ -4,16 +4,16 @@ import (
 	"fmt"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/util"
 )
 
-type ReadsSummaryProvider interface {
-	GetReadsSummary() (*entry.ReadsSummary, error)
-}
+// WIP: perhaps this should live in a separate package and include ReadsSummary there.
 
-// wip: ReadsSummary type should probably live with this package (make this a package?)
+type ReadsSummaryProvider interface {
+	GetReadsSummary() (*eagle.ReadsSummary, error)
+}
 
 const (
 	booksSummaryEntryID  = "/books/summary"
@@ -22,11 +22,18 @@ const (
 )
 
 type ReadsSummaryUpdater struct {
-	Provider ReadsSummaryProvider
-	Eagle    *eagle.Eagle // WIP: remove this once possible.
+	fs       *fs.FS
+	provider ReadsSummaryProvider
 }
 
-func (u *ReadsSummaryUpdater) EntryHook(e *entry.Entry, isNew bool) error {
+func NewReadsSummaryUpdater(fs *fs.FS, provider ReadsSummaryProvider) *ReadsSummaryUpdater {
+	return &ReadsSummaryUpdater{
+		fs:       fs,
+		provider: provider,
+	}
+}
+
+func (u *ReadsSummaryUpdater) EntryHook(e *eagle.Entry, isNew bool) error {
 	if e.Helper().PostType() == mf2.TypeRead {
 		return u.UpdateReadsSummary()
 	}
@@ -35,12 +42,12 @@ func (u *ReadsSummaryUpdater) EntryHook(e *entry.Entry, isNew bool) error {
 }
 
 func (u *ReadsSummaryUpdater) UpdateReadsSummary() error {
-	stats, err := u.Provider.GetReadsSummary()
+	stats, err := u.provider.GetReadsSummary()
 	if err != nil {
 		return err
 	}
 
-	_, err = u.Eagle.TransformEntry(booksSummaryEntryID, func(e *entry.Entry) (*entry.Entry, error) {
+	_, err = u.fs.TransformEntry(booksSummaryEntryID, func(e *eagle.Entry) (*eagle.Entry, error) {
 		var err error
 		md := readsSummaryToMarkdown(stats)
 		e.Content, err = util.ReplaceInBetween(e.Content, booksSummaryTagStart, booksSummaryTagEnd, md)
@@ -49,7 +56,7 @@ func (u *ReadsSummaryUpdater) UpdateReadsSummary() error {
 	return err
 }
 
-func readsSummaryToMarkdown(stats *entry.ReadsSummary) string {
+func readsSummaryToMarkdown(stats *eagle.ReadsSummary) string {
 	summary := "## 📖 Reading {#reading}\n\n"
 
 	if len(stats.Reading) == 0 {
@@ -83,7 +90,7 @@ func readsSummaryToMarkdown(stats *entry.ReadsSummary) string {
 	return summary
 }
 
-func readListToMarkdown(list entry.ReadList) string {
+func readListToMarkdown(list eagle.ReadList) string {
 	md := ""
 
 	list.SortByName()

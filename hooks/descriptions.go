@@ -3,7 +3,7 @@ package hooks
 import (
 	"strconv"
 
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/util"
 )
@@ -19,7 +19,7 @@ var typeToDescription = map[mf2.Type]string{
 
 type DescriptionGenerator struct{}
 
-func (d *DescriptionGenerator) EntryHook(e *entry.Entry, isNew bool) error {
+func (d *DescriptionGenerator) EntryHook(e *eagle.Entry, isNew bool) error {
 	if isNew {
 		return d.GenerateDescription(e, false)
 	}
@@ -27,7 +27,7 @@ func (d *DescriptionGenerator) EntryHook(e *entry.Entry, isNew bool) error {
 	return nil
 }
 
-func (d *DescriptionGenerator) GenerateDescription(e *entry.Entry, replaceDescription bool) error {
+func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescription bool) error {
 	if e.Description != "" && !replaceDescription {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (d *DescriptionGenerator) GenerateDescription(e *entry.Entry, replaceDescri
 	return nil
 }
 
-func (d *DescriptionGenerator) generateItineraryDescription(ee *entry.Entry) (string, error) {
+func (d *DescriptionGenerator) generateItineraryDescription(ee *eagle.Entry) (string, error) {
 	mm := ee.Helper()
 
 	subs := mm.Subs(mm.TypeProperty())
@@ -107,7 +107,7 @@ func (d *DescriptionGenerator) generateItineraryDescription(ee *entry.Entry) (st
 	return "Trip from " + origin + " to " + destination, nil
 }
 
-func (d *DescriptionGenerator) generateRsvpDescription(ee *entry.Entry) (string, error) {
+func (d *DescriptionGenerator) generateRsvpDescription(ee *eagle.Entry) (string, error) {
 	mm := ee.Helper()
 
 	rsvp := mm.String(mm.TypeProperty())
@@ -132,7 +132,7 @@ func (d *DescriptionGenerator) generateRsvpDescription(ee *entry.Entry) (string,
 	return "", nil
 }
 
-func (d *DescriptionGenerator) generateWatchDescription(ee *entry.Entry) (string, error) {
+func (d *DescriptionGenerator) generateWatchDescription(ee *eagle.Entry) (string, error) {
 	// Matches OwnYourTrakt
 	mm := ee.Helper()
 	sub := mm.Sub(mm.TypeProperty())

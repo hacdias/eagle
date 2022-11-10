@@ -2,26 +2,38 @@ package hooks
 
 import (
 	"errors"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/pkg/maze"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/karlseguin/typed"
 )
 
 type LocationFetcher struct {
-	Language string
-	Eagle    *eagle.Eagle // WIP: remove this once possible.
-	Maze     *maze.Maze
+	language string
+	fs       *fs.FS
+	maze     *maze.Maze
 }
 
-func (l *LocationFetcher) EntryHook(e *entry.Entry, isNew bool) error {
+func NewLocationFetcher(fs *fs.FS, language string) *LocationFetcher {
+	return &LocationFetcher{
+		language: language,
+		fs:       fs,
+		maze: maze.NewMaze(&http.Client{
+			Timeout: time.Minute,
+		}),
+	}
+}
+
+func (l *LocationFetcher) EntryHook(e *eagle.Entry, isNew bool) error {
 	return l.FetchLocation(e)
 }
 
-func (l *LocationFetcher) FetchLocation(e *entry.Entry) error {
+func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
 	if e.Properties == nil {
 		return nil
 	}
@@ -44,7 +56,7 @@ func (l *LocationFetcher) FetchLocation(e *entry.Entry) error {
 		return nil
 	}
 
-	_, err = l.Eagle.TransformEntry(e.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+	_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
 		ee.Properties["location"] = location
 		return ee, nil
 	})
@@ -52,7 +64,7 @@ func (l *LocationFetcher) FetchLocation(e *entry.Entry) error {
 	return err
 }
 
-func (l *LocationFetcher) processItineraryLocations(e *entry.Entry) error {
+func (l *LocationFetcher) processItineraryLocations(e *eagle.Entry) error {
 	if e.Properties == nil {
 		return nil
 	}
@@ -101,7 +113,7 @@ func (l *LocationFetcher) processItineraryLocations(e *entry.Entry) error {
 		lastDest = loc
 	}
 
-	_, err := l.Eagle.TransformEntry(e.ID, func(ee *entry.Entry) (*entry.Entry, error) {
+	_, err := l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
 		if lastDest != nil {
 			ee.Properties["location"] = lastDest
 		}
@@ -155,7 +167,7 @@ func (l *LocationFetcher) parseAirportLocation(str string) (map[string]interface
 		code = str
 	}
 
-	loc, err := l.Maze.Airport(code)
+	loc, err := l.maze.Airport(code)
 	if err != nil {
 		return nil, err
 	}
@@ -176,12 +188,12 @@ func (l *LocationFetcher) parseLocation(str string) (map[string]interface{}, err
 	)
 
 	if strings.HasPrefix(str, "geo:") {
-		location, err = l.Maze.ReverseGeoURI(l.Language, str)
+		location, err = l.maze.ReverseGeoURI(l.language, str)
 	} else if strings.HasPrefix(str, "/") {
-		_, err = l.Eagle.GetEntry(str)
+		_, err = l.fs.GetEntry(str)
 		return nil, err
 	} else {
-		location, err = l.Maze.Search(l.Language, str)
+		location, err = l.maze.Search(l.language, str)
 	}
 
 	if err != nil {

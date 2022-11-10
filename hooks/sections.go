@@ -3,13 +3,13 @@ package hooks
 import (
 	"strings"
 
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 )
 
 type SectionDeducer map[mf2.Type][]string
 
-func (s SectionDeducer) DeduceSections(e *entry.Entry) {
+func (s SectionDeducer) DeduceSections(e *eagle.Entry) {
 	if len(s) == 0 || len(e.Sections) != 0 {
 		return
 	}
@@ -27,7 +27,7 @@ func (s SectionDeducer) DeduceSections(e *entry.Entry) {
 	}
 }
 
-func (s SectionDeducer) EntryHook(e *entry.Entry, isNew bool) error {
+func (s SectionDeducer) EntryHook(e *eagle.Entry, isNew bool) error {
 	if isNew {
 		s.DeduceSections(e)
 	}

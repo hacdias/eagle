@@ -4,21 +4,31 @@ import (
 	"fmt"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/media"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 )
 
 type ContextXRay struct {
-	XRay  *xray.XRay
-	Eagle *eagle.Eagle // WIP: remove this once possible.
+	xray  *xray.XRay
+	fs    *fs.FS
+	media *media.Media
 }
 
-func (c *ContextXRay) EntryHook(e *entry.Entry, isNew bool) error {
+func NewContentXRay(xray *xray.XRay, fs *fs.FS, media *media.Media) *ContextXRay {
+	return &ContextXRay{
+		xray:  xray,
+		fs:    fs,
+		media: media,
+	}
+}
+
+func (c *ContextXRay) EntryHook(e *eagle.Entry, isNew bool) error {
 	return c.EnsureXRay(e, false)
 }
 
-func (c *ContextXRay) EnsureXRay(e *entry.Entry, replace bool) error {
+func (c *ContextXRay) EnsureXRay(e *eagle.Entry, replace bool) error {
 	mm := e.Helper()
 	typ := mm.PostType()
 
@@ -42,7 +52,7 @@ func (c *ContextXRay) EnsureXRay(e *entry.Entry, replace bool) error {
 		return fmt.Errorf("expected context url to be non-empty for %s", e.ID)
 	}
 
-	sidecar, err := c.Eagle.GetSidecar(e)
+	sidecar, err := c.fs.GetSidecar(e)
 	if err != nil {
 		return fmt.Errorf("could not fetch sidecar for %s: %w", e.ID, err)
 	}
@@ -51,16 +61,16 @@ func (c *ContextXRay) EnsureXRay(e *entry.Entry, replace bool) error {
 		return nil
 	}
 
-	parsed, _, err := c.XRay.Fetch(urlStr)
+	parsed, _, err := c.xray.Fetch(urlStr)
 	if err != nil {
 		return fmt.Errorf("could not fetch context xray for %s: %w", e.ID, err)
 	}
 
-	if parsed.Author.Photo != "" {
-		parsed.Author.Photo = c.Eagle.SafeUploadFromURL("wm", parsed.Author.Photo, true)
+	if parsed.Author.Photo != "" && c.media != nil {
+		parsed.Author.Photo = c.media.SafeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
-	return c.Eagle.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
+	return c.fs.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
 		data.Context = parsed
 		return data, nil
 	})
