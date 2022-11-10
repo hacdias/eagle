@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hacdias/eagle/eagle"
@@ -89,6 +90,10 @@ func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 
 	parsed, _, err := c.xray.Fetch(urlStr)
 	if err != nil {
+		if errors.Is(err, xray.ErrPostNotFound) {
+			return nil
+		}
+
 		return fmt.Errorf("could not fetch context xray for %s: %w", e.ID, err)
 	}
 
