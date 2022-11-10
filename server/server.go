@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime/debug"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -330,6 +331,7 @@ func (s *Server) getActions() []string {
 	for action := range s.actions {
 		actions = append(actions, action)
 	}
+	sort.Strings(actions)
 	return actions
 }
 
