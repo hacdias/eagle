@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 	TemplateDashboard string = "dashboard"
 )
 
-func EntryTemplates(e *entry.Entry) []string {
+func EntryTemplates(e *eagle.Entry) []string {
 	t := []string{}
 	if e.Template != "" {
 		t = append(t, e.Template)
@@ -41,7 +41,7 @@ func EntryTemplates(e *entry.Entry) []string {
 
 func (r *Renderer) initTemplates() error {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
-	baseTemplateData, err := r.eagle.FS.ReadFile(baseTemplateFilename)
+	baseTemplateData, err := r.fs.ReadFile(baseTemplateFilename)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (r *Renderer) initTemplates() error {
 
 	parsed := map[string]*template.Template{}
 
-	err = r.eagle.FS.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
+	err = r.fs.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func (r *Renderer) initTemplates() error {
 			return nil
 		}
 
-		raw, err := r.eagle.FS.ReadFile(filename)
+		raw, err := r.fs.ReadFile(filename)
 		if err != nil {
 			return err
 		}

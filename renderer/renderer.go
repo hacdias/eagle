@@ -7,35 +7,32 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/tdewolff/minify/v2"
 	"github.com/yuin/goldmark"
 )
 
 type Renderer struct {
-	c                *config.Config
+	c                *eagle.Config
+	fs               *fs.FS
 	mediaBaseURL     string
-	eagle            *eagle.Eagle //wip: remove/fs
-	assets           *Assets
-	templates        map[string]*template.Template
+	minify           *minify.M
 	markdown         goldmark.Markdown
 	absoluteMarkdown goldmark.Markdown
-	minify           *minify.M
+	templates        map[string]*template.Template
+	assets           *Assets
 }
 
-func NewRenderer(c *config.Config, e *eagle.Eagle) (*Renderer, error) {
+func NewRenderer(c *eagle.Config, fs *fs.FS, mediaBaseURL string) (*Renderer, error) {
 	r := &Renderer{
-		c:         c,
-		eagle:     e,
-		templates: map[string]*template.Template{},
-		minify:    getMinify(),
-	}
+		c:            c,
+		fs:           fs,
+		mediaBaseURL: mediaBaseURL,
 
-	if c.BunnyCDN != nil {
-		r.mediaBaseURL = c.BunnyCDN.Base // wip: change this
+		templates: map[string]*template.Template{},
+		minify:    newMinify(),
 	}
 
 	r.markdown = newMarkdown(r, false)
@@ -55,12 +52,12 @@ func NewRenderer(c *config.Config, e *eagle.Eagle) (*Renderer, error) {
 }
 
 func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string) error {
-	data.Me = r.eagle.Config.User
-	data.Site = r.eagle.Config.Site
+	data.Me = r.c.User
+	data.Site = r.c.Site
 	data.Assets = r.assets
-	data.eagle = r.eagle
+	data.fs = r.fs
 
-	if r.eagle.Config.Development {
+	if r.c.Development {
 		// Probably not very concurrent safe. But it's just
 		// for development purposes.
 		err := r.initAssets()
@@ -105,11 +102,11 @@ type RenderData struct {
 	// All pages must have some sort of Entry embedded.
 	// This allows us to set generic information about
 	// a page that may be needed.
-	*entry.Entry
+	*eagle.Entry
 
 	Assets *Assets
-	Me     config.User
-	Site   config.Site
+	Me     eagle.User
+	Site   eagle.Site
 
 	// For page-specific variables.
 	Data interface{}
@@ -123,38 +120,38 @@ type RenderData struct {
 	TorUsed      bool
 	OnionAddress string
 
-	eagle   *eagle.Eagle
+	fs      *fs.FS
 	sidecar *eagle.Sidecar
 }
 
 func (rd *RenderData) GetSidecar() *eagle.Sidecar {
 	if rd.sidecar == nil {
-		rd.sidecar, _ = rd.eagle.GetSidecar(rd.Entry)
+		rd.sidecar, _ = rd.fs.GetSidecar(rd.Entry)
 	}
 	return rd.sidecar
 }
 
 func (rd *RenderData) GetJSON(path string) interface{} {
-	filename := filepath.Join(eagle.ContentDirectory, rd.ID, path)
+	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
 	var data interface{}
-	_ = rd.eagle.FS.ReadJSON(filename, &data)
+	_ = rd.fs.ReadJSON(filename, &data)
 	return data
 }
 
 func (rd *RenderData) GetFile(path string) string {
-	filename := filepath.Join(eagle.ContentDirectory, rd.ID, path)
-	v, _ := rd.eagle.FS.ReadFile(filename)
+	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
+	v, _ := rd.fs.ReadFile(filename)
 	return string(v)
 }
 
-func (rd *RenderData) GetEntry(id string) *entry.Entry {
-	entry, _ := rd.eagle.GetEntry(id)
+func (rd *RenderData) GetEntry(id string) *eagle.Entry {
+	entry, _ := rd.fs.GetEntry(id)
 	return entry
 }
 
 func (rd *RenderData) HasFile(path string) bool {
-	filename := filepath.Join(eagle.ContentDirectory, rd.ID, path)
-	stat, err := rd.eagle.FS.Stat(filename)
+	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
+	stat, err := rd.fs.Stat(filename)
 	return err == nil && stat.Mode().IsRegular()
 }
 

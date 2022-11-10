@@ -114,7 +114,7 @@ func (r *Renderer) writeFigure(w figureWriter, imgURL, alt, title string, absURL
 
 	_, _ = w.WriteString("<img src=\"")
 	if absURLs && r.c.Server.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(r.eagle.Config.Server.BaseURL)))
+		_, _ = w.Write(util.EscapeHTML([]byte(r.c.Server.BaseURL)))
 	}
 	if unsafe || !html.IsDangerousURL(imgSrc) {
 		_, _ = w.Write(util.EscapeHTML(imgSrc))

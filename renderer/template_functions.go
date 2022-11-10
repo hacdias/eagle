@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/thoas/go-funk"
 )
@@ -28,7 +28,7 @@ func (r *Renderer) includeTemplate(name string, data ...interface{}) (template.H
 		// TODO: perhaps make more type verifications.
 		nrd := *data[0].(*RenderData)
 		listing := nrd.Entry.Listing
-		nrd.Entry = data[1].(*entry.Entry)
+		nrd.Entry = data[1].(*eagle.Entry)
 		nrd.Entry.Listing = listing
 		nrd.sidecar = nil
 		err = r.templates[name].ExecuteTemplate(&buf, name, &nrd)
@@ -139,8 +139,8 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"now":                 time.Now,
 		"include":             r.includeTemplate,
 		"md":                  r.getRenderMarkdown(alwaysAbsolute),
-		"absURL":              r.eagle.Config.Server.AbsoluteURL,
-		"relURL":              r.eagle.Config.Server.RelativeURL,
+		"absURL":              r.c.Server.AbsoluteURL,
+		"relURL":              r.c.Server.RelativeURL,
 		"stars":               stars,
 		"sprintf":             fmt.Sprintf,
 		"durationFromSeconds": durationFromSeconds,
@@ -150,7 +150,7 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	}
 
 	if alwaysAbsolute {
-		funcs["relURL"] = r.eagle.Config.Server.AbsoluteURL
+		funcs["relURL"] = r.c.Server.AbsoluteURL
 	}
 
 	return funcs

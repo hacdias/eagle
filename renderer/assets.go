@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/v4/config"
 	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 )
 
@@ -66,12 +66,12 @@ func (r *Renderer) getAssets() (*Assets, error) {
 	return assets, nil
 }
 
-func (r *Renderer) buildAsset(asset *config.Asset) (*Asset, error) {
+func (r *Renderer) buildAsset(asset *eagle.Asset) (*Asset, error) {
 	var data bytes.Buffer
 
 	for _, file := range asset.Files {
-		filename := filepath.Join(eagle.AssetsDirectory, file)
-		raw, err := r.eagle.FS.ReadFile(filename)
+		filename := filepath.Join(fs.AssetsDirectory, file)
+		raw, err := r.fs.ReadFile(filename)
 		if err != nil {
 			return nil, err
 		}

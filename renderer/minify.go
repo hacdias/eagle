@@ -10,7 +10,7 @@ import (
 	mXml "github.com/tdewolff/minify/v2/xml"
 )
 
-func getMinify() *minify.M {
+func newMinify() *minify.M {
 	m := minify.New()
 	m.AddFunc(contenttype.HTML, mHtml.Minify)
 	m.AddFunc(contenttype.CSS, mCss.Minify)
