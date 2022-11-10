@@ -101,7 +101,6 @@ func (s *Source) validate() error {
 		return err
 	}
 
-	// TODO: validate assets?
 	return nil
 }
 
