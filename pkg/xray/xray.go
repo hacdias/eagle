@@ -140,6 +140,20 @@ func (x *XRay) Parse(data map[string]interface{}) *Post {
 
 func Parse(data map[string]interface{}) *Post {
 	raw := typed.New(data)
+
+	if raw.String("type") == "feed" {
+		items := raw.Maps("items")
+		if len(items) >= 1 {
+			for _, item := range items {
+				if typed.New(item).String("type") == "entry" {
+					return Parse(item)
+				}
+			}
+
+			return Parse(items[0])
+		}
+	}
+
 	parsed := &Post{
 		URL: raw.StringOr("wm-source", raw.String("url")),
 	}
@@ -182,7 +196,7 @@ func Parse(data map[string]interface{}) *Post {
 	}
 
 	if photos, ok := raw.StringsIf("photo"); ok {
-		parsed.Content += strings.Join(photos, " ")
+		parsed.Content += " " + strings.Join(photos, " ")
 		parsed.Content = strings.TrimSpace(parsed.Content)
 	}
 
