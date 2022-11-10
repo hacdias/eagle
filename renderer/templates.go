@@ -39,7 +39,7 @@ func EntryTemplates(e *eagle.Entry) []string {
 	return t
 }
 
-func (r *Renderer) initTemplates() error {
+func (r *Renderer) LoadTemplates() error {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
 	baseTemplateData, err := r.fs.ReadFile(baseTemplateFilename)
 	if err != nil {

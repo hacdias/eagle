@@ -34,7 +34,7 @@ type Asset struct {
 	Body []byte
 }
 
-func (r *Renderer) initAssets() error {
+func (r *Renderer) LoadAssets() error {
 	assets, err := r.getAssets()
 	if err != nil {
 		return err

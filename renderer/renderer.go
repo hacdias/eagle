@@ -10,6 +10,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/contenttype"
+	"github.com/hashicorp/go-multierror"
 	"github.com/tdewolff/minify/v2"
 	"github.com/yuin/goldmark"
 )
@@ -38,12 +39,12 @@ func NewRenderer(c *eagle.Config, fs *fs.FS, mediaBaseURL string) (*Renderer, er
 	r.markdown = newMarkdown(r, false)
 	r.absoluteMarkdown = newMarkdown(r, true)
 
-	err := r.initAssets()
+	err := r.LoadAssets()
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.initTemplates()
+	err = r.LoadTemplates()
 	if err != nil {
 		return nil, err
 	}
@@ -58,14 +59,8 @@ func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string) err
 	data.fs = r.fs
 
 	if r.c.Development {
-		// Probably not very concurrent safe. But it's just
-		// for development purposes.
-		err := r.initAssets()
-		if err != nil {
-			return err
-		}
-
-		err = r.initTemplates()
+		// Not concurrent safe, but it's only for development purposes.
+		err := multierror.Append(r.LoadAssets(), r.LoadTemplates()).ErrorOrNil()
 		if err != nil {
 			return err
 		}

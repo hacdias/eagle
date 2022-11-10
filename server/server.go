@@ -323,6 +323,12 @@ func (s *Server) initActions() {
 			go s.syncStorage()
 			return nil
 		},
+		"Reload Templates": func() error {
+			return s.renderer.LoadTemplates()
+		},
+		"Reload Assets": func() error {
+			return s.renderer.LoadAssets()
+		},
 	}
 }
 
@@ -561,9 +567,9 @@ func (s *Server) syncStorage() {
 	}
 
 	// NOTE: we do not reload the templates and assets because
-	// doing so is not concurrent-safe.
-	// TODO: we may add an option to the dashboard to reload the templates
-	// and assets on-demand.
+	// doing so is not concurrent-safe. Alternatively, there is
+	// an action in the dashboard to reload assets and templates
+	// on-demand.
 	ids = funk.UniqString(ids)
 	entries := []*eagle.Entry{}
 
