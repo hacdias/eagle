@@ -11,7 +11,7 @@ import (
 	"github.com/hacdias/eagle/util"
 )
 
-// WIP: perhaps this should live in a separate package and include ReadsSummary there.
+// TODO: perhaps extract this to a separate package.
 
 type Read struct {
 	ID     string    `json:"id"`
