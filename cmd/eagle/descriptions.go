@@ -1,6 +1,9 @@
 package main
 
 import (
+	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/spf13/cobra"
 )
 
@@ -12,36 +15,31 @@ func init() {
 var descriptionsCmd = &cobra.Command{
 	Use: "descriptions",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// c, err := config.Parse()
-		// if err != nil {
-		// 	return err
-		// }
+		c, err := eagle.ParseConfig()
+		if err != nil {
+			return err
+		}
 
-		// e, err := eagle.NewEagle(c)
-		// if err != nil {
-		// 	return err
-		// }
-		// defer e.Close()
+		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		ee, err := fs.GetEntries(false)
+		if err != nil {
+			return err
+		}
 
-		// entries, err := e.GetEntries(false)
-		// if err != nil {
-		// 	return err
-		// }
+		gen := &hooks.DescriptionGenerator{}
+		force, _ := cmd.Flags().GetBool("force")
 
-		// force, _ := cmd.Flags().GetBool("force")
-		// generator := &hooks.DescriptionGenerator{}
+		for _, e := range ee {
+			err = gen.GenerateDescription(e, force)
+			if err != nil {
+				return err
+			}
 
-		// for _, ee := range entries {
-		// 	err = generator.GenerateDescription(ee, force)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	err = e.SaveEntry(ee)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+			err = fs.SaveEntry(e)
+			if err != nil {
+				return err
+			}
+		}
 
 		return nil
 	},

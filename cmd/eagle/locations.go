@@ -1,6 +1,9 @@
 package main
 
 import (
+	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/hooks"
 	"github.com/spf13/cobra"
 )
 
@@ -11,34 +14,24 @@ func init() {
 var locationsCmd = &cobra.Command{
 	Use: "locations",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// c, err := config.Parse()
-		// if err != nil {
-		// 	return err
-		// }
+		c, err := eagle.ParseConfig()
+		if err != nil {
+			return err
+		}
 
-		// e, err := eagle.NewEagle(c)
-		// if err != nil {
-		// 	return err
-		// }
-		// defer e.Close()
+		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		ee, err := fs.GetEntries(false)
+		if err != nil {
+			return err
+		}
 
-		// entries, err := e.GetEntries(false)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// locationFetcher := &hooks.LocationFetcher{
-		// 	Language: c.Site.Language,
-		// 	Eagle:    e,
-		// 	Maze:     maze.NewMaze(&http.Client{}),
-		// }
-
-		// for _, ee := range entries {
-		// 	err = locationFetcher.FetchLocation(ee)
-		// 	if err != nil {
-		// 		e.Error(err)
-		// 	}
-		// }
+		locationsFetcher := hooks.NewLocationFetcher(fs, c.Site.Language)
+		for _, e := range ee {
+			err = locationsFetcher.FetchLocation(e)
+			if err != nil {
+				return err
+			}
+		}
 
 		return nil
 	},
