@@ -1,15 +1,11 @@
-package eagle
+package server
 
 import "strings"
 
-func (e *Eagle) GetRedirects() map[string]string {
-	return e.redirects
-}
-
-func (e *Eagle) initRedirects() error {
+func (s *Server) initRedirects() error {
 	redirects := map[string]string{}
 
-	data, err := e.FS.ReadFile("redirects")
+	data, err := s.fs.ReadFile("redirects")
 	if err != nil {
 		return err
 	}
@@ -23,12 +19,12 @@ func (e *Eagle) initRedirects() error {
 
 		parts := strings.Split(str, " ")
 		if len(parts) != 2 {
-			e.log.Warnf("found invalid redirect entry: %s", str)
+			s.log.Warnf("found invalid redirect entry: %s", str)
 		}
 
 		redirects[parts[0]] = parts[1]
 	}
 
-	e.redirects = redirects
+	s.redirects = redirects
 	return nil
 }

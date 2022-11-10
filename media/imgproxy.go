@@ -1,4 +1,4 @@
-package eagle
+package media
 
 import (
 	"bytes"
@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/spf13/afero"
 )
 
@@ -15,6 +17,18 @@ type ImgProxy struct {
 	httpClient *http.Client
 	fs         *afero.Afero
 	endpoint   string
+}
+
+func NewImgProxy(conf *eagle.ImgProxy) *ImgProxy {
+	return &ImgProxy{
+		endpoint: conf.Endpoint,
+		httpClient: &http.Client{
+			Timeout: time.Minute * 10,
+		},
+		fs: &afero.Afero{
+			Fs: afero.NewBasePathFs(afero.NewOsFs(), conf.Directory),
+		},
+	}
 }
 
 func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int) (io.Reader, error) {

@@ -3,12 +3,11 @@ package syndicator
 import (
 	"testing"
 
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 )
 
 func newTestTwitter() Syndicator {
-	return NewTwitter(&config.Twitter{
+	return NewTwitter(&eagle.Twitter{
 		User:        "test",
 		Key:         "key",
 		Secret:      "secret",
@@ -17,9 +16,9 @@ func newTestTwitter() Syndicator {
 	})
 }
 
-var isNotByContext = []*entry.Entry{
+var isNotByContext = []*eagle.Entry{
 	{
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
 				"syndication": "https://twitter.com/status/some-status",
 				"like-of":     "https://twitter.com/status/some-status",
@@ -27,14 +26,14 @@ var isNotByContext = []*entry.Entry{
 		},
 	},
 	{
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
 				"invalid-property": "https://twitter.com/status/some-status",
 			},
 		},
 	},
 	{
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
 				"bookmark-of": "https://twitter.com/status/some-status",
 			},
@@ -52,23 +51,23 @@ func TestTwitterIsNotByContext(t *testing.T) {
 	}
 }
 
-var isByContext = []*entry.Entry{
+var isByContext = []*eagle.Entry{
 	{
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
 				"like-of": "https://twitter.com/status/some-status",
 			},
 		},
 	},
 	{
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
 				"in-reply-to": []string{"https://twitter.com/status/some-status"},
 			},
 		},
 	},
 	{
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
 				"repost-of": "https://twitter.com/status/some-status",
 			},

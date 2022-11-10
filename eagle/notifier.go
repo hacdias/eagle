@@ -1,4 +1,4 @@
-package notifier
+package eagle
 
 type Notifier interface {
 	Info(msg string)

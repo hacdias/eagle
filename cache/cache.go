@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/dgraph-io/ristretto"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 )
 
 type CacheScope string
@@ -44,7 +44,7 @@ func (c *Cache) Save(scope CacheScope, filename string, data []byte, modtime tim
 	c.r.SetWithTTL(c.cacheKey(scope, filename), value, cost, time.Hour*24)
 }
 
-func (c *Cache) Delete(ee *entry.Entry) {
+func (c *Cache) Delete(ee *eagle.Entry) {
 	c.delete("/")
 	c.delete("/all")
 	c.delete(ee.ID)

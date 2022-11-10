@@ -1,20 +1,22 @@
 package notifier
 
 import (
-	"github.com/hacdias/eagle/v4/config"
+	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/log"
+	"go.uber.org/zap"
 	tb "gopkg.in/telebot.v3"
 )
 
-type TelegramNotifier struct {
-	errNotifier Notifier
-	chat        int64
-	bot         *tb.Bot
+type Telegram struct {
+	chat   int64
+	errLog *zap.SugaredLogger
+	bot    *tb.Bot
 }
 
-func NewTelegramNotifier(c *config.Telegram) (Notifier, error) {
-	n := &TelegramNotifier{
-		chat:        c.ChatID,
-		errNotifier: NewLogNotifier(),
+func NewTelegram(c *eagle.Telegram) (*Telegram, error) {
+	n := &Telegram{
+		chat:   c.ChatID,
+		errLog: log.S().Named("telegram"),
 	}
 	bot, err := tb.NewBot(tb.Settings{Token: c.Token})
 	if err != nil {
@@ -25,19 +27,19 @@ func NewTelegramNotifier(c *config.Telegram) (Notifier, error) {
 	return n, nil
 }
 
-func (n *TelegramNotifier) Info(msg string) {
+func (n *Telegram) Info(msg string) {
 	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {
-		n.errNotifier.Error(err)
+		n.errLog.Error(err)
 	}
 }
 
-func (n *TelegramNotifier) Error(err error) {
-	n.errNotifier.Error(err)
+func (n *Telegram) Error(err error) {
+	n.errLog.Error(err)
 
 	_, botErr := n.bot.Send(&tb.Chat{ID: n.chat}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
 		DisableWebPagePreview: true,
@@ -45,6 +47,6 @@ func (n *TelegramNotifier) Error(err error) {
 	})
 
 	if botErr != nil {
-		n.errNotifier.Error(err)
+		n.errLog.Error(err)
 	}
 }

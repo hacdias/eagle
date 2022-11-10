@@ -3,42 +3,36 @@ package server
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/blogroll"
 	"github.com/hacdias/eagle/v4/cache"
 	"github.com/hacdias/eagle/v4/database"
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
-	"github.com/hacdias/eagle/v4/hooks"
-	"github.com/hacdias/eagle/v4/lastfm"
-	"github.com/hacdias/eagle/v4/log"
+	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/media"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
-	"github.com/hacdias/eagle/v4/pkg/maze"
-	"github.com/hacdias/eagle/v4/pkg/mf2"
-	"github.com/hacdias/eagle/v4/pkg/miniflux"
-	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/eagle/v4/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
-	"willnorris.com/go/webmention"
+	"github.com/thoas/go-funk"
 
 	"go.uber.org/zap"
 )
@@ -51,210 +45,220 @@ type httpServer struct {
 }
 
 type Server struct {
-	*eagle.Eagle
-	log         *zap.SugaredLogger
-	iac         *indieauth.Client
-	ias         *indieauth.Server
-	serversLock sync.Mutex
-	servers     []*httpServer
+	n eagle.Notifier
+	c *eagle.Config
 
-	onionAddress string
+	log          *zap.SugaredLogger
+	iac          *indieauth.Client
+	ias          *indieauth.Server
 	jwtAuth      *jwtauth.JWTAuth
+	onionAddress string
+	serversLock  sync.Mutex
+	servers      []*httpServer
+	actions      map[string]func() error
+	cron         *cron.Cron
+	redirects    map[string]string
 
-	actions map[string]func() error
-	cron    *cron.Cron
+	fs          *fs.FS
+	media       *media.Media
+	cache       *cache.Cache
+	webmentions *webmentions.Webmentions
+	syndicator  *syndicator.Manager
+	renderer    *renderer.Renderer
+	db          *database.DatabaseWrapper
+	parser      *eagle.Parser
 
-	*renderer.Renderer
-
-	cache *cache.Cache
-
-	Webmentions   *webmentions.WebmentionsService
-	syndicator    *syndicator.Manager
-	PreSaveHooks  []hooks.EntryHook
-	PostSaveHooks []hooks.EntryHook
+	preSaveHooks  []eagle.EntryHook
+	postSaveHooks []eagle.EntryHook
 }
 
-func NewServer(e *eagle.Eagle) (*Server, error) {
-	clientID := e.Config.Server.BaseURL + "/"
-	redirectURL := e.Config.Server.BaseURL + "/login/callback"
+func NewServer(c *eagle.Config) (*Server, error) {
+	clientID := c.Server.BaseURL + "/"
+	redirectURL := c.Server.BaseURL + "/login/callback"
 
-	renderer, err := renderer.NewRenderer(e.Config, e)
-	if err != nil {
-		return nil, err
-	}
+	// renderer, err := renderer.NewRenderer(e.Config, e)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	cache, err := cache.NewCache()
-	if err != nil {
-		return nil, err
-	}
-	e.Cache = cache // wip: ckean this
+	// cache, err := cache.NewCache()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// e.Cache = cache // wip: ckean this
 
-	s := &Server{
-		Eagle:   e,
-		log:     log.S().Named("server"),
-		servers: []*httpServer{},
-		iac: indieauth.NewClient(clientID, redirectURL, &http.Client{
-			Timeout: time.Second * 30,
-		}),
-		ias: indieauth.NewServer(false, &http.Client{
-			Timeout: time.Second * 30,
-		}),
-		Webmentions: &webmentions.WebmentionsService{
-			Eagle:    e,
-			Renderer: renderer,
-		},
-		syndicator: syndicator.NewManager(),
-		actions:    map[string]func() error{},
-		cron:       cron.New(),
-		Renderer:   renderer,
-		cache:      cache,
-	}
+	// s := &Server{
+	// 	Eagle:   e,
+	// 	log:     log.S().Named("server"),
+	// 	servers: []*httpServer{},
+	// 	iac: indieauth.NewClient(clientID, redirectURL, &http.Client{
+	// 		Timeout: time.Second * 30,
+	// 	}),
+	// 	ias: indieauth.NewServer(false, &http.Client{
+	// 		Timeout: time.Second * 30,
+	// 	}),
+	// 	Webmentions: &webmentions.WebmentionsService{
+	// 		Eagle:    e,
+	// 		Renderer: renderer,
+	// 	},
+	// 	syndicator: syndicator.NewManager(),
+	// 	actions:    map[string]func() error{},
+	// 	cron:       cron.New(),
+	// 	Renderer:   renderer,
+	// 	cache:      cache,
+	// }
 
-	if !e.Config.Webmentions.DisableSending {
-		s.Webmentions.Client = webmention.New(&http.Client{
-			Timeout: time.Minute,
-		})
-	}
+	// if !e.Config.Webmentions.DisableSending {
+	// 	s.Webmentions.Client = webmention.New(&http.Client{
+	// 		Timeout: time.Minute,
+	// 	})
+	// }
 
-	secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
-	s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
+	// secret := base64.StdEncoding.EncodeToString([]byte(e.Config.Server.TokensSecret))
+	// s.jwtAuth = jwtauth.New("HS256", []byte(secret), nil)
 
-	var allowedTypes []mf2.Type
-	for typ := range e.Config.Micropub.Sections {
-		allowedTypes = append(allowedTypes, typ)
-	}
+	// var allowedTypes []mf2.Type
+	// for typ := range e.Config.Micropub.Sections {
+	// 	allowedTypes = append(allowedTypes, typ)
+	// }
 
-	if e.Config.Twitter != nil && e.Config.Syndications.Twitter {
-		s.syndicator.Add(syndicator.NewTwitter(e.Config.Twitter))
-	}
+	// if e.Config.Twitter != nil && e.Config.Syndications.Twitter {
+	// 	s.syndicator.Add(syndicator.NewTwitter(e.Config.Twitter))
+	// }
 
-	var (
-		redditClient *reddit.Client
-	)
+	// var (
+	// 	redditClient *reddit.Client
+	// )
 
-	if e.Config.Reddit != nil {
-		credentials := reddit.Credentials{
-			ID:       e.Config.Reddit.App,
-			Secret:   e.Config.Reddit.Secret,
-			Username: e.Config.Reddit.User,
-			Password: e.Config.Reddit.Password,
-		}
+	// if e.Config.Reddit != nil {
+	// 	credentials := reddit.Credentials{
+	// 		ID:       e.Config.Reddit.App,
+	// 		Secret:   e.Config.Reddit.Secret,
+	// 		Username: e.Config.Reddit.User,
+	// 		Password: e.Config.Reddit.Password,
+	// 	}
 
-		redditClient, err = reddit.NewClient(credentials)
-		if err != nil {
-			return nil, err
-		}
+	// 	redditClient, err = reddit.NewClient(credentials)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		if e.Config.Syndications.Reddit {
-			s.syndicator.Add(syndicator.NewReddit(redditClient))
-		}
-	}
+	// 	if e.Config.Syndications.Reddit {
+	// 		s.syndicator.Add(syndicator.NewReddit(redditClient))
+	// 	}
+	// }
 
-	s.PreSaveHooks = append(
-		s.PreSaveHooks,
-		&hooks.IgnoreListing{Hook: hooks.AllowedType(allowedTypes)},
-		&hooks.IgnoreListing{Hook: &hooks.DescriptionGenerator{}},
-		&hooks.IgnoreListing{Hook: hooks.SectionDeducer(e.Config.Micropub.Sections)},
-	)
+	// s.PreSaveHooks = append(
+	// 	s.PreSaveHooks,
+	// 	&hooks.IgnoreListing{Hook: hooks.AllowedType(allowedTypes)},
+	// 	&hooks.IgnoreListing{Hook: &hooks.DescriptionGenerator{}},
+	// 	&hooks.IgnoreListing{Hook: hooks.SectionDeducer(e.Config.Micropub.Sections)},
+	// )
 
-	if e.Config.XRay != nil && e.Config.XRay.Endpoint != "" {
-		options := &xray.XRayOptions{
-			Log:       log.S().Named("xray"),
-			Endpoint:  e.Config.XRay.Endpoint,
-			UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", e.Config.ID()),
-		}
+	// if e.Config.XRay != nil && e.Config.XRay.Endpoint != "" {
+	// 	options := &xray.XRayOptions{
+	// 		Log:       log.S().Named("xray"),
+	// 		Endpoint:  e.Config.XRay.Endpoint,
+	// 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", e.Config.ID()),
+	// 	}
 
-		if e.Config.XRay.Twitter && e.Config.Twitter != nil {
-			options.Twitter = &xray.Twitter{
-				Key:         e.Config.Twitter.Key,
-				Secret:      e.Config.Twitter.Secret,
-				Token:       e.Config.Twitter.Token,
-				TokenSecret: e.Config.Twitter.TokenSecret,
-			}
-		}
+	// 	if e.Config.XRay.Twitter && e.Config.Twitter != nil {
+	// 		options.Twitter = &xray.Twitter{
+	// 			Key:         e.Config.Twitter.Key,
+	// 			Secret:      e.Config.Twitter.Secret,
+	// 			Token:       e.Config.Twitter.Token,
+	// 			TokenSecret: e.Config.Twitter.TokenSecret,
+	// 		}
+	// 	}
 
-		if e.Config.XRay.Reddit && e.Config.Reddit != nil {
-			options.Reddit = redditClient
-		}
+	// 	if e.Config.XRay.Reddit && e.Config.Reddit != nil {
+	// 		options.Reddit = redditClient
+	// 	}
 
-		xray := xray.NewXRay(options)
+	// 	xray := xray.NewXRay(options)
 
-		s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: &hooks.ContextXRay{
-			XRay:  xray,
-			Eagle: s.Eagle,
-		}})
-	}
+	// 	s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: &hooks.ContextXRay{
+	// 		XRay:  xray,
+	// 		Eagle: s.Eagle,
+	// 	}})
+	// }
 
-	s.PostSaveHooks = append(
-		s.PostSaveHooks,
-		&hooks.IgnoreListing{Hook: &hooks.PhotosProcessor{
-			Eagle: e,
-		}},
-		&hooks.IgnoreListing{Hook: &hooks.LocationFetcher{
-			Language: e.Config.Site.Language,
-			Eagle:    e,
-			Maze: maze.NewMaze(&http.Client{
-				Timeout: 1 * time.Minute,
-			}),
-		}},
-		&hooks.IgnoreListing{Hook: s.Webmentions},
-	)
+	// s.PostSaveHooks = append(
+	// 	s.PostSaveHooks,
+	// 	&hooks.IgnoreListing{Hook: &hooks.PhotosProcessor{
+	// 		Eagle: e,
+	// 	}},
+	// 	&hooks.IgnoreListing{Hook: &hooks.LocationFetcher{
+	// 		Language: e.Config.Site.Language,
+	// 		Eagle:    e,
+	// 		Maze: maze.NewMaze(&http.Client{
+	// 			Timeout: 1 * time.Minute,
+	// 		}),
+	// 	}},
+	// 	&hooks.IgnoreListing{Hook: s.Webmentions},
+	// )
 
-	readsSummaryUpdater := &hooks.ReadsSummaryUpdater{
-		Eagle:    s.Eagle,
-		Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
-	}
-	s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: readsSummaryUpdater})
-	err = s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary)
-	if err != nil {
-		return nil, err
-	}
+	// readsSummaryUpdater := &hooks.ReadsSummaryUpdater{
+	// 	Eagle:    s.Eagle,
+	// 	Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+	// }
+	// s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: readsSummaryUpdater})
+	// err = s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	watchesSummaryUpdater := &hooks.WatchesSummaryUpdater{
-		Eagle:    s.Eagle,
-		Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
-	}
-	s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: watchesSummaryUpdater})
-	err = s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary)
-	if err != nil {
-		return nil, err
-	}
+	// watchesSummaryUpdater := &hooks.WatchesSummaryUpdater{
+	// 	Eagle:    s.Eagle,
+	// 	Provider: s.Eagle.DB.(*database.Postgres), // wip: dont do this
+	// }
+	// s.PostSaveHooks = append(s.PostSaveHooks, &hooks.IgnoreListing{Hook: watchesSummaryUpdater})
+	// err = s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if e.Config.Miniflux != nil {
-		mf := blogroll.MinifluxBlogrollUpdater{
-			Eagle:  e,
-			Client: miniflux.NewMiniflux(e.Config.Miniflux.Endpoint, e.Config.Miniflux.Key),
-		}
+	// if e.Config.Miniflux != nil {
+	// 	mf := blogroll.MinifluxBlogrollUpdater{
+	// 		Eagle:  e,
+	// 		Client: miniflux.NewMiniflux(e.Config.Miniflux.Endpoint, e.Config.Miniflux.Key),
+	// 	}
 
-		err = s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
-		if err != nil {
-			return nil, err
-		}
+	// 	err = s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		err = s.RegisterAction("Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// 	err = s.RegisterAction("Miniflux Blogroll", mf.UpdateMinifluxBlogroll)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
-	if e.Config.Lastfm != nil {
-		lastfm := lastfm.NewLastFm(e.Config.Lastfm.Key, e.Config.Lastfm.User, e)
-		err = s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob)
-		if err != nil {
-			return nil, err
-		}
-	}
+	// if e.Config.Lastfm != nil {
+	// 	lastfm := lastfm.NewLastFm(e.Config.Lastfm.Key, e.Config.Lastfm.User, e)
+	// 	err = s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
-	err = s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
-		e.SyncStorage()
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
+	// err = s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
+	// 	s.SyncStorage()
+	// 	return nil
+	// })
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	s.cron.Start()
-	return s, nil
+	// err = s.initRedirects()
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return s, nil
+
+	return nil, nil
 }
 
 func (s *Server) RegisterAction(name string, action func() error) error {
@@ -270,13 +274,18 @@ func (s *Server) RegisterCron(schedule, name string, job func() error) error {
 	_, err := s.cron.AddFunc(schedule, func() {
 		err := job()
 		if err != nil {
-			s.Notifier.Error(fmt.Errorf("%s cron job: %w", name, err))
+			s.n.Error(fmt.Errorf("%s cron job: %w", name, err))
 		}
 	})
 	return err
 }
 
 func (s *Server) Start() error {
+	// Start cron jobs
+	s.cron.Start()
+
+	//wip: indexall
+
 	errCh := make(chan error)
 	router := s.makeRouter()
 
@@ -286,7 +295,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	if s.Config.Server.Tor != nil {
+	if s.c.Server.Tor != nil {
 		err = s.startTor(errCh, router)
 		if err != nil {
 			err = fmt.Errorf("onion service failed to start: %w", err)
@@ -327,7 +336,7 @@ func (s *Server) registerServer(srv *http.Server, name string) {
 }
 
 func (s *Server) startRegularServer(errCh chan error, h http.Handler) error {
-	addr := ":" + strconv.Itoa(s.Config.Server.Port)
+	addr := ":" + strconv.Itoa(s.c.Server.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -349,7 +358,7 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
 				err := fmt.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
-				s.Error(err)
+				s.n.Error(err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
@@ -396,7 +405,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		s.Notifier.Error(fmt.Errorf("serving html: %w", err))
+		s.n.Error(fmt.Errorf("serving html: %w", err))
 	}
 }
 
@@ -433,9 +442,9 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		cw = w
 	}
 
-	err := s.Render(cw, data, tpls)
+	err := s.renderer.Render(cw, data, tpls)
 	if err != nil {
-		s.Notifier.Error(fmt.Errorf("serving html: %w", err))
+		s.n.Error(fmt.Errorf("serving html: %w", err))
 	} else {
 		data := buf.Bytes()
 		if len(data) > 0 {
@@ -464,8 +473,8 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	}
 
 	rd := &renderer.RenderData{
-		Entry: &entry.Entry{
-			FrontMatter: entry.FrontMatter{
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
 				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 			},
 		},
@@ -474,4 +483,54 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	}
 
 	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
+}
+
+func (s *Server) SyncStorage() {
+	changedFiles, err := s.fs.Sync()
+	if err != nil {
+		s.n.Error(fmt.Errorf("sync storage: %w", err))
+		return
+	}
+
+	if len(changedFiles) == 0 {
+		return
+	}
+
+	ids := []string{}
+
+	for _, file := range changedFiles {
+		if !strings.HasPrefix(file, fs.ContentDirectory) {
+			continue
+		}
+
+		id := strings.TrimPrefix(file, fs.ContentDirectory)
+		id = filepath.Dir(id)
+		ids = append(ids, id)
+	}
+
+	// NOTE: we do not reload the templates and assets because
+	// doing so is not concurrent-safe.
+	ids = funk.UniqString(ids)
+	entries := []*eagle.Entry{}
+
+	for _, id := range ids {
+		entry, err := s.fs.GetEntry(id)
+		if os.IsNotExist(err) {
+			s.db.Remove(id)
+			continue
+		} else if err != nil {
+			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
+			continue
+		}
+		entries = append(entries, entry)
+
+		if s.cache != nil {
+			s.cache.Delete(entry)
+		}
+	}
+
+	err = s.db.Add(entries...)
+	if err != nil {
+		s.n.Error(fmt.Errorf("sync failed: %w", err))
+	}
 }

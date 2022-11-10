@@ -7,7 +7,7 @@ import (
 	urlpkg "net/url"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
@@ -26,7 +26,7 @@ func NewReddit(client *reddit.Client) *Reddit {
 	return reddit
 }
 
-func (r *Reddit) Syndicate(entry *entry.Entry) (url string, err error) {
+func (r *Reddit) Syndicate(entry *eagle.Entry) (url string, err error) {
 	if r.isSyndicated(entry) {
 		// If it is already syndicated to Reddit, do not try to syndicate again.
 		return "", errors.New("cannot re-syndicate to Reddit")
@@ -46,7 +46,7 @@ func (r *Reddit) Syndicate(entry *entry.Entry) (url string, err error) {
 	return r.post(entry)
 }
 
-func (r *Reddit) IsByContext(entry *entry.Entry) bool {
+func (r *Reddit) IsByContext(entry *eagle.Entry) bool {
 	if r.isSyndicated(entry) {
 		// If it is already syndicated to Reddit, do not try to syndicate again.
 		return false
@@ -78,7 +78,7 @@ func (r *Reddit) Identifier() string {
 	return fmt.Sprintf("reddit-%s", r.User)
 }
 
-func (r *Reddit) isSyndicated(entry *entry.Entry) bool {
+func (r *Reddit) isSyndicated(entry *eagle.Entry) bool {
 	mm := entry.Helper()
 
 	syndications := mm.Strings("syndication")
@@ -116,7 +116,7 @@ func (r *Reddit) idFromUrl(urlStr string) (string, error) {
 	return "", errors.New("could not get id from Reddit URL")
 }
 
-func (r *Reddit) upvote(entry *entry.Entry) (string, error) {
+func (r *Reddit) upvote(entry *eagle.Entry) (string, error) {
 	mm := entry.Helper()
 	urlStr := mm.String(mm.TypeProperty())
 	id, err := r.idFromUrl(urlStr)
@@ -132,7 +132,7 @@ func (r *Reddit) upvote(entry *entry.Entry) (string, error) {
 	return urlStr, nil
 }
 
-func (r *Reddit) reply(entry *entry.Entry) (string, error) {
+func (r *Reddit) reply(entry *eagle.Entry) (string, error) {
 	mm := entry.Helper()
 	urlStr := mm.String(mm.TypeProperty())
 	id, err := r.idFromUrl(urlStr)
@@ -148,7 +148,7 @@ func (r *Reddit) reply(entry *entry.Entry) (string, error) {
 	return "https://www.reddit.com" + comment.Permalink, nil
 }
 
-func (r *Reddit) post(entry *entry.Entry) (string, error) {
+func (r *Reddit) post(entry *eagle.Entry) (string, error) {
 	audience := entry.Audience()
 	if len(audience) != 1 {
 		return "", errors.New("audience needs to have exactly one element for reddit syndication")

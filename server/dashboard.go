@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/indieauth/v3"
 )
@@ -74,8 +74,8 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data interface{}) {
 	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &entry.Entry{
-			FrontMatter: entry.FrontMatter{
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
 				Title: "Dashboard",
 			},
 		},

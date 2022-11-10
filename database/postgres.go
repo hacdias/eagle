@@ -6,8 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/util"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -17,7 +16,7 @@ type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func NewDatabase(cfg *config.PostgreSQL) (*Postgres, error) {
+func NewDatabase(cfg *eagle.PostgreSQL) (*Postgres, error) {
 	dsn := "user=" + cfg.User
 	dsn += " password=" + cfg.Password
 	dsn += " host=" + cfg.Host
@@ -43,7 +42,7 @@ func (d *Postgres) Remove(id string) {
 	_, _ = d.pool.Exec(context.Background(), "delete from entries where id=$1", id)
 }
 
-func (d *Postgres) Add(entries ...*entry.Entry) error {
+func (d *Postgres) Add(entries ...*eagle.Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
@@ -325,7 +324,7 @@ func (d *Postgres) Search(opts *QueryOptions, search *SearchOptions) ([]string, 
 	return d.queryEntries(sql, 1, args...)
 }
 
-func (d *Postgres) GetReadsSummary() (*entry.ReadsSummary, error) {
+func (d *Postgres) GetReadsSummary() (*eagle.ReadsSummary, error) {
 	sql := `select distinct on (id)
 	id,
 	updated as date,
@@ -347,15 +346,15 @@ where properties->'read-status'->0->>'status' is not null`
 	}
 	defer rows.Close()
 
-	stats := &entry.ReadsSummary{
-		ToRead:  []*entry.Read{},
-		Reading: []*entry.Read{},
+	stats := &eagle.ReadsSummary{
+		ToRead:  []*eagle.Read{},
+		Reading: []*eagle.Read{},
 	}
 
-	finished := entry.ReadList([]*entry.Read{})
+	finished := eagle.ReadList([]*eagle.Read{})
 
 	for rows.Next() {
-		read := &entry.Read{}
+		read := &eagle.Read{}
 		status := ""
 
 		err := rows.Scan(&read.ID, &read.Date, &status, &read.Name, &read.Author)
@@ -381,7 +380,7 @@ where properties->'read-status'->0->>'status' is not null`
 	return stats, nil
 }
 
-func (d *Postgres) watches(baseSql string) ([]*entry.Watch, error) {
+func (d *Postgres) watches(baseSql string) ([]*eagle.Watch, error) {
 	sql := "select id, date, name from (" + baseSql
 
 	if ands, _ := d.whereConstraints(&QueryOptions{}, 0); len(ands) > 0 {
@@ -396,10 +395,10 @@ func (d *Postgres) watches(baseSql string) ([]*entry.Watch, error) {
 	}
 	defer rows.Close()
 
-	watches := []*entry.Watch{}
+	watches := []*eagle.Watch{}
 
 	for rows.Next() {
-		watch := &entry.Watch{}
+		watch := &eagle.Watch{}
 		err := rows.Scan(&watch.ID, &watch.Date, &watch.Name)
 		if err != nil {
 			return nil, err
@@ -414,10 +413,10 @@ func (d *Postgres) watches(baseSql string) ([]*entry.Watch, error) {
 	return watches, nil
 }
 
-func (d *Postgres) GetWatchesSummary() (*entry.WatchesSummary, error) {
-	watches := &entry.WatchesSummary{
-		Series: []*entry.Watch{},
-		Movies: []*entry.Watch{},
+func (d *Postgres) GetWatchesSummary() (*eagle.WatchesSummary, error) {
+	watches := &eagle.WatchesSummary{
+		Series: []*eagle.Watch{},
+		Movies: []*eagle.Watch{},
 	}
 
 	series, err := d.watches(`select distinct on (ttid)
@@ -463,7 +462,7 @@ func (d *Postgres) whereConstraints(opts *QueryOptions, i int) ([]string, []inte
 		visibilityOr := []string{}
 		for _, vis := range opts.Visibility {
 			i++
-			if vis == entry.VisibilityPrivate && opts.Audience != "" {
+			if vis == eagle.VisibilityPrivate && opts.Audience != "" {
 				visibilityOr = append(visibilityOr, "(visibility='private' and audience is null)")
 				visibilityOr = append(visibilityOr, "(visibility='private' and $"+strconv.Itoa(i)+" = ANY (audience) )")
 				args = append(args, opts.Audience)

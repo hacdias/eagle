@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/v4/eagle"
+	"github.com/hacdias/eagle/v4/fs"
 )
 
 func (s *Server) withRedirects(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if url, ok := s.GetRedirects()[r.URL.Path]; ok {
+		if url, ok := s.redirects[r.URL.Path]; ok {
 			http.Redirect(w, r, url, http.StatusMovedPermanently)
 			return
 		}
@@ -33,7 +33,7 @@ func setCacheDefault(w http.ResponseWriter) {
 }
 
 func (s *Server) serveAssets(w http.ResponseWriter, r *http.Request) {
-	if asset := s.GetAssets().Get(r.URL.Path); asset != nil {
+	if asset := s.renderer.GetAssets().Get(r.URL.Path); asset != nil {
 		setCacheAsset(w)
 		w.Header().Set("Content-Type", asset.Type)
 		_, _ = w.Write(asset.Body)
@@ -53,7 +53,7 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 			return
 		}
 
-		filename := filepath.Join(s.Config.Source.Directory, eagle.ContentDirectory, r.URL.Path)
+		filename := filepath.Join(s.c.Source.Directory, fs.ContentDirectory, r.URL.Path)
 		if stat, err := os.Stat(filename); err == nil && stat.Mode().IsRegular() {
 			// Do not serve .* (dot)files.
 			if strings.HasPrefix(stat.Name(), ".") {

@@ -4,15 +4,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 )
 
 type Syndicator interface {
 	// Add context.Context to syndicate
-	Syndicate(entry *entry.Entry) (url string, err error)
-	IsByContext(entry *entry.Entry) bool
+	Syndicate(entry *eagle.Entry) (url string, err error)
+	IsByContext(entry *eagle.Entry) bool
 	Name() string
 	Identifier() string
 }
@@ -36,12 +36,12 @@ func (m *Manager) Add(s Syndicator) {
 	m.syndicators[s.Identifier()] = s
 }
 
-func (m *Manager) Syndicate(ee *entry.Entry, syndicators []string) ([]string, error) {
+func (m *Manager) Syndicate(ee *eagle.Entry, syndicators []string) ([]string, error) {
 	if ee.Draft {
 		return nil, errors.New("cannot syndicate draft entry")
 	}
 
-	if ee.Visibility() == entry.VisibilityPrivate {
+	if ee.Visibility() == eagle.VisibilityPrivate {
 		return nil, errors.New("cannot syndicate private entry")
 	}
 

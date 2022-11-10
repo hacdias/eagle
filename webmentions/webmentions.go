@@ -8,7 +8,6 @@ import (
 	"github.com/hacdias/eagle/v4/fs"
 	"github.com/hacdias/eagle/v4/log"
 	"github.com/hacdias/eagle/v4/media"
-	"github.com/hacdias/eagle/v4/notifier"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 	"github.com/hacdias/eagle/v4/pkg/xray"
 	"github.com/hacdias/eagle/v4/renderer"
@@ -20,12 +19,12 @@ type Webmentions struct {
 	log      *zap.SugaredLogger
 	client   *webmention.Client
 	fs       *fs.FS
-	notifier notifier.Notifier
+	notifier eagle.Notifier
 	renderer *renderer.Renderer
 	media    *media.Media
 }
 
-func NewWebmentions(fs *fs.FS, notifier notifier.Notifier, renderer *renderer.Renderer, media *media.Media) *Webmentions {
+func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Renderer, media *media.Media) *Webmentions {
 	return &Webmentions{
 		log: log.S().Named("webmentions"),
 		client: webmention.New(&http.Client{

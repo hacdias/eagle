@@ -6,24 +6,27 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/v4/eagle"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/fs"
+	"github.com/hacdias/eagle/v4/media"
 	"github.com/hacdias/eagle/v4/pkg/lastfm"
 )
 
 const lastfmFileName = ".lastfm.json"
 
 func getDailyListensID(year int, month time.Month, day int) string {
-	return entry.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
+	return eagle.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
 }
 
 type LastFm struct {
+	fs     *fs.FS
+	media  *media.Media
 	client *lastfm.LastFm
-	eagle  *eagle.Eagle // wip: remove this
 }
 
-func NewLastFm(key, user string, eagle *eagle.Eagle) *LastFm {
+func NewLastFm(key, user string, fs *fs.FS, media *media.Media) *LastFm {
 	return &LastFm{
-		eagle:  eagle,
+		fs:     fs,
+		media:  media,
 		client: lastfm.NewLastFm(key, user),
 	}
 }
@@ -44,8 +47,8 @@ func (l *LastFm) FetchLastFmListens(year int, month time.Month, day int) (bool, 
 		if t.Image == "" && t.OriginalImage != "" {
 			if dst, ok := coverUploads[t.OriginalImage]; ok {
 				t.Image = dst
-			} else {
-				url, err := l.eagle.UploadFromURL("media", t.OriginalImage, true)
+			} else if l.media != nil {
+				url, err := l.media.UploadFromURL("media", t.OriginalImage, true)
 				if err == nil {
 					t.Image = url
 					coverUploads[t.OriginalImage] = url
@@ -54,31 +57,31 @@ func (l *LastFm) FetchLastFmListens(year int, month time.Month, day int) (bool, 
 		}
 	}
 
-	filename := filepath.Join(eagle.ContentDirectory, getDailyListensID(year, month, day), lastfmFileName)
+	filename := filepath.Join(fs.ContentDirectory, getDailyListensID(year, month, day), lastfmFileName)
 
-	err = l.eagle.FS.MkdirAll(filepath.Dir(filename), 0777)
+	err = l.fs.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
 		return false, err
 	}
-	return true, l.eagle.FS.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
+	return true, l.fs.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
 }
 
 func (l *LastFm) CreateDailyListensEntry(year int, month time.Month, day int) error {
-	id := entry.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
-	filename := filepath.Join(eagle.ContentDirectory, id, lastfmFileName)
+	id := eagle.NewID("listened", time.Date(year, month, day, 0, 0, 0, 0, time.UTC))
+	filename := filepath.Join(fs.ContentDirectory, id, lastfmFileName)
 	tracks := []*lastfm.Track{}
 
-	err := l.eagle.FS.ReadJSON(filename, &tracks)
+	err := l.fs.ReadJSON(filename, &tracks)
 	if err != nil {
 		return err
 	}
 
 	stats := lastfm.ScrobblesStatistics(tracks)
 
-	ee := &entry.Entry{
+	ee := &eagle.Entry{
 		ID:      id,
 		Content: "<!-- This post is automatically generated. -->\n\n",
-		FrontMatter: entry.FrontMatter{
+		FrontMatter: eagle.FrontMatter{
 			Sections:    []string{"listens"},
 			Description: fmt.Sprintf("Listened to %d tracks from %d artists across %d albums", stats.TotalTracks, stats.TotalArtists, stats.TotalAlbums),
 			Properties: map[string]interface{}{
@@ -151,7 +154,7 @@ func (l *LastFm) CreateDailyListensEntry(year int, month time.Month, day int) er
 
 	ee.Content += "\n\n</details>\n"
 
-	err = l.eagle.SaveEntry(ee)
+	err = l.fs.SaveEntry(ee)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 )
 
 type PaginationOptions struct {
@@ -17,7 +17,7 @@ type QueryOptions struct {
 	WithDeleted bool
 
 	// Empty matches all visibilities.
-	Visibility []entry.Visibility
+	Visibility []eagle.Visibility
 
 	// Empty matches all audiences.
 	Audience string
@@ -33,7 +33,7 @@ type Database interface {
 	Close()
 
 	Remove(id string)
-	Add(...*entry.Entry) error
+	Add(...*eagle.Entry) error
 
 	GetTags() ([]string, error)
 	GetEmojis() ([]string, error)

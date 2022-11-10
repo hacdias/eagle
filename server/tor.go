@@ -20,7 +20,7 @@ const (
 )
 
 func (s *Server) startTor(errCh chan error, h http.Handler) error {
-	key, err := getTorKey(s.Config.Server.Tor.Directory)
+	key, err := getTorKey(s.c.Server.Tor.Directory)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 		TempDataDirBase: os.TempDir(),
 	}
 
-	if s.Config.Server.Tor.Logging {
+	if s.c.Server.Tor.Logging {
 		cfg.DebugWriter = os.Stdout
 	}
 

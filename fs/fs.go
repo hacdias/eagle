@@ -2,8 +2,15 @@ package fs
 
 import (
 	"encoding/json"
+	"sync"
 
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/spf13/afero"
+)
+
+const (
+	AssetsDirectory  string = "assets"
+	ContentDirectory string = "content"
 )
 
 type FSSync interface {
@@ -14,6 +21,18 @@ type FSSync interface {
 type FS struct {
 	*afero.Afero
 	sync FSSync
+
+	afterSaveHook func(*eagle.Entry)
+
+	parser *eagle.Parser
+
+	// Mutexes to lock the updates to entries and sidecars.
+	// Only for writes and not for reads. Hope this won't
+	// become a problem with traffic and simultaneous
+	// reads-writes from files. Adding a mutex for all reads
+	// would probably make it much slower though.
+	entriesMu  sync.Mutex
+	sidecarsMu sync.Mutex
 }
 
 func NewFS(path string, sync FSSync) *FS {

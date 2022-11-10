@@ -10,17 +10,16 @@ import (
 	"time"
 
 	"github.com/dghubble/oauth1"
-	"github.com/hacdias/eagle/v4/config"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/pkg/mf2"
 )
 
 type Twitter struct {
-	conf   *config.Twitter
+	conf   *eagle.Twitter
 	client *http.Client
 }
 
-func NewTwitter(opts *config.Twitter) *Twitter {
+func NewTwitter(opts *eagle.Twitter) *Twitter {
 	config := oauth1.NewConfig(opts.Key, opts.Secret)
 	token := oauth1.NewToken(opts.Token, opts.TokenSecret)
 
@@ -33,7 +32,7 @@ func NewTwitter(opts *config.Twitter) *Twitter {
 	}
 }
 
-func (t *Twitter) Syndicate(entry *entry.Entry) (url string, err error) {
+func (t *Twitter) Syndicate(entry *eagle.Entry) (url string, err error) {
 	if t.isSyndicated(entry) {
 		// If it is already syndicated to Twitter, do not try to syndicate again.
 		return "", errors.New("cannot re-syndicate to Twitter")
@@ -74,7 +73,7 @@ func (t *Twitter) Syndicate(entry *entry.Entry) (url string, err error) {
 	return t.tweet(status, replyUrl)
 }
 
-func (t *Twitter) IsByContext(entry *entry.Entry) bool {
+func (t *Twitter) IsByContext(entry *eagle.Entry) bool {
 	if t.isSyndicated(entry) {
 		// If it is already syndicated to Twitter, do not try to syndicate again.
 		return false
@@ -184,7 +183,7 @@ func (t *Twitter) idFromUrl(urlStr string) (string, error) {
 	return parts[len(parts)-1], nil
 }
 
-func (t *Twitter) isSyndicated(entry *entry.Entry) bool {
+func (t *Twitter) isSyndicated(entry *eagle.Entry) bool {
 	mm := entry.Helper()
 
 	syndications := mm.Strings("syndication")

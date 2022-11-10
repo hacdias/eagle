@@ -19,18 +19,18 @@ type link struct {
 }
 
 func (s *Server) webfingerGet(w http.ResponseWriter, r *http.Request) {
-	url, _ := urlpkg.Parse(s.Config.Server.BaseURL)
+	url, _ := urlpkg.Parse(s.c.Server.BaseURL)
 
 	wf := &webfinger{
-		Subject: fmt.Sprintf("%s@%s", s.Config.User.Username, url.Host),
+		Subject: fmt.Sprintf("%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
-			s.Config.ID(),
+			s.c.ID(),
 		},
 		Links: []link{
 			{
 				Rel:  "http://webfinger.net/rel/profile-page",
 				Type: "text/html",
-				Href: s.Config.ID(),
+				Href: s.c.ID(),
 			},
 		},
 	}

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/v4/entry"
+	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hacdias/eagle/v4/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
@@ -31,8 +31,8 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.serveHTMLWithStatus(w, r, &renderer.RenderData{
-		Entry: &entry.Entry{
-			FrontMatter: entry.FrontMatter{
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
 				Title: "Login",
 			},
 		},
@@ -291,5 +291,5 @@ func (s *Server) getUser(r *http.Request) (me string) {
 
 func (s *Server) isAdmin(r *http.Request) bool {
 	user := s.getUser(r)
-	return user == s.Config.ID()
+	return user == s.c.ID()
 }

@@ -1,9 +1,9 @@
 package server
 
-import "github.com/hacdias/eagle/v4/entry"
+import "github.com/hacdias/eagle/v4/eagle"
 
-func (s *Server) preSaveEntry(ee *entry.Entry, isNew bool) error {
-	for _, hook := range s.PreSaveHooks {
+func (s *Server) preSaveEntry(ee *eagle.Entry, isNew bool) error {
+	for _, hook := range s.preSaveHooks {
 		err := hook.EntryHook(ee, isNew)
 		if err != nil {
 			return err
@@ -16,23 +16,23 @@ func (s *Server) preSaveEntry(ee *entry.Entry, isNew bool) error {
 // postSaveHooks runs post saving hooks. These hooks are non-blocking and the error
 // of one does not prevent the execution of others. The implementer should be careful
 // to make sure they save the changes.
-func (s *Server) postSaveHooks(e *entry.Entry, isNew bool, syndicators []string) {
+func (s *Server) postSaveEntry(e *eagle.Entry, isNew bool, syndicators []string) {
 	err := s.syndicate(e, syndicators)
 	if err != nil {
-		s.Error(err)
+		s.n.Error(err)
 	}
 
-	for _, hook := range s.PostSaveHooks {
+	for _, hook := range s.postSaveHooks {
 		err := hook.EntryHook(e, isNew)
 		if err != nil {
-			s.Error(err)
+			s.n.Error(err)
 		}
 	}
 
 	s.cache.Delete(e)
 }
 
-func (s *Server) syndicate(e *entry.Entry, syndicators []string) error {
+func (s *Server) syndicate(e *eagle.Entry, syndicators []string) error {
 	syndications, err := s.syndicator.Syndicate(e, syndicators)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (s *Server) syndicate(e *entry.Entry, syndicators []string) error {
 		return nil
 	}
 
-	_, err = s.Eagle.TransformEntry(e.ID, func(e *entry.Entry) (*entry.Entry, error) {
+	_, err = s.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
 		mm := e.Helper()
 		syndications := append(mm.Strings("syndication"), syndications...)
 		e.Properties["syndication"] = syndications
