@@ -315,3 +315,47 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.En
 		NoIndex: ee.NoIndex || ee.Visibility() != eagle.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
 	}, renderer.EntryTemplates(ee))
 }
+
+func (s *Server) mentionToggleGet(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "*")
+	if id == "" {
+		id = "/"
+	}
+
+	wm := r.URL.Query().Get("wm")
+	if wm == "" {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("entry id or webmention url missing"))
+		return
+	}
+
+	ee, err := s.fs.GetEntry(id)
+	if os.IsNotExist(err) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		return
+	}
+
+	err = s.fs.UpdateSidecar(ee, func(s *eagle.Sidecar) (*eagle.Sidecar, error) {
+		for i := range s.Replies {
+			if s.Replies[i].URL == wm {
+				s.Replies[i].Hidden = !s.Replies[i].Hidden
+				return s, nil
+			}
+		}
+
+		for i := range s.Interactions {
+			if s.Interactions[i].URL == wm {
+				s.Interactions[i].Hidden = !s.Interactions[i].Hidden
+				return s, nil
+			}
+		}
+
+		return nil, errors.New("webmention not found")
+	})
+
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
+}

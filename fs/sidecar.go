@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/xray"
 )
 
 const (
@@ -34,11 +33,11 @@ func (f *FS) getSidecar(entry *eagle.Entry) (*eagle.Sidecar, string, error) {
 	}
 
 	if sidecar.Replies == nil {
-		sidecar.Replies = []*xray.Post{}
+		sidecar.Replies = []*eagle.Mention{}
 	}
 
 	if sidecar.Interactions == nil {
-		sidecar.Interactions = []*xray.Post{}
+		sidecar.Interactions = []*eagle.Mention{}
 	}
 
 	return sidecar, filename, err
