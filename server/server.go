@@ -163,6 +163,11 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		postSaveHooks: []eagle.EntryHook{},
 	}
 
+	fs.AfterSaveHook = func(e *eagle.Entry) {
+		_ = s.i.Add(e)
+		s.cache.Delete(e)
+	}
+
 	s.AppendPreSaveHook(
 		hooks.TypeChecker(c.Micropub.AllowedTypes()),
 		&hooks.DescriptionGenerator{},

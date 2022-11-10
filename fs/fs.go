@@ -20,12 +20,8 @@ type FSSync interface {
 
 type FS struct {
 	*afero.Afero
-
 	sync   FSSync
 	parser *eagle.Parser
-
-	// WIP
-	afterSaveHook func(*eagle.Entry)
 
 	// Mutexes to lock the updates to entries and sidecars.
 	// Only for writes and not for reads. Hope this won't
@@ -34,6 +30,10 @@ type FS struct {
 	// would probably make it much slower though.
 	entriesMu  sync.Mutex
 	sidecarsMu sync.Mutex
+
+	// AfterSaveHook is a hook that is executed after
+	// saving an entry to the file system.
+	AfterSaveHook func(*eagle.Entry)
 }
 
 func NewFS(path, baseURL string, sync FSSync) *FS {

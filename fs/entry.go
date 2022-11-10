@@ -121,14 +121,8 @@ func (e *FS) saveEntry(entry *eagle.Entry) error {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
 
-	// wip: thingy
-	if e.afterSaveHook != nil {
-		e.afterSaveHook(entry)
-
-		// _ = e.DB.Add(entry)
-		// if e.Cache != nil {
-		// 	e.Cache.Delete(entry)
-		// }
+	if e.AfterSaveHook != nil {
+		e.AfterSaveHook(entry)
 	}
 
 	return nil
