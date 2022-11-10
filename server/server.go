@@ -27,7 +27,6 @@ import (
 	"github.com/hacdias/eagle/v4/media"
 	"github.com/hacdias/eagle/v4/pkg/contenttype"
 	"github.com/hacdias/eagle/v4/renderer"
-	"github.com/hacdias/eagle/v4/syndicator"
 	"github.com/hacdias/eagle/v4/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
@@ -63,7 +62,7 @@ type Server struct {
 	media       *media.Media
 	cache       *cache.Cache
 	webmentions *webmentions.Webmentions
-	syndicator  *syndicator.Manager
+	syndicator  *eagle.Manager
 	renderer    *renderer.Renderer
 	db          *database.DatabaseWrapper
 	parser      *eagle.Parser

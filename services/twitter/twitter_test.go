@@ -1,4 +1,4 @@
-package syndicator
+package twitter
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/hacdias/eagle/v4/eagle"
 )
 
-func newTestTwitter() Syndicator {
+func newTestTwitter() *Twitter {
 	return NewTwitter(&eagle.Twitter{
 		User:        "test",
 		Key:         "key",

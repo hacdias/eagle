@@ -1,4 +1,4 @@
-package syndicator
+package twitter
 
 import (
 	"encoding/json"
@@ -19,15 +19,15 @@ type Twitter struct {
 	client *http.Client
 }
 
-func NewTwitter(opts *eagle.Twitter) *Twitter {
-	config := oauth1.NewConfig(opts.Key, opts.Secret)
-	token := oauth1.NewToken(opts.Token, opts.TokenSecret)
+func NewTwitter(conf *eagle.Twitter) *Twitter {
+	config := oauth1.NewConfig(conf.Key, conf.Secret)
+	token := oauth1.NewToken(conf.Token, conf.TokenSecret)
 
 	client := config.Client(oauth1.NoContext, token)
 	client.Timeout = time.Second * 30
 
 	return &Twitter{
-		conf:   opts,
+		conf:   conf,
 		client: client,
 	}
 }

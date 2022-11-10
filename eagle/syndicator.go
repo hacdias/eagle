@@ -1,27 +1,27 @@
-package syndicator
+package eagle
 
 import (
 	"errors"
 	"fmt"
 
-	"github.com/hacdias/eagle/v4/eagle"
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 )
 
 type Syndicator interface {
 	// Add context.Context to syndicate
-	Syndicate(entry *eagle.Entry) (url string, err error)
-	IsByContext(entry *eagle.Entry) bool
+	Syndicate(entry *Entry) (url string, err error)
+	IsByContext(entry *Entry) bool
 	Name() string
 	Identifier() string
 }
 
-type Config struct {
+type SyndicatorConfig struct {
 	UID  string
 	Name string
 }
 
+// TODO: rename?
 type Manager struct {
 	syndicators map[string]Syndicator
 }
@@ -36,12 +36,12 @@ func (m *Manager) Add(s Syndicator) {
 	m.syndicators[s.Identifier()] = s
 }
 
-func (m *Manager) Syndicate(ee *eagle.Entry, syndicators []string) ([]string, error) {
+func (m *Manager) Syndicate(ee *Entry, syndicators []string) ([]string, error) {
 	if ee.Draft {
 		return nil, errors.New("cannot syndicate draft entry")
 	}
 
-	if ee.Visibility() == eagle.VisibilityPrivate {
+	if ee.Visibility() == VisibilityPrivate {
 		return nil, errors.New("cannot syndicate private entry")
 	}
 
@@ -85,11 +85,11 @@ func (m *Manager) Syndicate(ee *eagle.Entry, syndicators []string) ([]string, er
 	return syndications, errors.ErrorOrNil()
 }
 
-func (m *Manager) Config() []*Config {
-	cfg := []*Config{}
+func (m *Manager) Config() []*SyndicatorConfig {
+	cfg := []*SyndicatorConfig{}
 
 	for _, syndicator := range m.syndicators {
-		cfg = append(cfg, &Config{
+		cfg = append(cfg, &SyndicatorConfig{
 			UID:  syndicator.Identifier(),
 			Name: syndicator.Name(),
 		})

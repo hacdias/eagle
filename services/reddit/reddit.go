@@ -1,4 +1,4 @@
-package syndicator
+package reddit
 
 import (
 	"context"
