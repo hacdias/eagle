@@ -1,8 +1,8 @@
 package server
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"net/http"
 	urlpkg "net/url"
 	"os"
@@ -16,120 +16,36 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-var (
-	// TODO: make this archetypes instead of hard-coding them.
-	entryTemplates = map[string]func(r *http.Request, s *Server) *eagle.Entry{
-		"default": func(r *http.Request, s *Server) *eagle.Entry {
-			return &eagle.Entry{
-				Content: "What's on your mind?",
-				FrontMatter: eagle.FrontMatter{
-					Published: time.Now().Local(),
-				},
-			}
-		},
-		"private": func(r *http.Request, s *Server) *eagle.Entry {
-			return &eagle.Entry{
-				Content: "What's on your mind?",
-				FrontMatter: eagle.FrontMatter{
-					Published: time.Now().Local(),
-					Properties: map[string]interface{}{
-						"visibility": "private",
-						"audience":   s.getUser(r),
-					},
-				},
-			}
-		},
-		"now": func(r *http.Request, s *Server) *eagle.Entry {
-			t := time.Now().Local()
-			month := t.Format("January")
-
-			return &eagle.Entry{
-				Content: "How was last month?",
-				FrontMatter: eagle.FrontMatter{
-					Draft:     true,
-					Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
-					Published: t,
-					Sections:  []string{"home", "now"},
-				},
-			}
-		},
-		"article": func(r *http.Request, s *Server) *eagle.Entry {
-			return &eagle.Entry{
-				Content: "Code is poetry...",
-				FrontMatter: eagle.FrontMatter{
-					Draft:     true,
-					Title:     "Article Title",
-					Published: time.Now().Local(),
-					Properties: map[string]interface{}{
-						"category": []string{"example"},
-					},
-				},
-			}
-		},
-		"book": func(r *http.Request, s *Server) *eagle.Entry {
-			date := time.Now().Local()
-			return &eagle.Entry{
-				ID: "/books/BOOK-NAME-SLUG",
-				FrontMatter: eagle.FrontMatter{
-					Published:   date,
-					Description: "NAME by AUTHOR (ISBN: ISBN)",
-					Sections:    []string{"books"},
-					Properties: map[string]interface{}{
-						"read-of": map[string]interface{}{
-							"properties": map[string]interface{}{
-								"author":    "AUTHOR",
-								"name":      "NAME",
-								"pages":     "PAGES",
-								"publisher": "PUBLISHER",
-								"uid":       "isbn:ISBN",
-							},
-							"type": "h-cite",
-						},
-						"read-status": []interface{}{
-							map[string]interface{}{
-								"status": "to-read",
-								"date":   date,
-							},
-						},
-					},
-				},
-			}
-		},
-	}
-)
-
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	template := r.URL.Query().Get("template")
 	if template == "" {
 		template = "default"
 	}
 
-	var ee *eagle.Entry
+	var str string
 
-	if fn, ok := entryTemplates[template]; ok {
-		ee = fn(r, s)
+	if at, ok := s.archetypes[template]; ok {
+		var buf bytes.Buffer
+
+		err := at.Execute(&buf, map[string]interface{}{
+			"Now": time.Now(),
+		})
+
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		str = buf.String()
 	} else {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("requested template does not exist"))
 		return
 	}
 
-	str, err := ee.String()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	templates := funk.Keys(entryTemplates).([]string)
+	templates := funk.Keys(s.archetypes).([]string)
 	sort.Strings(templates)
 
-	id := ee.ID
-	if id == "" {
-		if qid := r.URL.Query().Get("id"); qid != "" {
-			id = qid
-		} else {
-			id = eagle.NewID("", time.Now().Local())
-		}
-	}
+	id := eagle.NewID("", time.Now().Local())
 
 	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &eagle.Entry{},

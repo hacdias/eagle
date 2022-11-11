@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	AssetsDirectory    string = "assets"
-	ContentDirectory   string = "content"
-	TemplatesDirectory string = "templates"
+	ArchetypesDirectory string = "archetypes"
+	AssetsDirectory     string = "assets"
+	ContentDirectory    string = "content"
+	TemplatesDirectory  string = "templates"
 )
 
 type Sync interface {

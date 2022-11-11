@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -70,6 +71,7 @@ type Server struct {
 	actions      map[string]func() error
 	cron         *cron.Cron
 	redirects    map[string]string
+	archetypes   map[string]*template.Template
 
 	fs          *fs.FS
 	media       *media.Media
@@ -153,6 +155,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		servers:       []*httpServer{},
 		cron:          cron.New(),
 		redirects:     map[string]string{},
+		archetypes:    map[string]*template.Template{},
 		fs:            fs,
 		media:         m,
 		cache:         cache,
@@ -233,7 +236,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
 		return nil
-	}), s.loadRedirects())
+	}), s.loadRedirects(), s.loadArchetypes())
 
 	err = errs.ErrorOrNil()
 	return s, err
@@ -329,6 +332,9 @@ func (s *Server) initActions() {
 		"Reload Redirects": func() error {
 			return s.loadRedirects()
 		},
+		"Reload Archetypes": func() error {
+			return s.loadArchetypes()
+		},
 	}
 }
 
@@ -347,6 +353,15 @@ func (s *Server) loadRedirects() error {
 		return err
 	}
 	s.redirects = redirects
+	return nil
+}
+
+func (s *Server) loadArchetypes() error {
+	archetypes, err := s.fs.LoadArchetypes()
+	if err != nil {
+		return err
+	}
+	s.archetypes = archetypes
 	return nil
 }
 
