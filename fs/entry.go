@@ -14,12 +14,8 @@ import (
 type EntryTransformer func(*eagle.Entry) (*eagle.Entry, error)
 
 func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
-	filepath, err := fs.guessPath(id)
-	if err != nil {
-		return nil, err
-	}
-
-	raw, err := fs.ReadFile(filepath)
+	filename := fs.getEntryFilename(id)
+	raw, err := fs.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -79,15 +75,15 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 		return nil, err
 	}
 
-	_, err = f.guessPath(newID)
-	if err == nil {
-		return nil, errors.New("target directory already exists")
-	} else if !os.IsNotExist(err) {
-		return nil, err
-	}
-
 	oldDir := filepath.Join(ContentDirectory, oldID)
 	newDir := filepath.Join(ContentDirectory, newID)
+
+	exists, err := f.Exists(newDir)
+	if err != nil {
+		return nil, err
+	} else if exists {
+		return nil, errors.New("target directory already exists")
+	}
 
 	err = f.MkdirAll(filepath.Dir(newDir), 0777)
 	if err != nil {
@@ -152,16 +148,8 @@ func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle
 func (f *FS) saveEntry(e *eagle.Entry) error {
 	e.Sections = funk.UniqString(e.Sections)
 
-	path, err := f.guessPath(e.ID)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		// Default path for new files is content/{slug}/index.md
-		path = filepath.Join(ContentDirectory, e.ID, "index.md")
-	}
-
-	err = f.MkdirAll(filepath.Dir(path), 0777)
+	filename := f.getEntryFilename(e.ID)
+	err := f.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
 		return err
 	}
@@ -171,7 +159,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 		return err
 	}
 
-	err = f.WriteFile(path, []byte(str), "update "+e.ID)
+	err = f.WriteFile(filename, []byte(str), "update "+e.ID)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -183,12 +171,6 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 	return nil
 }
 
-func (f *FS) guessPath(id string) (string, error) {
-	path := filepath.Join(ContentDirectory, id, "index.md")
-	_, err := f.Stat(path)
-	if err == nil {
-		return path, nil
-	}
-
-	return "", err
+func (f *FS) getEntryFilename(id string) string {
+	return filepath.Join(ContentDirectory, id, "index.md")
 }
