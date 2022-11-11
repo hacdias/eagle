@@ -19,11 +19,11 @@ func NewGitSync(path string) Sync {
 	return &GitSync{dir: path}
 }
 
-func (g *GitSync) Persist(msg string, file string) error {
+func (g *GitSync) Persist(msg string, file ...string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	args := append([]string{"add"}, file)
+	args := append([]string{"add"}, file...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -32,7 +32,7 @@ func (g *GitSync) Persist(msg string, file string) error {
 	}
 
 	args = []string{"commit", "-m", msg, "--"}
-	args = append(args, file)
+	args = append(args, file...)
 	cmd = exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err = cmd.CombinedOutput()

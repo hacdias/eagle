@@ -222,15 +222,27 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		id = "/"
 	}
 
-	ee, err := s.fs.GetEntry(id)
-	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	err := r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	err = r.ParseForm()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+	rename := r.Form.Get("rename")
+	if rename != "" {
+		ne, err := s.fs.RenameEntry(id, rename)
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		http.Redirect(w, r, ne.ID, http.StatusSeeOther)
+		return
+	}
+
+	ee, err := s.fs.GetEntry(id)
+	if os.IsNotExist(err) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
 	}
 
