@@ -70,6 +70,59 @@ func (f *FS) SaveEntry(entry *eagle.Entry) error {
 	return f.saveEntry(entry)
 }
 
+func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
+	f.entriesMu.Lock()
+	defer f.entriesMu.Unlock()
+
+	e, err := f.GetEntry(oldID)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = f.guessPath(newID)
+	if err == nil {
+		return nil, errors.New("target directory already exists")
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	oldDir := filepath.Join(ContentDirectory, oldID)
+	newDir := filepath.Join(ContentDirectory, newID)
+
+	fmt.Println(oldDir, newDir)
+
+	err = f.MkdirAll(filepath.Dir(newDir), 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	err = f.Rename(oldDir, newDir)
+	if err != nil {
+		return nil, err
+	}
+
+	if !e.Draft && !e.Deleted && e.Visibility() == eagle.VisibilityPublic {
+		// TODO: add to redirects
+	}
+
+	err = f.sync.Persist(fmt.Sprintf("rename %s to %s", oldID, newID), oldDir, newDir)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err = f.GetEntry(newID)
+	if err != nil {
+		return nil, err
+	}
+
+	if f.AfterSaveHook != nil {
+		// TODO: inform about deletion of the old one?
+		f.AfterSaveHook(e)
+	}
+
+	return e, nil
+}
+
 func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle.Entry, error) {
 	if len(transformers) == 0 {
 		return nil, errors.New("at least one entry transformer must be provided")

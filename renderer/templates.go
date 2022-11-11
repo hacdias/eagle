@@ -22,6 +22,7 @@ const (
 	TemplateLogin     string = "login"
 	TemplateSearch    string = "search"
 	TemplateEditor    string = "editor"
+	TemplateRename    string = "rename"
 	TemplateNew       string = "new"
 	TemplateIndex     string = "index"
 	TemplateTags      string = "tags"
