@@ -49,6 +49,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/search", s.searchGet)
 	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
 	r.Get("/.well-known/webfinger", s.webfingerGet)
+	r.Get("/on-this-day", s.onThisDayGet)
 
 	// IndieAuth Server
 	r.Get("/.well-known/oauth-authorization-server", s.indieauthGet)
