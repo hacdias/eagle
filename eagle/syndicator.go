@@ -1,7 +1,6 @@
 package eagle
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
@@ -36,17 +35,11 @@ func (m *Manager) Add(s Syndicator) {
 	m.syndicators[s.Identifier()] = s
 }
 
-func (m *Manager) Syndicate(ee *Entry, syndicators []string) ([]string, error) {
-	if ee.Draft {
-		return nil, errors.New("cannot syndicate draft entry")
-	}
-
-	if ee.Visibility() == VisibilityPrivate {
-		return nil, errors.New("cannot syndicate private entry")
-	}
-
-	if ee.Deleted {
-		return nil, errors.New("cannot syndicate deleted entry")
+func (m *Manager) Syndicate(e *Entry, syndicators []string) ([]string, error) {
+	// TODO: support syndicating deleted, especially if the post was published
+	// and had a syndication. Then, we should support deleting the syndication.
+	if e.Draft || e.Deleted || e.Visibility() == VisibilityPrivate {
+		return nil, nil
 	}
 
 	// TODO: detect that this is a reply/like/repost to a post on my own
@@ -55,7 +48,7 @@ func (m *Manager) Syndicate(ee *Entry, syndicators []string) ([]string, error) {
 	// on Twitter, I will want to syndicate that on Twitter. For now, I have to
 	// directly reply to the Twitter version.
 	for id, syndicator := range m.syndicators {
-		if syndicator.IsByContext(ee) {
+		if syndicator.IsByContext(e) {
 			syndicators = append(syndicators, id)
 		}
 	}
@@ -74,7 +67,7 @@ func (m *Manager) Syndicate(ee *Entry, syndicators []string) ([]string, error) {
 			continue
 		}
 
-		url, err := syndicator.Syndicate(ee)
+		url, err := syndicator.Syndicate(e)
 		if err != nil {
 			errors = multierror.Append(errors, err)
 		} else {
