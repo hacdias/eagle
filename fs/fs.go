@@ -16,12 +16,12 @@ const (
 
 type Sync interface {
 	Sync() (updated []string, err error)
-	Persist(message, filename string) error
+	Persist(message string, filename ...string) error
 }
 
 type NopSync struct{}
 
-func (g *NopSync) Persist(msg string, file string) error {
+func (g *NopSync) Persist(msg string, file ...string) error {
 	return nil
 }
 
