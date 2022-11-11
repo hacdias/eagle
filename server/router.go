@@ -93,9 +93,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/edit*", s.editGet)
 		r.Post("/edit*", s.editPost)
 
-		r.Get("/rename*", s.renameGet)
-		r.Post("/rename*", s.renamePost)
-
 		r.Get("/dashboard", s.dashboardGet)
 		r.Post("/dashboard", s.dashboardPost)
 

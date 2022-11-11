@@ -222,15 +222,27 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		id = "/"
 	}
 
-	ee, err := s.fs.GetEntry(id)
-	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	err := r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	err = r.ParseForm()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+	rename := r.Form.Get("rename")
+	if rename != "" {
+		ne, err := s.fs.RenameEntry(id, rename)
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		http.Redirect(w, r, ne.ID, http.StatusSeeOther)
+		return
+	}
+
+	ee, err := s.fs.GetEntry(id)
+	if os.IsNotExist(err) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
 	}
 
@@ -314,62 +326,6 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.En
 		Entry:   ee,
 		NoIndex: ee.NoIndex || ee.Visibility() != eagle.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
 	}, renderer.EntryTemplates(ee))
-}
-
-func (s *Server) renameGet(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "*")
-	if id == "" {
-		id = "/"
-	}
-
-	ee, err := s.fs.GetEntry(id)
-	if os.IsNotExist(err) {
-		query := urlpkg.Values{}
-		query.Set("id", id)
-		http.Redirect(w, r, "/new?"+query.Encode(), http.StatusSeeOther)
-		return
-	}
-
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{},
-		Data: map[string]interface{}{
-			"Title": ee.Title,
-			"Entry": ee,
-		},
-		NoIndex: true,
-	}, []string{renderer.TemplateRename})
-}
-
-func (s *Server) renamePost(w http.ResponseWriter, r *http.Request) {
-	oldID := chi.URLParam(r, "*")
-	if oldID == "" {
-		oldID = "/"
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
-	}
-
-	newID := r.Form.Get("id")
-	if newID == "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("id cannot be empty"))
-		return
-	}
-
-	e, err := s.fs.RenameEntry(oldID, newID)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	http.Redirect(w, r, e.ID, http.StatusSeeOther)
 }
 
 func (s *Server) mentionToggleGet(w http.ResponseWriter, r *http.Request) {
