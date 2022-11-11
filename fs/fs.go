@@ -44,7 +44,7 @@ type FS struct {
 
 	// AfterSaveHook is a hook that is executed after
 	// saving an entry to the file system.
-	AfterSaveHook func(*eagle.Entry)
+	AfterSaveHook func(updated, deleted []*eagle.Entry)
 }
 
 func NewFS(path, baseURL string, sync Sync) *FS {

@@ -74,7 +74,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 	f.entriesMu.Lock()
 	defer f.entriesMu.Unlock()
 
-	e, err := f.GetEntry(oldID)
+	old, err := f.GetEntry(oldID)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +89,6 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 	oldDir := filepath.Join(ContentDirectory, oldID)
 	newDir := filepath.Join(ContentDirectory, newID)
 
-	fmt.Println(oldDir, newDir)
-
 	err = f.MkdirAll(filepath.Dir(newDir), 0777)
 	if err != nil {
 		return nil, err
@@ -101,26 +99,30 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 		return nil, err
 	}
 
-	if !e.Draft && !e.Deleted && e.Visibility() == eagle.VisibilityPublic {
-		// TODO: add to redirects
+	updates := []string{oldDir, newDir}
+	if !old.Draft && !old.Deleted && old.Visibility() == eagle.VisibilityPublic {
+		err = f.AppendRedirect(oldID, newID)
+		if err != nil {
+			return nil, err
+		}
+		updates = append(updates, RedirectsFile)
 	}
 
-	err = f.sync.Persist(fmt.Sprintf("rename %s to %s", oldID, newID), oldDir, newDir)
+	err = f.sync.Persist(fmt.Sprintf("rename %s to %s", oldID, newID), updates...)
 	if err != nil {
 		return nil, err
 	}
 
-	e, err = f.GetEntry(newID)
+	new, err := f.GetEntry(newID)
 	if err != nil {
 		return nil, err
 	}
 
 	if f.AfterSaveHook != nil {
-		// TODO: inform about deletion of the old one?
-		f.AfterSaveHook(e)
+		f.AfterSaveHook([]*eagle.Entry{new}, []*eagle.Entry{old})
 	}
 
-	return e, nil
+	return new, nil
 }
 
 func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle.Entry, error) {
@@ -175,7 +177,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 	}
 
 	if f.AfterSaveHook != nil {
-		f.AfterSaveHook(e)
+		f.AfterSaveHook([]*eagle.Entry{e}, nil)
 	}
 
 	return nil

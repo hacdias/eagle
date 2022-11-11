@@ -164,10 +164,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		postSaveHooks: []eagle.EntryHook{},
 	}
 
-	fs.AfterSaveHook = func(e *eagle.Entry) {
-		_ = s.i.Add(e)
-		s.cache.Delete(e)
-	}
+	fs.AfterSaveHook = s.afterSaveHook
 
 	s.AppendPreSaveHook(
 		hooks.TypeChecker(c.Micropub.AllowedTypes()),
@@ -236,7 +233,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
 		return nil
-	}), s.initRedirects())
+	}), s.loadRedirects())
 
 	err = errs.ErrorOrNil()
 	return s, err
@@ -329,6 +326,9 @@ func (s *Server) initActions() {
 		"Reload Assets": func() error {
 			return s.renderer.LoadAssets()
 		},
+		"Reload Redirects": func() error {
+			return s.loadRedirects()
+		},
 	}
 }
 
@@ -341,29 +341,11 @@ func (s *Server) getActions() []string {
 	return actions
 }
 
-func (s *Server) initRedirects() error {
-	redirects := map[string]string{}
-
-	data, err := s.fs.ReadFile("redirects")
+func (s *Server) loadRedirects() error {
+	redirects, err := s.fs.LoadRedirects(true)
 	if err != nil {
 		return err
 	}
-
-	strs := strings.Split(string(data), "\n")
-
-	for _, str := range strs {
-		if strings.TrimSpace(str) == "" {
-			continue
-		}
-
-		parts := strings.Split(str, " ")
-		if len(parts) != 2 {
-			s.log.Warnf("found invalid redirect entry: %s", str)
-		}
-
-		redirects[parts[0]] = parts[1]
-	}
-
 	s.redirects = redirects
 	return nil
 }
@@ -592,5 +574,22 @@ func (s *Server) syncStorage() {
 	err = s.i.Add(entries...)
 	if err != nil {
 		s.n.Error(fmt.Errorf("sync failed: %w", err))
+	}
+}
+
+func (s *Server) afterSaveHook(updated, deleted []*eagle.Entry) {
+	for _, e := range updated {
+		_ = s.i.Add(e)
+		s.cache.Delete(e)
+	}
+
+	for _, e := range deleted {
+		s.i.Remove(e.ID)
+		s.cache.Delete(e)
+	}
+
+	if len(updated) == len(deleted) {
+		// Then it's likely a rename.
+		_ = s.loadRedirects()
 	}
 }
