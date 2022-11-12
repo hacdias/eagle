@@ -463,6 +463,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	w.Header().Set("Content-Type", feedMediaType+contenttype.CharsetUtf8Suffix)
 	_, err = w.Write([]byte(feedString))
 	if err != nil {
-		s.n.Error(fmt.Errorf("error while serving feed: %w", err))
+		s.n.Error(fmt.Errorf("serving feed %s to %s: %w", r.URL.Path, r.RemoteAddr, err))
 	}
 }
