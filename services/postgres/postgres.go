@@ -9,7 +9,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/hooks"
 	"github.com/hacdias/eagle/indexer"
-	"github.com/hacdias/eagle/util"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -48,7 +47,7 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
-		content := entry.Title + " " + entry.Description + " " + entry.TextContent() + " " + strings.Join(entry.Tags(), " ")
+		content := entry.Title + " " + entry.Description + " " + entry.TextContent() // + " " + strings.Join(entry.Tags(), " ")
 
 		updated := entry.Published.UTC()
 		if !entry.Updated.IsZero() {
@@ -59,12 +58,10 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, date, updated, properties) values($1, $2, $3, $4, $5, $6, $7, $8, $9)",
 			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), updated, entry.Properties)
 
-		for _, tag := range entry.Tags() {
-			b.Queue("insert into tags(entry_id, tag) values ($1, $2)", entry.ID, util.Slugify(tag))
-		}
-
-		for _, emoji := range entry.Emojis() {
-			b.Queue("insert into emojis(entry_id, emoji) values ($1, $2)", entry.ID, emoji)
+		for taxonomy, terms := range entry.Taxonomies {
+			for _, term := range terms {
+				b.Queue("insert into taxonomies(entry_id, taxonomy, term) values ($1, $2, $3)", entry.ID, taxonomy, term)
+			}
 		}
 
 		if len(entry.Sections) > 0 {
@@ -87,47 +84,30 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 	return nil
 }
 
-func (d *Postgres) GetTags() ([]string, error) {
-	rows, err := d.pool.Query(context.Background(), "select distinct tag from tags order by tag")
+func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
+	rows, err := d.pool.Query(context.Background(), "select distinct term, count(*) from taxonomies where taxonomy=$1 group by term order by term", taxonomy)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	tags := []string{}
-
+	terms := []*eagle.Term{}
 	for rows.Next() {
-		var id string
-		err := rows.Scan(&id)
+		var (
+			term  string
+			count int
+		)
+		err := rows.Scan(&term, &count)
 		if err != nil {
 			return nil, err
 		}
-		tags = append(tags, id)
+		terms = append(terms, &eagle.Term{
+			Name:  term,
+			Count: count,
+		})
 	}
 
-	return tags, rows.Err()
-}
-
-func (d *Postgres) GetEmojis() ([]string, error) {
-	rows, err := d.pool.Query(context.Background(), "select emoji, count(*) from emojis group by emoji order by count desc")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	tags := []string{}
-
-	for rows.Next() {
-		var id string
-		var count int
-		err := rows.Scan(&id, &count)
-		if err != nil {
-			return nil, err
-		}
-		tags = append(tags, id)
-	}
-
-	return tags, rows.Err()
+	return terms, nil
 }
 
 // TODO: support opts.OrderByUpdated?
@@ -172,25 +152,11 @@ func (d *Postgres) ByDate(opts *indexer.Query, year, month, day int) ([]string, 
 }
 
 // TODO: support opts.OrderByUpdated?
-func (d *Postgres) ByTag(opts *indexer.Query, tag string) ([]string, error) {
-	args := []interface{}{tag}
-	sql := "select id from tags inner join entries on id=entry_id where tag=$1"
+func (d *Postgres) ByTaxonomy(opts *indexer.Query, taxonomy, term string) ([]string, error) {
+	args := []interface{}{taxonomy, term}
+	sql := "select id from taxonomies inner join entries on id=entry_id where taxonomy=$1 and term=$2"
 
-	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
-		sql += " and " + strings.Join(where, " and ")
-		args = append(args, aargs...)
-	}
-
-	sql += " order by date desc" + d.offset(opts.Pagination)
-	return d.queryEntries(sql, 0, args...)
-}
-
-// TODO: support opts.OrderByUpdated?
-func (d *Postgres) ByEmoji(opts *indexer.Query, emoji string) ([]string, error) {
-	args := []interface{}{emoji}
-	sql := "select id from emojis inner join entries on id=entry_id where emoji=$1"
-
-	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
+	if where, aargs := d.whereConstraints(opts, 2); len(where) > 0 {
 		sql += " and " + strings.Join(where, " and ")
 		args = append(args, aargs...)
 	}

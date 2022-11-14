@@ -49,28 +49,15 @@ func (c *Cache) Delete(ee *eagle.Entry) {
 	c.delete("/all")
 	c.delete(ee.ID)
 
-	for _, sec := range ee.Sections {
-		c.delete("/" + sec)
+	for _, section := range ee.Sections {
+		c.delete("/" + section)
 	}
 
-	// Both tags and emojis could be replaced by taxonomies once
-	// those are implemented.
-	hasTags := false
-	for _, tag := range ee.Tags() {
-		hasTags = true
-		c.delete("/tag/" + tag)
-	}
-	if hasTags {
-		c.delete("/tags")
-	}
-
-	hasEmojis := false
-	for _, emoji := range ee.Emojis() {
-		hasEmojis = true
-		c.delete("/emoji/" + emoji)
-	}
-	if hasEmojis {
-		c.delete("/emojis")
+	for taxonomy, terms := range ee.Taxonomies {
+		for _, term := range terms {
+			c.delete("/" + taxonomy + "/" + term)
+		}
+		c.delete("/" + taxonomy)
 	}
 }
 

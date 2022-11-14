@@ -39,8 +39,7 @@ type Backend interface {
 	Remove(id string)
 	Add(...*eagle.Entry) error
 
-	GetTags() ([]string, error)
-	GetEmojis() ([]string, error)
+	GetTaxonomyTerms(taxonomy string) (eagle.Terms, error)
 	Search(opt *Query, search *Search) ([]string, error)
 
 	GetAll(opts *Query) ([]string, error)
@@ -49,8 +48,7 @@ type Backend interface {
 	GetUnlisted(opts *Pagination) ([]string, error)
 	GetPrivate(opts *Pagination, audience string) ([]string, error)
 
-	ByTag(opt *Query, tag string) ([]string, error)
-	ByEmoji(opt *Query, emoji string) ([]string, error)
+	ByTaxonomy(opt *Query, taxonomy, term string) ([]string, error)
 	BySection(opt *Query, sections ...string) ([]string, error)
 	ByDate(opts *Query, year, month, day int) ([]string, error)
 }
@@ -75,12 +73,8 @@ func (e *Indexer) Add(entries ...*eagle.Entry) error {
 	return e.backend.Add(entries...)
 }
 
-func (e *Indexer) GetTags() ([]string, error) {
-	return e.backend.GetTags()
-}
-
-func (e *Indexer) GetEmojis() ([]string, error) {
-	return e.backend.GetEmojis()
+func (e *Indexer) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
+	return e.backend.GetTaxonomyTerms(taxonomy)
 }
 
 func (e *Indexer) Search(opts *Query, search *Search) ([]*eagle.Entry, error) {
@@ -91,12 +85,8 @@ func (e *Indexer) GetAll(opts *Query) ([]*eagle.Entry, error) {
 	return e.idsToEntries(e.backend.GetAll(opts))
 }
 
-func (e *Indexer) GetByTag(opts *Query, tag string) ([]*eagle.Entry, error) {
-	return e.idsToEntries(e.backend.ByTag(opts, tag))
-}
-
-func (e *Indexer) GetByEmoji(opts *Query, emoji string) ([]*eagle.Entry, error) {
-	return e.idsToEntries(e.backend.ByEmoji(opts, emoji))
+func (e *Indexer) GetByTaxonomy(opts *Query, taxonomy, term string) ([]*eagle.Entry, error) {
+	return e.idsToEntries(e.backend.ByTaxonomy(opts, taxonomy, term))
 }
 
 func (e *Indexer) GetBySection(opts *Query, sections ...string) ([]*eagle.Entry, error) {

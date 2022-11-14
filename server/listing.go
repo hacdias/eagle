@@ -15,7 +15,6 @@ import (
 	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/renderer"
-	"github.com/hacdias/eagle/util"
 	"github.com/jlelse/feeds"
 	"github.com/thoas/go-funk"
 )
@@ -37,46 +36,6 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 			return s.i.GetBySection(opts, s.c.Site.IndexSection)
 		},
 		templates: []string{renderer.TemplateIndex},
-	})
-}
-
-func (s *Server) tagGet(w http.ResponseWriter, r *http.Request) {
-	tag := chi.URLParam(r, "tag")
-	if tag == "" {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
-		return
-	}
-
-	slug := util.Slugify(tag)
-	if slug != tag {
-		http.Redirect(w, r, "/tags/"+slug, http.StatusSeeOther)
-		return
-	}
-
-	s.listingGet(w, r, &listingSettings{
-		rd: &renderer.RenderData{
-			Entry: s.getListingEntryOrEmpty(r.URL.Path, "#"+tag),
-		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
-			return s.i.GetByTag(opts, tag)
-		},
-	})
-}
-
-func (s *Server) emojiGet(w http.ResponseWriter, r *http.Request) {
-	emoji := chi.URLParam(r, "emoji")
-	if emoji == "" {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
-		return
-	}
-
-	s.listingGet(w, r, &listingSettings{
-		rd: &renderer.RenderData{
-			Entry: s.getListingEntryOrEmpty(r.URL.Path, emoji),
-		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
-			return s.i.GetByEmoji(opts, emoji)
-		},
 	})
 }
 
@@ -157,34 +116,49 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) emojisGet(w http.ResponseWriter, r *http.Request) {
-	emojis, err := s.i.GetEmojis()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
+func (s *Server) taxonomyGet(id string, taxonomy eagle.Taxonomy) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		terms, err := s.i.GetTaxonomyTerms(id)
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Emojis"),
-		Data: listingPage{
-			Terms: emojis,
-		},
-	}, []string{renderer.TemplateEmojis})
+		e := s.getListingEntryOrEmpty(r.URL.Path, taxonomy.Title)
+		templates := []string{}
+		if e.Template != "" {
+			templates = append(templates, e.Template)
+		}
+		templates = append(templates, renderer.TemplateTerms)
+
+		s.serveHTML(w, r, &renderer.RenderData{
+			Entry: e,
+			Data: listingPage{
+				Taxonomy: id,
+				Terms:    terms,
+			},
+		}, templates)
+	}
 }
 
-func (s *Server) tagsGet(w http.ResponseWriter, r *http.Request) {
-	tags, err := s.i.GetTags()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
+func (s *Server) taxonomyTermGet(id string, taxonomy eagle.Taxonomy) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		term := chi.URLParam(r, "term")
+		if term == "" {
+			s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+			return
+		}
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: s.getListingEntryOrEmpty(r.URL.Path, "Tags"),
-		Data: listingPage{
-			Terms: tags,
-		},
-	}, []string{renderer.TemplateTags})
+		s.listingGet(w, r, &listingSettings{
+			rd: &renderer.RenderData{
+				Entry: s.getListingEntryOrEmpty(r.URL.Path, taxonomy.Singular+": "+term),
+			},
+			exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+				return s.i.GetByTaxonomy(opts, id, term)
+			},
+			templates: []string{},
+		})
+	}
 }
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
@@ -313,10 +287,11 @@ type listingSettings struct {
 
 type listingPage struct {
 	Search   *indexer.Search
+	Taxonomy string
+	Terms    eagle.Terms
 	Entries  []*eagle.Entry
 	Page     int
 	NextPage string
-	Terms    []string
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {

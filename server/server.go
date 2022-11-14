@@ -173,6 +173,8 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		hooks.TypeChecker(c.Micropub.AllowedTypes()),
 		hooks.NewDescriptionGenerator(s.fs),
 		hooks.SectionDeducer(c.Micropub.Sections),
+		hooks.TagsSanitizer{},
+		hooks.EmojisExtractor{},
 	)
 
 	s.initActions()

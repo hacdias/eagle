@@ -24,8 +24,7 @@ const (
 	TemplateEditor    string = "editor"
 	TemplateNew       string = "new"
 	TemplateIndex     string = "index"
-	TemplateTags      string = "tags"
-	TemplateEmojis    string = "emojis"
+	TemplateTerms     string = "terms"
 	TemplateAuth      string = "auth"
 	TemplateDashboard string = "dashboard"
 )
