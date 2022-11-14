@@ -165,17 +165,11 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	search := &indexer.Search{
 		Query:    r.URL.Query().Get("query"),
 		Sections: []string{},
-		Tags:     []string{},
 	}
 
 	if r.URL.Query().Has("section") {
 		search.Sections = r.URL.Query()["section"]
 		search.Sections = funk.FilterString(search.Sections, func(s string) bool { return s != "" })
-	}
-
-	if r.URL.Query().Has("tag") {
-		search.Tags = r.URL.Query()["tag"]
-		search.Tags = funk.FilterString(search.Tags, func(s string) bool { return s != "" })
 	}
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")

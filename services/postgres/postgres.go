@@ -47,7 +47,7 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
-		content := entry.Title + " " + entry.Description + " " + entry.TextContent() // + " " + strings.Join(entry.Tags(), " ")
+		content := entry.Title + " " + entry.Description + " " + entry.TextContent()
 
 		updated := entry.Published.UTC()
 		if !entry.Updated.IsZero() {
@@ -253,11 +253,6 @@ func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string
 		mainFrom += " inner join sections on e.id = sections.entry_id"
 	}
 
-	if len(search.Tags) > 0 {
-		mainSelect += ", tag"
-		mainFrom += " inner join tags on e.id = tags.entry_id"
-	}
-
 	sql := "select distinct (id) id, score from (" + mainSelect + " " + mainFrom + ") s where score > 0"
 
 	args := []interface{}{search.Query}
@@ -276,16 +271,6 @@ func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string
 		}
 
 		sql += " and (" + strings.Join(sectionsSql, " or ") + ")"
-	}
-
-	if len(search.Tags) > 0 {
-		tagsSql := []string{}
-		for i, section := range search.Tags {
-			tagsSql = append(tagsSql, "tag=$"+strconv.Itoa(i+2+len(search.Sections)))
-			args = append(args, section)
-		}
-
-		sql += " and (" + strings.Join(tagsSql, " or ") + ")"
 	}
 
 	sql += ` order by score desc` + d.offset(opts.Pagination)

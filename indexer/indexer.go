@@ -30,7 +30,6 @@ type Query struct {
 type Search struct {
 	Query    string
 	Sections []string
-	Tags     []string
 }
 
 type Backend interface {
