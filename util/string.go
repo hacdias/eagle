@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -48,4 +49,17 @@ func Slugify(str string) string {
 			return -1
 		}
 	}, str)
+}
+
+func ReplaceInBetween(s, start, end, new string) (string, error) {
+	startIdx := strings.Index(s, start)
+	endIdx := strings.LastIndex(s, end)
+
+	if startIdx == -1 || endIdx == -1 {
+		return "", errors.New("start tag or end tag not present")
+	}
+
+	return s[0:startIdx] +
+		start + "\n" + new + "\n" + end +
+		s[endIdx+len(end):], nil
 }
