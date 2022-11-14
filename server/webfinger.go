@@ -22,7 +22,7 @@ func (s *Server) webfingerGet(w http.ResponseWriter, r *http.Request) {
 	url, _ := urlpkg.Parse(s.c.Server.BaseURL)
 
 	wf := &webfinger{
-		Subject: fmt.Sprintf("%s@%s", s.c.User.Username, url.Host),
+		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
 			s.c.ID(),
 		},
