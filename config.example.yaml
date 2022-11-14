@@ -71,6 +71,11 @@ site:
     main:
       - name: Home
         link: /
+  # Definition of taxonomies
+  taxonomies:
+    tags:               # Key is the slug of the taxonomy
+      title: Tags       # Title is the capitalized title of the taxonomy
+      singular: Tag     # Singular is the capitalized title of the terms of the taxonomy
 
 # User configuration.
 user:

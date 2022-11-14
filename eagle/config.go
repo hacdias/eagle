@@ -150,6 +150,7 @@ type Site struct {
 	Sections     []string
 	IndexSection string
 	Menus        map[string][]MenuItem
+	Taxonomies   map[string]Taxonomy
 }
 
 func (s *Site) validate() error {
@@ -167,6 +168,29 @@ func (s *Site) validate() error {
 
 	if len(s.Sections) != len(funk.UniqString(s.Sections)) {
 		return errors.New("sections includes duplicate entries")
+	}
+
+	for _, taxonomy := range s.Taxonomies {
+		if err := taxonomy.validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type Taxonomy struct {
+	Title    string
+	Singular string
+}
+
+func (t *Taxonomy) validate() error {
+	if t.Title == "" {
+		return errors.New("tag must have title")
+	}
+
+	if t.Singular == "" {
+		return errors.New("tag must have singular version")
 	}
 
 	return nil

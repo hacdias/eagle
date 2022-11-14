@@ -115,20 +115,21 @@ func (s *Server) makeRouter() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(s.withCache)
 
-		r.Get("/tags", s.tagsGet)
-		r.Get("/emojis", s.emojisGet)
 		r.Get("/", s.indexGet)
 		r.Get("/all", s.allGet)
 		r.Get(yearPath, s.dateGet)
 		r.Get(monthPath, s.dateGet)
 		r.Get(dayPath, s.dateGet)
-		r.Get("/tags/{tag}", s.tagGet)
-		r.Get("/emojis/{emoji}", s.emojiGet)
 
 		for _, section := range s.c.Site.Sections {
 			if section != s.c.Site.IndexSection {
 				r.Get("/"+section, s.sectionGet(section))
 			}
+		}
+
+		for id, taxonomy := range s.c.Site.Taxonomies {
+			r.Get("/"+id, s.taxonomyGet(id, taxonomy))
+			r.Get("/"+id+"/{term}", s.taxonomyTermGet(id, taxonomy))
 		}
 	})
 
@@ -138,13 +139,15 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get(yearPath+feedPath, s.dateGet)
 	r.Get(monthPath+feedPath, s.dateGet)
 	r.Get(dayPath+feedPath, s.dateGet)
-	r.Get("/tags/{tag}"+feedPath, s.tagGet)
-	r.Get("/emojis/{emoji}"+feedPath, s.emojiGet)
 
 	for _, section := range s.c.Site.Sections {
 		if section != s.c.Site.IndexSection {
 			r.Get("/"+section+feedPath, s.sectionGet(section))
 		}
+	}
+
+	for id, taxonomy := range s.c.Site.Taxonomies {
+		r.Get("/"+id+"/{term}"+feedPath, s.taxonomyTermGet(id, taxonomy))
 	}
 
 	// Everything that was not matched so far.

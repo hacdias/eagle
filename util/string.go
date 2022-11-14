@@ -2,7 +2,6 @@ package util
 
 import (
 	"errors"
-	"sort"
 	"strings"
 )
 
@@ -50,39 +49,6 @@ func Slugify(str string) string {
 			return -1
 		}
 	}, str)
-}
-
-type GroupedByChars struct {
-	Chars   []string
-	Strings map[string][]string
-}
-
-func GroupByFirstChar(strs []string) *GroupedByChars {
-	chars := []string{}
-	byChar := map[string][]string{}
-
-	for _, str := range strs {
-		char := string([]rune(str)[0])
-
-		_, ok := byChar[char]
-		if !ok {
-			chars = append(chars, char)
-			byChar[char] = []string{}
-		}
-
-		byChar[char] = append(byChar[char], str)
-	}
-
-	sort.Strings(chars)
-
-	for _, char := range chars {
-		sort.Strings(byChar[char])
-	}
-
-	return &GroupedByChars{
-		Chars:   chars,
-		Strings: byChar,
-	}
 }
 
 func ReplaceInBetween(s, start, end, new string) (string, error) {

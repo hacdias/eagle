@@ -38,6 +38,15 @@ type FrontMatter struct {
 	Properties         map[string]interface{} `yaml:"properties,omitempty"` // "Flat" MF2 Properties.
 	NoIndex            bool                   `yaml:"noIndex,omitempty"`
 	Listing            *Listing               `yaml:"listing,omitempty"`
+	Taxonomies         map[string][]string    `yaml:"taxonomies,omitempty"`
+}
+
+func (f *FrontMatter) Taxonomy(name string) []string {
+	if v, ok := f.Taxonomies[name]; ok {
+		return v
+	}
+
+	return []string{}
 }
 
 func unmarshalFrontMatter(data []byte) (*FrontMatter, error) {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/forPelevin/gomoji"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/util"
 	"github.com/karlseguin/typed"
@@ -27,7 +26,6 @@ type Entry struct {
 	Content   string
 
 	helper      *mf2.FlatHelper
-	emojis      []string
 	excerpt     string
 	textExcerpt string
 }
@@ -38,53 +36,6 @@ func (e *Entry) Helper() *mf2.FlatHelper {
 	}
 
 	return e.helper
-}
-
-func (e *Entry) Tags() []string {
-	m := typed.New(e.Properties)
-
-	if v, ok := m.StringIf("category"); ok {
-		return []string{v}
-	}
-
-	// Slight modification of StringsIf so we capture
-	// all string elements instead of blocking when there is none.
-	// Tags can also be objects, such as tagged people as seen in
-	// here: https://ownyourswarm.p3k.io/docs
-	value, ok := m["category"]
-	if !ok {
-		return []string{}
-	}
-
-	if n, ok := value.([]string); ok {
-		return n
-	}
-
-	if a, ok := value.([]interface{}); ok {
-		n := []string{}
-		for i := 0; i < len(a); i++ {
-			if v, ok := a[i].(string); ok {
-				n = append(n, v)
-			}
-		}
-		return n
-	}
-
-	return []string{}
-}
-
-func (e *Entry) Emojis() []string {
-	if e.emojis != nil {
-		return e.emojis
-	}
-
-	emojis := gomoji.FindAll(e.Content)
-	for _, emoji := range emojis {
-		e.emojis = append(e.emojis, emoji.Character)
-	}
-
-	e.emojis = funk.UniqString(e.emojis)
-	return e.emojis
 }
 
 func (e *Entry) Visibility() Visibility {
@@ -250,6 +201,18 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 		delete(props, "post-status")
 	}
 
+	if category, others := getCategoryStrings(props); len(category)+len(others) > 0 {
+		if len(category) > 0 {
+			e.Taxonomies["tags"] = funk.UniqString(append(e.Taxonomy("tags"), category...))
+		}
+
+		if len(others) > 0 {
+			e.Properties["category"] = others
+		} else {
+			delete(e.Properties, "category")
+		}
+	}
+
 	switch mm.PostType() {
 	case mf2.TypeItinerary:
 		if err := e.parseDateFromItinerary(props, mm); err != nil {
@@ -350,4 +313,40 @@ func makePlainText(text string) string {
 	text = html.UnescapeString(text)
 	text = stripMarkdown.Strip(text)
 	return text
+}
+
+func getCategoryStrings(props typed.Typed) ([]string, []interface{}) {
+	if v, ok := props.StringIf("category"); ok {
+		return []string{v}, nil
+	}
+
+	// Slight modification of StringsIf so we capture
+	// all string elements instead of blocking when there is none.
+	// Tags can also be objects, such as tagged people as seen in
+	// here: https://ownyourswarm.p3k.io/docs
+	value, ok := props["category"]
+	if !ok {
+		return nil, nil
+	}
+
+	if tags, ok := value.([]string); ok {
+		return tags, nil
+	}
+
+	if a, ok := value.([]interface{}); ok {
+		tags := []string{}
+		others := []interface{}{}
+
+		for i := 0; i < len(a); i++ {
+			if v, ok := a[i].(string); ok {
+				tags = append(tags, v)
+			} else {
+				others = append(others, a[i])
+			}
+		}
+
+		return tags, others
+	}
+
+	return nil, nil
 }

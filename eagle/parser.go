@@ -32,6 +32,10 @@ func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry,
 		entry.Properties = map[string]interface{}{}
 	}
 
+	if entry.Taxonomies == nil {
+		entry.Taxonomies = map[string][]string{}
+	}
+
 	return entry, err
 }
 
@@ -70,6 +74,10 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 
 	if entry.Properties == nil {
 		entry.Properties = map[string]interface{}{}
+	}
+
+	if entry.Taxonomies == nil {
+		entry.Taxonomies = map[string][]string{}
 	}
 
 	return entry, nil
