@@ -146,7 +146,6 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"durationFromSeconds": durationFromSeconds,
 		"asJSON":              asJSON,
 		"slugify":             util.Slugify,
-		"groupByFirstChar":    util.GroupByFirstChar,
 	}
 
 	if alwaysAbsolute {
