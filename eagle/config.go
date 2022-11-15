@@ -46,6 +46,7 @@ type Server struct {
 	TokensSecret  string
 	WebhookSecret string
 	TilesSource   string
+	Logging       bool
 	ActivityPub   *ActivityPub
 	Tor           *Tor
 }

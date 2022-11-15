@@ -19,7 +19,7 @@ const (
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	if s.c.Development {
+	if s.c.Server.Logging || s.c.Development {
 		r.Use(middleware.Logger)
 	}
 
