@@ -53,20 +53,20 @@ func (ap *ActivityPub) verifySignature(r *http.Request) (typed.Typed, string, er
 	return actor, keyID, verifier.Verify(pubKey, httpsig.RSA_SHA256)
 }
 
-func (ap *ActivityPub) sendSigned(ctx context.Context, data interface{}, to string) error {
-	body, err := json.Marshal(data)
+func (ap *ActivityPub) send(ctx context.Context, activity interface{}, inbox string) error {
+	body, err := json.Marshal(activity)
 	if err != nil {
 		return fmt.Errorf("could not marshal data: %w", err)
 	}
 
 	bodyCopy := make([]byte, len(body))
 	copy(bodyCopy, body)
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, to, bytes.NewBuffer(body))
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, inbox, bytes.NewBuffer(body))
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}
 
-	iri, err := url.Parse(to)
+	iri, err := url.Parse(inbox)
 	if err != nil {
 		return fmt.Errorf("could not parse iri: %w", err)
 	}

@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	ErrActorStatusUnsuccessful = errors.New("actor could not be fetched")
-	ErrActorNotFound           = errors.New("actor does not exist")
+	errActorStatusUnsuccessful = errors.New("actor could not be fetched")
+	errActorNotFound           = errors.New("actor does not exist")
 )
 
 func (ap *ActivityPub) getRemoteActor(ctx context.Context, iri string) (typed.Typed, error) {
@@ -45,10 +45,10 @@ func (ap *ActivityPub) getRemoteActor(ctx context.Context, iri string) (typed.Ty
 
 	if !isSuccess(resp.StatusCode) {
 		if isDeleted(resp.StatusCode) {
-			return nil, ErrActorNotFound
+			return nil, errActorNotFound
 		}
 
-		return nil, ErrActorStatusUnsuccessful
+		return nil, errActorStatusUnsuccessful
 	}
 
 	var actor typed.Typed

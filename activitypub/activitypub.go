@@ -1,6 +1,7 @@
 package activitypub
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -14,14 +15,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dchest/uniuri"
 	"github.com/go-fed/httpsig"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/karlseguin/typed"
+	"go.uber.org/zap"
 )
 
 type ActivityPub struct {
@@ -29,6 +33,7 @@ type ActivityPub struct {
 	r          *renderer.Renderer
 	fs         *fs.FS
 	n          eagle.Notifier
+	log        *zap.SugaredLogger
 	media      *media.Media
 	self       typed.Typed
 	followers  *stringMapStore
@@ -45,6 +50,7 @@ func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.No
 		fs:    fs,
 		n:     n,
 		media: m,
+		log:   log.S().Named("activitypub"),
 
 		httpClient: &http.Client{
 			Timeout: time.Minute,
@@ -197,40 +203,28 @@ func (ap *ActivityPub) getSelfKeyID() string {
 	return ap.c.Server.BaseURL + "#main-key"
 }
 
-// func (ap *ActivityPub) log(activity map[string]interface{}) error {
-// 	ap.logMu.Lock()
-// 	defer ap.logMu.Unlock()
+func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
+	// TODO: move this to a queue that retries _n_ time in case of failures. Queue
+	// handler can have a ticking time of time.Second.
+	for i, inbox := range inboxes {
+		if i != 0 {
+			time.Sleep(time.Second)
+		}
 
-// 	filename := filepath.Join(ap.conf.Dir, "log.json")
-// 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer f.Close()
-
-// 	bytes, err := json.Marshal(activity)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	bytes = append(bytes, '\n')
-
-// 	_, err = f.Write(bytes)
-// 	return err
-// }
-
-func (ap *ActivityPub) queueActivityToFollowers(activity typed.Typed) {
-	for _, inbox := range ap.followers.getAll() {
-		ap.queueActivity(activity, inbox)
+		err := ap.send(context.Background(), activity, inbox)
+		if err != nil {
+			ap.log.Errorw("could not send signed", "inbox", inbox, "activity", activity, "err", err)
+		}
 	}
 }
 
-func (ap *ActivityPub) queueActivity(activity typed.Typed, to string) {
-	// err := ap.sendSigned(ctx, data, inbox)
-	// 		if err != nil {
-	// 			ap.log.Errorw("could not send signed", "inbox", inbox, "activity", data, "err", err)
-	// 			ap.notifier.Error(err)
-	// 		}
+func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
+	followers := ap.followers.getAll()
+	inboxes := []string{}
+	for _, inbox := range followers {
+		inboxes = append(inboxes, inbox)
+	}
+	ap.sendActivity(activity, inboxes)
 }
 
 func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
@@ -252,6 +246,21 @@ func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
 	return nil
 }
 
+func (ap *ActivityPub) sendAccept(activity typed.Typed, inbox string) {
+	delete(activity, "@context")
+
+	accept := map[string]interface{}{
+		"@context": "https://www.w3.org/ns/activitystreams",
+		"type":     "Accept",
+		"id":       ap.c.Server.BaseURL + "#" + uniuri.New(),
+		"to":       activity["actor"],
+		"actor":    ap.c.Server.BaseURL,
+		"object":   activity,
+	}
+
+	go ap.sendActivity(accept, []string{inbox})
+}
+
 func (ap *ActivityPub) sendCreate(activity typed.Typed) {
 	create := map[string]interface{}{
 		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
@@ -262,7 +271,8 @@ func (ap *ActivityPub) sendCreate(activity typed.Typed) {
 		"published": activity["published"],
 		"object":    activity,
 	}
-	ap.queueActivityToFollowers(create)
+
+	go ap.sendActivityToFollowers(create)
 }
 
 func (ap *ActivityPub) sendUpdate(activity typed.Typed) {
@@ -280,7 +290,7 @@ func (ap *ActivityPub) sendUpdate(activity typed.Typed) {
 		activity["updated"] = updated
 	}
 
-	ap.queueActivityToFollowers(update)
+	go ap.sendActivityToFollowers(update)
 }
 
 func (ap *ActivityPub) sendAnnounce(activity typed.Typed) {
@@ -293,7 +303,8 @@ func (ap *ActivityPub) sendAnnounce(activity typed.Typed) {
 		"published": activity["published"],
 		"object":    activity,
 	}
-	ap.queueActivityToFollowers(announce)
+
+	go ap.sendActivityToFollowers(announce)
 }
 
 func isSuccess(code int) bool {

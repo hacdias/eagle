@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/araddon/dateparse"
-	"github.com/dchest/uniuri"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
@@ -33,7 +32,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 
 	actor, keyID, err := ap.verifySignature(r)
 	if err != nil {
-		if errors.Is(err, ErrActorNotFound) {
+		if errors.Is(err, errActorNotFound) {
 			// Actor has likely been deleted.
 			url, err := urlpkg.Parse(keyID)
 			if err == nil {
@@ -44,7 +43,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 			}
 		}
 
-		if errors.Is(err, ErrActorStatusUnsuccessful) {
+		if errors.Is(err, errActorStatusUnsuccessful) {
 			return http.StatusBadRequest, errors.New("could not fetch author")
 		}
 
@@ -78,8 +77,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 
 	if err != nil {
 		if errors.Is(err, ErrNotHandled) {
+			ap.log.Infow("unhandled request", "err", err, "activity", activity, "actor", actor)
 			ap.n.Info("activity not handled: " + err.Error())
-			// TODO: unhandled ActivityPub Object -> Notify and Log
 		} else {
 			return http.StatusInternalServerError, err
 		}
@@ -111,17 +110,7 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		}
 	}
 
-	delete(activity, "@context")
-	accept := map[string]interface{}{
-		"@context": "https://www.w3.org/ns/activitystreams",
-		"type":     "Accept",
-		"id":       ap.c.Server.BaseURL + "#" + uniuri.New(),
-		"to":       activity["actor"],
-		"actor":    ap.c.Server.BaseURL,
-		"object":   activity,
-	}
-
-	ap.queueActivity(accept, inbox)
+	ap.sendAccept(activity, inbox)
 	return nil
 }
 
