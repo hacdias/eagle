@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
+	"mime"
 
 	"net/http"
 	"path"
@@ -147,11 +148,7 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 		url := typed.Typed(photo).String("value")
 		if url != "" {
 			url = ap.r.GetPictureURL(url, "2000", "jpeg")
-			attachments = append(attachments, map[string]string{
-				"mediaType": "image/jpeg",
-				"type":      "Image",
-				"url":       url,
-			})
+			attachments = append(attachments, imageToActivity(url))
 		}
 
 		// TODO: add videos and audios.
@@ -184,11 +181,11 @@ func (ap *ActivityPub) initSelf() {
 	}
 
 	if ap.c.User.Photo != "" {
-		self["icon"] = map[string]interface{}{
-			"type":      "Image",
-			"mediaType": "image/" + strings.TrimPrefix(path.Ext(ap.c.User.Photo), "."),
-			"url":       ap.c.User.Photo,
-		}
+		self["image"] = imageToActivity(ap.c.User.Photo)
+	}
+
+	if ap.c.User.CoverPhoto != "" {
+		self["image"] = imageToActivity(ap.c.User.CoverPhoto)
 	}
 
 	ap.self = self
@@ -350,4 +347,22 @@ func isSuccess(code int) bool {
 func isDeleted(code int) bool {
 	return code == http.StatusGone ||
 		code == http.StatusNotFound
+}
+
+func imageToActivity(url string) map[string]string {
+	ext := path.Ext(url)
+	mimeType := mime.TypeByExtension(ext)
+	if mimeType == "" {
+		if ext == ".jpg" {
+			mimeType = "image/jpeg"
+		} else {
+			mimeType = "image/" + strings.TrimPrefix(ext, ".")
+		}
+	}
+
+	return map[string]string{
+		"type":      "Image",
+		"mediaType": mimeType,
+		"url":       url,
+	}
 }

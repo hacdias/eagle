@@ -226,6 +226,7 @@ type User struct {
 	Password   string
 	Email      string
 	Photo      string
+	CoverPhoto string
 	Identities []string
 }
 
