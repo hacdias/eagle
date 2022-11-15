@@ -208,19 +208,21 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
 }
 
 func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
-	if e.Listing != nil {
+	if e.Listing != nil || e.Draft || e.Visibility() == eagle.VisibilityPrivate {
 		return nil
 	}
 
-	activity := ap.GetEntry(e)
-	if isNew {
-		ap.sendCreate(activity)
+	if e.Deleted {
+		ap.sendDelete(e.Permalink)
+		return nil
+	} else if isNew {
+		ap.sendCreate(e)
 	} else {
-		ap.sendUpdate(activity)
+		ap.sendUpdate(e)
 	}
 
 	if e.Helper().PostType() == mf2.TypeRead {
-		ap.sendAnnounce(activity)
+		ap.sendAnnounce(e)
 	}
 
 	return nil
@@ -241,47 +243,78 @@ func (ap *ActivityPub) sendAccept(activity typed.Typed, inbox string) {
 	go ap.sendActivity(accept, []string{inbox})
 }
 
-func (ap *ActivityPub) sendCreate(activity typed.Typed) {
+func (ap *ActivityPub) sendCreate(e *eagle.Entry) {
+	activity := ap.GetEntry(e)
+
 	create := map[string]interface{}{
-		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
-		"type":      "Create",
-		"id":        activity["id"],
-		"to":        activity["to"],
-		"actor":     activity["attributedTo"],
-		"published": activity["published"],
-		"object":    activity,
+		"@context": []string{"https://www.w3.org/ns/activitystreams"},
+		"type":     "Create",
+		"id":       e.Permalink,
+		"to":       activity["to"],
+		"object":   activity,
+		"actor":    ap.c.Server.BaseURL,
+	}
+
+	if published, ok := activity["published"]; ok {
+		create["published"] = published
 	}
 
 	go ap.sendActivityToFollowers(create)
 }
 
-func (ap *ActivityPub) sendUpdate(activity typed.Typed) {
+func (ap *ActivityPub) sendUpdate(e *eagle.Entry) {
+	activity := ap.GetEntry(e)
+
 	update := map[string]interface{}{
-		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
-		"type":      "Update",
-		"id":        activity["id"],
-		"to":        activity["to"],
-		"actor":     activity["attributedTo"],
-		"published": activity["published"],
-		"object":    activity,
+		"@context": []string{"https://www.w3.org/ns/activitystreams"},
+		"type":     "Update",
+		"id":       activity["id"],
+		"to":       activity["to"],
+		"object":   activity,
+		"actor":    ap.c.Server.BaseURL,
 	}
 
-	if updated := activity.String("updated"); updated != "" {
-		activity["updated"] = updated
+	if published, ok := activity["published"]; ok {
+		update["published"] = published
+	}
+
+	if updated, ok := activity["updated"]; ok {
+		update["updated"] = updated
 	}
 
 	go ap.sendActivityToFollowers(update)
 }
 
-func (ap *ActivityPub) sendAnnounce(activity typed.Typed) {
+func (ap *ActivityPub) sendDelete(permalink string) {
+	create := map[string]interface{}{
+		"@context": []string{"https://www.w3.org/ns/activitystreams"},
+		"type":     "Delete",
+		"to":       []string{"https://www.w3.org/ns/activitystreams#Public"},
+		"object":   permalink,
+		"actor":    ap.c.Server.BaseURL,
+	}
+
+	go ap.sendActivityToFollowers(create)
+}
+
+func (ap *ActivityPub) sendAnnounce(e *eagle.Entry) {
+	activity := ap.GetEntry(e)
+
 	announce := map[string]interface{}{
-		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
-		"type":      "Announce",
-		"id":        activity.String("id") + "#announce",
-		"to":        activity["to"],
-		"actor":     activity["attributedTo"],
-		"published": activity["published"],
-		"object":    activity,
+		"@context": []string{"https://www.w3.org/ns/activitystreams"},
+		"type":     "Announce",
+		"id":       activity.String("id") + "#announce",
+		"to":       activity["to"],
+		"object":   activity,
+		"actor":    ap.c.Server.BaseURL,
+	}
+
+	if published, ok := activity["published"]; ok {
+		announce["published"] = published
+	}
+
+	if updated, ok := activity["updated"]; ok {
+		announce["updated"] = updated
 	}
 
 	go ap.sendActivityToFollowers(announce)
