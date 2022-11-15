@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/araddon/dateparse"
+	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
 	"github.com/hashicorp/go-multierror"
@@ -238,10 +239,12 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 	return ErrNotHandled
 }
 
-func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *xray.Post {
-	post := &xray.Post{
-		URL:    activity.String("id"),
-		Author: ap.activityActorToXray(actor),
+func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.Mention {
+	post := &eagle.Mention{
+		Post: xray.Post{
+			Author: ap.activityActorToXray(actor),
+		},
+		ID: activity.String("id"),
 	}
 
 	if published := activity.String("published"); published != "" {
@@ -252,8 +255,12 @@ func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *xray.Po
 	}
 
 	if object := activity.Object("object"); object != nil {
-		if id := object.String("id"); id != "" && post.URL == "" {
-			post.URL = id
+		if id := object.String("id"); id != "" && post.ID == "" {
+			post.ID = id
+		}
+
+		if url := object.String("url"); url != "" && post.URL == "" {
+			post.URL = url
 		}
 
 		if published := object.String("published"); published != "" && post.Published.IsZero() {
@@ -264,6 +271,10 @@ func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *xray.Po
 		}
 
 		post.Content = xray.SanitizeContent(object.String("content"))
+	}
+
+	if post.URL == "" {
+		post.URL = post.ID
 	}
 
 	return post

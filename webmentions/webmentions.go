@@ -9,7 +9,6 @@ import (
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/mf2"
-	"github.com/hacdias/eagle/pkg/xray"
 	"github.com/hacdias/eagle/renderer"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
@@ -45,7 +44,7 @@ func (ws *Webmentions) EntryHook(e *eagle.Entry, isNew bool) error {
 	return ws.SendWebmentions(e)
 }
 
-func IsInteraction(post *xray.Post) bool {
+func IsInteraction(post *eagle.Mention) bool {
 	return post.Type == mf2.TypeLike ||
 		post.Type == mf2.TypeRepost ||
 		post.Type == mf2.TypeBookmark ||

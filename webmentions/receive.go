@@ -36,16 +36,16 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 		parsed.Author.Photo = ws.media.SafeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
-	return ws.AddOrUpdateWebmention(url.Path, parsed, payload.Source)
+	return ws.AddOrUpdateWebmention(url.Path, &eagle.Mention{Post: *parsed}, payload.Source)
 }
 
-func (ws *Webmentions) AddOrUpdateWebmention(id string, post *xray.Post, sources ...string) error {
+func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, sourcesOrIDs ...string) error {
 	e, err := ws.fs.GetEntry(id)
 	if err != nil {
 		return err
 	}
 
-	isInteraction := IsInteraction(post)
+	isInteraction := IsInteraction(mention)
 
 	err = ws.fs.UpdateSidecar(e, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
 		var mentions []*eagle.Mention
@@ -56,16 +56,18 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, post *xray.Post, sources
 		}
 
 		replaced := false
-		for i, mention := range mentions {
-			if funk.ContainsString(sources, mention.URL) || mention.URL == post.URL {
-				mentions[i] = &eagle.Mention{Post: *post, Hidden: mentions[i].Hidden}
+		for i, m := range mentions {
+			if funk.ContainsString(sourcesOrIDs, m.URL) || m.URL == mention.URL ||
+				funk.ContainsString(sourcesOrIDs, m.ID) || m.ID == mention.ID {
+				mention.Hidden = mentions[i].Hidden
+				mentions[i] = mention
 				replaced = true
 				break
 			}
 		}
 
 		if !replaced {
-			mentions = append(mentions, &eagle.Mention{Post: *post})
+			mentions = append(mentions, mention)
 		}
 
 		if isInteraction {
@@ -86,7 +88,7 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, post *xray.Post, sources
 	return err
 }
 
-func (ws *Webmentions) DeleteWebmention(id, source string) error {
+func (ws *Webmentions) DeleteWebmention(id, urlOrID string) error {
 	e, err := ws.fs.GetEntry(id)
 	if err != nil {
 		return err
@@ -94,14 +96,14 @@ func (ws *Webmentions) DeleteWebmention(id, source string) error {
 
 	err = ws.fs.UpdateSidecar(e, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
 		for i, reply := range sidecar.Replies {
-			if reply.URL == source {
+			if reply.URL == urlOrID || reply.ID == urlOrID {
 				sidecar.Replies = append(sidecar.Replies[:i], sidecar.Replies[i+1:]...)
 				return sidecar, nil
 			}
 		}
 
 		for i, reply := range sidecar.Interactions {
-			if reply.URL == source {
+			if reply.URL == urlOrID || reply.ID == urlOrID {
 				sidecar.Interactions = append(sidecar.Interactions[:i], sidecar.Interactions[i+1:]...)
 				return sidecar, nil
 			}
