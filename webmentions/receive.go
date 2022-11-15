@@ -6,6 +6,7 @@ import (
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/xray"
+	"github.com/thoas/go-funk"
 )
 
 type Payload struct {
@@ -24,13 +25,8 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 		return fmt.Errorf("invalid target: %s", payload.Target)
 	}
 
-	entry, err := ws.fs.GetEntry(url.Path)
-	if err != nil {
-		return err
-	}
-
 	if payload.Deleted {
-		return ws.DeleteWebmention(entry, payload.Source)
+		return ws.DeleteWebmention(url.Path, payload.Source)
 	}
 
 	parsed := xray.Parse(payload.Post)
@@ -40,9 +36,18 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 		parsed.Author.Photo = ws.media.SafeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
-	isInteraction := IsInteraction(parsed)
+	return ws.AddOrUpdateWebmention(url.Path, parsed, payload.Source)
+}
 
-	err = ws.fs.UpdateSidecar(entry, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
+func (ws *Webmentions) AddOrUpdateWebmention(id string, post *xray.Post, sources ...string) error {
+	e, err := ws.fs.GetEntry(id)
+	if err != nil {
+		return err
+	}
+
+	isInteraction := IsInteraction(post)
+
+	err = ws.fs.UpdateSidecar(e, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
 		var mentions []*eagle.Mention
 		if isInteraction {
 			mentions = sidecar.Interactions
@@ -52,15 +57,15 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 
 		replaced := false
 		for i, mention := range mentions {
-			if mention.URL == payload.Source || mention.URL == parsed.URL {
-				mentions[i] = &eagle.Mention{Post: *parsed, Hidden: mentions[i].Hidden}
+			if funk.ContainsString(sources, mention.URL) || mention.URL == post.URL {
+				mentions[i] = &eagle.Mention{Post: *post, Hidden: mentions[i].Hidden}
 				replaced = true
 				break
 			}
 		}
 
 		if !replaced {
-			mentions = append(mentions, &eagle.Mention{Post: *parsed})
+			mentions = append(mentions, &eagle.Mention{Post: *post})
 		}
 
 		if isInteraction {
@@ -74,17 +79,20 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Payload) error {
 
 	if err != nil {
 		ws.notifier.Error(err)
-	} else if payload.Deleted {
-		ws.notifier.Info("💬 Deleted webmention at " + payload.Target)
 	} else {
-		ws.notifier.Info("💬 Received webmention at " + payload.Target)
+		ws.notifier.Info("💬 Received webmention at " + e.Permalink)
 	}
 
 	return err
 }
 
-func (ws *Webmentions) DeleteWebmention(ee *eagle.Entry, source string) error {
-	return ws.fs.UpdateSidecar(ee, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
+func (ws *Webmentions) DeleteWebmention(id, source string) error {
+	e, err := ws.fs.GetEntry(id)
+	if err != nil {
+		return err
+	}
+
+	err = ws.fs.UpdateSidecar(e, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
 		for i, reply := range sidecar.Replies {
 			if reply.URL == source {
 				sidecar.Replies = append(sidecar.Replies[:i], sidecar.Replies[i+1:]...)
@@ -101,4 +109,12 @@ func (ws *Webmentions) DeleteWebmention(ee *eagle.Entry, source string) error {
 
 		return sidecar, nil
 	})
+
+	if err != nil {
+		ws.notifier.Error(err)
+	} else {
+		ws.notifier.Info("💬 Deleted webmention at " + e.Permalink)
+	}
+
+	return err
 }

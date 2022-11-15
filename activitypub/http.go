@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
 	"github.com/hashicorp/go-multierror"
@@ -134,23 +133,9 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 
 	if hasReply && strings.HasPrefix(reply, ap.c.Server.BaseURL) {
 		id := strings.TrimPrefix(reply, ap.c.Server.BaseURL)
-		e, err := ap.fs.GetEntry(id)
-		if err != nil {
-			return err
-		}
 		mention := ap.mentionFromActivity(actor, activity)
 		mention.Type = mf2.TypeReply
-		return ap.fs.UpdateSidecar(e, func(s *eagle.Sidecar) (*eagle.Sidecar, error) {
-			for i := range s.Replies {
-				if s.Replies[i].URL == mention.URL {
-					s.Replies[i] = mention
-					return s, nil
-				}
-			}
-
-			s.Replies = append(s.Replies, mention)
-			return s, nil
-		})
+		return ap.wm.AddOrUpdateWebmention(id, mention)
 	} else if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
 		mention := ap.mentionFromActivity(actor, activity)
 
@@ -171,19 +156,8 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 
 		for _, link := range links {
 			id := strings.TrimPrefix(link, ap.c.Server.BaseURL)
-			e, err := ap.fs.GetEntry(id)
 			if err == nil {
-				errs = multierror.Append(errs, ap.fs.UpdateSidecar(e, func(s *eagle.Sidecar) (*eagle.Sidecar, error) {
-					for i := range s.Replies {
-						if s.Replies[i].URL == mention.URL {
-							s.Replies[i] = mention
-							return s, nil
-						}
-					}
-
-					s.Replies = append(s.Replies, mention)
-					return s, nil
-				}))
+				errs = multierror.Append(errs, ap.wm.AddOrUpdateWebmention(id, mention))
 			}
 		}
 
@@ -204,25 +178,9 @@ func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typ
 	}
 
 	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
-	e, err := ap.fs.GetEntry(id)
-	if err != nil {
-		return err
-	}
-
 	mention := ap.mentionFromActivity(actor, activity)
 	mention.Type = mf2.TypeLike
-
-	return ap.fs.UpdateSidecar(e, func(s *eagle.Sidecar) (*eagle.Sidecar, error) {
-		for i := range s.Interactions {
-			if s.Interactions[i].URL == mention.URL {
-				s.Interactions[i] = mention
-				return s, nil
-			}
-		}
-
-		s.Interactions = append(s.Interactions, mention)
-		return s, nil
-	})
+	return ap.wm.AddOrUpdateWebmention(id, mention)
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
@@ -270,53 +228,45 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 
 		permalink := object.String("object")
 		if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
-			return fmt.Errorf("like destined for someone else")
+			return fmt.Errorf("object.object destined for someone else")
 		}
 
 		id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
-		e, err := ap.fs.GetEntry(id)
-		if err != nil {
-			return err
-		}
-
-		return ap.wm.DeleteWebmention(e, source)
-	default:
+		return ap.wm.DeleteWebmention(id, source)
 	}
-	return ErrNotHandled
 
+	return ErrNotHandled
 }
 
-func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.Mention {
-	mention := &eagle.Mention{
-		Post: xray.Post{
-			URL:    activity.String("id"),
-			Author: ap.activityActorToXray(actor),
-		},
+func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *xray.Post {
+	post := &xray.Post{
+		URL:    activity.String("id"),
+		Author: ap.activityActorToXray(actor),
 	}
 
 	if published := activity.String("published"); published != "" {
 		t, err := dateparse.ParseStrict(published)
 		if err == nil {
-			mention.Published = t
+			post.Published = t
 		}
 	}
 
 	if object := activity.Object("object"); object != nil {
-		if id := object.String("id"); id != "" && mention.Post.URL == "" {
-			mention.Post.URL = id
+		if id := object.String("id"); id != "" && post.URL == "" {
+			post.URL = id
 		}
 
-		if published := object.String("published"); published != "" && mention.Published.IsZero() {
+		if published := object.String("published"); published != "" && post.Published.IsZero() {
 			t, err := dateparse.ParseStrict(published)
 			if err == nil {
-				mention.Published = t
+				post.Published = t
 			}
 		}
 
-		mention.Post.Content = xray.SanitizeContent(activity.String("content"))
+		post.Content = xray.SanitizeContent(activity.String("content"))
 	}
 
-	return mention
+	return post
 }
 
 func (ap *ActivityPub) activityActorToXray(actor typed.Typed) xray.Author {
