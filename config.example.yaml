@@ -25,16 +25,9 @@ server:
     logging: false
   # Optional ActivityPub configuration"
   activitypub:
-    # Data directory for the activitypub handling.
+    # Data directory for the ActivityPub handling. The keys 'private.key' and 'public.key'
+    # will be automatically generated if they're not present in the directory.
     directory: /path/to/data/activity
-    privateKey: | # tODO: maybe move this to directory?
-      -----BEGIN PRIVATE KEY-----
-      Your private key
-      -----END PRIVATE KEY-----
-    publicKey: |
-      -----BEGIN PUBLIC KEY-----
-      Your public key
-      -----END PUBLIC KEY-----
 
 # Website source directory. It is assumed to be a Git repository.
 source:

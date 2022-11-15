@@ -28,7 +28,7 @@ func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
-	if s.ap != nil && strings.Contains(r.Header.Get("Accept"), contenttype.AS) {
+	if s.ap != nil && isActivityPub(r) {
 		s.serveActivity(w, http.StatusOK, s.ap.GetSelf())
 		return
 	}

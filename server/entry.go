@@ -7,12 +7,10 @@ import (
 	urlpkg "net/url"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/thoas/go-funk"
@@ -235,7 +233,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if s.ap != nil && strings.Contains(r.Header.Get("Accept"), contenttype.AS) {
+	if s.ap != nil && isActivityPub(r) {
 		s.serveActivity(w, http.StatusAccepted, s.ap.GetEntry(ee))
 		return
 	}

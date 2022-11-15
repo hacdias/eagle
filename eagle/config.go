@@ -12,9 +12,17 @@ import (
 )
 
 type ActivityPub struct {
-	PublicKey  string
-	PrivateKey string
-	Directory  string
+	Directory string
+}
+
+func (a *ActivityPub) validate() error {
+	if a.Directory == "" {
+		return fmt.Errorf("activitypub.directory must be set")
+	}
+
+	var err error
+	a.Directory, err = filepath.Abs(a.Directory)
+	return err
 }
 
 type Tor struct {
@@ -27,7 +35,9 @@ func (t *Tor) validate() error {
 		return fmt.Errorf("tor.directory must be set")
 	}
 
-	return nil
+	var err error
+	t.Directory, err = filepath.Abs(t.Directory)
+	return err
 }
 
 type Server struct {
@@ -57,6 +67,12 @@ func (s *Server) validate() error {
 
 	if s.Tor != nil {
 		if err = s.Tor.validate(); err != nil {
+			return err
+		}
+	}
+
+	if s.ActivityPub != nil {
+		if err = s.ActivityPub.validate(); err != nil {
 			return err
 		}
 	}

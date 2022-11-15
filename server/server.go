@@ -631,3 +631,7 @@ func (s *Server) afterSaveHook(updated, deleted []*eagle.Entry) {
 		_ = s.loadRedirects()
 	}
 }
+
+func isActivityPub(r *http.Request) bool {
+	return strings.Contains(r.Header.Get("Accept"), contenttype.AS)
+}

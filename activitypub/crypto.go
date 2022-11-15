@@ -3,6 +3,8 @@ package activitypub
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -11,12 +13,94 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-fed/httpsig"
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/karlseguin/typed"
 )
+
+func generateKeyPair(privKeyFilename, pubKeyFilename string) error {
+	privKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return err
+	}
+
+	privKeyFile, err := os.OpenFile(privKeyFilename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer privKeyFile.Close()
+
+	err = pem.Encode(privKeyFile, &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
+	})
+	if err != nil {
+		return err
+	}
+
+	publicKeyFile, err := os.OpenFile(pubKeyFilename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer publicKeyFile.Close()
+
+	err = pem.Encode(publicKeyFile, &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(&privKey.PublicKey),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getKeyPair(directory string) (*rsa.PrivateKey, string, error) {
+	privKeyFilename := filepath.Join(directory, "private.key")
+	pubKeyFilename := filepath.Join(directory, "public.key")
+
+	_, err := os.Stat(privKeyFilename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = generateKeyPair(privKeyFilename, pubKeyFilename)
+			if err != nil {
+				return nil, "", err
+			}
+		} else {
+			return nil, "", err
+		}
+	}
+
+	privateKeyBytes, err := os.ReadFile(privKeyFilename)
+	if err != nil {
+		return nil, "", err
+	}
+
+	publicKeyBytes, err := os.ReadFile(pubKeyFilename)
+	if err != nil {
+		return nil, "", err
+	}
+
+	privKeyDecoded, _ := pem.Decode(privateKeyBytes)
+	if privKeyDecoded == nil {
+		return nil, "", errors.New("cannot decode private key")
+	}
+
+	privateKey, err := x509.ParsePKCS1PrivateKey(privKeyDecoded.Bytes)
+	return privateKey, string(publicKeyBytes), err
+}
+
+func getSigner() (httpsig.Signer, error) {
+	algorithms := []httpsig.Algorithm{httpsig.RSA_SHA256}
+	digestAlgorithm := httpsig.DigestSha256
+	headersToSign := []string{httpsig.RequestTarget, "date", "host", "digest"}
+	signer, _, err := httpsig.NewSigner(algorithms, digestAlgorithm, headersToSign, httpsig.Signature, 0)
+	return signer, err
+}
 
 func (ap *ActivityPub) verifySignature(r *http.Request) (typed.Typed, string, error) {
 	verifier, err := httpsig.NewVerifier(r)
@@ -53,7 +137,7 @@ func (ap *ActivityPub) verifySignature(r *http.Request) (typed.Typed, string, er
 	return actor, keyID, verifier.Verify(pubKey, httpsig.RSA_SHA256)
 }
 
-func (ap *ActivityPub) send(ctx context.Context, activity interface{}, inbox string) error {
+func (ap *ActivityPub) sendSigned(ctx context.Context, activity interface{}, inbox string) error {
 	body, err := json.Marshal(activity)
 	if err != nil {
 		return fmt.Errorf("could not marshal data: %w", err)

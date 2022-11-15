@@ -3,9 +3,6 @@ package activitypub
 import (
 	"context"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
-	"errors"
 	"fmt"
 
 	"net/http"
@@ -37,6 +34,7 @@ type ActivityPub struct {
 	media      *media.Media
 	self       typed.Typed
 	followers  *stringMapStore
+	publicKey  string
 	privKey    *rsa.PrivateKey
 	signer     httpsig.Signer
 	signerMu   sync.Mutex
@@ -57,8 +55,6 @@ func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.No
 		},
 	}
 
-	a.initSelf()
-
 	var err error
 
 	a.followers, err = newStringMapStore(filepath.Join(c.Server.ActivityPub.Directory, "followers.json"))
@@ -66,16 +62,17 @@ func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.No
 		return nil, err
 	}
 
-	a.privKey, err = getPrivateKey(c)
+	a.privKey, a.publicKey, err = getKeyPair(c.Server.ActivityPub.Directory)
 	if err != nil {
 		return nil, err
 	}
 
-	a.signer, err = getSigner(c)
+	a.signer, err = getSigner()
 	if err != nil {
 		return nil, err
 	}
 
+	a.initSelf()
 	return a, nil
 }
 
@@ -151,23 +148,6 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 	return activity
 }
 
-func getPrivateKey(c *eagle.Config) (*rsa.PrivateKey, error) {
-	privKeyDecoded, _ := pem.Decode([]byte(c.Server.ActivityPub.PrivateKey))
-	if privKeyDecoded == nil {
-		return nil, errors.New("cannot decode private key")
-	}
-
-	return x509.ParsePKCS1PrivateKey(privKeyDecoded.Bytes)
-}
-
-func getSigner(c *eagle.Config) (httpsig.Signer, error) {
-	algorithms := []httpsig.Algorithm{httpsig.RSA_SHA256}
-	digestAlgorithm := httpsig.DigestSha256
-	headersToSign := []string{httpsig.RequestTarget, "date", "host", "digest"}
-	signer, _, err := httpsig.NewSigner(algorithms, digestAlgorithm, headersToSign, httpsig.Signature, 0)
-	return signer, err
-}
-
 func (ap *ActivityPub) initSelf() {
 	self := map[string]interface{}{
 		"@context": []string{
@@ -183,7 +163,7 @@ func (ap *ActivityPub) initSelf() {
 		"publicKey": map[string]interface{}{
 			"id":           ap.getSelfKeyID(),
 			"owner":        ap.c.Server.BaseURL,
-			"publicKeyPem": ap.c.Server.ActivityPub.PublicKey,
+			"publicKeyPem": ap.publicKey,
 		},
 		"inbox": ap.c.Server.AbsoluteURL("/activitypub/inbox"),
 	}
@@ -211,7 +191,7 @@ func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
 			time.Sleep(time.Second)
 		}
 
-		err := ap.send(context.Background(), activity, inbox)
+		err := ap.sendSigned(context.Background(), activity, inbox)
 		if err != nil {
 			ap.log.Errorw("could not send signed", "inbox", inbox, "activity", activity, "err", err)
 		}
