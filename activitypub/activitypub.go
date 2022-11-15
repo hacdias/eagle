@@ -220,7 +220,7 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
 }
 
 func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
-	if e.Listing != nil || e.Draft || e.Visibility() == eagle.VisibilityPrivate {
+	if e.Listing != nil || e.Draft || e.Visibility() != eagle.VisibilityPublic {
 		return nil
 	}
 
