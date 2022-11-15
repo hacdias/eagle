@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	urlpkg "net/url"
+
+	"github.com/hacdias/eagle/pkg/contenttype"
 )
 
 type webfinger struct {
@@ -18,22 +20,32 @@ type link struct {
 	Type string `json:"type,omitempty"`
 }
 
-func (s *Server) webfingerGet(w http.ResponseWriter, r *http.Request) {
+func (s *Server) initWebfinger() {
 	url, _ := urlpkg.Parse(s.c.Server.BaseURL)
 
-	wf := &webfinger{
+	s.webfinger = &webfinger{
 		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
-			s.c.ID(),
+			s.c.Server.BaseURL,
 		},
 		Links: []link{
 			{
 				Rel:  "http://webfinger.net/rel/profile-page",
 				Type: "text/html",
-				Href: s.c.ID(),
+				Href: s.c.Server.BaseURL,
 			},
 		},
 	}
 
-	s.serveJSON(w, http.StatusOK, wf)
+	if s.ap != nil {
+		s.webfinger.Links = append(s.webfinger.Links, link{
+			Href: s.c.Server.BaseURL,
+			Rel:  "self",
+			Type: contenttype.AS,
+		})
+	}
+}
+
+func (s *Server) webfingerGet(w http.ResponseWriter, r *http.Request) {
+	s.serveJSON(w, http.StatusOK, s.webfinger)
 }

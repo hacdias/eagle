@@ -10,7 +10,7 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-func (r *Renderer) getPictureURL(urlStr, size, format string) string {
+func (r *Renderer) GetPictureURL(urlStr, size, format string) string {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return ""

@@ -11,6 +11,12 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+type ActivityPub struct {
+	PublicKey  string
+	PrivateKey string
+	Directory  string
+}
+
 type Tor struct {
 	Directory string
 	Logging   bool
@@ -30,6 +36,7 @@ type Server struct {
 	TokensSecret  string
 	WebhookSecret string
 	TilesSource   string
+	ActivityPub   *ActivityPub
 	Tor           *Tor
 }
 

@@ -28,6 +28,11 @@ func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
+	if s.ap != nil && strings.Contains(r.Header.Get("Accept"), contenttype.AS) {
+		s.serveActivity(w, http.StatusOK, s.ap.GetSelf())
+		return
+	}
+
 	s.listingGet(w, r, &listingSettings{
 		rd: &renderer.RenderData{
 			IsHome: true,

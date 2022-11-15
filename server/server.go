@@ -23,6 +23,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/hacdias/eagle/activitypub"
 	"github.com/hacdias/eagle/cache"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
@@ -72,6 +73,7 @@ type Server struct {
 	cron         *cron.Cron
 	redirects    map[string]string
 	archetypes   map[string]*template.Template
+	webfinger    *webfinger
 
 	fs          *fs.FS
 	media       *media.Media
@@ -80,6 +82,7 @@ type Server struct {
 	syndicator  *eagle.Manager
 	renderer    *renderer.Renderer
 	parser      *eagle.Parser
+	ap          *activitypub.ActivityPub
 
 	preSaveHooks  []eagle.EntryHook
 	postSaveHooks []eagle.EntryHook
@@ -233,6 +236,16 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		lastfm := lastfm.NewLastFm(c.Lastfm.Key, c.Lastfm.User, s.fs, s.media)
 		errs = multierror.Append(errs, s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob))
 	}
+
+	if c.Server.ActivityPub != nil {
+		s.ap, err = activitypub.NewActivityPub(c, s.renderer, s.fs, s.n, s.media)
+		if err != nil {
+			return nil, err
+		}
+		s.AppendPostSaveHook(s.ap)
+	}
+
+	s.initWebfinger()
 
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
@@ -466,7 +479,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 }
 
 func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescription string) {
-	s.serveJSON(w, code, map[string]interface{}{
+	s.serveJSON(w, code, map[string]string{
 		"error":             err,
 		"error_description": errDescription,
 	})
@@ -539,6 +552,15 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	}
 
 	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
+}
+
+func (s *Server) serveActivity(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Set("Content-Type", contenttype.ASUTF8)
+	w.WriteHeader(code)
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		s.n.Error(fmt.Errorf("serving html: %w", err))
+	}
 }
 
 func (s *Server) syncStorage() {
