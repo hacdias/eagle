@@ -249,16 +249,41 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 		return fmt.Errorf("%w: object not present or not map: %v", ErrNotHandled, object)
 	}
 
-	if object.String("type") != "Follow" {
-		return fmt.Errorf("%w: object type is not Follow", ErrNotHandled)
-	}
+	switch object.String("type") {
+	case "Follow":
+		iri := activity.String("actor")
+		if object.String("actor") != iri {
+			return fmt.Errorf("%w: object actor does not match activity actor", ErrNotHandled)
+		}
 
-	iri := activity.String("actor")
-	if object.String("actor") != iri {
-		return fmt.Errorf("%w: object actor does not match activity actor", ErrNotHandled)
-	}
+		return ap.followers.remove(iri)
+	case "Like":
+		object := activity.Object("object")
+		if object == nil {
+			return fmt.Errorf("%w: object is not a map", ErrNotHandled)
+		}
 
-	return ap.followers.remove(iri)
+		source := object.String("id")
+		if source == "" {
+			return fmt.Errorf("%w: object.id is not a map", ErrNotHandled)
+		}
+
+		permalink := object.String("object")
+		if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
+			return fmt.Errorf("like destined for someone else")
+		}
+
+		id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
+		e, err := ap.fs.GetEntry(id)
+		if err != nil {
+			return err
+		}
+
+		return ap.wm.DeleteWebmention(e, source)
+	default:
+	}
+	return ErrNotHandled
+
 }
 
 func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.Mention {

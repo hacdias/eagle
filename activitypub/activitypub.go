@@ -22,6 +22,7 @@ import (
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
+	"github.com/hacdias/eagle/webmentions"
 	"github.com/karlseguin/typed"
 	"github.com/thoas/go-funk"
 	"go.uber.org/zap"
@@ -32,6 +33,7 @@ type ActivityPub struct {
 	r          *renderer.Renderer
 	fs         *fs.FS
 	n          eagle.Notifier
+	wm         *webmentions.Webmentions
 	log        *zap.SugaredLogger
 	media      *media.Media
 	self       typed.Typed
@@ -43,13 +45,14 @@ type ActivityPub struct {
 	httpClient *http.Client
 }
 
-func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.Notifier, m *media.Media) (*ActivityPub, error) {
+func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.Notifier, wm *webmentions.Webmentions, m *media.Media) (*ActivityPub, error) {
 	a := &ActivityPub{
 		c:     c,
 		r:     r,
 		fs:    fs,
 		n:     n,
 		media: m,
+		wm:    wm,
 		log:   log.S().Named("activitypub"),
 
 		httpClient: &http.Client{

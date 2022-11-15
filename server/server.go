@@ -238,7 +238,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	if c.Server.ActivityPub != nil {
-		s.ap, err = activitypub.NewActivityPub(c, s.renderer, s.fs, s.n, s.media)
+		s.ap, err = activitypub.NewActivityPub(c, s.renderer, s.fs, s.n, s.webmentions, s.media)
 		if err != nil {
 			return nil, err
 		}
