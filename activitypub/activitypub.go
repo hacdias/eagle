@@ -126,6 +126,7 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 		activity["inReplyTo"] = e.Helper().String(e.Helper().TypeProperty())
 	}
 
+	// TODO: make this taxonomy configurable.
 	for _, tag := range e.Taxonomy("tags") {
 		tags := []map[string]string{}
 
