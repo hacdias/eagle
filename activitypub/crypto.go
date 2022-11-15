@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -143,27 +142,20 @@ func (ap *ActivityPub) sendSigned(ctx context.Context, activity interface{}, inb
 		return fmt.Errorf("could not marshal data: %w", err)
 	}
 
-	bodyCopy := make([]byte, len(body))
-	copy(bodyCopy, body)
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, inbox, bytes.NewBuffer(body))
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, inbox, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}
 
-	iri, err := url.Parse(inbox)
-	if err != nil {
-		return fmt.Errorf("could not parse iri: %w", err)
-	}
-
+	r.Header.Add("Accept", contenttype.ASUTF8)
 	r.Header.Add("Accept-Charset", "utf-8")
+	r.Header.Add("Content-Type", contenttype.ASUTF8)
 	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
 	r.Header.Add("User-Agent", ap.c.Server.BaseURL)
-	r.Header.Add("Accept", contenttype.ASUTF8)
-	r.Header.Add("Content-Type", contenttype.ASUTF8)
-	r.Header.Add("Host", iri.Host)
+	r.Header.Add("Host", r.URL.Host)
 
 	ap.signerMu.Lock()
-	err = ap.signer.SignRequest(ap.privKey, ap.getSelfKeyID(), r, bodyCopy)
+	err = ap.signer.SignRequest(ap.privKey, ap.getSelfKeyID(), r, body)
 	ap.signerMu.Unlock()
 	if err != nil {
 		return fmt.Errorf("could not sign request: %w", err)
@@ -181,7 +173,7 @@ func (ap *ActivityPub) sendSigned(ctx context.Context, activity interface{}, inb
 			resp.StatusCode,
 			string(body),
 			r.Header,
-			string(bodyCopy),
+			string(body),
 		)
 	}
 
