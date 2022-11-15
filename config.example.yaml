@@ -23,6 +23,11 @@ server:
     directory: /path/to/conf/dir
     # Enable Tor service logging (can be noisy).
     logging: false
+  # Optional ActivityPub configuration"
+  activitypub:
+    # Data directory for the ActivityPub handling. The keys 'private.key' and 'public.key'
+    # will be automatically generated if they're not present in the directory.
+    directory: /path/to/data/activity
 
 # Website source directory. It is assumed to be a Git repository.
 source:

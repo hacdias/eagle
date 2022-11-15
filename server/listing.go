@@ -28,6 +28,11 @@ func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
+	if s.ap != nil && isActivityPub(r) {
+		s.serveActivity(w, http.StatusOK, s.ap.GetSelf())
+		return
+	}
+
 	s.listingGet(w, r, &listingSettings{
 		rd: &renderer.RenderData{
 			IsHome: true,

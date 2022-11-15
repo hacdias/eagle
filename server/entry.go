@@ -233,6 +233,11 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if s.ap != nil && isActivityPub(r) {
+		s.serveActivity(w, http.StatusAccepted, s.ap.GetEntry(ee))
+		return
+	}
+
 	s.serveEntry(w, r, ee)
 }
 

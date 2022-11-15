@@ -56,7 +56,7 @@ func (x *XRay) parseRedditComment(comment *reddit.Comment) (*Post, error) {
 	}
 
 	parsed := &Post{
-		Content:   cleanContent(content),
+		Content:   SanitizeContent(content),
 		Published: comment.Created.Time,
 		URL:       "https://www.reddit.com" + comment.Permalink,
 	}
@@ -107,7 +107,7 @@ func (x *XRay) parseRedditPost(post *reddit.Post) (*Post, error) {
 	}
 
 	parsed := &Post{
-		Content:   cleanContent(content),
+		Content:   SanitizeContent(content),
 		Published: post.Created.Time,
 		URL:       post.URL,
 	}

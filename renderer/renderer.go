@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"bytes"
 	"errors"
 	"html/template"
 	"io"
@@ -86,6 +87,18 @@ func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string) err
 	}
 
 	return mw.Close()
+}
+
+func (r *Renderer) RenderAbsoluteMarkdown(source string) template.HTML {
+	var buffer bytes.Buffer
+	_ = r.absoluteMarkdown.Convert([]byte(source), &buffer)
+	return template.HTML(buffer.Bytes())
+}
+
+func (r *Renderer) RenderRelativeMarkdown(source string) template.HTML {
+	var buffer bytes.Buffer
+	_ = r.markdown.Convert([]byte(source), &buffer)
+	return template.HTML(buffer.Bytes())
 }
 
 type Alternate struct {

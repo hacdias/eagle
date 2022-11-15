@@ -11,6 +11,20 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+type ActivityPub struct {
+	Directory string
+}
+
+func (a *ActivityPub) validate() error {
+	if a.Directory == "" {
+		return fmt.Errorf("activitypub.directory must be set")
+	}
+
+	var err error
+	a.Directory, err = filepath.Abs(a.Directory)
+	return err
+}
+
 type Tor struct {
 	Directory string
 	Logging   bool
@@ -21,7 +35,9 @@ func (t *Tor) validate() error {
 		return fmt.Errorf("tor.directory must be set")
 	}
 
-	return nil
+	var err error
+	t.Directory, err = filepath.Abs(t.Directory)
+	return err
 }
 
 type Server struct {
@@ -30,6 +46,7 @@ type Server struct {
 	TokensSecret  string
 	WebhookSecret string
 	TilesSource   string
+	ActivityPub   *ActivityPub
 	Tor           *Tor
 }
 
@@ -50,6 +67,12 @@ func (s *Server) validate() error {
 
 	if s.Tor != nil {
 		if err = s.Tor.validate(); err != nil {
+			return err
+		}
+	}
+
+	if s.ActivityPub != nil {
+		if err = s.ActivityPub.validate(); err != nil {
 			return err
 		}
 	}

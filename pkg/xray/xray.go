@@ -172,7 +172,7 @@ func Parse(data map[string]interface{}) *Post {
 	var hasContent bool
 
 	if content, ok := raw.StringIf("content"); ok {
-		parsed.Content = cleanContent(content)
+		parsed.Content = SanitizeContent(content)
 		hasContent = true
 	}
 
@@ -180,10 +180,10 @@ func Parse(data map[string]interface{}) *Post {
 		if contentMap, ok := raw.MapIf("content"); ok && !hasContent {
 			typedContentMap := typed.New(contentMap)
 			if text, ok := typedContentMap.StringIf("text"); ok {
-				parsed.Content = cleanContent(text)
+				parsed.Content = SanitizeContent(text)
 				hasContent = true
 			} else if html, ok := typedContentMap.StringIf("html"); ok {
-				parsed.Content = cleanContent(html)
+				parsed.Content = SanitizeContent(html)
 				hasContent = true
 			}
 		}
@@ -191,7 +191,7 @@ func Parse(data map[string]interface{}) *Post {
 
 	if !hasContent {
 		if name, ok := raw.StringIf("name"); ok {
-			parsed.Content = cleanContent(name)
+			parsed.Content = SanitizeContent(name)
 		}
 	}
 

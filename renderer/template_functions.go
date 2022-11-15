@@ -99,17 +99,9 @@ func durationFromSeconds(seconds float64) time.Duration {
 
 func (r *Renderer) getRenderMarkdown(absoluteURLs bool) func(string) template.HTML {
 	if absoluteURLs {
-		return func(source string) template.HTML {
-			var buffer bytes.Buffer
-			_ = r.absoluteMarkdown.Convert([]byte(source), &buffer)
-			return template.HTML(buffer.Bytes())
-		}
+		return r.RenderAbsoluteMarkdown
 	} else {
-		return func(source string) template.HTML {
-			var buffer bytes.Buffer
-			_ = r.markdown.Convert([]byte(source), &buffer)
-			return template.HTML(buffer.Bytes())
-		}
+		return r.RenderRelativeMarkdown
 	}
 }
 
@@ -134,7 +126,7 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
 		"figure":              figure,
-		"figureURL":           r.getPictureURL,
+		"figureURL":           r.GetPictureURL,
 		"dateFormat":          dateFormat,
 		"now":                 time.Now,
 		"include":             r.includeTemplate,

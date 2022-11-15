@@ -46,6 +46,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/webmention", s.webmentionPost)
 	}
 
+	if s.ap != nil {
+		r.Post("/activitypub/inbox", s.activityPubInboxPost)
+	}
+
 	r.Get("/search", s.searchGet)
 	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
 	r.Get("/.well-known/webfinger", s.webfingerGet)
