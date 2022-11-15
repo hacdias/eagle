@@ -30,6 +30,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 		return http.StatusBadRequest, err
 	}
 
+	ap.log.Infow("request checkpoint 1", "activity", activity)
+
 	actor, keyID, err := ap.verifySignature(r)
 	if err != nil {
 		if errors.Is(err, errActorNotFound) {
@@ -54,6 +56,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 		return http.StatusForbidden, errors.New("request actor and activity actor do not match")
 	}
 
+	ap.log.Infow("request checkpoint 2", "activity", activity, "actor", actor)
+
 	switch activity.String("type") {
 	case "Create":
 		err = ap.handleCreate(r.Context(), actor, activity)
@@ -77,9 +81,10 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 
 	if err != nil {
 		if errors.Is(err, ErrNotHandled) {
-			ap.log.Infow("unhandled request", "err", err, "activity", activity, "actor", actor)
+			ap.log.Infow("unhandled", "err", err, "activity", activity, "actor", actor)
 			ap.n.Info("activity not handled: " + err.Error())
 		} else {
+			ap.log.Errorw("unhandled", "err", err, "activity", activity, "actor", actor)
 			return http.StatusInternalServerError, err
 		}
 	}
