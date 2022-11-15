@@ -34,7 +34,7 @@ func generateKeyPair(privKeyFilename, pubKeyFilename string) error {
 	defer privKeyFile.Close()
 
 	err = pem.Encode(privKeyFile, &pem.Block{
-		Type:  "PRIVATE KEY",
+		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
 	})
 	if err != nil {
