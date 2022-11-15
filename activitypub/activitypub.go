@@ -23,6 +23,7 @@ import (
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/karlseguin/typed"
+	"github.com/thoas/go-funk"
 	"go.uber.org/zap"
 )
 
@@ -219,6 +220,11 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
 
 func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
 	if e.Listing != nil || e.Draft || e.Visibility() == eagle.VisibilityPrivate {
+		return nil
+	}
+
+	if !funk.ContainsString(e.Sections, ap.c.Site.IndexSection) {
+		// TODO: add option to configure which posts to publish.
 		return nil
 	}
 
