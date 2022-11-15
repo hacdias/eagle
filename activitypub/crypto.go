@@ -47,9 +47,14 @@ func generateKeyPair(privKeyFilename, pubKeyFilename string) error {
 	}
 	defer publicKeyFile.Close()
 
+	pubKey, err := x509.MarshalPKIXPublicKey(&privKey.PublicKey)
+	if err != nil {
+		return err
+	}
+
 	err = pem.Encode(publicKeyFile, &pem.Block{
 		Type:  "PUBLIC KEY",
-		Bytes: x509.MarshalPKCS1PublicKey(&privKey.PublicKey),
+		Bytes: pubKey,
 	})
 	if err != nil {
 		return err
