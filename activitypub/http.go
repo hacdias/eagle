@@ -139,29 +139,19 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		return ap.wm.AddOrUpdateWebmention(id, mention)
 	} else if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
 		mention := ap.mentionFromActivity(actor, activity)
-
-		links, err := webmention.DiscoverLinksFromReader(strings.NewReader(content), id, "a")
+		ids, err := ap.discoverLinksAsIDs(content)
 		if err != nil {
 			return err
 		}
 
-		links = funk.FilterString(links, func(link string) bool {
-			return strings.HasPrefix(link, ap.c.Server.BaseURL)
-		})
-
-		if len(links) == 0 {
+		if len(ids) == 0 {
 			return ErrNotHandled
 		}
 
 		var errs *multierror.Error
-
-		for _, link := range links {
-			id := strings.TrimPrefix(link, ap.c.Server.BaseURL)
-			if err == nil {
-				errs = multierror.Append(errs, ap.wm.AddOrUpdateWebmention(id, mention))
-			}
+		for _, id := range ids {
+			errs = multierror.Append(errs, ap.wm.AddOrUpdateWebmention(id, mention))
 		}
-
 		return errs.ErrorOrNil()
 	}
 
@@ -216,6 +206,43 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 		}
 
 		return ap.followers.remove(iri)
+	case "Create":
+		object := activity.Object("object")
+		if object == nil {
+			return fmt.Errorf("%w: object is not a map", ErrNotHandled)
+		}
+
+		source := object.StringOr("id", activity.String("id"))
+		if source == "" {
+			return fmt.Errorf("%w: object.id is not a map", ErrNotHandled)
+		}
+
+		reply, hasReply := object.StringIf("inReplyTo")
+		hasReply = hasReply && len(reply) > 0
+
+		content, hasContent := object.StringIf("hasContent")
+		hasContent = hasContent && len(content) > 0
+
+		if hasReply && strings.HasPrefix(reply, ap.c.Server.BaseURL) {
+			id := strings.TrimPrefix(reply, ap.c.Server.BaseURL)
+			return ap.wm.DeleteWebmention(id, source)
+		} else if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
+			ids, err := ap.discoverLinksAsIDs(content)
+			if err != nil {
+				return err
+			}
+
+			if len(ids) == 0 {
+				return ErrNotHandled
+			}
+
+			var errs *multierror.Error
+			for _, id := range ids {
+				errs = multierror.Append(errs, ap.wm.DeleteWebmention(id, source))
+			}
+			return errs.ErrorOrNil()
+		}
+
 	case "Like":
 		object := activity.Object("object")
 		if object == nil {
@@ -300,4 +327,21 @@ func (ap *ActivityPub) activityActorToXray(actor typed.Typed) xray.Author {
 	}
 
 	return author
+}
+
+func (ap *ActivityPub) discoverLinksAsIDs(body string) ([]string, error) {
+	links, err := webmention.DiscoverLinksFromReader(strings.NewReader(body), "", "a")
+	if err != nil {
+		return nil, err
+	}
+
+	links = funk.FilterString(links, func(link string) bool {
+		return strings.HasPrefix(link, ap.c.Server.BaseURL)
+	})
+
+	for i := range links {
+		links[i] = strings.TrimPrefix(links[i], ap.c.Server.BaseURL)
+	}
+
+	return links, nil
 }
