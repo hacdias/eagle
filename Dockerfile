@@ -23,7 +23,7 @@ RUN apk update && \
   apk add --no-cache git ca-certificates openssh tor tzdata && \
   addgroup -g $UID eagle && \
   adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
-  mkdir /app /app/source /app/public /app/onion /imgproxy && \
+  mkdir /app /app/source /app/public /app/onion /app/activitypub /imgproxy && \
   chown -R eagle:eagle /app /imgproxy
 
 USER eagle
@@ -35,6 +35,7 @@ WORKDIR /app
 VOLUME /app/source
 VOLUME /app/public
 VOLUME /app/onion
+VOLUME /app/activitypub
 VOLUME /imgproxy
 
 EXPOSE 8080
