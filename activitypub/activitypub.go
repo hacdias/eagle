@@ -1,6 +1,7 @@
 package activitypub
 
 import (
+	"bytes"
 	"context"
 	"crypto/rsa"
 	"fmt"
@@ -89,10 +90,17 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
 		"id":           e.Permalink,
-		"content":      string(ap.r.RenderAbsoluteMarkdown(e.Content)),
 		"url":          e.Permalink,
 		"mediaType":    contenttype.HTML,
 		"attributedTo": ap.c.Server.BaseURL,
+	}
+
+	var buf bytes.Buffer
+	err := ap.r.Render(&buf, &renderer.RenderData{Entry: e}, []string{renderer.TemplateActivityPub})
+	if err != nil {
+		activity["content"] = string(ap.r.RenderAbsoluteMarkdown(e.Content))
+	} else {
+		activity["content"] = buf.String()
 	}
 
 	if e.Title != "" {
@@ -140,6 +148,8 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 				"url":       url,
 			})
 		}
+
+		// TODO: add videos and audios.
 	}
 	if len(attachments) > 0 {
 		activity["attachment"] = attachments
