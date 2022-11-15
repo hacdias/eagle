@@ -263,7 +263,7 @@ func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *xray.Po
 			}
 		}
 
-		post.Content = xray.SanitizeContent(activity.String("content"))
+		post.Content = xray.SanitizeContent(object.String("content"))
 	}
 
 	return post
