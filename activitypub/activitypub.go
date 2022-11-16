@@ -337,6 +337,18 @@ func (ap *ActivityPub) sendAnnounce(e *eagle.Entry) {
 	go ap.sendActivityToFollowers(announce)
 }
 
+func (ap *ActivityPub) SendProfileUpdate() {
+	update := map[string]any{
+		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
+		"type":      "Update",
+		"object":    ap.self,
+		"actor":     ap.c.Server.BaseURL,
+		"published": time.Now().Format("2006-01-02T15:04:05-07:00"),
+	}
+
+	go ap.sendActivityToFollowers(update)
+}
+
 func isSuccess(code int) bool {
 	return code == http.StatusOK ||
 		code == http.StatusCreated ||

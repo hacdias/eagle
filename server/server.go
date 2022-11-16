@@ -285,6 +285,9 @@ func (s *Server) RegisterCron(schedule, name string, job func() error) error {
 
 func (s *Server) Start() error {
 	go s.indexAll()
+	if s.ap != nil {
+		go s.ap.SendProfileUpdate()
+	}
 	s.cron.Start()
 
 	errCh := make(chan error)
