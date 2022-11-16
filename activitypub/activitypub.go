@@ -132,15 +132,15 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 	}
 
 	if ap.c.Server.ActivityPub.TagTaxonomy != "" {
+		tags := []map[string]string{}
 		for _, tag := range e.Taxonomy(ap.c.Server.ActivityPub.TagTaxonomy) {
-			tags := []map[string]string{}
-
 			tags = append(tags, map[string]string{
 				"type": "Hashtag",
 				"name": tag,
 				"id":   ap.c.Server.AbsoluteURL(fmt.Sprintf("/%s/%s", ap.c.Server.ActivityPub.TagTaxonomy, tag)),
 			})
-
+		}
+		if len(tags) > 0 {
 			activity["tag"] = tags
 		}
 	}
