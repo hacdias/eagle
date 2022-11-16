@@ -23,6 +23,7 @@ import (
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
+	"github.com/hacdias/eagle/util"
 	"github.com/hacdias/eagle/webmentions"
 	"github.com/karlseguin/typed"
 	"github.com/thoas/go-funk"
@@ -130,17 +131,18 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 		activity["inReplyTo"] = e.Helper().String(e.Helper().TypeProperty())
 	}
 
-	// TODO: make this taxonomy configurable.
-	for _, tag := range e.Taxonomy("tags") {
-		tags := []map[string]string{}
+	if ap.c.Server.ActivityPub.TagTaxonomy != "" {
+		for _, tag := range e.Taxonomy(ap.c.Server.ActivityPub.TagTaxonomy) {
+			tags := []map[string]string{}
 
-		tags = append(tags, map[string]string{
-			"type": "Hashtag",
-			"name": tag,
-			"id":   ap.c.Server.AbsoluteURL(fmt.Sprintf("/tags/%s", tag)),
-		})
+			tags = append(tags, map[string]string{
+				"type": "Hashtag",
+				"name": tag,
+				"id":   ap.c.Server.AbsoluteURL(fmt.Sprintf("/%s/%s", ap.c.Server.ActivityPub.TagTaxonomy, tag)),
+			})
 
-		activity["tag"] = tags
+			activity["tag"] = tags
+		}
 	}
 
 	attachments := []map[string]string{}
@@ -192,6 +194,11 @@ func (ap *ActivityPub) initSelf() {
 		self["published"] = ap.c.User.Published.Format(time.RFC3339)
 	}
 
+	attachments := []map[string]string{
+		linkToActivity(ap.c.Server.ActivityPub.WebsitePropertyName, ap.c.Server.BaseURL),
+	}
+
+	self["attachment"] = attachments
 	ap.self = self
 }
 
@@ -380,5 +387,13 @@ func imageToActivity(url string) map[string]string {
 		"type":      "Image",
 		"mediaType": mimeType,
 		"url":       url,
+	}
+}
+
+func linkToActivity(name, url string) map[string]string {
+	return map[string]string{
+		"type":  "PropertyValue",
+		"name":  name,
+		"value": fmt.Sprintf(`<a href="%s">%s</a>`, url, util.StripScheme(url)),
 	}
 }

@@ -10,3 +10,12 @@ func Domain(text string) string {
 
 	return u.Host
 }
+
+func StripScheme(url string) string {
+	u, err := urlpkg.Parse(url)
+	if err != nil {
+		return url
+	}
+
+	return u.Host + u.Path
+}

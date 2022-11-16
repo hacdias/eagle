@@ -28,8 +28,12 @@ server:
   # Optional ActivityPub configuration"
   activitypub:
     # Data directory for the ActivityPub handling. The keys 'private.key' and 'public.key'
-    # will be automatically generated if they're not present in the directory.
+    # will be automatically generated if they're not present in the directory
     directory: /path/to/data/activity
+    # Taxonomy used as Hashtags in ActivityPub
+    tagTaxonomy: tags
+    # Name of the attachment property in your profile
+    websitePropertyName: Blog
 
 # Website source directory. It is assumed to be a Git repository.
 source:

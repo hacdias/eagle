@@ -13,12 +13,22 @@ import (
 )
 
 type ActivityPub struct {
-	Directory string
+	Directory           string
+	TagTaxonomy         string
+	WebsitePropertyName string
 }
 
 func (a *ActivityPub) validate() error {
 	if a.Directory == "" {
 		return fmt.Errorf("activitypub.directory must be set")
+	}
+
+	if a.TagTaxonomy == "" {
+		a.TagTaxonomy = "tags"
+	}
+
+	if a.WebsitePropertyName == "" {
+		a.WebsitePropertyName = "Blog"
 	}
 
 	var err error
