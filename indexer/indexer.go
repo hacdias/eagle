@@ -51,6 +51,7 @@ type Backend interface {
 	BySection(opt *Query, sections ...string) ([]string, error)
 	ByDate(opts *Query, year, month, day int) ([]string, error)
 
+	Count() (int, error)
 	CountBySection() (map[string]int, error)
 }
 
@@ -112,6 +113,10 @@ func (e *Indexer) GetUnlisted(opts *Pagination) ([]*eagle.Entry, error) {
 
 func (e *Indexer) GetPrivate(opts *Pagination, audience string) ([]*eagle.Entry, error) {
 	return e.idsToEntries(e.backend.GetPrivate(opts, audience))
+}
+
+func (e *Indexer) Count() (int, error) {
+	return e.backend.Count()
 }
 
 func (e *Indexer) CountBySection() (map[string]int, error) {

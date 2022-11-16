@@ -277,6 +277,31 @@ func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string
 	return d.queryEntries(sql, 1, args...)
 }
 
+func (d *Postgres) Count() (int, error) {
+	sql := `select count(*) from entries;`
+
+	rows, err := d.pool.Query(context.Background(), sql)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	var n int
+
+	_ = rows.Next()
+
+	err = rows.Scan(&n)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+
+	return n, nil
+}
+
 func (d *Postgres) CountBySection() (map[string]int, error) {
 	sql := `select section, COUNT(*)
 from sections inner join entries on id=entry_id

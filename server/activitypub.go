@@ -17,15 +17,10 @@ func (s *Server) activityPubInboxPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 	// TODO: integrate this somehow with the activitypub package.
-	countBySection, err := s.i.CountBySection()
+	count, err := s.i.Count()
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
-	}
-
-	total := 0
-	for _, v := range countBySection {
-		total += v
 	}
 
 	s.serveActivity(w, http.StatusOK, map[string]interface{}{
@@ -34,6 +29,6 @@ func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 		},
 		"id":         s.c.Server.AbsoluteURL("/activitypub/outbox"),
 		"type":       "OrderedCollection",
-		"totalItems": total,
+		"totalItems": count,
 	})
 }
