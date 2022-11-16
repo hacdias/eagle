@@ -364,7 +364,7 @@ func (ap *ActivityPub) SendProfileUpdate() {
 		"type":      "Update",
 		"object":    ap.self,
 		"actor":     ap.c.Server.BaseURL,
-		"published": time.Now().Format("2006-01-02T15:04:05-07:00"),
+		"published": time.Now().Format(time.RFC3339),
 	}
 
 	go ap.sendActivityToFollowers(update)
