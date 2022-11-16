@@ -179,7 +179,8 @@ func (ap *ActivityPub) initSelf() {
 			"owner":        ap.c.Server.BaseURL,
 			"publicKeyPem": ap.publicKey,
 		},
-		"inbox": ap.c.Server.AbsoluteURL("/activitypub/inbox"),
+		"inbox":  ap.c.Server.AbsoluteURL("/activitypub/inbox"),
+		"outbox": ap.c.Server.AbsoluteURL("/activitypub/outbox"),
 	}
 
 	if ap.c.User.Photo != "" {

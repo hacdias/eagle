@@ -50,6 +50,8 @@ type Backend interface {
 	ByTaxonomy(opt *Query, taxonomy, term string) ([]string, error)
 	BySection(opt *Query, sections ...string) ([]string, error)
 	ByDate(opts *Query, year, month, day int) ([]string, error)
+
+	CountBySection() (map[string]int, error)
 }
 
 type Indexer struct {
@@ -110,6 +112,10 @@ func (e *Indexer) GetUnlisted(opts *Pagination) ([]*eagle.Entry, error) {
 
 func (e *Indexer) GetPrivate(opts *Pagination, audience string) ([]*eagle.Entry, error) {
 	return e.idsToEntries(e.backend.GetPrivate(opts, audience))
+}
+
+func (e *Indexer) CountBySection() (map[string]int, error) {
+	return e.backend.CountBySection()
 }
 
 func (e *Indexer) Close() error {
