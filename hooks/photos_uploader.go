@@ -21,7 +21,7 @@ func NewPhotosUploader(fs *fs.FS, media *media.Media) *PhotosUploader {
 	}
 }
 
-func (p *PhotosUploader) EntryHook(e *eagle.Entry, isNew bool) error {
+func (p *PhotosUploader) EntryHook(_, e *eagle.Entry) error {
 	if e.Listing != nil {
 		return nil
 	}

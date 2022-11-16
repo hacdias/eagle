@@ -51,7 +51,7 @@ func NewContextFetcher(c *eagle.Config, fs *fs.FS, media *media.Media) (*Context
 	}, err
 }
 
-func (c *ContextFetcher) EntryHook(e *eagle.Entry, isNew bool) error {
+func (c *ContextFetcher) EntryHook(_, e *eagle.Entry) error {
 	return c.EnsureXRay(e, false)
 }
 

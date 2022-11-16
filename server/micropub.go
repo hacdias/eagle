@@ -133,24 +133,24 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		slug = s
 	}
 
-	ee, err := s.parser.FromMF2(mr.Properties, slug)
+	e, err := s.parser.FromMF2(mr.Properties, slug)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
 
 	if client := s.getClient(r); client != "" {
-		ee.CreatedWith = client
+		e.CreatedWith = client
 	}
 
 	if s := cmds.Strings("mp-channel"); len(s) > 0 {
-		ee.Sections = append(ee.Sections, s...)
+		e.Sections = append(e.Sections, s...)
 	}
 
-	if err := s.preSaveEntry(ee, true); err != nil {
+	if err := s.preSaveEntry(nil, e); err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	err = s.fs.SaveEntry(ee)
+	err = s.fs.SaveEntry(e)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -160,8 +160,8 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		syndicators = s
 	}
 
-	go s.postSaveEntry(ee, false, syndicators)
-	http.Redirect(w, r, s.c.Server.BaseURL+ee.ID, http.StatusAccepted)
+	go s.postSaveEntry(nil, e, syndicators)
+	http.Redirect(w, r, s.c.Server.BaseURL+e.ID, http.StatusAccepted)
 	return 0, nil
 }
 
@@ -171,31 +171,36 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	ee, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		mf := entry.MF2()
+	old, err := s.fs.GetEntry(id)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	e, err := s.fs.TransformEntry(id, func(e *eagle.Entry) (*eagle.Entry, error) {
+		mf := e.MF2()
 		props := mf["properties"].(map[string][]interface{})
 		newMf, err := micropub.Update(props, mr)
 		if err != nil {
 			return nil, err
 		}
 
-		err = entry.Update(newMf)
+		err = e.Update(newMf)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := s.preSaveEntry(entry, false); err != nil {
+		if err := s.preSaveEntry(old, e); err != nil {
 			return nil, err
 		}
 
-		return entry, nil
+		return e, nil
 	})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSaveEntry(ee, false, nil)
-	http.Redirect(w, r, ee.Permalink, http.StatusOK)
+	go s.postSaveEntry(old, e, nil)
+	http.Redirect(w, r, e.Permalink, http.StatusOK)
 	return 0, nil
 }
 
@@ -205,20 +210,23 @@ func (s *Server) micropubUndelete(w http.ResponseWriter, r *http.Request, mr *mi
 		return http.StatusBadRequest, err
 	}
 
-	entry, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		entry.Deleted = false
+	old, err := s.fs.GetEntry(id)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-		if err := s.preSaveEntry(entry, false); err != nil {
+	e, err := s.fs.TransformEntry(id, func(e *eagle.Entry) (*eagle.Entry, error) {
+		e.Deleted = false
+		if err := s.preSaveEntry(old, e); err != nil {
 			return nil, err
 		}
-
-		return entry, nil
+		return e, nil
 	})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSaveEntry(entry, false, nil)
+	go s.postSaveEntry(old, e, nil)
 	return http.StatusOK, nil
 }
 
@@ -228,20 +236,25 @@ func (s *Server) micropubDelete(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	ee, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		entry.Deleted = true
+	old, err := s.fs.GetEntry(id)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-		if err := s.preSaveEntry(entry, false); err != nil {
+	e, err := s.fs.TransformEntry(id, func(e *eagle.Entry) (*eagle.Entry, error) {
+		e.Deleted = true
+
+		if err := s.preSaveEntry(old, e); err != nil {
 			return nil, err
 		}
 
-		return entry, nil
+		return e, nil
 	})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	go s.postSaveEntry(ee, false, nil)
+	go s.postSaveEntry(old, e, nil)
 	return http.StatusOK, nil
 }
 
