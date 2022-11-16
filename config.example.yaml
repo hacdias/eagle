@@ -99,7 +99,7 @@ user:
   # The user's cover photo (used in ActivityPub).
   coverPhoto: https://example.com/amazing.jpeg
   # Your birth date or publishing time. Used in the ActivityPub profile.
-  published: 2014-07-09T14:20:47Z
+  published: 2000-01-01T00:00:00Z
   # Other identities the user may have.
   identities:
     - https://twitter.com/profile
