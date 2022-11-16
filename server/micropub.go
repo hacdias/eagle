@@ -172,10 +172,6 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	ee, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
-		if err := s.preSaveEntry(entry, false); err != nil {
-			return nil, err
-		}
-
 		mf := entry.MF2()
 		props := mf["properties"].(map[string][]interface{})
 		newMf, err := micropub.Update(props, mr)
@@ -185,6 +181,10 @@ func (s *Server) micropubUpdate(w http.ResponseWriter, r *http.Request, mr *micr
 
 		err = entry.Update(newMf)
 		if err != nil {
+			return nil, err
+		}
+
+		if err := s.preSaveEntry(entry, false); err != nil {
 			return nil, err
 		}
 
@@ -206,11 +206,12 @@ func (s *Server) micropubUndelete(w http.ResponseWriter, r *http.Request, mr *mi
 	}
 
 	entry, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		entry.Deleted = false
+
 		if err := s.preSaveEntry(entry, false); err != nil {
 			return nil, err
 		}
 
-		entry.Deleted = false
 		return entry, nil
 	})
 	if err != nil {
@@ -228,11 +229,12 @@ func (s *Server) micropubDelete(w http.ResponseWriter, r *http.Request, mr *micr
 	}
 
 	ee, err := s.fs.TransformEntry(id, func(entry *eagle.Entry) (*eagle.Entry, error) {
+		entry.Deleted = true
+
 		if err := s.preSaveEntry(entry, false); err != nil {
 			return nil, err
 		}
 
-		entry.Deleted = true
 		return entry, nil
 	})
 	if err != nil {
