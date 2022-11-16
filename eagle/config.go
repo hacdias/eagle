@@ -5,6 +5,7 @@ import (
 	"fmt"
 	urlpkg "net/url"
 	"path/filepath"
+	"time"
 
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/spf13/viper"
@@ -227,6 +228,7 @@ type User struct {
 	Email      string
 	Photo      string
 	CoverPhoto string
+	Published  time.Time
 	Identities []string
 }
 

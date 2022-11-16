@@ -188,6 +188,10 @@ func (ap *ActivityPub) initSelf() {
 		self["image"] = imageToActivity(ap.c.User.CoverPhoto)
 	}
 
+	if !ap.c.User.Published.IsZero() {
+		self["published"] = ap.c.User.Published.Format(time.RFC3339)
+	}
+
 	ap.self = self
 }
 
