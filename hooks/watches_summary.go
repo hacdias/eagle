@@ -45,7 +45,7 @@ const (
 	watchesSummaryTagEnd   = "<!--/WATCHES-->"
 )
 
-func (u *WatchesSummaryUpdater) EntryHook(e *eagle.Entry, isNew bool) error {
+func (u *WatchesSummaryUpdater) EntryHook(_, e *eagle.Entry) error {
 	if e.Helper().PostType() == mf2.TypeWatch {
 		return u.UpdateWatchesSummary()
 	}

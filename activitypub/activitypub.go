@@ -231,28 +231,36 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
 	ap.sendActivity(activity, inboxes)
 }
 
-func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
-	if e.Listing != nil || e.Draft || e.Visibility() != eagle.VisibilityPublic {
+func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
+	if e == nil {
+		return false
+	}
+
+	return !e.Draft &&
+		!e.Deleted &&
+		funk.ContainsString(e.Sections, ap.c.Site.IndexSection) &&
+		e.Visibility() == eagle.VisibilityPublic
+}
+
+func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
+	// New Post
+	if old == nil || (!ap.canBePosted(old) && ap.canBePosted(new)) {
+		ap.sendCreate(new)
+
+		if new.Helper().PostType() == mf2.TypeRead {
+			ap.sendAnnounce(new)
+		}
+
 		return nil
 	}
 
-	if !funk.ContainsString(e.Sections, ap.c.Site.IndexSection) {
-		// TODO: add option to configure which posts to publish.
-		return nil
-	}
-
-	if e.Deleted {
-		ap.sendDelete(e.Permalink)
-		return nil
-	} else if isNew {
-		ap.sendCreate(e)
+	if ap.canBePosted(old) && !ap.canBePosted(new) {
+		ap.sendDelete(new.Permalink)
+	} else if old.ID != new.ID {
+		ap.sendDelete(old.Permalink)
+		ap.sendCreate(new)
 	} else {
-		ap.sendCreate(e)
-		ap.sendUpdate(e)
-	}
-
-	if e.Helper().PostType() == mf2.TypeRead {
-		ap.sendAnnounce(e)
+		ap.sendUpdate(new)
 	}
 
 	return nil

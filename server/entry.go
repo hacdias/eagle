@@ -72,27 +72,27 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee, err := s.parser.FromRaw(id, content)
+	e, err := s.parser.FromRaw(id, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	ee.CreatedWith = s.c.ID()
+	e.CreatedWith = s.c.ID()
 
-	if err := s.preSaveEntry(ee, true); err != nil {
+	if err := s.preSaveEntry(nil, e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	err = s.fs.SaveEntry(ee)
+	err = s.fs.SaveEntry(e)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	go s.postSaveEntry(ee, true, r.Form["syndication"])
-	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
+	go s.postSaveEntry(nil, e, r.Form["syndication"])
+	http.Redirect(w, r, e.ID, http.StatusSeeOther)
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +156,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee, err := s.fs.GetEntry(id)
+	old, err := s.fs.GetEntry(id)
 	if os.IsNotExist(err) {
 		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
@@ -168,7 +168,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ee, err = s.parser.FromRaw(ee.ID, content)
+	e, err := s.parser.FromRaw(old.ID, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -176,22 +176,22 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 
 	lastmod := r.FormValue("lastmod") == "on"
 	if lastmod {
-		ee.Updated = time.Now().Local()
+		e.Updated = time.Now().Local()
 	}
 
-	if err := s.preSaveEntry(ee, false); err != nil {
+	if err := s.preSaveEntry(old, e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	err = s.fs.SaveEntry(ee)
+	err = s.fs.SaveEntry(e)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	go s.postSaveEntry(ee, false, r.Form["syndication"])
-	http.Redirect(w, r, ee.ID, http.StatusSeeOther)
+	go s.postSaveEntry(old, e, r.Form["syndication"])
+	http.Redirect(w, r, e.ID, http.StatusSeeOther)
 }
 
 func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {

@@ -8,7 +8,7 @@ import (
 
 type TagsSanitizer struct{}
 
-func (t TagsSanitizer) EntryHook(e *eagle.Entry, isNew bool) error {
+func (t TagsSanitizer) EntryHook(_, e *eagle.Entry) error {
 	if tags, ok := e.Taxonomies["tags"]; ok {
 		for i := range tags {
 			tags[i] = util.Slugify(tags[i])

@@ -7,9 +7,9 @@ import (
 // preSaveEntry runs pre saving hooks. These hooks are blocking and they stop
 // at the first error. All changes made to the entry in these hooks is saved
 // by the caller.
-func (s *Server) preSaveEntry(e *eagle.Entry, isNew bool) error {
+func (s *Server) preSaveEntry(old, new *eagle.Entry) error {
 	for _, hook := range s.preSaveHooks {
-		err := hook.EntryHook(e, isNew)
+		err := hook.EntryHook(old, new)
 		if err != nil {
 			return err
 		}
@@ -21,20 +21,21 @@ func (s *Server) preSaveEntry(e *eagle.Entry, isNew bool) error {
 // postSaveEntry runs post saving hooks. These hooks are non-blocking and the error
 // of one does not prevent the execution of others. The implementer should be careful
 // to make sure they save the changes.
-func (s *Server) postSaveEntry(e *eagle.Entry, isNew bool, syndicators []string) {
-	err := s.syndicate(e, syndicators)
+func (s *Server) postSaveEntry(old, new *eagle.Entry, syndicators []string) {
+	err := s.syndicate(new, syndicators)
 	if err != nil {
 		s.n.Error(err)
 	}
 
 	for _, hook := range s.postSaveHooks {
-		err := hook.EntryHook(e, isNew)
+		err := hook.EntryHook(old, new)
 		if err != nil {
 			s.n.Error(err)
 		}
 	}
 
-	s.cache.Delete(e)
+	s.cache.Delete(old)
+	s.cache.Delete(new)
 }
 
 func (s *Server) syndicate(e *eagle.Entry, syndicators []string) error {

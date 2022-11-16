@@ -1,5 +1,5 @@
 package eagle
 
 type EntryHook interface {
-	EntryHook(e *Entry, isNew bool) error
+	EntryHook(old, new *Entry) error
 }

@@ -29,7 +29,7 @@ func NewLocationFetcher(fs *fs.FS, language string) *LocationFetcher {
 	}
 }
 
-func (l *LocationFetcher) EntryHook(e *eagle.Entry, isNew bool) error {
+func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
 	if e.Listing != nil {
 		return nil
 	}

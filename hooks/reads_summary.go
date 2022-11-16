@@ -89,7 +89,7 @@ func NewReadsSummaryUpdater(fs *fs.FS, provider ReadsSummaryProvider) *ReadsSumm
 	}
 }
 
-func (u *ReadsSummaryUpdater) EntryHook(e *eagle.Entry, isNew bool) error {
+func (u *ReadsSummaryUpdater) EntryHook(_, e *eagle.Entry) error {
 	if e.Helper().PostType() == mf2.TypeRead {
 		return u.UpdateReadsSummary()
 	}
