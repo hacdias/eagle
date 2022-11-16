@@ -181,7 +181,7 @@ func (ap *ActivityPub) initSelf() {
 	}
 
 	if ap.c.User.Photo != "" {
-		self["image"] = imageToActivity(ap.c.User.Photo)
+		self["icon"] = imageToActivity(ap.c.User.Photo)
 	}
 
 	if ap.c.User.CoverPhoto != "" {
