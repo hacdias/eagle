@@ -247,6 +247,7 @@ func (ap *ActivityPub) EntryHook(e *eagle.Entry, isNew bool) error {
 	} else if isNew {
 		ap.sendCreate(e)
 	} else {
+		ap.sendCreate(e)
 		ap.sendUpdate(e)
 	}
 
