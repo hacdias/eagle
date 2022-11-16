@@ -36,6 +36,9 @@ func NewPostgres(cfg *eagle.PostgreSQL) (*Postgres, error) {
 		return nil, err
 	}
 
+	// Truncate table to keep records clean.
+	_, _ = pool.Exec(context.Background(), "truncate entries cascade")
+
 	return &Postgres{pool}, nil
 }
 
