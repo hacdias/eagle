@@ -247,22 +247,22 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	// New Post
 	if old == nil || (!ap.canBePosted(old) && ap.canBePosted(new)) {
-		ap.sendCreate(new)
+		ap.SendCreate(new)
 
 		if new.Helper().PostType() == mf2.TypeRead {
-			ap.sendAnnounce(new)
+			ap.SendAnnounce(new)
 		}
 
 		return nil
 	}
 
 	if ap.canBePosted(old) && !ap.canBePosted(new) {
-		ap.sendDelete(new.Permalink)
+		ap.SendDelete(new.Permalink)
 	} else if old.ID != new.ID {
-		ap.sendDelete(old.Permalink)
-		ap.sendCreate(new)
+		ap.SendDelete(old.Permalink)
+		ap.SendCreate(new)
 	} else {
-		ap.sendUpdate(new)
+		ap.SendUpdate(new)
 	}
 
 	return nil
@@ -283,7 +283,7 @@ func (ap *ActivityPub) sendAccept(activity typed.Typed, inbox string) {
 	go ap.sendActivity(accept, []string{inbox})
 }
 
-func (ap *ActivityPub) sendCreate(e *eagle.Entry) {
+func (ap *ActivityPub) SendCreate(e *eagle.Entry) {
 	activity := ap.GetEntry(e)
 
 	create := map[string]interface{}{
@@ -302,7 +302,7 @@ func (ap *ActivityPub) sendCreate(e *eagle.Entry) {
 	go ap.sendActivityToFollowers(create)
 }
 
-func (ap *ActivityPub) sendUpdate(e *eagle.Entry) {
+func (ap *ActivityPub) SendUpdate(e *eagle.Entry) {
 	activity := ap.GetEntry(e)
 
 	update := map[string]interface{}{
@@ -325,7 +325,7 @@ func (ap *ActivityPub) sendUpdate(e *eagle.Entry) {
 	go ap.sendActivityToFollowers(update)
 }
 
-func (ap *ActivityPub) sendDelete(permalink string) {
+func (ap *ActivityPub) SendDelete(permalink string) {
 	create := map[string]interface{}{
 		"@context": []string{"https://www.w3.org/ns/activitystreams"},
 		"type":     "Delete",
@@ -337,7 +337,7 @@ func (ap *ActivityPub) sendDelete(permalink string) {
 	go ap.sendActivityToFollowers(create)
 }
 
-func (ap *ActivityPub) sendAnnounce(e *eagle.Entry) {
+func (ap *ActivityPub) SendAnnounce(e *eagle.Entry) {
 	activity := ap.GetEntry(e)
 
 	announce := map[string]interface{}{

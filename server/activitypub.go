@@ -32,3 +32,35 @@ func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 		"totalItems": count,
 	})
 }
+
+func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "id is missing")
+		return
+	}
+
+	e, err := s.fs.GetEntry(id)
+	if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		return
+	}
+
+	action := r.URL.Query().Get("action")
+
+	switch action {
+	case "create":
+		s.ap.SendCreate(e)
+	case "update":
+		s.ap.SendUpdate(e)
+	case "announce":
+		s.ap.SendAnnounce(e)
+	case "delete":
+		s.ap.SendDelete(e.ID)
+	default:
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "invalid action")
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}

@@ -93,6 +93,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.mustLoggedIn)
 		r.Use(s.mustAdmin)
 
+		if s.ap != nil {
+			r.Post("/activity/hook", s.activityPubHookPost)
+		}
+
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
 
