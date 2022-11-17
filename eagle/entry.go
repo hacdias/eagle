@@ -203,6 +203,7 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 
 	if category, others := getCategoryStrings(props); len(category)+len(others) > 0 {
 		if len(category) > 0 {
+			// TODO: make 'tags' customizable.
 			e.Taxonomies["tags"] = funk.UniqString(append(e.Taxonomy("tags"), category...))
 		}
 

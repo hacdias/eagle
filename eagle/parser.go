@@ -16,7 +16,10 @@ func NewParser(baseURL string) *Parser {
 
 func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry, error) {
 	entry := &Entry{
-		FrontMatter: FrontMatter{},
+		FrontMatter: FrontMatter{
+			Properties: map[string]interface{}{},
+			Taxonomies: map[string][]string{},
+		},
 	}
 
 	err := entry.Update(mf2Data)
@@ -27,14 +30,6 @@ func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry,
 	id := NewID(slug, entry.Published)
 	entry.ID = cleanID(id)
 	entry.Permalink, err = p.makePermalink(entry.ID)
-
-	if entry.Properties == nil {
-		entry.Properties = map[string]interface{}{}
-	}
-
-	if entry.Taxonomies == nil {
-		entry.Taxonomies = map[string][]string{}
-	}
 
 	return entry, err
 }
