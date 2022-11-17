@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 )
 
@@ -36,13 +37,13 @@ func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "id is missing")
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("id is missing"))
 		return
 	}
 
 	e, err := s.fs.GetEntry(id)
 	if err != nil {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -58,9 +59,9 @@ func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
 	case "delete":
 		s.ap.SendDelete(e.ID)
 	default:
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "invalid action")
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("invalid action"))
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
+	http.Redirect(w, r, e.Permalink, http.StatusSeeOther)
 }
