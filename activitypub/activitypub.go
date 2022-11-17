@@ -246,7 +246,7 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 
 func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	// New Post
-	if old == nil || (!ap.canBePosted(old) && ap.canBePosted(new)) {
+	if !ap.canBePosted(old) && ap.canBePosted(new) {
 		ap.SendCreate(new)
 
 		if new.Helper().PostType() == mf2.TypeRead {
