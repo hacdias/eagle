@@ -208,6 +208,8 @@ func (ap *ActivityPub) getSelfKeyID() string {
 }
 
 func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
+	ap.log.Debugw("sending to followers", "activity", activity, "inboxes", inboxes)
+
 	// TODO: move this to a queue that retries _n_ time in case of failures. Queue
 	// handler can have a ticking time of time.Second.
 	for i, inbox := range inboxes {
@@ -228,7 +230,6 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
 	for _, inbox := range followers {
 		inboxes = append(inboxes, inbox)
 	}
-	ap.log.Debugw("sending to followers", "activity", activity, "followers", followers)
 	ap.sendActivity(activity, inboxes)
 }
 
