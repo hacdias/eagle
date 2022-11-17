@@ -34,7 +34,10 @@ func (s *Server) postSaveEntry(old, new *eagle.Entry, syndicators []string) {
 		}
 	}
 
-	s.cache.Delete(old)
+	if old != nil {
+		s.cache.Delete(old)
+	}
+
 	s.cache.Delete(new)
 }
 
