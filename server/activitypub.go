@@ -35,7 +35,13 @@ func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	err := r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	id := r.Form.Get("id")
 	if id == "" {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("id is missing"))
 		return
@@ -47,7 +53,7 @@ func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	action := r.URL.Query().Get("action")
+	action := r.Form.Get("action")
 
 	switch action {
 	case "create":
