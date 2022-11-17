@@ -93,10 +93,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.mustLoggedIn)
 		r.Use(s.mustAdmin)
 
-		if s.ap != nil {
-			r.Post("/activity/hook", s.activityPubHookPost)
-		}
-
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
 
@@ -105,6 +101,10 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/dashboard", s.dashboardGet)
 		r.Post("/dashboard", s.dashboardPost)
+
+		if s.ap != nil {
+			r.Post("/dashboard/activitypub", s.activityPubHookPost)
+		}
 
 		r.Get("/deleted", s.deletedGet)
 		r.Get("/drafts", s.draftsGet)
