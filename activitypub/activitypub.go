@@ -245,24 +245,25 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 }
 
 func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
-	// New Post
-	if !ap.canBePosted(old) && ap.canBePosted(new) {
-		ap.SendCreate(new)
-
-		if new.Helper().PostType() == mf2.TypeRead {
-			ap.SendAnnounce(new)
+	if ap.canBePosted(old) {
+		if !ap.canBePosted(new) {
+			ap.SendDelete(new.Permalink)
+		} else if old.ID != new.ID {
+			ap.SendDelete(old.Permalink)
+			ap.SendCreate(new)
+		} else {
+			ap.SendUpdate(new)
 		}
-
-		return nil
-	}
-
-	if ap.canBePosted(old) && !ap.canBePosted(new) {
-		ap.SendDelete(new.Permalink)
-	} else if old.ID != new.ID {
-		ap.SendDelete(old.Permalink)
-		ap.SendCreate(new)
 	} else {
-		ap.SendUpdate(new)
+		if ap.canBePosted(new) {
+			ap.SendCreate(new)
+
+			if new.Helper().PostType() == mf2.TypeRead {
+				ap.SendAnnounce(new)
+			}
+
+			return nil
+		}
 	}
 
 	return nil
