@@ -223,12 +223,12 @@ func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
 }
 
 func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
-	ap.log.Infow("sending to followers", "activity", activity)
 	followers := ap.followers.getAll()
 	inboxes := []string{}
 	for _, inbox := range followers {
 		inboxes = append(inboxes, inbox)
 	}
+	ap.log.Debugw("sending to followers", "activity", activity, "followers", followers)
 	ap.sendActivity(activity, inboxes)
 }
 

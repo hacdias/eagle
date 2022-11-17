@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -33,6 +34,9 @@ func init() {
 	}
 
 	level := zap.NewAtomicLevelAt(zapcore.InfoLevel)
+	if os.Getenv("DEBUG") != "" {
+		level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
+	}
 
 	stdout := sout
 	stderr := serr
