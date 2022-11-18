@@ -54,6 +54,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 		return http.StatusForbidden, errors.New("request actor and activity actor do not match")
 	}
 
+	ap.log.Debugw("will handle", "activity", activity, "actor", actor)
+
 	switch activity.String("type") {
 	case "Create":
 		err = ap.handleCreate(r.Context(), actor, activity)
