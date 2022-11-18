@@ -255,7 +255,7 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 			return errs.ErrorOrNil()
 		}
 
-	case "Like":
+	case "Like", "Announce":
 		object := activity.Object("object")
 		if object == nil {
 			return fmt.Errorf("%w: object is not a map", ErrNotHandled)
