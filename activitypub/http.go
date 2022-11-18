@@ -59,8 +59,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	switch activity.String("type") {
 	case "Create":
 		err = ap.handleCreate(r.Context(), actor, activity)
-	case "Update":
-		err = ap.handleDelete(r.Context(), actor, activity)
+	// case "Update":
+	// 	err = ap.handleUpdate(r.Context(), actor, activity)
 	case "Delete":
 		err = ap.handleDelete(r.Context(), actor, activity)
 	case "Follow":
