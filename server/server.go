@@ -238,7 +238,17 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	if c.Server.ActivityPub != nil {
-		s.ap, err = activitypub.NewActivityPub(c, s.renderer, s.fs, s.n, s.webmentions, s.media)
+		options := &activitypub.Options{
+			Config:      c,
+			Renderer:    s.renderer,
+			FS:          s.fs,
+			Notifier:    s.n,
+			Webmentions: s.webmentions,
+			Media:       s.media,
+			Store:       postgres,
+		}
+
+		s.ap, err = activitypub.NewActivityPub(options)
 		if err != nil {
 			return nil, err
 		}
@@ -287,7 +297,7 @@ func (s *Server) Start() error {
 	go func() {
 		s.indexAll()
 		if s.ap != nil {
-			s.ap.SendProfileUpdate()
+			_ = s.ap.SendProfileUpdate()
 		}
 	}()
 

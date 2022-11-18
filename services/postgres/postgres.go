@@ -541,3 +541,104 @@ func (d *Postgres) Close() error {
 	d.pool.Close()
 	return nil
 }
+
+func (d *Postgres) AddActivityPubFollower(iri, inbox string) error {
+	_, err := d.pool.Exec(context.Background(), "insert into activitypub_followers(iri, inbox) values($1, $2) on conflict (iri) do update set inbox=$2", iri, inbox)
+	return err
+}
+
+func (d *Postgres) GetActivityPubFollower(iri string) (string, error) {
+	rows, err := d.pool.Query(context.Background(), "select inbox from activitypub_followers where iri=$1", iri)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", nil
+		}
+
+		return "", err
+	}
+	defer rows.Close()
+
+	var inbox string
+	ok := rows.Next()
+	if !ok {
+		return "", nil
+	}
+
+	err = rows.Scan(&inbox)
+	if err != nil {
+		return "", err
+	}
+	if err := rows.Err(); err != nil {
+		return "", err
+	}
+	return inbox, nil
+}
+
+func (d *Postgres) GetActivityPubFollowers() (map[string]string, error) {
+	rows, err := d.pool.Query(context.Background(), "select iri, inbox from activitypub_followers")
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return map[string]string{}, nil
+		}
+
+		return nil, err
+	}
+	defer rows.Close()
+
+	followers := map[string]string{}
+
+	for rows.Next() {
+		var (
+			iri   string
+			inbox string
+		)
+		err := rows.Scan(&iri, &inbox)
+		if err != nil {
+			return nil, err
+		}
+
+		followers[iri] = inbox
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return followers, nil
+}
+
+func (d *Postgres) DeleteActivityPubFollower(iri string) error {
+	_, err := d.pool.Exec(context.Background(), "delete from activitypub_followers where iri=$1", iri)
+	return err
+}
+
+func (d *Postgres) AddActivityPubLink(entry, activity string) error {
+	_, err := d.pool.Exec(context.Background(), "insert into activitypub_links(entry_id, object_id) values($1, $2) on conflict do nothing;", entry, activity)
+	return err
+}
+
+func (d *Postgres) GetActivityPubLinks(iri string) ([]string, error) {
+	rows, err := d.pool.Query(context.Background(), "select object_id from activitypub_links where entry_id=$1", iri)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []string{}, nil
+		}
+
+		return nil, err
+	}
+	defer rows.Close()
+
+	entries := []string{}
+
+	for rows.Next() {
+		var entry string
+		err := rows.Scan(&entry)
+		if err != nil {
+			return nil, err
+		}
+
+		entries = append(entries, entry)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return entries, nil
+}

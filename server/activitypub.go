@@ -57,15 +57,19 @@ func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "create":
-		s.ap.SendCreate(e)
+		err = s.ap.SendCreate(e)
 	case "update":
-		s.ap.SendUpdate(e)
+		err = s.ap.SendUpdate(e)
 	case "announce":
-		s.ap.SendAnnounce(e)
+		err = s.ap.SendAnnounce(e)
 	case "delete":
-		s.ap.SendDelete(e.ID)
+		err = s.ap.SendDelete(e.ID)
 	default:
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("invalid action"))
+		err = errors.New("invalid action")
+	}
+
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
