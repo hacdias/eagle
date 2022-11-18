@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"mime"
 
@@ -260,36 +261,60 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 		return false
 	}
 
+	postType := e.Helper().PostType()
+
 	return !e.Draft &&
 		!e.Deleted &&
-		funk.ContainsString(e.Sections, ap.c.Site.IndexSection) &&
-		e.Visibility() == eagle.VisibilityPublic
+		e.Visibility() != eagle.VisibilityPrivate &&
+		(funk.ContainsString(e.Sections, ap.c.Site.IndexSection) ||
+			postType == mf2.TypeLike ||
+			postType == mf2.TypeRepost)
 }
 
 func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	if ap.canBePosted(old) {
-		if !ap.canBePosted(new) {
-			return ap.SendDelete(new.Permalink)
-		} else if old.ID != new.ID {
-			return multierror.
-				Append(ap.SendDelete(old.Permalink), ap.SendCreate(new)).
-				ErrorOrNil()
+		if old.ID == new.ID {
+			if ap.canBePosted(new) {
+				return ap.SendUpdate(new)
+			} else {
+				return ap.sendDeletedEntry(new)
+			}
 		} else {
-			return ap.SendUpdate(new)
+			if ap.canBePosted(new) {
+				return multierror.
+					Append(ap.sendDeletedEntry(old), ap.sendNewEntry(new)).
+					ErrorOrNil()
+			} else {
+				return ap.sendDeletedEntry(old)
+			}
 		}
 	} else {
 		if ap.canBePosted(new) {
-			errs := multierror.Append(ap.SendCreate(new))
-
-			if new.Helper().PostType() == mf2.TypeRead {
-				errs = multierror.Append(errs, ap.SendAnnounce(new))
-			}
-
-			return errs.ErrorOrNil()
+			return ap.sendNewEntry(new)
 		}
 	}
 
 	return nil
+}
+
+func (ap *ActivityPub) sendDeletedEntry(e *eagle.Entry) error {
+	switch e.Helper().PostType() {
+	case mf2.TypeLike, mf2.TypeRepost:
+		return ap.SendUndo(e)
+	default:
+		return ap.SendDelete(e.Permalink)
+	}
+}
+
+func (ap *ActivityPub) sendNewEntry(e *eagle.Entry) error {
+	switch e.Helper().PostType() {
+	case mf2.TypeLike:
+		return ap.SendLike(e)
+	case mf2.TypeRepost:
+		return ap.SendAnnounce(e)
+	default:
+		return ap.SendCreate(e)
+	}
 }
 
 func (ap *ActivityPub) sendAccept(activity typed.Typed, inbox string) {
@@ -362,23 +387,57 @@ func (ap *ActivityPub) SendDelete(permalink string) error {
 }
 
 func (ap *ActivityPub) SendAnnounce(e *eagle.Entry) error {
-	activity := ap.GetEntry(e)
+	if e.Helper().PostType() != mf2.TypeRepost {
+		return errors.New("can only announce reposts")
+	}
 
 	announce := map[string]interface{}{
 		"@context": []string{"https://www.w3.org/ns/activitystreams"},
 		"type":     "Announce",
-		"id":       activity.String("id") + "#announce",
-		"to":       activity["to"],
-		"object":   activity,
-		"actor":    ap.c.Server.BaseURL,
+		"id":       e.Permalink,
+		"to": []string{
+			"https://www.w3.org/ns/activitystreams#Public",
+		},
+		"object": e.Helper().String(e.Helper().TypeProperty()),
+		"actor":  ap.c.Server.BaseURL,
 	}
 
-	if published, ok := activity["published"]; ok {
-		announce["published"] = published
+	return ap.sendActivityToFollowers(announce)
+}
+
+func (ap *ActivityPub) SendLike(e *eagle.Entry) error {
+	if e.Helper().PostType() != mf2.TypeLike {
+		return errors.New("can only send like for like posts")
 	}
 
-	if updated, ok := activity["updated"]; ok {
-		announce["updated"] = updated
+	announce := map[string]interface{}{
+		"@context": []string{"https://www.w3.org/ns/activitystreams"},
+		"type":     "Like",
+		"id":       e.Permalink,
+		"to": []string{
+			"https://www.w3.org/ns/activitystreams#Public",
+		},
+		"object": e.Helper().String(e.Helper().TypeProperty()),
+		"actor":  ap.c.Server.BaseURL,
+	}
+
+	return ap.sendActivityToFollowers(announce)
+}
+
+func (ap *ActivityPub) SendUndo(e *eagle.Entry) error {
+	if e.Helper().PostType() != mf2.TypeLike || e.Helper().PostType() != mf2.TypeRepost {
+		return errors.New("can only send undo for likes and reposts")
+	}
+
+	announce := map[string]interface{}{
+		"@context": []string{"https://www.w3.org/ns/activitystreams"},
+		"type":     "Undo",
+		"id":       e.Permalink + "#undo",
+		"to": []string{
+			"https://www.w3.org/ns/activitystreams#Public",
+		},
+		"object": e.Helper().String(e.Helper().TypeProperty()),
+		"actor":  ap.c.Server.BaseURL,
 	}
 
 	return ap.sendActivityToFollowers(announce)
