@@ -151,7 +151,7 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 	if objectStr, ok := activity.StringIf("object"); ok {
 		object = objectStr
 	} else if objectMap, ok := activity.ObjectIf("object"); ok {
-		if objectStr, ok := objectMap.StringIf("object"); ok {
+		if objectStr, ok := objectMap.StringIf("id"); ok {
 			object = objectStr
 		} else {
 			return errors.New("activity.object has no id")
