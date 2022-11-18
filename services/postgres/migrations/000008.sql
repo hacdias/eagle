@@ -1,5 +1,5 @@
 create table activitypub_links (
-  entry_id text not null references entries(id) on delete cascade,
+  entry_id text not null,
   object_id text not null
 );
 
