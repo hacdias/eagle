@@ -297,7 +297,7 @@ func (s *Server) Start() error {
 	go func() {
 		s.indexAll()
 		if s.ap != nil {
-			s.ap.SendProfileUpdate()
+			_ = s.ap.SendProfileUpdate()
 		}
 	}()
 
