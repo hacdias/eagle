@@ -90,22 +90,6 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed.Typed) error {
-	permalink := activity.String("object")
-	if permalink == "" {
-		return fmt.Errorf("announcement object is not present or is not string")
-	}
-
-	if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
-		return fmt.Errorf("announcement destined for someone else")
-	}
-
-	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
-	mention := ap.mentionFromActivity(actor, activity)
-	mention.Type = mf2.TypeRepost
-	return ap.wm.AddOrUpdateWebmention(id, mention)
-}
-
 func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
 	iri, ok := activity.StringIf("actor")
 	if !ok || len(iri) == 0 {
@@ -173,18 +157,26 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 }
 
 func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typed) error {
+	return ap.handleLikeAnnounce(ctx, actor, activity, mf2.TypeLike)
+}
+
+func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed.Typed) error {
+	return ap.handleLikeAnnounce(ctx, actor, activity, mf2.TypeRepost)
+}
+
+func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity typed.Typed, postType mf2.Type) error {
 	permalink := activity.String("object")
 	if permalink == "" {
-		return fmt.Errorf("like object is not present or is not string")
+		return fmt.Errorf("object is not present or is not string")
 	}
 
 	if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
-		return fmt.Errorf("like destined for someone else")
+		return fmt.Errorf("activity destined for someone else")
 	}
 
 	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
 	mention := ap.mentionFromActivity(actor, activity)
-	mention.Type = mf2.TypeLike
+	mention.Type = postType
 	return ap.wm.AddOrUpdateWebmention(id, mention)
 }
 
