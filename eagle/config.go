@@ -254,16 +254,6 @@ func (u *User) validate() error {
 	return nil
 }
 
-func (m *Micropub) validate() error {
-	for mf2Type := range m.Sections {
-		if !mf2.IsType(mf2Type) {
-			return fmt.Errorf("%s is not a valid micropub type", mf2Type)
-		}
-	}
-
-	return nil
-}
-
 type Syndication struct {
 	Twitter bool
 	Reddit  bool
@@ -296,6 +286,16 @@ func (m *Micropub) AllowedTypes() []mf2.Type {
 		allowedTypes = append(allowedTypes, typ)
 	}
 	return allowedTypes
+}
+
+func (m *Micropub) validate() error {
+	for mf2Type := range m.Sections {
+		if !mf2.IsType(mf2Type) {
+			return fmt.Errorf("%s is not a valid micropub type", mf2Type)
+		}
+	}
+
+	return nil
 }
 
 type Webmentions struct {
