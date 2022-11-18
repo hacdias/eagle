@@ -111,6 +111,7 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		}
 	}
 
+	ap.n.Info(fmt.Sprintf("☃️ %s followed you!", iri))
 	ap.sendAccept(activity, inbox)
 	return nil
 }
