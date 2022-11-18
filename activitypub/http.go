@@ -116,7 +116,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		if err != nil {
 			return err
 		}
-		return ap.store.AddActivityPubLink(mention.ID, id)
+		return ap.store.AddActivityPubLink(id, mention.ID)
 	}
 
 	// Activity is some sort of mention.
@@ -135,7 +135,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		for _, id := range ids {
 			err = ap.wm.AddOrUpdateWebmention(id, mention)
 			if err == nil {
-				err = ap.store.AddActivityPubLink(mention.ID, id)
+				err = ap.store.AddActivityPubLink(id, mention.ID)
 			}
 			errs = multierror.Append(errs, err)
 		}
@@ -164,7 +164,7 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return errors.New("activity.object is string or map, but has no id")
 	}
 
-	entries, err := ap.store.GetActivityPubLink(object)
+	entries, err := ap.store.GetActivityPubLinks(object)
 	if err != nil {
 		return err
 	} else if len(entries) != 0 {
@@ -228,12 +228,12 @@ func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity t
 	if err != nil {
 		return err
 	}
-	return ap.store.AddActivityPubLink(mention.ID, id)
+	return ap.store.AddActivityPubLink(id, mention.ID)
 }
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
 	if object, ok := activity.StringIf("object"); ok {
-		entries, err := ap.store.GetActivityPubLink(object)
+		entries, err := ap.store.GetActivityPubLinks(object)
 		if err != nil {
 			return err
 		}

@@ -36,10 +36,18 @@ type ActivityPubStorage interface {
 	GetActivityPubFollower(iri string) (string, error)
 	GetActivityPubFollowers() (map[string]string, error)
 	DeleteActivityPubFollower(iri string) error
+	AddActivityPubLink(entry, activity string) error
+	GetActivityPubLinks(iri string) ([]string, error)
+}
 
-	AddActivityPubLink(activity, entry string) error
-	GetActivityPubLink(iri string) ([]string, error)
-	DeleteActivityPubLink(activity string) error
+type ActivityPubOptions struct {
+	Config      *eagle.Config
+	Renderer    *renderer.Renderer
+	FS          *fs.FS
+	Notifier    eagle.Notifier
+	Webmentions *webmentions.Webmentions
+	Media       *media.Media
+	Store       ActivityPubStorage
 }
 
 type ActivityPub struct {
@@ -59,14 +67,15 @@ type ActivityPub struct {
 	store      ActivityPubStorage
 }
 
-func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.Notifier, wm *webmentions.Webmentions, m *media.Media) (*ActivityPub, error) {
+func NewActivityPub(options *ActivityPubOptions) (*ActivityPub, error) {
 	a := &ActivityPub{
-		c:     c,
-		r:     r,
-		fs:    fs,
-		n:     n,
-		media: m,
-		wm:    wm,
+		c:     options.Config,
+		r:     options.Renderer,
+		fs:    options.FS,
+		n:     options.Notifier,
+		media: options.Media,
+		wm:    options.Webmentions,
+		store: options.Store,
 		log:   log.S().Named("activitypub"),
 
 		httpClient: &http.Client{
@@ -76,7 +85,7 @@ func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.No
 
 	var err error
 
-	a.privKey, a.publicKey, err = getKeyPair(c.Server.ActivityPub.Directory)
+	a.privKey, a.publicKey, err = getKeyPair(a.c.Server.ActivityPub.Directory)
 	if err != nil {
 		return nil, err
 	}
