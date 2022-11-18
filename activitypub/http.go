@@ -90,29 +90,6 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
-	iri, ok := activity.StringIf("actor")
-	if !ok || len(iri) == 0 {
-		return errors.New("actor not present or not string")
-	}
-
-	inbox := actor.String("inbox")
-	if inbox == "" {
-		return errors.New("actor has no inbox")
-	}
-
-	if storedInbox, ok := ap.followers.get(iri); !ok || inbox != storedInbox {
-		err := ap.followers.set(iri, inbox)
-		if err != nil {
-			return fmt.Errorf("failed to store followers: %w", err)
-		}
-	}
-
-	ap.n.Info(fmt.Sprintf("☃️ %s followed you!", iri))
-	ap.sendAccept(activity, inbox)
-	return nil
-}
-
 func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.Typed) error {
 	object, ok := activity.ObjectIf("object")
 	if !ok {
@@ -158,6 +135,48 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 	return ErrNotHandled
 }
 
+func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
+	// TODO: object may be string, and we should see if we find a connection. Then, delete.
+	object, ok := activity.StringIf("object")
+	if !ok {
+		return fmt.Errorf("%w: cannot handle non-string objects", ErrNotHandled)
+	}
+
+	if len(object) == 0 {
+		return fmt.Errorf("%w: object is empty", ErrNotHandled)
+	}
+
+	iri := activity.String("actor")
+	if iri != object {
+		return fmt.Errorf("%w: object and actor differ", ErrNotHandled)
+	}
+
+	return ap.followers.remove(iri)
+}
+
+func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
+	iri, ok := activity.StringIf("actor")
+	if !ok || len(iri) == 0 {
+		return errors.New("actor not present or not string")
+	}
+
+	inbox := actor.String("inbox")
+	if inbox == "" {
+		return errors.New("actor has no inbox")
+	}
+
+	if storedInbox, ok := ap.followers.get(iri); !ok || inbox != storedInbox {
+		err := ap.followers.set(iri, inbox)
+		if err != nil {
+			return fmt.Errorf("failed to store followers: %w", err)
+		}
+	}
+
+	ap.n.Info(fmt.Sprintf("☃️ %s followed you!", iri))
+	ap.sendAccept(activity, inbox)
+	return nil
+}
+
 func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typed) error {
 	return ap.handleLikeAnnounce(ctx, actor, activity, mf2.TypeLike)
 }
@@ -182,25 +201,6 @@ func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity t
 
 	// TODO: store connection between mention.ID and id iff no error.
 	return ap.wm.AddOrUpdateWebmention(id, mention)
-}
-
-func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
-	// TODO: object may be string, and we should see if we find a connection. Then, delete.
-	object, ok := activity.StringIf("object")
-	if !ok {
-		return fmt.Errorf("%w: cannot handle non-string objects", ErrNotHandled)
-	}
-
-	if len(object) == 0 {
-		return fmt.Errorf("%w: object is empty", ErrNotHandled)
-	}
-
-	iri := activity.String("actor")
-	if iri != object {
-		return fmt.Errorf("%w: object and actor differ", ErrNotHandled)
-	}
-
-	return ap.followers.remove(iri)
 }
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
