@@ -37,7 +37,7 @@ type Storage interface {
 	GetActivityPubFollowers() (map[string]string, error)
 	DeleteActivityPubFollower(iri string) error
 	AddActivityPubLink(entry, activity string) error
-	GetActivityPubLinks(iri string) ([]string, error)
+	GetActivityPubLinks(activity string) ([]string, error)
 }
 
 type Options struct {

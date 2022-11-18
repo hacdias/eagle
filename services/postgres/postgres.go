@@ -615,8 +615,8 @@ func (d *Postgres) AddActivityPubLink(entry, activity string) error {
 	return err
 }
 
-func (d *Postgres) GetActivityPubLinks(iri string) ([]string, error) {
-	rows, err := d.pool.Query(context.Background(), "select object_id from activitypub_links where entry_id=$1", iri)
+func (d *Postgres) GetActivityPubLinks(activity string) ([]string, error) {
+	rows, err := d.pool.Query(context.Background(), "select entry_id from activitypub_links where object_id=$1", activity)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return []string{}, nil
