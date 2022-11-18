@@ -140,6 +140,17 @@ func (ap *ActivityPub) SendAccept(activity typed.Typed, inbox string) {
 
 func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
 	activity := ap.GetEntry(e)
+	var inboxes []string
+
+	if replyTo := activity.String("inReplyTo"); replyTo != "" {
+		actor, err := ap.getActorFromActivity(context.Background(), replyTo)
+		if err == nil {
+			inbox := actor.String("inbox")
+			if len(inbox) != 0 {
+				inboxes = append(inboxes, inbox)
+			}
+		}
+	}
 
 	create := map[string]interface{}{
 		"@context": []string{"https://www.w3.org/ns/activitystreams"},
@@ -154,7 +165,7 @@ func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
 		create["published"] = published
 	}
 
-	return ap.sendActivityToFollowers(create)
+	return ap.sendActivityToFollowers(create, inboxes...)
 }
 
 func (ap *ActivityPub) SendUpdate(e *eagle.Entry) error {
