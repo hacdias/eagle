@@ -32,7 +32,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 
 	actor, keyID, err := ap.verifySignature(r)
 	if err != nil {
-		if errors.Is(err, errActorNotFound) {
+		if errors.Is(err, errNotFound) {
 			// Actor has likely been deleted.
 			url, err := urlpkg.Parse(keyID)
 			if err == nil {
@@ -43,7 +43,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 			}
 		}
 
-		if errors.Is(err, errActorStatusUnsuccessful) {
+		if errors.Is(err, errStatusUnsuccessful) {
 			return http.StatusBadRequest, errors.New("could not fetch author")
 		}
 
@@ -59,8 +59,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	switch activity.String("type") {
 	case "Create":
 		err = ap.handleCreate(r.Context(), actor, activity)
-	// case "Update":
-	// 	err = ap.handleUpdate(r.Context(), actor, activity)
+	case "Update":
+		err = ap.handleUpdate(r.Context(), actor, activity)
 	case "Delete":
 		err = ap.handleDelete(r.Context(), actor, activity)
 	case "Follow":
@@ -145,6 +145,10 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 	return ErrNotHandled
 }
 
+func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.Typed) error {
+	return ErrNotHandled
+}
+
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
 	var object string
 
@@ -198,19 +202,11 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 	}
 
 	ap.n.Info(fmt.Sprintf("☃️ %s followed you!", iri))
-	ap.sendAccept(activity, inbox)
+	ap.SendAccept(activity, inbox)
 	return nil
 }
 
-func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typed) error {
-	return ap.handleLikeAnnounce(ctx, actor, activity, mf2.TypeLike)
-}
-
-func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed.Typed) error {
-	return ap.handleLikeAnnounce(ctx, actor, activity, mf2.TypeRepost)
-}
-
-func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity typed.Typed, postType mf2.Type) error {
+func (ap *ActivityPub) handleLikeOrAnnounce(ctx context.Context, actor, activity typed.Typed, postType mf2.Type) error {
 	permalink := activity.String("object")
 	if permalink == "" {
 		return errors.New("activity.object is not present or is not string")
@@ -229,6 +225,14 @@ func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity t
 		return err
 	}
 	return ap.store.AddActivityPubLink(id, mention.ID)
+}
+
+func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typed) error {
+	return ap.handleLikeOrAnnounce(ctx, actor, activity, mf2.TypeLike)
+}
+
+func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed.Typed) error {
+	return ap.handleLikeOrAnnounce(ctx, actor, activity, mf2.TypeRepost)
 }
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
