@@ -38,7 +38,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 			if err == nil {
 				url.Fragment = ""
 				url.RawFragment = ""
-				_ = ap.followers.remove(url.String())
+				_ = ap.store.DeleteActivityPubFollower(url.String())
 				return http.StatusOK, nil
 			}
 		}
@@ -116,7 +116,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		if err != nil {
 			return err
 		}
-		return ap.activityLink.set(mention.ID, id)
+		return ap.store.AddActivityPubLink(mention.ID, id)
 	}
 
 	// Activity is some sort of mention.
@@ -135,7 +135,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		for _, id := range ids {
 			err = ap.wm.AddOrUpdateWebmention(id, mention)
 			if err == nil {
-				err = ap.activityLink.set(mention.ID, id)
+				err = ap.store.AddActivityPubLink(mention.ID, id)
 			}
 			errs = multierror.Append(errs, err)
 		}
@@ -164,13 +164,16 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return errors.New("activity.object is string or map, but has no id")
 	}
 
-	entryID, ok := ap.activityLink.get(object)
-	if ok {
+	entries, err := ap.store.GetActivityPubLink(object)
+	if err != nil {
+		return err
+	} else if len(entries) != 0 {
 		// Then, it is a reply or some kind of mention.
-		return ap.wm.DeleteWebmention(entryID, object)
+		return ap.deleteMultipleWebmentions(entries, object)
 	} else if actor.String("id") == object {
 		// Otherwise, it is a user deletion.
-		return ap.followers.remove(object)
+		_ = ap.store.DeleteActivityPubFollower(object)
+		return nil
 	}
 
 	return ErrNotHandled
@@ -187,8 +190,8 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		return errors.New("actor has no inbox")
 	}
 
-	if storedInbox, ok := ap.followers.get(iri); !ok || inbox != storedInbox {
-		err := ap.followers.set(iri, inbox)
+	if storedInbox, err := ap.store.GetActivityPubFollower(iri); err != nil || inbox != storedInbox {
+		err = ap.store.AddActivityPubFollower(iri, inbox)
 		if err != nil {
 			return fmt.Errorf("failed to store followers: %w", err)
 		}
@@ -225,16 +228,17 @@ func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity t
 	if err != nil {
 		return err
 	}
-	return ap.activityLink.set(mention.ID, id)
+	return ap.store.AddActivityPubLink(mention.ID, id)
 }
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
 	if object, ok := activity.StringIf("object"); ok {
-		entryID, ok := ap.activityLink.get(object)
-		if !ok {
-			return fmt.Errorf("%w: cannot find entry that activity.object links to", ErrNotHandled)
+		entries, err := ap.store.GetActivityPubLink(object)
+		if err != nil {
+			return err
 		}
-		return ap.wm.DeleteWebmention(entryID, object)
+
+		return ap.deleteMultipleWebmentions(entries, object)
 	}
 
 	if object, ok := activity.ObjectIf("object"); ok {
@@ -245,7 +249,8 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 				return fmt.Errorf("%w: activity.object.actor is different from activity.actor", ErrNotHandled)
 			}
 			ap.n.Info(fmt.Sprintf("☃️ %s unfollowed you.", iri))
-			return ap.followers.remove(iri)
+			_ = ap.store.DeleteActivityPubFollower(iri)
+			return nil
 		case "Like", "Announce":
 			source := object.String("id")
 			if source == "" {
@@ -351,4 +356,12 @@ func (ap *ActivityPub) discoverLinksAsIDs(body string) ([]string, error) {
 	}
 
 	return links, nil
+}
+
+func (ap *ActivityPub) deleteMultipleWebmentions(entries []string, object string) error {
+	var errs *multierror.Error
+	for _, entry := range entries {
+		errs = multierror.Append(errs, ap.wm.DeleteWebmention(entry, object))
+	}
+	return errs.ErrorOrNil()
 }

@@ -10,7 +10,6 @@ import (
 
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -26,27 +25,38 @@ import (
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/eagle/util"
 	"github.com/hacdias/eagle/webmentions"
+	"github.com/hashicorp/go-multierror"
 	"github.com/karlseguin/typed"
 	"github.com/thoas/go-funk"
 	"go.uber.org/zap"
 )
 
+type ActivityPubStorage interface {
+	AddActivityPubFollower(iri, inbox string) error
+	GetActivityPubFollower(iri string) (string, error)
+	GetActivityPubFollowers() (map[string]string, error)
+	DeleteActivityPubFollower(iri string) error
+
+	AddActivityPubLink(activity, entry string) error
+	GetActivityPubLink(iri string) ([]string, error)
+	DeleteActivityPubLink(activity string) error
+}
+
 type ActivityPub struct {
-	c            *eagle.Config
-	r            *renderer.Renderer
-	fs           *fs.FS
-	n            eagle.Notifier
-	wm           *webmentions.Webmentions
-	log          *zap.SugaredLogger
-	media        *media.Media
-	self         typed.Typed
-	followers    *stringMapStore
-	activityLink *stringMapStore
-	publicKey    string
-	privKey      *rsa.PrivateKey
-	signer       httpsig.Signer
-	signerMu     sync.Mutex
-	httpClient   *http.Client
+	c          *eagle.Config
+	r          *renderer.Renderer
+	fs         *fs.FS
+	n          eagle.Notifier
+	wm         *webmentions.Webmentions
+	log        *zap.SugaredLogger
+	media      *media.Media
+	self       typed.Typed
+	publicKey  string
+	privKey    *rsa.PrivateKey
+	signer     httpsig.Signer
+	signerMu   sync.Mutex
+	httpClient *http.Client
+	store      ActivityPubStorage
 }
 
 func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.Notifier, wm *webmentions.Webmentions, m *media.Media) (*ActivityPub, error) {
@@ -65,16 +75,6 @@ func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.No
 	}
 
 	var err error
-
-	a.activityLink, err = newStringMapStore(filepath.Join(c.Server.ActivityPub.Directory, "activityLink.json"))
-	if err != nil {
-		return nil, err
-	}
-
-	a.followers, err = newStringMapStore(filepath.Join(c.Server.ActivityPub.Directory, "followers.json"))
-	if err != nil {
-		return nil, err
-	}
 
 	a.privKey, a.publicKey, err = getKeyPair(c.Server.ActivityPub.Directory)
 	if err != nil {
@@ -231,13 +231,19 @@ func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
 	}
 }
 
-func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) {
-	followers := ap.followers.getAll()
+func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed) error {
+	followers, err := ap.store.GetActivityPubFollowers()
+	if err != nil {
+		return err
+	}
+
 	inboxes := []string{}
 	for _, inbox := range followers {
 		inboxes = append(inboxes, inbox)
 	}
-	ap.sendActivity(activity, inboxes)
+
+	go ap.sendActivity(activity, inboxes)
+	return nil
 }
 
 func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
@@ -254,22 +260,23 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	if ap.canBePosted(old) {
 		if !ap.canBePosted(new) {
-			ap.SendDelete(new.Permalink)
+			return ap.SendDelete(new.Permalink)
 		} else if old.ID != new.ID {
-			ap.SendDelete(old.Permalink)
-			ap.SendCreate(new)
+			return multierror.
+				Append(ap.SendDelete(old.Permalink), ap.SendCreate(new)).
+				ErrorOrNil()
 		} else {
-			ap.SendUpdate(new)
+			return ap.SendUpdate(new)
 		}
 	} else {
 		if ap.canBePosted(new) {
-			ap.SendCreate(new)
+			errs := multierror.Append(ap.SendCreate(new))
 
 			if new.Helper().PostType() == mf2.TypeRead {
-				ap.SendAnnounce(new)
+				errs = multierror.Append(errs, ap.SendAnnounce(new))
 			}
 
-			return nil
+			return errs.ErrorOrNil()
 		}
 	}
 
@@ -288,10 +295,10 @@ func (ap *ActivityPub) sendAccept(activity typed.Typed, inbox string) {
 		"object":   activity,
 	}
 
-	go ap.sendActivity(accept, []string{inbox})
+	ap.sendActivity(accept, []string{inbox})
 }
 
-func (ap *ActivityPub) SendCreate(e *eagle.Entry) {
+func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
 	activity := ap.GetEntry(e)
 
 	create := map[string]interface{}{
@@ -307,10 +314,10 @@ func (ap *ActivityPub) SendCreate(e *eagle.Entry) {
 		create["published"] = published
 	}
 
-	go ap.sendActivityToFollowers(create)
+	return ap.sendActivityToFollowers(create)
 }
 
-func (ap *ActivityPub) SendUpdate(e *eagle.Entry) {
+func (ap *ActivityPub) SendUpdate(e *eagle.Entry) error {
 	activity := ap.GetEntry(e)
 
 	update := map[string]interface{}{
@@ -330,10 +337,10 @@ func (ap *ActivityPub) SendUpdate(e *eagle.Entry) {
 		update["updated"] = updated
 	}
 
-	go ap.sendActivityToFollowers(update)
+	return ap.sendActivityToFollowers(update)
 }
 
-func (ap *ActivityPub) SendDelete(permalink string) {
+func (ap *ActivityPub) SendDelete(permalink string) error {
 	create := map[string]interface{}{
 		"@context": []string{"https://www.w3.org/ns/activitystreams"},
 		"type":     "Delete",
@@ -342,10 +349,10 @@ func (ap *ActivityPub) SendDelete(permalink string) {
 		"actor":    ap.c.Server.BaseURL,
 	}
 
-	go ap.sendActivityToFollowers(create)
+	return ap.sendActivityToFollowers(create)
 }
 
-func (ap *ActivityPub) SendAnnounce(e *eagle.Entry) {
+func (ap *ActivityPub) SendAnnounce(e *eagle.Entry) error {
 	activity := ap.GetEntry(e)
 
 	announce := map[string]interface{}{
@@ -365,10 +372,10 @@ func (ap *ActivityPub) SendAnnounce(e *eagle.Entry) {
 		announce["updated"] = updated
 	}
 
-	go ap.sendActivityToFollowers(announce)
+	return ap.sendActivityToFollowers(announce)
 }
 
-func (ap *ActivityPub) SendProfileUpdate() {
+func (ap *ActivityPub) SendProfileUpdate() error {
 	update := map[string]any{
 		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
 		"type":      "Update",
@@ -377,7 +384,7 @@ func (ap *ActivityPub) SendProfileUpdate() {
 		"published": time.Now().Format(time.RFC3339),
 	}
 
-	go ap.sendActivityToFollowers(update)
+	return ap.sendActivityToFollowers(update)
 }
 
 func isSuccess(code int) bool {
