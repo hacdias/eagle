@@ -89,8 +89,19 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 }
 
 func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed.Typed) error {
-	// TODO: handle announcements.
-	return ErrNotHandled
+	permalink := activity.String("object")
+	if permalink == "" {
+		return fmt.Errorf("announcement object is not present or is not string")
+	}
+
+	if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
+		return fmt.Errorf("announcement destined for someone else")
+	}
+
+	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
+	mention := ap.mentionFromActivity(actor, activity)
+	mention.Type = mf2.TypeRepost
+	return ap.wm.AddOrUpdateWebmention(id, mention)
 }
 
 func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
