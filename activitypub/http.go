@@ -146,9 +146,22 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
-	object, ok := activity.StringIf("object")
-	if !ok || len(object) == 0 {
-		return fmt.Errorf("%w: activity.object is not string or is empty", ErrNotHandled)
+	var object string
+
+	if objectStr, ok := activity.StringIf("object"); ok {
+		object = objectStr
+	} else if objectMap, ok := activity.ObjectIf("object"); ok {
+		if objectStr, ok := objectMap.StringIf("object"); ok {
+			object = objectStr
+		} else {
+			return errors.New("activity.object has no id")
+		}
+	} else {
+		return ErrNotHandled
+	}
+
+	if object == "" {
+		return errors.New("activity.object is string or map, but has no id")
 	}
 
 	entryID, ok := ap.activityLink.get(object)
