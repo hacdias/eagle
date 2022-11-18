@@ -31,7 +31,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type ActivityPubStorage interface {
+type Storage interface {
 	AddActivityPubFollower(iri, inbox string) error
 	GetActivityPubFollower(iri string) (string, error)
 	GetActivityPubFollowers() (map[string]string, error)
@@ -40,14 +40,14 @@ type ActivityPubStorage interface {
 	GetActivityPubLinks(iri string) ([]string, error)
 }
 
-type ActivityPubOptions struct {
+type Options struct {
 	Config      *eagle.Config
 	Renderer    *renderer.Renderer
 	FS          *fs.FS
 	Notifier    eagle.Notifier
 	Webmentions *webmentions.Webmentions
 	Media       *media.Media
-	Store       ActivityPubStorage
+	Store       Storage
 }
 
 type ActivityPub struct {
@@ -64,10 +64,10 @@ type ActivityPub struct {
 	signer     httpsig.Signer
 	signerMu   sync.Mutex
 	httpClient *http.Client
-	store      ActivityPubStorage
+	store      Storage
 }
 
-func NewActivityPub(options *ActivityPubOptions) (*ActivityPub, error) {
+func NewActivityPub(options *Options) (*ActivityPub, error) {
 	a := &ActivityPub{
 		c:     options.Config,
 		r:     options.Renderer,

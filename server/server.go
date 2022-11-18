@@ -238,7 +238,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	if c.Server.ActivityPub != nil {
-		options := &activitypub.ActivityPubOptions{
+		options := &activitypub.Options{
 			Config:      c,
 			Renderer:    s.renderer,
 			FS:          s.fs,
