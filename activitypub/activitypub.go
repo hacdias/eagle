@@ -1,3 +1,4 @@
+// ActivityPub implementation https://www.w3.org/TR/activitypub/
 package activitypub
 
 import (
