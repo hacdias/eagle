@@ -152,10 +152,15 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 	}
 
 	entryID, ok := ap.activityLink.get(object)
-	if !ok {
-		return fmt.Errorf("%w: cannot find entry that activity.object links to", ErrNotHandled)
+	if ok {
+		// Then, it is a reply or some kind of mention.
+		return ap.wm.DeleteWebmention(entryID, object)
+	} else if actor.String("id") == object {
+		// Otherwise, it is a user deletion.
+		return ap.followers.remove(object)
 	}
-	return ap.wm.DeleteWebmention(entryID, object)
+
+	return ErrNotHandled
 }
 
 func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
