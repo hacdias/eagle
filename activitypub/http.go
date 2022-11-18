@@ -269,7 +269,9 @@ func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.M
 	}
 
 	if object := activity.Object("object"); object != nil {
-		if id := object.String("id"); id != "" && post.ID == "" {
+		if id := object.String("id"); id != "" {
+			// If the object has an ID, this is the ID that will be later used
+			// for deleting content.
 			post.ID = id
 		}
 
