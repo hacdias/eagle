@@ -107,13 +107,20 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 	content, hasContent := object.StringIf("hasContent")
 	hasContent = hasContent && len(content) > 0
 
+	// Activity is a reply.
 	if hasReply && strings.HasPrefix(reply, ap.c.Server.BaseURL) {
 		id := strings.TrimPrefix(reply, ap.c.Server.BaseURL)
 		mention := ap.mentionFromActivity(actor, activity)
 		mention.Type = mf2.TypeReply
-		// TODO: store connection between mention.ID and id iff no error.
-		return ap.wm.AddOrUpdateWebmention(id, mention)
-	} else if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
+		err := ap.wm.AddOrUpdateWebmention(id, mention)
+		if err != nil {
+			return err
+		}
+		return ap.activityLink.set(mention.ID, id)
+	}
+
+	// Activity is some sort of mention.
+	if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
 		mention := ap.mentionFromActivity(actor, activity)
 		ids, err := ap.discoverLinksAsIDs(content)
 		if err != nil {
@@ -126,8 +133,11 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 
 		var errs *multierror.Error
 		for _, id := range ids {
-			// TODO: store connection between mention.ID and id iff no error.
-			errs = multierror.Append(errs, ap.wm.AddOrUpdateWebmention(id, mention))
+			err = ap.wm.AddOrUpdateWebmention(id, mention)
+			if err == nil {
+				err = ap.activityLink.set(mention.ID, id)
+			}
+			errs = multierror.Append(errs, err)
 		}
 		return errs.ErrorOrNil()
 	}
@@ -136,22 +146,16 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
-	// TODO: object may be string, and we should see if we find a connection. Then, delete.
 	object, ok := activity.StringIf("object")
+	if !ok || len(object) == 0 {
+		return fmt.Errorf("%w: activity.object is not string or is empty", ErrNotHandled)
+	}
+
+	entryID, ok := ap.activityLink.get(object)
 	if !ok {
-		return fmt.Errorf("%w: cannot handle non-string objects", ErrNotHandled)
+		return fmt.Errorf("%w: cannot find entry that activity.object links to", ErrNotHandled)
 	}
-
-	if len(object) == 0 {
-		return fmt.Errorf("%w: object is empty", ErrNotHandled)
-	}
-
-	iri := activity.String("actor")
-	if iri != object {
-		return fmt.Errorf("%w: object and actor differ", ErrNotHandled)
-	}
-
-	return ap.followers.remove(iri)
+	return ap.wm.DeleteWebmention(entryID, object)
 }
 
 func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
@@ -188,61 +192,65 @@ func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed
 func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity typed.Typed, postType mf2.Type) error {
 	permalink := activity.String("object")
 	if permalink == "" {
-		return fmt.Errorf("object is not present or is not string")
+		return errors.New("activity.object is not present or is not string")
 	}
 
 	if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
-		return fmt.Errorf("activity destined for someone else")
+		return errors.New("activity.object is for someone else")
 	}
 
 	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
 	mention := ap.mentionFromActivity(actor, activity)
 	mention.Type = postType
 
-	// TODO: store connection between mention.ID and id iff no error.
-	return ap.wm.AddOrUpdateWebmention(id, mention)
+	err := ap.wm.AddOrUpdateWebmention(id, mention)
+	if err != nil {
+		return err
+	}
+	return ap.activityLink.set(mention.ID, id)
 }
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
-	// TODO: object may be string, and we should see if we find a connection. Then, delete.
-	object, ok := activity.ObjectIf("object")
-	if !ok {
-		return fmt.Errorf("%w: object not present or not map", ErrNotHandled)
+	if object, ok := activity.StringIf("object"); ok {
+		entryID, ok := ap.activityLink.get(object)
+		if !ok {
+			return fmt.Errorf("%w: cannot find entry that activity.object links to", ErrNotHandled)
+		}
+		return ap.wm.DeleteWebmention(entryID, object)
 	}
 
-	switch object.String("type") {
-	case "Follow":
-		iri := activity.String("actor")
-		if object.String("actor") != iri {
-			return fmt.Errorf("%w: object actor does not match activity actor", ErrNotHandled)
-		}
+	if object, ok := activity.ObjectIf("object"); ok {
+		switch object.String("type") {
+		case "Follow":
+			iri := activity.String("actor")
+			if object.String("actor") != iri {
+				return fmt.Errorf("%w: activity.object.actor is different from activity.actor", ErrNotHandled)
+			}
+			ap.n.Info(fmt.Sprintf("☃️ %s unfollowed you.", iri))
+			return ap.followers.remove(iri)
+		case "Like", "Announce":
+			source := object.String("id")
+			if source == "" {
+				return fmt.Errorf("%w: activity.object.id must be string", ErrNotHandled)
+			}
 
-		return ap.followers.remove(iri)
-	case "Like", "Announce":
-		object := activity.Object("object")
-		if object == nil {
-			return fmt.Errorf("%w: object is not a map", ErrNotHandled)
-		}
+			permalink := object.String("object")
+			if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
+				return errors.New("activity.object.object is not string or is for someone else")
+			}
 
-		source := object.String("id")
-		if source == "" {
-			return fmt.Errorf("%w: object.id is not a map", ErrNotHandled)
+			id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
+			return ap.wm.DeleteWebmention(id, source)
+		case "Create":
+			// "Create based activities should instead use Delete, and Add activities
+			// should use Remove." https://www.w3.org/TR/activitypub/#undo-activity-inbox
+			return errors.New("type Create must use Delete instead of Undo")
+		default:
+			return ErrNotHandled
 		}
-
-		permalink := object.String("object")
-		if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
-			return fmt.Errorf("object.object destined for someone else")
-		}
-
-		id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
-		return ap.wm.DeleteWebmention(id, source)
-	case "Create":
-		// "Create based activities should instead use Delete, and Add activities
-		// should use Remove." https://www.w3.org/TR/activitypub/#undo-activity-inbox
-		return errors.New("create must be deleted")
 	}
 
-	return ErrNotHandled
+	return errors.New("activity.object must be string or map[string]interface{}")
 }
 
 func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.Mention {

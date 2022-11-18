@@ -32,20 +32,21 @@ import (
 )
 
 type ActivityPub struct {
-	c          *eagle.Config
-	r          *renderer.Renderer
-	fs         *fs.FS
-	n          eagle.Notifier
-	wm         *webmentions.Webmentions
-	log        *zap.SugaredLogger
-	media      *media.Media
-	self       typed.Typed
-	followers  *stringMapStore
-	publicKey  string
-	privKey    *rsa.PrivateKey
-	signer     httpsig.Signer
-	signerMu   sync.Mutex
-	httpClient *http.Client
+	c            *eagle.Config
+	r            *renderer.Renderer
+	fs           *fs.FS
+	n            eagle.Notifier
+	wm           *webmentions.Webmentions
+	log          *zap.SugaredLogger
+	media        *media.Media
+	self         typed.Typed
+	followers    *stringMapStore
+	activityLink *stringMapStore
+	publicKey    string
+	privKey      *rsa.PrivateKey
+	signer       httpsig.Signer
+	signerMu     sync.Mutex
+	httpClient   *http.Client
 }
 
 func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.Notifier, wm *webmentions.Webmentions, m *media.Media) (*ActivityPub, error) {
@@ -64,6 +65,11 @@ func NewActivityPub(c *eagle.Config, r *renderer.Renderer, fs *fs.FS, n eagle.No
 	}
 
 	var err error
+
+	a.activityLink, err = newStringMapStore(filepath.Join(c.Server.ActivityPub.Directory, "activityLink.json"))
+	if err != nil {
+		return nil, err
+	}
 
 	a.followers, err = newStringMapStore(filepath.Join(c.Server.ActivityPub.Directory, "followers.json"))
 	if err != nil {
