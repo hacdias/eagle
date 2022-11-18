@@ -134,6 +134,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		id := strings.TrimPrefix(reply, ap.c.Server.BaseURL)
 		mention := ap.mentionFromActivity(actor, activity)
 		mention.Type = mf2.TypeReply
+		// TODO: store connection between mention.ID and id iff no error.
 		return ap.wm.AddOrUpdateWebmention(id, mention)
 	} else if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
 		mention := ap.mentionFromActivity(actor, activity)
@@ -148,6 +149,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 
 		var errs *multierror.Error
 		for _, id := range ids {
+			// TODO: store connection between mention.ID and id iff no error.
 			errs = multierror.Append(errs, ap.wm.AddOrUpdateWebmention(id, mention))
 		}
 		return errs.ErrorOrNil()
@@ -177,10 +179,13 @@ func (ap *ActivityPub) handleLikeAnnounce(ctx context.Context, actor, activity t
 	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
 	mention := ap.mentionFromActivity(actor, activity)
 	mention.Type = postType
+
+	// TODO: store connection between mention.ID and id iff no error.
 	return ap.wm.AddOrUpdateWebmention(id, mention)
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
+	// TODO: object may be string, and we should see if we find a connection. Then, delete.
 	object, ok := activity.StringIf("object")
 	if !ok {
 		return fmt.Errorf("%w: cannot handle non-string objects", ErrNotHandled)
@@ -199,9 +204,10 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 }
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
+	// TODO: object may be string, and we should see if we find a connection. Then, delete.
 	object, ok := activity.ObjectIf("object")
 	if !ok {
-		return fmt.Errorf("%w: object not present or not map: %v", ErrNotHandled, object)
+		return fmt.Errorf("%w: object not present or not map", ErrNotHandled)
 	}
 
 	switch object.String("type") {
