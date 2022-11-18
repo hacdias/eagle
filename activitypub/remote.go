@@ -1,7 +1,6 @@
 package activitypub
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,12 +13,12 @@ import (
 )
 
 var (
-	errActorStatusUnsuccessful = errors.New("actor could not be fetched")
-	errActorNotFound           = errors.New("actor does not exist")
+	errStatusUnsuccessful = errors.New("activity could not be fetched")
+	errNotFound           = errors.New("activity does not exist")
 )
 
-func (ap *ActivityPub) getRemoteActor(ctx context.Context, iri string) (typed.Typed, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, iri, new(bytes.Buffer))
+func (ap *ActivityPub) getActivity(ctx context.Context, url string) (typed.Typed, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +44,23 @@ func (ap *ActivityPub) getRemoteActor(ctx context.Context, iri string) (typed.Ty
 
 	if !isSuccess(resp.StatusCode) {
 		if isDeleted(resp.StatusCode) {
-			return nil, errActorNotFound
+			return nil, errNotFound
 		}
 
-		return nil, errActorStatusUnsuccessful
+		return nil, errStatusUnsuccessful
 	}
 
-	var actor typed.Typed
-	err = json.NewDecoder(resp.Body).Decode(&actor)
+	var activity typed.Typed
+	err = json.NewDecoder(resp.Body).Decode(&activity)
+	if err != nil {
+		return nil, err
+	}
+
+	return activity, nil
+}
+
+func (ap *ActivityPub) getActor(ctx context.Context, iri string) (typed.Typed, error) {
+	actor, err := ap.getActivity(ctx, iri)
 	if err != nil {
 		return nil, err
 	}
@@ -66,4 +74,18 @@ func (ap *ActivityPub) getRemoteActor(ctx context.Context, iri string) (typed.Ty
 	}
 
 	return actor, nil
+}
+
+func (ap *ActivityPub) getActorFromActivity(ctx context.Context, url string) (typed.Typed, error) {
+	activity, err := ap.getActivity(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	iri, ok := activity.StringIf("attributedTo")
+	if !ok || len(iri) == 0 {
+		return nil, errors.New("attributedTo field is empty")
+	}
+
+	return ap.getActor(ctx, iri)
 }
