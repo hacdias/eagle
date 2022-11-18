@@ -44,7 +44,7 @@ func (ws *Webmentions) EntryHook(_, e *eagle.Entry) error {
 	return ws.SendWebmentions(e)
 }
 
-func IsInteraction(post *eagle.Mention) bool {
+func isInteraction(post *eagle.Mention) bool {
 	return post.Type == mf2.TypeLike ||
 		post.Type == mf2.TypeRepost ||
 		post.Type == mf2.TypeBookmark ||

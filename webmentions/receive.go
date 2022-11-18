@@ -45,7 +45,7 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 		return err
 	}
 
-	isInteraction := IsInteraction(mention)
+	isInteraction := isInteraction(mention)
 
 	err = ws.fs.UpdateSidecar(e, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
 		var mentions []*eagle.Mention
