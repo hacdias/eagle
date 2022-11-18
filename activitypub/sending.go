@@ -40,6 +40,7 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed, inboxes ...
 		inboxes = append(inboxes, inbox)
 	}
 
+	inboxes = funk.UniqString(inboxes)
 	go ap.sendActivity(activity, inboxes)
 	return nil
 }
