@@ -57,8 +57,8 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 
 		replaced := false
 		for i, m := range mentions {
-			if funk.ContainsString(sourcesOrIDs, m.URL) || m.URL == mention.URL ||
-				funk.ContainsString(sourcesOrIDs, m.ID) || m.ID == mention.ID {
+			if (m.URL == mention.URL && len(m.URL) != 0) || (m.ID == mention.ID && len(m.ID) != 0) ||
+				funk.ContainsString(sourcesOrIDs, m.URL) || funk.ContainsString(sourcesOrIDs, m.ID) {
 				mention.Hidden = mentions[i].Hidden
 				mentions[i] = mention
 				replaced = true
