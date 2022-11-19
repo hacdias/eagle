@@ -56,6 +56,7 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 		!e.Deleted &&
 		e.Visibility() != eagle.VisibilityPrivate &&
 		(lo.Contains(e.Sections, ap.c.Site.IndexSection) ||
+			postType == mf2.TypeReply ||
 			postType == mf2.TypeLike ||
 			postType == mf2.TypeRepost)
 }
