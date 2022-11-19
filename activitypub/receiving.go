@@ -351,7 +351,7 @@ func (ap *ActivityPub) discoverLinksAsIDs(body string) ([]string, error) {
 		return nil, err
 	}
 
-	links = lo.Filter(links, func(link string, index int) bool {
+	links = lo.Filter(links, func(link string, _ int) bool {
 		return strings.HasPrefix(link, ap.c.Server.BaseURL)
 	})
 

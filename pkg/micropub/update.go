@@ -65,7 +65,7 @@ func Update(properties map[string][]interface{}, req *Request) (map[string][]int
 					properties[key] = []interface{}{}
 				}
 
-				properties[key] = lo.Filter(properties[key], func(ss interface{}, index int) bool {
+				properties[key] = lo.Filter(properties[key], func(ss interface{}, _ int) bool {
 					for _, s := range value {
 						if s == ss {
 							return false
