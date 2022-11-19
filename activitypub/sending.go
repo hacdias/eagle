@@ -252,7 +252,7 @@ func (ap *ActivityPub) SendAnnounce(e *eagle.Entry) error {
 }
 
 func (ap *ActivityPub) SendUndo(e *eagle.Entry) error {
-	if e.Helper().PostType() != mf2.TypeLike || e.Helper().PostType() != mf2.TypeRepost {
+	if e.Helper().PostType() != mf2.TypeLike && e.Helper().PostType() != mf2.TypeRepost {
 		return errors.New("can only send undo for likes and reposts")
 	}
 
