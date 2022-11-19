@@ -13,7 +13,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates := funk.Keys(s.archetypes).([]string)
+	templates := lo.Keys(s.archetypes)
 	sort.Strings(templates)
 
 	id := eagle.NewID("", time.Now().Local())
@@ -227,7 +227,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if hasAudience && !funk.ContainsString(ee.Audience(), user) {
+		if hasAudience && !lo.Contains(ee.Audience(), user) {
 			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 			return
 		}

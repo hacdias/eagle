@@ -12,7 +12,7 @@ import (
 	"github.com/hacdias/eagle/util"
 	"github.com/karlseguin/typed"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	stripMarkdown "github.com/writeas/go-strip-markdown"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -123,7 +123,7 @@ func (e *Entry) TextDescription() string {
 }
 
 func (e *Entry) InSection(section string) bool {
-	return funk.ContainsString(e.Sections, section)
+	return lo.Contains(e.Sections, section)
 }
 
 func (e *Entry) String() (string, error) {
@@ -204,7 +204,7 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 	if category, others := getCategoryStrings(props); len(category)+len(others) > 0 {
 		if len(category) > 0 {
 			// TODO: make 'tags' customizable.
-			e.Taxonomies["tags"] = funk.UniqString(append(e.Taxonomy("tags"), category...))
+			e.Taxonomies["tags"] = lo.Uniq(append(e.Taxonomy("tags"), category...))
 		}
 
 		if len(others) > 0 {

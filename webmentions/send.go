@@ -12,7 +12,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hashicorp/go-multierror"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	"willnorris.com/go/webmention"
 )
 
@@ -79,10 +79,10 @@ func (ws *Webmentions) GetWebmentionTargets(entry *eagle.Entry) ([]string, []str
 	}
 
 	oldTargets := sidecar.Targets
-	oldTargets = funk.UniqString(oldTargets)
+	oldTargets = lo.Uniq(oldTargets)
 
 	targets := append(currentTargets, oldTargets...)
-	targets = funk.UniqString(targets)
+	targets = lo.Uniq(targets)
 
 	return targets, currentTargets, oldTargets, nil
 }
@@ -101,7 +101,7 @@ func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) 
 		return nil, err
 	}
 
-	targets = (funk.FilterString(targets, func(target string) bool {
+	targets = (lo.Filter(targets, func(target string, _ int) bool {
 		url, err := urlpkg.Parse(target)
 		if err != nil {
 			return false
@@ -110,7 +110,7 @@ func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) 
 		return url.Scheme == "http" || url.Scheme == "https"
 	}))
 
-	return funk.UniqString(targets), nil
+	return lo.Uniq(targets), nil
 }
 
 func (ws *Webmentions) sendWebmention(source, target string) error {

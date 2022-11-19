@@ -14,7 +14,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/micropub"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 func (s *Server) micropubGet(w http.ResponseWriter, r *http.Request) {
@@ -324,7 +324,7 @@ func (s *Server) micropubMediaPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) checkScope(w http.ResponseWriter, r *http.Request, scope string) bool {
 	scopes := s.getScopes(r)
-	if !funk.ContainsString(scopes, scope) {
+	if !lo.Contains(scopes, scope) {
 		s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
 		return false
 	}

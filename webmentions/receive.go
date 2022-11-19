@@ -6,7 +6,7 @@ import (
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/xray"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 type Payload struct {
@@ -58,7 +58,7 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 		replaced := false
 		for i, m := range mentions {
 			if (m.URL == mention.URL && len(m.URL) != 0) || (m.ID == mention.ID && len(m.ID) != 0) ||
-				funk.ContainsString(sourcesOrIDs, m.URL) || funk.ContainsString(sourcesOrIDs, m.ID) {
+				lo.Contains(sourcesOrIDs, m.URL) || lo.Contains(sourcesOrIDs, m.ID) {
 				mention.Hidden = mentions[i].Hidden
 				mentions[i] = mention
 				replaced = true

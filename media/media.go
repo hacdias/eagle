@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/log"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -130,7 +130,7 @@ var imageExtensions []string = []string{
 }
 
 func isImage(ext string) bool {
-	return funk.ContainsString(imageExtensions, strings.ToLower(ext))
+	return lo.Contains(imageExtensions, strings.ToLower(ext))
 }
 
 func (m *Media) uploadImage(filename string, data []byte) (string, error) {
