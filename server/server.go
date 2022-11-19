@@ -649,5 +649,7 @@ func (s *Server) afterSaveHook(updated, deleted []*eagle.Entry) {
 }
 
 func isActivityPub(r *http.Request) bool {
-	return strings.Contains(r.Header.Get("Accept"), contenttype.AS) && !strings.Contains(r.Header.Get("User-Agent"), "xray")
+	accept := r.Header.Get("Accept")
+	return strings.Contains(accept, contenttype.AS) &&
+		!strings.Contains(accept, contenttype.HTML)
 }
