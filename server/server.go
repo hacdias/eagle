@@ -67,13 +67,14 @@ type Server struct {
 	ias          *indieauth.Server
 	jwtAuth      *jwtauth.JWTAuth
 	onionAddress string
-	serversLock  sync.Mutex
-	servers      []*httpServer
 	actions      map[string]func() error
 	cron         *cron.Cron
 	redirects    map[string]string
 	archetypes   map[string]*template.Template
 	webfinger    *webfinger
+
+	serversMu sync.Mutex
+	servers   []*httpServer
 
 	fs          *fs.FS
 	media       *media.Media
@@ -411,8 +412,8 @@ func (s *Server) indexAll() {
 }
 
 func (s *Server) registerServer(srv *http.Server, name string) {
-	s.serversLock.Lock()
-	defer s.serversLock.Unlock()
+	s.serversMu.Lock()
+	defer s.serversMu.Unlock()
 
 	s.servers = append(s.servers, &httpServer{
 		Server: srv,

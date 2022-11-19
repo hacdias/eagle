@@ -57,10 +57,11 @@ type ActivityPub struct {
 	self       typed.Typed
 	publicKey  string
 	privKey    *rsa.PrivateKey
-	signer     httpsig.Signer
-	signerMu   sync.Mutex
 	httpClient *http.Client
 	store      Storage
+
+	signerMu sync.Mutex
+	signer   httpsig.Signer
 }
 
 func NewActivityPub(options *Options) (*ActivityPub, error) {
