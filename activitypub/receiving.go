@@ -30,6 +30,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 		return http.StatusBadRequest, err
 	}
 
+	ap.log.Debugw("received", "activity", activity)
+
 	actor, keyID, err := ap.verifySignature(r)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
