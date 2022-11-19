@@ -394,7 +394,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	for _, entry := range entries {
 		var buf bytes.Buffer
-		err = s.renderer.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed})
+		err = s.renderer.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed}, true)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return

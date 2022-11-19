@@ -17,14 +17,15 @@ import (
 )
 
 type Renderer struct {
-	c                *eagle.Config
-	fs               *fs.FS
-	mediaBaseURL     string
-	minify           *minify.M
-	markdown         goldmark.Markdown
-	absoluteMarkdown goldmark.Markdown
-	templates        map[string]*template.Template
-	assets           *Assets
+	c                 *eagle.Config
+	fs                *fs.FS
+	mediaBaseURL      string
+	minify            *minify.M
+	markdown          goldmark.Markdown
+	absoluteMarkdown  goldmark.Markdown
+	templates         map[string]*template.Template
+	absoluteTemplates map[string]*template.Template
+	assets            *Assets
 }
 
 func NewRenderer(c *eagle.Config, fs *fs.FS, mediaBaseURL string) (*Renderer, error) {
@@ -53,7 +54,7 @@ func NewRenderer(c *eagle.Config, fs *fs.FS, mediaBaseURL string) (*Renderer, er
 	return r, nil
 }
 
-func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string) error {
+func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string, absoluteURLs bool) error {
 	data.Me = r.c.User
 	data.Site = r.c.Site
 	data.Assets = r.assets
@@ -67,10 +68,17 @@ func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string) err
 		}
 	}
 
+	var htmlTemplates map[string]*template.Template
+	if absoluteURLs {
+		htmlTemplates = r.absoluteTemplates
+	} else {
+		htmlTemplates = r.templates
+	}
+
 	var tpl *template.Template
 
 	for _, t := range templates {
-		if tt, ok := r.templates[t]; ok {
+		if tt, ok := htmlTemplates[t]; ok {
 			tpl = tt
 			break
 		}

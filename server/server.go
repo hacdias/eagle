@@ -527,7 +527,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		cw = w
 	}
 
-	err := s.renderer.Render(cw, data, tpls)
+	err := s.renderer.Render(cw, data, tpls, false)
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
 	} else {

@@ -16,27 +16,36 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func (r *Renderer) includeTemplate(name string, data ...interface{}) (template.HTML, error) {
-	var (
-		buf bytes.Buffer
-		err error
-	)
+func (r *Renderer) getIncludeTemplate(absoluteURLs bool) func(name string, data ...interface{}) (template.HTML, error) {
+	return func(name string, data ...interface{}) (template.HTML, error) {
+		var templates map[string]*template.Template
+		if absoluteURLs {
+			templates = r.absoluteTemplates
+		} else {
+			templates = r.templates
+		}
 
-	if len(data) == 1 {
-		err = r.templates[name].ExecuteTemplate(&buf, name, data[0])
-	} else if len(data) == 2 {
-		// TODO: perhaps make more type verifications.
-		nrd := *data[0].(*RenderData)
-		listing := nrd.Entry.Listing
-		nrd.Entry = data[1].(*eagle.Entry)
-		nrd.Entry.Listing = listing
-		nrd.sidecar = nil
-		err = r.templates[name].ExecuteTemplate(&buf, name, &nrd)
-	} else {
-		return "", errors.New("wrong parameters")
+		var (
+			buf bytes.Buffer
+			err error
+		)
+
+		if len(data) == 1 {
+			err = templates[name].ExecuteTemplate(&buf, name, data[0])
+		} else if len(data) == 2 {
+			// TODO: perhaps make more type verifications.
+			nrd := *data[0].(*RenderData)
+			listing := nrd.Entry.Listing
+			nrd.Entry = data[1].(*eagle.Entry)
+			nrd.Entry.Listing = listing
+			nrd.sidecar = nil
+			err = templates[name].ExecuteTemplate(&buf, name, &nrd)
+		} else {
+			return "", errors.New("wrong parameters")
+		}
+
+		return template.HTML(buf.String()), err
 	}
-
-	return template.HTML(buf.String()), err
 }
 
 func humanDomain(text string) string {
@@ -129,7 +138,7 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"figureURL":           r.GetPictureURL,
 		"dateFormat":          dateFormat,
 		"now":                 time.Now,
-		"include":             r.includeTemplate,
+		"include":             r.getIncludeTemplate(alwaysAbsolute),
 		"md":                  r.getRenderMarkdown(alwaysAbsolute),
 		"absURL":              r.c.Server.AbsoluteURL,
 		"relURL":              r.c.Server.RelativeURL,

@@ -39,20 +39,17 @@ func EntryTemplates(e *eagle.Entry) []string {
 	return t
 }
 
-func (r *Renderer) LoadTemplates() error {
+func (r *Renderer) loadTemplatesWithFunctions(fns template.FuncMap) (map[string]*template.Template, error) {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
 	baseTemplateData, err := r.fs.ReadFile(baseTemplateFilename)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	fns := r.getTemplateFuncMap(false)
 
 	baseTemplate, err := template.New("base").Funcs(fns).Parse(string(baseTemplateData))
 	if err != nil {
-		return err
+		return nil, err
 	}
-
 	parsed := map[string]*template.Template{}
 
 	err = r.fs.Walk(TemplatesDirectory, func(filename string, info fs.FileInfo, err error) error {
@@ -81,20 +78,31 @@ func (r *Renderer) LoadTemplates() error {
 			return err
 		}
 
-		if id == TemplateFeed {
-			absFns := r.getTemplateFuncMap(true)
-			parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(absFns).Parse(string(raw))
-		} else {
-			parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(fns).Parse(string(raw))
-		}
-
+		parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Funcs(fns).Parse(string(raw))
 		return err
 	})
 
 	if err != nil {
+		return nil, err
+	}
+	return parsed, nil
+}
+
+func (r *Renderer) LoadTemplates() error {
+	fns := r.getTemplateFuncMap(false)
+	absFns := r.getTemplateFuncMap(true)
+
+	templates, err := r.loadTemplatesWithFunctions(fns)
+	if err != nil {
 		return err
 	}
 
-	r.templates = parsed
+	absoluteTemplates, err := r.loadTemplatesWithFunctions(absFns)
+	if err != nil {
+		return err
+	}
+
+	r.templates = templates
+	r.absoluteTemplates = absoluteTemplates
 	return nil
 }

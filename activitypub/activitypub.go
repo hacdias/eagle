@@ -114,7 +114,7 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 	}
 
 	var buf bytes.Buffer
-	err := ap.r.Render(&buf, &renderer.RenderData{Entry: e}, []string{renderer.TemplateActivityPub})
+	err := ap.r.Render(&buf, &renderer.RenderData{Entry: e}, []string{renderer.TemplateActivityPub}, true)
 	if err != nil {
 		activity["content"] = string(ap.r.RenderAbsoluteMarkdown(e.Content))
 	} else {

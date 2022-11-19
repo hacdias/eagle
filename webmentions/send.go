@@ -91,7 +91,7 @@ func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) 
 	var buf bytes.Buffer
 	err := ws.renderer.Render(&buf, &renderer.RenderData{
 		Entry: entry,
-	}, renderer.EntryTemplates(entry))
+	}, renderer.EntryTemplates(entry), true)
 	if err != nil {
 		return nil, err
 	}
