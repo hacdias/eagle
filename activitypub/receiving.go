@@ -33,6 +33,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	actor, keyID, err := ap.verifySignature(r)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
+			ap.log.Debugw("verifySignature returns not found, likely actor deleted", "key", keyID)
 			// Actor has likely been deleted.
 			url, err := urlpkg.Parse(keyID)
 			if err == nil {
