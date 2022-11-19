@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/samber/lo"
 	"github.com/spf13/viper"
-	"github.com/thoas/go-funk"
 )
 
 type ActivityPub struct {
@@ -197,11 +197,11 @@ func (s *Site) validate() error {
 		return errors.New("indexSection must be configured")
 	}
 
-	if !funk.ContainsString(s.Sections, s.IndexSection) {
+	if !lo.Contains(s.Sections, s.IndexSection) {
 		return errors.New("sections must include IndexSection")
 	}
 
-	if len(s.Sections) != len(funk.UniqString(s.Sections)) {
+	if len(s.Sections) != len(lo.Uniq(s.Sections)) {
 		return errors.New("sections includes duplicate entries")
 	}
 
@@ -408,9 +408,9 @@ func (c *Config) validate() error {
 	for _, sections := range c.Micropub.Sections {
 		micropubSections = append(micropubSections, sections...)
 	}
-	micropubSections = funk.UniqString(micropubSections)
+	micropubSections = lo.Uniq(micropubSections)
 
-	intersect := funk.IntersectString(c.Site.Sections, micropubSections)
+	intersect := lo.Intersect(c.Site.Sections, micropubSections)
 	if len(intersect) != len(micropubSections) {
 		return fmt.Errorf("Micropub.Sections can only use sections defined in Sections")
 	}

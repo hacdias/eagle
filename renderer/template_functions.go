@@ -13,7 +13,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/util"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 func (r *Renderer) getIncludeTemplate(absoluteURLs bool) func(name string, data ...interface{}) (template.HTML, error) {
@@ -131,7 +131,7 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"strContains":         strings.Contains,
 		"strSplit":            strings.Split,
 		"strJoin":             strings.Join,
-		"containsString":      funk.ContainsString,
+		"containsString":      lo.Contains[string],
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
 		"figure":              figure,

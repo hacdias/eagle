@@ -3,7 +3,7 @@ package hooks
 import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/util"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 type TagsSanitizer struct{}
@@ -13,7 +13,7 @@ func (t TagsSanitizer) EntryHook(_, e *eagle.Entry) error {
 		for i := range tags {
 			tags[i] = util.Slugify(tags[i])
 		}
-		e.Taxonomies["tags"] = funk.UniqString(tags)
+		e.Taxonomies["tags"] = lo.Uniq(tags)
 	}
 
 	return nil

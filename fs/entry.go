@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/eagle"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 type EntryTransformer func(*eagle.Entry) (*eagle.Entry, error)
@@ -146,7 +146,7 @@ func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle
 }
 
 func (f *FS) saveEntry(e *eagle.Entry) error {
-	e.Sections = funk.UniqString(e.Sections)
+	e.Sections = lo.Uniq(e.Sections)
 
 	filename := f.getEntryFilename(e.ID)
 	err := f.MkdirAll(filepath.Dir(filename), 0777)

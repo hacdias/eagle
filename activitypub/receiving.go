@@ -15,7 +15,7 @@ import (
 	"github.com/hacdias/eagle/pkg/xray"
 	"github.com/hashicorp/go-multierror"
 	"github.com/karlseguin/typed"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	"willnorris.com/go/webmention"
 )
 
@@ -351,7 +351,7 @@ func (ap *ActivityPub) discoverLinksAsIDs(body string) ([]string, error) {
 		return nil, err
 	}
 
-	links = funk.FilterString(links, func(link string) bool {
+	links = lo.Filter(links, func(link string, index int) bool {
 		return strings.HasPrefix(link, ap.c.Server.BaseURL)
 	})
 

@@ -16,7 +16,7 @@ import (
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/jlelse/feeds"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +174,9 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Query().Has("section") {
 		search.Sections = r.URL.Query()["section"]
-		search.Sections = funk.FilterString(search.Sections, func(s string) bool { return s != "" })
+		search.Sections = lo.Filter(search.Sections, func(s string, _ int) bool {
+			return s != ""
+		})
 	}
 
 	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 type Syndicator interface {
@@ -53,7 +53,7 @@ func (m *Manager) Syndicate(e *Entry, syndicators []string) ([]string, error) {
 		}
 	}
 
-	syndicators = funk.UniqString(syndicators)
+	syndicators = lo.Uniq(syndicators)
 
 	var (
 		errors       *multierror.Error

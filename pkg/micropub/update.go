@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 // Update updates a set of existing properties with the new request.
@@ -65,14 +65,14 @@ func Update(properties map[string][]interface{}, req *Request) (map[string][]int
 					properties[key] = []interface{}{}
 				}
 
-				properties[key] = funk.Filter(properties[key], func(ss interface{}) bool {
+				properties[key] = lo.Filter(properties[key], func(ss interface{}, index int) bool {
 					for _, s := range value {
 						if s == ss {
 							return false
 						}
 					}
 					return true
-				}).([]interface{})
+				})
 			}
 		}
 	}

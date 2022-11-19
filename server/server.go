@@ -45,7 +45,7 @@ import (
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 
 	"go.uber.org/zap"
 )
@@ -607,7 +607,7 @@ func (s *Server) syncStorage() {
 	// doing so is not concurrent-safe. Alternatively, there is
 	// an action in the dashboard to reload assets and templates
 	// on-demand.
-	ids = funk.UniqString(ids)
+	ids = lo.Uniq(ids)
 	entries := []*eagle.Entry{}
 
 	for _, id := range ids {

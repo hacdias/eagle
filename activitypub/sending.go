@@ -10,7 +10,7 @@ import (
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hashicorp/go-multierror"
 	"github.com/karlseguin/typed"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 )
 
 func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
@@ -40,7 +40,7 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed, inboxes ...
 		inboxes = append(inboxes, inbox)
 	}
 
-	inboxes = funk.UniqString(inboxes)
+	inboxes = lo.Uniq(inboxes)
 	go ap.sendActivity(activity, inboxes)
 	return nil
 }
@@ -55,7 +55,7 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 	return !e.Draft &&
 		!e.Deleted &&
 		e.Visibility() != eagle.VisibilityPrivate &&
-		(funk.ContainsString(e.Sections, ap.c.Site.IndexSection) ||
+		(lo.Contains(e.Sections, ap.c.Site.IndexSection) ||
 			postType == mf2.TypeLike ||
 			postType == mf2.TypeRepost)
 }
