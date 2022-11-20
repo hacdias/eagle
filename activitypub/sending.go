@@ -3,11 +3,15 @@ package activitypub
 import (
 	"context"
 	"errors"
+	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/dchest/uniuri"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
+	"github.com/hacdias/eagle/util"
 	"github.com/hashicorp/go-multierror"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
@@ -62,6 +66,12 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 }
 
 func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
+	new, err := ap.autoLinkMentions(new)
+	if err != nil {
+		// Only fails if error when saving entry.
+		return err
+	}
+
 	if ap.canBePosted(old) {
 		if old.ID == new.ID {
 			if ap.canBePosted(new) {
@@ -83,6 +93,74 @@ func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	}
 
 	return nil
+}
+
+var userMention = regexp.MustCompile(`\@\@[^\s]+\@[^\s]+\.[^\s]+`)
+
+func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
+	var mentions []*eagle.UserMention
+
+	content := userMention.ReplaceAllStringFunc(e.Content, func(s string) string {
+		parts := strings.Split(strings.TrimPrefix(s, "@@"), "@")
+		iri := parts[0] + "@" + parts[1]
+		actor, err := ap.getActorByIRI(context.Background(), iri)
+		if err == nil {
+			inbox := actor.String("inbox")
+			id := actor.String("id")
+			if inbox != "" && id != "" {
+				name := "@" + iri
+				mentions = append(mentions, &eagle.UserMention{
+					Name:  name,
+					Href:  id,
+					Inbox: inbox,
+				})
+				return fmt.Sprintf("[%s](%s)", name, id)
+			}
+		}
+
+		return s
+	})
+
+	if e.Helper().PostType() == mf2.TypeReply {
+		replyTo := e.Helper().String(e.Helper().TypeProperty())
+		if replyTo != "" {
+			actor, err := ap.getActorFromActivity(context.Background(), replyTo)
+			if err == nil {
+				inbox := actor.String("inbox")
+				id := actor.String("id")
+				if inbox != "" && id != "" {
+					found := false
+
+					for _, m := range mentions {
+						if m.Href == id {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						name := "@" + actor.String("preferredUsername") + "@" + util.Domain(id)
+						mentions = append(mentions, &eagle.UserMention{
+							Name:  name,
+							Href:  id,
+							Inbox: inbox,
+						})
+						content = fmt.Sprintf("[%s](%s) ", name, id) + content
+					}
+				}
+			}
+		}
+	}
+
+	if len(mentions) == 0 {
+		return e, nil
+	}
+
+	return ap.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+		e.Content = content
+		e.UserMentions = append(e.UserMentions, mentions...)
+		return e, nil
+	})
 }
 
 func (ap *ActivityPub) sendNewEntry(e *eagle.Entry) error {
@@ -142,16 +220,10 @@ func (ap *ActivityPub) SendAccept(activity typed.Typed, inbox string) {
 
 func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
 	activity := ap.GetEntry(e)
-	var inboxes []string
 
-	if replyTo := activity.String("inReplyTo"); replyTo != "" {
-		actor, err := ap.getActorFromActivity(context.Background(), replyTo)
-		if err == nil {
-			inbox := actor.String("inbox")
-			if len(inbox) != 0 {
-				inboxes = append(inboxes, inbox)
-			}
-		}
+	var inboxes []string
+	for _, mention := range e.UserMentions {
+		inboxes = append(inboxes, mention.Inbox)
 	}
 
 	create := map[string]interface{}{

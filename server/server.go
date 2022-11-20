@@ -71,7 +71,7 @@ type Server struct {
 	cron         *cron.Cron
 	redirects    map[string]string
 	archetypes   map[string]*template.Template
-	webfinger    *webfinger
+	webfinger    *eagle.WebFinger
 
 	serversMu sync.Mutex
 	servers   []*httpServer

@@ -144,8 +144,9 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 		activity["inReplyTo"] = e.Helper().String(e.Helper().TypeProperty())
 	}
 
+	tags := []map[string]string{}
+
 	if ap.c.Server.ActivityPub.TagTaxonomy != "" {
-		tags := []map[string]string{}
 		for _, tag := range e.Taxonomy(ap.c.Server.ActivityPub.TagTaxonomy) {
 			tags = append(tags, map[string]string{
 				"type": "Hashtag",
@@ -153,9 +154,19 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 				"id":   ap.c.Server.AbsoluteURL(fmt.Sprintf("/%s/%s", ap.c.Server.ActivityPub.TagTaxonomy, tag)),
 			})
 		}
-		if len(tags) > 0 {
-			activity["tag"] = tags
-		}
+	}
+
+	for _, mention := range e.UserMentions {
+		tags = append(tags, map[string]string{
+			"type": "Mention",
+			"name": mention.Name,
+			"href": mention.Href,
+			"id":   mention.Href,
+		})
+	}
+
+	if len(tags) > 0 {
+		activity["tag"] = tags
 	}
 
 	attachments := []map[string]string{}

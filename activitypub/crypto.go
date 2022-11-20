@@ -113,7 +113,7 @@ func (ap *ActivityPub) verifySignature(r *http.Request) (typed.Typed, string, er
 	}
 
 	keyID := verifier.KeyId()
-	actor, err := ap.getActor(r.Context(), keyID)
+	actor, err := ap.getActorByID(r.Context(), keyID)
 	if err != nil {
 		return nil, "", err
 	}
