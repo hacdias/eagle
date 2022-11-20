@@ -95,10 +95,12 @@ func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	return nil
 }
 
+const checkedReplyProperty = "ap-reply-checked"
+
 var userMention = regexp.MustCompile(`\@\@[^\s]+\@[^\s]+\.[^\s]+`)
 
 func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
-	var mentions []*eagle.UserMention
+	mentions := e.UserMentions
 
 	content := userMention.ReplaceAllStringFunc(e.Content, func(s string) string {
 		parts := strings.Split(strings.TrimPrefix(s, "@@"), "@")
@@ -121,9 +123,13 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 		return s
 	})
 
-	if e.Helper().PostType() == mf2.TypeReply {
-		replyTo := e.Helper().String(e.Helper().TypeProperty())
-		if replyTo != "" {
+	var replyTo string
+
+	mm := e.Helper()
+	if mm.PostType() == mf2.TypeReply {
+		replyTo = mm.String(mm.TypeProperty())
+		// Avoid checking twice.
+		if replyTo != "" && replyTo != mm.String(checkedReplyProperty) {
 			actor, err := ap.getActorFromActivity(context.Background(), replyTo)
 			if err == nil {
 				inbox := actor.String("inbox")
@@ -158,7 +164,10 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 
 	return ap.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
 		e.Content = content
-		e.UserMentions = append(e.UserMentions, mentions...)
+		e.UserMentions = mentions
+		if replyTo != "" {
+			e.Properties[checkedReplyProperty] = replyTo
+		}
 		return e, nil
 	})
 }
