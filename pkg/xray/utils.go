@@ -8,13 +8,14 @@ import (
 )
 
 var (
-	htmlRemover    = bluemonday.StrictPolicy()
-	spaceCollapser = regexp.MustCompile(`\s+`)
+	htmlPolicy = bluemonday.StrictPolicy()
+	spaces     = regexp.MustCompile(`\s+`)
 )
 
 func SanitizeContent(data string) string {
-	data = htmlRemover.Sanitize(data)
+	data = htmlPolicy.Sanitize(data)
 	data = strings.TrimSpace(data)
-	data = spaceCollapser.ReplaceAllString(data, " ") // Collapse whitespaces
+	// Collapse white spaces.
+	data = spaces.ReplaceAllString(data, " ")
 	return data
 }
