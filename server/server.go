@@ -253,6 +253,10 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// Must be run after the Context Fetcher, such that the context URL
+		// is updated to its canonical version. The XRay will resolve Mastodon
+		// links across different instances.
 		s.AppendPostSaveHook(s.ap)
 	}
 

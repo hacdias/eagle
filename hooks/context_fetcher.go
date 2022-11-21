@@ -101,8 +101,22 @@ func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 		parsed.Author.Photo = c.media.SafeUploadFromURL("wm", parsed.Author.Photo, true)
 	}
 
-	return c.fs.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
+	err = c.fs.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
 		data.Context = parsed
 		return data, nil
 	})
+
+	if err != nil {
+		return err
+	}
+
+	if parsed.URL != "" && parsed.URL != urlStr {
+		_, err = c.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+			e.Properties[property] = parsed.URL
+			return e, nil
+		})
+		return err
+	}
+
+	return nil
 }
