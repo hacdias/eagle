@@ -107,7 +107,7 @@ func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, acti
 	reply, hasReply := object.StringIf("inReplyTo")
 	hasReply = hasReply && len(reply) > 0
 
-	content, hasContent := object.StringIf("hasContent")
+	content, hasContent := object.StringIf("content")
 	hasContent = hasContent && len(content) > 0
 
 	// Activity is a reply.
