@@ -29,8 +29,7 @@ func NewTelegram(c *eagle.Telegram) (*Telegram, error) {
 
 func (n *Telegram) Info(msg string) {
 	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, msg, &tb.SendOptions{
-		DisableWebPagePreview: true,
-		ParseMode:             tb.ModeDefault,
+		ParseMode: tb.ModeDefault,
 	})
 
 	if err != nil {
