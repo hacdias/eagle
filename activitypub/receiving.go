@@ -96,56 +96,52 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, activity typed.Typed) error {
 	object, ok := activity.ObjectIf("object")
 	if !ok {
-		return fmt.Errorf("%w: object does not exist or not map", ErrNotHandled)
+		return errors.New("activity.object is not present or is not string")
 	}
 
-	id, ok := object.StringIf("id")
-	if !ok || len(id) == 0 {
-		return fmt.Errorf("%w: object has no id", ErrNotHandled)
+	id := object.String("id")
+	if id == "" {
+		return errors.New("activity.object.id is not present or is not string")
 	}
 
-	reply, hasReply := object.StringIf("inReplyTo")
-	hasReply = hasReply && len(reply) > 0
-
-	content, hasContent := object.StringIf("content")
-	hasContent = hasContent && len(content) > 0
+	var (
+		mentionType mf2.Type
+		ids         []string
+	)
 
 	// Activity is a reply.
-	if hasReply && strings.HasPrefix(reply, ap.c.Server.BaseURL) {
+	reply := object.String("inReplyTo")
+	if reply != "" && strings.HasPrefix(reply, ap.c.Server.BaseURL) {
+		mentionType = mf2.TypeReply
 		id := strings.TrimPrefix(reply, ap.c.Server.BaseURL)
-		mention := ap.mentionFromActivity(actor, activity)
-		mention.Type = mf2.TypeReply
-		err := ap.wm.AddOrUpdateWebmention(id, mention)
-		if err != nil {
-			return err
-		}
-		return ap.store.AddActivityPubLink(id, mention.ID)
+		ids = append(ids, id)
 	}
 
 	// Activity is some sort of mention.
-	if hasContent && strings.Contains(content, ap.c.Server.BaseURL) {
-		mention := ap.mentionFromActivity(actor, activity)
-		ids, err := ap.discoverLinksAsIDs(content)
-		if err != nil {
-			return err
+	content := object.String("content")
+	if content != "" && strings.Contains(content, ap.c.Server.BaseURL) {
+		contentIDs, err := ap.discoverLinksAsIDs(content)
+		if err == nil {
+			ids = append(ids, contentIDs...)
 		}
-
-		if len(ids) == 0 {
-			return ErrNotHandled
-		}
-
-		var errs *multierror.Error
-		for _, id := range ids {
-			err = ap.wm.AddOrUpdateWebmention(id, mention)
-			if err == nil {
-				err = ap.store.AddActivityPubLink(id, mention.ID)
-			}
-			errs = multierror.Append(errs, err)
-		}
-		return errs.ErrorOrNil()
 	}
 
-	return nil
+	if len(ids) == 0 {
+		return ErrNotHandled
+	}
+
+	mention := ap.mentionFromActivity(actor, activity)
+	mention.Type = mentionType
+
+	var errs *multierror.Error
+	for _, id := range ids {
+		err := ap.wm.AddOrUpdateWebmention(id, mention)
+		if err == nil {
+			err = ap.store.AddActivityPubLink(id, mention.ID)
+		}
+		errs = multierror.Append(errs, err)
+	}
+	return errs.ErrorOrNil()
 }
 
 func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.Typed) error {
@@ -155,7 +151,7 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 	}
 
 	// TODO: check if I follow "actor". If so, store the activity.
-	return nil
+	return ErrNotHandled
 }
 
 func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.Typed) error {
@@ -165,7 +161,7 @@ func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.T
 	}
 
 	// TODO: check if I follow "actor". If so, update the activity.
-	return nil
+	return ErrNotHandled
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
