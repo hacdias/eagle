@@ -93,7 +93,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.Typed) error {
+func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, activity typed.Typed) error {
 	object, ok := activity.ObjectIf("object")
 	if !ok {
 		return fmt.Errorf("%w: object does not exist or not map", ErrNotHandled)
@@ -145,11 +145,27 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 		return errs.ErrorOrNil()
 	}
 
-	return ErrNotHandled
+	return nil
+}
+
+func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.Typed) error {
+	err := ap.createOrUpdateWebmention(ctx, actor, activity)
+	if err != nil {
+		return err
+	}
+
+	// TODO: check if I follow "actor". If so, store the activity.
+	return nil
 }
 
 func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.Typed) error {
-	return ErrNotHandled
+	err := ap.createOrUpdateWebmention(ctx, actor, activity)
+	if err != nil {
+		return err
+	}
+
+	// TODO: check if I follow "actor". If so, update the activity.
+	return nil
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
