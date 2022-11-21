@@ -35,8 +35,8 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 	actor, keyID, err := ap.verifySignature(r)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
-			ap.log.Debugw("verifySignature returns not found, likely actor deleted", "key", keyID)
 			// Actor has likely been deleted.
+			ap.log.Debugw("signature not found, actor likely deleted", "activity", activity)
 			url, err := urlpkg.Parse(keyID)
 			if err == nil {
 				url.Fragment = ""
@@ -127,7 +127,7 @@ func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, acti
 	}
 
 	if len(ids) == 0 {
-		return ErrNotHandled
+		return nil
 	}
 
 	mention := ap.mentionFromActivity(actor, activity)
@@ -178,23 +178,24 @@ func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.T
 	return ErrNotHandled
 }
 
-func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
-	var object string
-
-	if objectStr, ok := activity.StringIf("object"); ok {
-		object = objectStr
-	} else if objectMap, ok := activity.ObjectIf("object"); ok {
-		if objectStr, ok := objectMap.StringIf("id"); ok {
-			object = objectStr
-		} else {
-			return errors.New("activity.object has no id")
+func (ap *ActivityPub) getObjectAsString(activity typed.Typed) (string, error) {
+	if object := activity.String("object"); object != "" {
+		return object, nil
+	} else if object, ok := activity.ObjectIf("object"); ok {
+		if id := object.String("id"); id != "" {
+			return id, nil
 		}
-	} else {
-		return ErrNotHandled
+
+		return "", errors.New("activity.object.id not found")
 	}
 
-	if object == "" {
-		return errors.New("activity.object is string or map, but has no id")
+	return "", errors.New("activity.object must be string or object")
+}
+
+func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
+	object, err := ap.getObjectAsString(activity)
+	if err != nil {
+		return err
 	}
 
 	entries, err := ap.store.GetActivityPubLinks(object)
@@ -237,20 +238,20 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 }
 
 func (ap *ActivityPub) handleLikeOrAnnounce(ctx context.Context, actor, activity typed.Typed, postType mf2.Type) error {
-	permalink := activity.String("object")
-	if permalink == "" {
-		return errors.New("activity.object is not present or is not string")
+	object, err := ap.getObjectAsString(activity)
+	if err != nil {
+		return err
 	}
 
-	if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
+	if !strings.HasPrefix(object, ap.c.Server.BaseURL) {
 		return errors.New("activity.object is for someone else")
 	}
 
-	id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
+	id := strings.TrimPrefix(object, ap.c.Server.BaseURL)
 	mention := ap.mentionFromActivity(actor, activity)
 	mention.Type = postType
 
-	err := ap.wm.AddOrUpdateWebmention(id, mention)
+	err = ap.wm.AddOrUpdateWebmention(id, mention)
 	if err != nil {
 		return err
 	}
@@ -280,7 +281,7 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 		case "Follow":
 			iri := activity.String("actor")
 			if object.String("actor") != iri {
-				return fmt.Errorf("%w: activity.object.actor is different from activity.actor", ErrNotHandled)
+				return errors.New("activity.object.actor differs from activity.actor")
 			}
 			ap.n.Info(fmt.Sprintf("☃️ %s unfollowed you.", iri))
 			_ = ap.store.DeleteActivityPubFollower(iri)
@@ -288,7 +289,7 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 		case "Like", "Announce":
 			source := object.String("id")
 			if source == "" {
-				return fmt.Errorf("%w: activity.object.id must be string", ErrNotHandled)
+				return errors.New("activity.object.id must be string")
 			}
 
 			permalink := object.String("object")
