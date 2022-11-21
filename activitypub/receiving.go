@@ -151,6 +151,13 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 	}
 
 	// TODO: check if I follow "actor". If so, store the activity.
+	if object, ok := activity.ObjectIf("object"); ok {
+		if id := object.String("id"); id != "" {
+			ap.n.Info("✏️ New Post: " + id)
+			return nil
+		}
+	}
+
 	return ErrNotHandled
 }
 
@@ -161,6 +168,13 @@ func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.T
 	}
 
 	// TODO: check if I follow "actor". If so, update the activity.
+	if object, ok := activity.ObjectIf("object"); ok {
+		if id := object.String("id"); id != "" {
+			ap.n.Info("✏️ Updated Post: " + id)
+			return nil
+		}
+	}
+
 	return ErrNotHandled
 }
 
@@ -195,6 +209,7 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return nil
 	}
 
+	// TODO: check if I follow "actor". If so, delete the activity.
 	return ErrNotHandled
 }
 
