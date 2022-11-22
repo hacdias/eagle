@@ -309,7 +309,7 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		"published": e.Published.Format(time.RFC3339),
 		"cc": []string{
 			actor.String("id"),
-			// "https://fosstodon.org/users/hacdias/followers"
+			ap.options.FollowersURL,
 		},
 		"to": []string{
 			"https://www.w3.org/ns/activitystreams#Public",
