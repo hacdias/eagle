@@ -34,16 +34,23 @@ type Follower struct {
 	Handle string
 }
 
-type Storage interface {
+type FollowersStorage interface {
 	AddOrUpdateFollower(Follower) error
 	GetFollower(id string) (*Follower, error)
 	GetFollowers() ([]*Follower, error)
 	GetFollowersByPage(page, limit int) ([]*Follower, error)
 	GetFollowersCount() (int, error)
 	DeleteFollower(iri string) error
+}
 
+type LinksStorage interface {
 	AddActivityPubLink(entry, activity string) error
 	GetActivityPubLinks(activity string) ([]string, error)
+}
+
+type Storage interface {
+	FollowersStorage
+	LinksStorage
 }
 
 type Options struct {
