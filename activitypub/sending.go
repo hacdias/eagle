@@ -303,9 +303,10 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 	}
 
 	activity := map[string]interface{}{
-		"@context": []string{"https://www.w3.org/ns/activitystreams"},
-		"type":     activityType,
-		"id":       e.Permalink,
+		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
+		"type":      activityType,
+		"id":        e.Permalink,
+		"published": e.Published.Format(time.RFC3339),
 		"to": []string{
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
