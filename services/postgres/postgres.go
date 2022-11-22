@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hacdias/eagle/activitypub"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/hooks"
 	"github.com/hacdias/eagle/indexer"
@@ -542,62 +543,46 @@ func (d *Postgres) Close() error {
 	return nil
 }
 
-func (d *Postgres) AddActivityPubFollower(iri, inbox string) error {
-	_, err := d.pool.Exec(context.Background(), "insert into activitypub_followers(iri, inbox) values($1, $2) on conflict (iri) do update set inbox=$2", iri, inbox)
+func (d *Postgres) AddOrUpdateFollower(follower activitypub.Follower) error {
+	_, err := d.pool.Exec(
+		context.Background(),
+		"insert into activitypub_followers(name, iri, inbox, handle) values($1, $2, $3, $4) on conflict (iri) do update set name=$1, inbox=$3, handle=$4",
+		follower.Name, follower.ID, follower.Inbox, follower.Handle,
+	)
 	return err
 }
 
-func (d *Postgres) GetActivityPubFollower(iri string) (string, error) {
-	rows, err := d.pool.Query(context.Background(), "select inbox from activitypub_followers where iri=$1", iri)
+func (d *Postgres) getFollowers(sql string, args ...interface{}) ([]*activitypub.Follower, error) {
+	rows, err := d.pool.Query(context.Background(), sql, args...)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", nil
-		}
-
-		return "", err
-	}
-	defer rows.Close()
-
-	var inbox string
-	ok := rows.Next()
-	if !ok {
-		return "", nil
-	}
-
-	err = rows.Scan(&inbox)
-	if err != nil {
-		return "", err
-	}
-	if err := rows.Err(); err != nil {
-		return "", err
-	}
-	return inbox, nil
-}
-
-func (d *Postgres) GetActivityPubFollowers() (map[string]string, error) {
-	rows, err := d.pool.Query(context.Background(), "select iri, inbox from activitypub_followers")
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return map[string]string{}, nil
+			return []*activitypub.Follower{}, nil
 		}
 
 		return nil, err
 	}
 	defer rows.Close()
 
-	followers := map[string]string{}
+	followers := []*activitypub.Follower{}
 
 	for rows.Next() {
 		var (
-			iri   string
-			inbox string
+			name   string
+			id     string
+			inbox  string
+			handle string
 		)
-		err := rows.Scan(&iri, &inbox)
+		err := rows.Scan(&name, &id, &inbox, &handle)
 		if err != nil {
 			return nil, err
 		}
 
-		followers[iri] = inbox
+		followers = append(followers, &activitypub.Follower{
+			Name:   name,
+			ID:     id,
+			Inbox:  inbox,
+			Handle: handle,
+		})
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -605,7 +590,53 @@ func (d *Postgres) GetActivityPubFollowers() (map[string]string, error) {
 	return followers, nil
 }
 
-func (d *Postgres) DeleteActivityPubFollower(iri string) error {
+func (d *Postgres) GetFollower(id string) (*activitypub.Follower, error) {
+	followers, err := d.getFollowers("select name, iri, inbox, handle from activitypub_followers where iri=$1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(followers) != 1 {
+		return nil, nil
+	}
+
+	return followers[0], nil
+}
+
+func (d *Postgres) GetFollowers() ([]*activitypub.Follower, error) {
+	return d.getFollowers("select name, iri, inbox, handle from activitypub_followers order by iri")
+}
+
+func (d *Postgres) GetFollowersByPage(page, limit int) ([]*activitypub.Follower, error) {
+	return d.getFollowers("select name, iri, inbox, handle from activitypub_followers order by iri offset " + strconv.Itoa(page*limit) + " limit " + strconv.Itoa(limit))
+}
+
+func (d *Postgres) GetFollowersCount() (int, error) {
+	sql := `select count(*) from activitypub_followers;`
+
+	rows, err := d.pool.Query(context.Background(), sql)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	var n int
+
+	_ = rows.Next()
+
+	err = rows.Scan(&n)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+
+	return n, nil
+}
+
+func (d *Postgres) DeleteFollower(iri string) error {
 	_, err := d.pool.Exec(context.Background(), "delete from activitypub_followers where iri=$1", iri)
 	return err
 }

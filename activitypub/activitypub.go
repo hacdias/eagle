@@ -27,11 +27,21 @@ import (
 	"go.uber.org/zap"
 )
 
+type Follower struct {
+	Name   string
+	ID     string
+	Inbox  string
+	Handle string
+}
+
 type Storage interface {
-	AddActivityPubFollower(iri, inbox string) error
-	GetActivityPubFollower(iri string) (string, error)
-	GetActivityPubFollowers() (map[string]string, error)
-	DeleteActivityPubFollower(iri string) error
+	AddOrUpdateFollower(Follower) error
+	GetFollower(id string) (*Follower, error)
+	GetFollowers() ([]*Follower, error)
+	GetFollowersByPage(page, limit int) ([]*Follower, error)
+	GetFollowersCount() (int, error)
+	DeleteFollower(iri string) error
+
 	AddActivityPubLink(entry, activity string) error
 	GetActivityPubLinks(activity string) ([]string, error)
 }
@@ -58,7 +68,7 @@ type ActivityPub struct {
 	publicKey  string
 	privKey    *rsa.PrivateKey
 	httpClient *http.Client
-	store      Storage
+	Storage    Storage
 
 	signerMu sync.Mutex
 	signer   httpsig.Signer
@@ -66,14 +76,14 @@ type ActivityPub struct {
 
 func NewActivityPub(options *Options) (*ActivityPub, error) {
 	a := &ActivityPub{
-		c:     options.Config,
-		r:     options.Renderer,
-		fs:    options.FS,
-		n:     options.Notifier,
-		media: options.Media,
-		wm:    options.Webmentions,
-		store: options.Store,
-		log:   log.S().Named("activitypub"),
+		c:       options.Config,
+		r:       options.Renderer,
+		fs:      options.FS,
+		n:       options.Notifier,
+		media:   options.Media,
+		wm:      options.Webmentions,
+		Storage: options.Store,
+		log:     log.S().Named("activitypub"),
 
 		httpClient: &http.Client{
 			Timeout: time.Minute,

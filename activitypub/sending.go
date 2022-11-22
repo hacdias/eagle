@@ -35,13 +35,13 @@ func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
 }
 
 func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed, inboxes ...string) error {
-	followers, err := ap.store.GetActivityPubFollowers()
+	followers, err := ap.Storage.GetFollowers()
 	if err != nil {
 		return err
 	}
 
-	for _, inbox := range followers {
-		inboxes = append(inboxes, inbox)
+	for _, f := range followers {
+		inboxes = append(inboxes, f.ID)
 	}
 
 	inboxes = lo.Uniq(inboxes)
@@ -307,6 +307,10 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		"type":      activityType,
 		"id":        e.Permalink,
 		"published": e.Published.Format(time.RFC3339),
+		"cc": []string{
+			actor.String("id"),
+			// "https://fosstodon.org/users/hacdias/followers"
+		},
 		"to": []string{
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
