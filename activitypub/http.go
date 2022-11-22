@@ -14,7 +14,7 @@ const (
 	followersPerPage = 50
 )
 
-func (ap *ActivityPub) FollowersCollectionHandler(w http.ResponseWriter, r *http.Request) (int, error) {
+func (ap *ActivityPub) FollowersHandler(w http.ResponseWriter, r *http.Request) (int, error) {
 	if r.Method != http.MethodGet {
 		return http.StatusMethodNotAllowed, errors.New("method not allowed")
 	}

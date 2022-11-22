@@ -30,7 +30,7 @@ func (s *Server) activityPubInboxPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) activityPubFollowersGet(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := s.ap.FollowersCollectionHandler(w, r)
+	statusCode, err := s.ap.FollowersHandler(w, r)
 	if err != nil {
 		s.serveActivityError(w, statusCode, err)
 	} else if statusCode != 0 {

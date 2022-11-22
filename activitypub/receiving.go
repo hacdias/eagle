@@ -25,6 +25,10 @@ var (
 )
 
 func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
+	if r.Method != http.MethodPost {
+		return http.StatusMethodNotAllowed, errors.New("method not allowed")
+	}
+
 	var activity typed.Typed
 	err := json.NewDecoder(r.Body).Decode(&activity)
 	if err != nil {
