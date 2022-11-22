@@ -95,7 +95,10 @@ func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 	return nil
 }
 
-const checkedReplyProperty = "ap-reply-checked"
+const (
+	propertyPrefix       = "ap-"
+	checkedReplyProperty = propertyPrefix + "reply-checked"
+)
 
 var userMention = regexp.MustCompile(`\@\@[^\s]+\@[^\s]+\.[^\s]+`)
 
@@ -130,7 +133,7 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 		replyTo = mm.String(mm.TypeProperty())
 		// Avoid checking twice.
 		if replyTo != "" && replyTo != mm.String(checkedReplyProperty) {
-			actor, err := ap.getActorFromActivity(context.Background(), replyTo)
+			actor, _, err := ap.getActorFromActivity(context.Background(), replyTo)
 			if err == nil {
 				inbox := actor.String("inbox")
 				id := actor.String("id")
@@ -287,8 +290,19 @@ func (ap *ActivityPub) SendDelete(permalink string) error {
 }
 
 func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) error {
-	target := e.Helper().String(e.Helper().TypeProperty())
-	actor, err := ap.getActorFromActivity(context.Background(), target)
+	mm := e.Helper()
+
+	property := mm.TypeProperty()
+	apProperty := propertyPrefix + property
+
+	reference := mm.String(property)
+	apReference := mm.String(apProperty)
+
+	if apReference == "" {
+		apReference = reference
+	}
+
+	actor, activity, err := ap.getActorFromActivity(context.Background(), reference)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
 			return nil
@@ -302,7 +316,17 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		return nil
 	}
 
-	activity := map[string]interface{}{
+	id := activity.String("id")
+	if id != "" && id != apReference {
+		apReference = id
+
+		_, _ = ap.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+			e.Properties["ap-"+property] = apReference
+			return e, nil
+		})
+	}
+
+	return ap.sendActivityToFollowers(map[string]interface{}{
 		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
 		"type":      activityType,
 		"id":        e.Permalink,
@@ -314,11 +338,9 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		"to": []string{
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
-		"object": e.Helper().String(e.Helper().TypeProperty()),
+		"object": apReference,
 		"actor":  ap.c.Server.BaseURL,
-	}
-
-	return ap.sendActivityToFollowers(activity, inbox)
+	}, inbox)
 }
 
 func (ap *ActivityPub) SendLike(e *eagle.Entry) error {

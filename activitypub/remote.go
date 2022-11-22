@@ -99,18 +99,29 @@ func (ap *ActivityPub) getActorByID(ctx context.Context, id string) (typed.Typed
 	return actor, nil
 }
 
-func (ap *ActivityPub) getActorFromActivity(ctx context.Context, url string) (typed.Typed, error) {
+func (ap *ActivityPub) getActorFromActivity(ctx context.Context, url string) (typed.Typed, typed.Typed, error) {
 	activity, err := ap.getActivity(ctx, url)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	iri, ok := activity.StringIf("attributedTo")
-	if !ok || len(iri) == 0 {
-		return nil, errors.New("attributedTo field is empty")
+	var iri string
+	if v, ok := activity.StringIf("attributedTo"); ok && v != "" {
+		iri = v
+	} else if v, ok := activity.ObjectIf("attributedTo"); ok {
+		iri = v.String("id")
 	}
 
-	return ap.getActorByID(ctx, iri)
+	if iri == "" {
+		return nil, nil, errors.New("attributedTo field is empty or not string")
+	}
+
+	actor, err := ap.getActorByID(ctx, iri)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return actor, activity, nil
 }
 
 func (ap *ActivityPub) getWebfinger(ctx context.Context, domain, resource string) (*eagle.WebFinger, error) {
