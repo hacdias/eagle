@@ -27,13 +27,30 @@ import (
 	"go.uber.org/zap"
 )
 
-type Storage interface {
-	AddActivityPubFollower(iri, inbox string) error
-	GetActivityPubFollower(iri string) (string, error)
-	GetActivityPubFollowers() (map[string]string, error)
-	DeleteActivityPubFollower(iri string) error
+type Follower struct {
+	Name   string
+	ID     string
+	Inbox  string
+	Handle string
+}
+
+type FollowersStorage interface {
+	AddOrUpdateFollower(Follower) error
+	GetFollower(id string) (*Follower, error)
+	GetFollowers() ([]*Follower, error)
+	GetFollowersByPage(page, limit int) ([]*Follower, error)
+	GetFollowersCount() (int, error)
+	DeleteFollower(iri string) error
+}
+
+type LinksStorage interface {
 	AddActivityPubLink(entry, activity string) error
 	GetActivityPubLinks(activity string) ([]string, error)
+}
+
+type Storage interface {
+	FollowersStorage
+	LinksStorage
 }
 
 type Options struct {
@@ -44,6 +61,10 @@ type Options struct {
 	Webmentions *webmentions.Webmentions
 	Media       *media.Media
 	Store       Storage
+
+	InboxURL     string
+	OutboxURL    string
+	FollowersURL string
 }
 
 type ActivityPub struct {
@@ -58,7 +79,8 @@ type ActivityPub struct {
 	publicKey  string
 	privKey    *rsa.PrivateKey
 	httpClient *http.Client
-	store      Storage
+	Storage    Storage
+	options    *Options
 
 	signerMu sync.Mutex
 	signer   httpsig.Signer
@@ -66,14 +88,16 @@ type ActivityPub struct {
 
 func NewActivityPub(options *Options) (*ActivityPub, error) {
 	a := &ActivityPub{
-		c:     options.Config,
-		r:     options.Renderer,
-		fs:    options.FS,
-		n:     options.Notifier,
-		media: options.Media,
-		wm:    options.Webmentions,
-		store: options.Store,
-		log:   log.S().Named("activitypub"),
+		c:       options.Config,
+		r:       options.Renderer,
+		fs:      options.FS,
+		n:       options.Notifier,
+		media:   options.Media,
+		wm:      options.Webmentions,
+		Storage: options.Store,
+		log:     log.S().Named("activitypub"),
+
+		options: options,
 
 		httpClient: &http.Client{
 			Timeout: time.Minute,
@@ -204,8 +228,8 @@ func (ap *ActivityPub) initSelf() {
 			"owner":        ap.c.Server.BaseURL,
 			"publicKeyPem": ap.publicKey,
 		},
-		"inbox":  ap.c.Server.AbsoluteURL("/activitypub/inbox"),
-		"outbox": ap.c.Server.AbsoluteURL("/activitypub/outbox"),
+		"inbox":  ap.options.InboxURL,
+		"outbox": ap.options.OutboxURL,
 	}
 
 	if ap.c.User.Photo != "" {

@@ -5,15 +5,37 @@ import (
 	"net/http"
 )
 
-func (s *Server) activityPubInboxPost(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := s.ap.HandleInbox(r)
-	if err != nil {
-		s.log.Errorw("activity", "status", statusCode, "err", err)
-		s.serveErrorJSON(w, statusCode, "invalid_request", err.Error())
-		return
-	}
+var (
+	activityPubFollowersRoute = "/activitypub/followers"
+	activityPubInboxRoute     = "/activitypub/inbox"
+	activityPubOutboxRoute    = "/activitypub/outbox"
+)
 
-	w.WriteHeader(statusCode)
+func (s *Server) serveActivityError(w http.ResponseWriter, statusCode int, err error) {
+	if statusCode >= 500 {
+		s.serveErrorJSON(w, statusCode, "error", "internals server error")
+		s.log.Errorw("activity", "status", statusCode, "err", err)
+	} else {
+		s.serveErrorJSON(w, statusCode, "error", err.Error())
+	}
+}
+
+func (s *Server) activityPubInboxPost(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := s.ap.InboxHandler(r)
+	if err != nil {
+		s.serveActivityError(w, statusCode, err)
+	} else if statusCode != 0 {
+		w.WriteHeader(statusCode)
+	}
+}
+
+func (s *Server) activityPubFollowersGet(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := s.ap.FollowersHandler(w, r)
+	if err != nil {
+		s.serveActivityError(w, statusCode, err)
+	} else if statusCode != 0 {
+		w.WriteHeader(statusCode)
+	}
 }
 
 func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {

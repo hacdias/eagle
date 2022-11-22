@@ -13,6 +13,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
+	"github.com/hacdias/eagle/util"
 	"github.com/hashicorp/go-multierror"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
@@ -23,7 +24,11 @@ var (
 	ErrNotHandled = errors.New("request not handled")
 )
 
-func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
+func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
+	if r.Method != http.MethodPost {
+		return http.StatusMethodNotAllowed, errors.New("method not allowed")
+	}
+
 	var activity typed.Typed
 	err := json.NewDecoder(r.Body).Decode(&activity)
 	if err != nil {
@@ -41,7 +46,7 @@ func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
 			if err == nil {
 				url.Fragment = ""
 				url.RawFragment = ""
-				_ = ap.store.DeleteActivityPubFollower(url.String())
+				_ = ap.Storage.DeleteFollower(url.String())
 				return http.StatusOK, nil
 			}
 		}
@@ -137,7 +142,7 @@ func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, acti
 	for _, id := range ids {
 		err := ap.wm.AddOrUpdateWebmention(id, mention)
 		if err == nil {
-			err = ap.store.AddActivityPubLink(id, mention.ID)
+			err = ap.Storage.AddActivityPubLink(id, mention.ID)
 		}
 		errs = multierror.Append(errs, err)
 	}
@@ -149,6 +154,21 @@ func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.T
 	if err != nil {
 		return err
 	}
+
+	// multierror.Append(
+	// 	ap.handleReplies(),
+	// 	ap.handleMentions(),
+	// 	ap.handleFollowers()
+	// )
+
+	// "tag": [
+	// 		[...]
+	// 		{
+	// 			"href": "https://hacdias.com",
+	// 			"name": "@hacdias@hacdias.com",
+	// 			"type": "Mention"
+	// 		}
+	// 	],
 
 	// TODO: check if I follow "actor", or if mentions IRI. If so, store the activity.
 	if object, ok := activity.ObjectIf("object"); ok {
@@ -198,7 +218,7 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return err
 	}
 
-	entries, err := ap.store.GetActivityPubLinks(object)
+	entries, err := ap.Storage.GetActivityPubLinks(object)
 	if err != nil {
 		return err
 	} else if len(entries) != 0 {
@@ -206,7 +226,7 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return ap.deleteMultipleWebmentions(entries, object)
 	} else if actor.String("id") == object {
 		// Otherwise, it is a user deletion.
-		_ = ap.store.DeleteActivityPubFollower(object)
+		_ = ap.Storage.DeleteFollower(object)
 		return nil
 	}
 
@@ -215,8 +235,8 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 }
 
 func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.Typed) error {
-	iri, ok := activity.StringIf("actor")
-	if !ok || len(iri) == 0 {
+	id := activity.String("actor")
+	if id == "" {
 		return errors.New("actor not present or not string")
 	}
 
@@ -225,14 +245,21 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		return errors.New("actor has no inbox")
 	}
 
-	if storedInbox, err := ap.store.GetActivityPubFollower(iri); err != nil || inbox != storedInbox {
-		err = ap.store.AddActivityPubFollower(iri, inbox)
+	follower := Follower{
+		Name:   actor.String("name"),
+		ID:     id,
+		Inbox:  inbox,
+		Handle: fmt.Sprintf("@%s@%s", actor.String("preferredUsername"), util.Domain(id)),
+	}
+
+	if _, err := ap.Storage.GetFollower(id); err != nil {
+		err = ap.Storage.AddOrUpdateFollower(follower)
 		if err != nil {
 			return fmt.Errorf("failed to store followers: %w", err)
 		}
 	}
 
-	ap.n.Info(fmt.Sprintf("☃️ %s followed you!", iri))
+	ap.n.Info(fmt.Sprintf("☃️ %s (%s) followed you!", follower.Handle, follower.ID))
 	ap.SendAccept(activity, inbox)
 	return nil
 }
@@ -255,7 +282,7 @@ func (ap *ActivityPub) handleLikeOrAnnounce(ctx context.Context, actor, activity
 	if err != nil {
 		return err
 	}
-	return ap.store.AddActivityPubLink(id, mention.ID)
+	return ap.Storage.AddActivityPubLink(id, mention.ID)
 }
 
 func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typed) error {
@@ -268,7 +295,7 @@ func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
 	if object, ok := activity.StringIf("object"); ok {
-		entries, err := ap.store.GetActivityPubLinks(object)
+		entries, err := ap.Storage.GetActivityPubLinks(object)
 		if err != nil {
 			return err
 		}
@@ -279,12 +306,12 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 	if object, ok := activity.ObjectIf("object"); ok {
 		switch object.String("type") {
 		case "Follow":
-			iri := activity.String("actor")
-			if object.String("actor") != iri {
+			id := activity.String("actor")
+			if object.String("actor") != id {
 				return errors.New("activity.object.actor differs from activity.actor")
 			}
-			ap.n.Info(fmt.Sprintf("☃️ %s unfollowed you.", iri))
-			_ = ap.store.DeleteActivityPubFollower(iri)
+			ap.n.Info(fmt.Sprintf("☃️ %s unfollowed you.", id))
+			_ = ap.Storage.DeleteFollower(id)
 			return nil
 		case "Like", "Announce":
 			source := object.String("id")
