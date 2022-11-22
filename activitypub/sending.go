@@ -41,7 +41,7 @@ func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed, inboxes ...
 	}
 
 	for _, f := range followers {
-		inboxes = append(inboxes, f.ID)
+		inboxes = append(inboxes, f.Inbox)
 	}
 
 	inboxes = lo.Uniq(inboxes)
