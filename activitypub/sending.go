@@ -246,56 +246,40 @@ func (ap *ActivityPub) SendAccept(activity typed.Typed, inbox string) {
 	ap.sendActivity(accept, []string{inbox})
 }
 
-func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
-	activity := ap.GetEntry(e)
+func (ap *ActivityPub) sendCreateOrUpdate(e *eagle.Entry, activityType string) error {
+	object := ap.GetEntry(e)
 
 	var inboxes []string
 	for _, mention := range e.UserMentions {
 		inboxes = append(inboxes, mention.Inbox)
 	}
 
-	create := map[string]interface{}{
+	activity := map[string]interface{}{
 		"@context": []string{"https://www.w3.org/ns/activitystreams"},
-		"type":     "Create",
+		"type":     activityType,
 		"id":       e.Permalink,
-		"to":       activity["to"],
-		"object":   activity,
+		"to":       object["to"],
+		"object":   object,
 		"actor":    ap.c.Server.BaseURL,
 	}
 
-	if published, ok := activity["published"]; ok {
-		create["published"] = published
+	if published, ok := object["published"]; ok {
+		activity["published"] = published
 	}
 
-	return ap.sendActivityToFollowers(create, inboxes...)
+	if updated, ok := object["updated"]; ok {
+		activity["updated"] = updated
+	}
+
+	return ap.sendActivityToFollowers(activity, inboxes...)
+}
+
+func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
+	return ap.sendCreateOrUpdate(e, "Create")
 }
 
 func (ap *ActivityPub) SendUpdate(e *eagle.Entry) error {
-	activity := ap.GetEntry(e)
-
-	var inboxes []string
-	for _, mention := range e.UserMentions {
-		inboxes = append(inboxes, mention.Inbox)
-	}
-
-	update := map[string]interface{}{
-		"@context": []string{"https://www.w3.org/ns/activitystreams"},
-		"type":     "Update",
-		"id":       activity["id"],
-		"to":       activity["to"],
-		"object":   activity,
-		"actor":    ap.c.Server.BaseURL,
-	}
-
-	if published, ok := activity["published"]; ok {
-		update["published"] = published
-	}
-
-	if updated, ok := activity["updated"]; ok {
-		update["updated"] = updated
-	}
-
-	return ap.sendActivityToFollowers(update, inboxes...)
+	return ap.sendCreateOrUpdate(e, "Update")
 }
 
 func (ap *ActivityPub) SendDelete(permalink string) error {
@@ -323,7 +307,7 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		apReference = reference
 	}
 
-	actor, activity, err := ap.getActorFromActivity(context.Background(), reference)
+	remoteActor, remoteActivity, err := ap.getActorFromActivity(context.Background(), reference)
 	if err != nil {
 		if errors.Is(err, errNotFound) {
 			return nil
@@ -332,12 +316,12 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		}
 	}
 
-	inbox := actor.String("inbox")
-	if len(inbox) == 0 {
+	inbox := remoteActor.String("inbox")
+	if inbox == "" {
 		return nil
 	}
 
-	id := activity.String("id")
+	id := remoteActivity.String("id")
 	if id != "" && id != apReference {
 		apReference = id
 
@@ -347,13 +331,13 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		})
 	}
 
-	return ap.sendActivityToFollowers(map[string]interface{}{
+	activity := map[string]interface{}{
 		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
 		"type":      activityType,
 		"id":        e.Permalink,
 		"published": e.Published.Format(time.RFC3339),
 		"cc": []string{
-			actor.String("id"),
+			remoteActor.String("id"),
 			ap.options.FollowersURL,
 		},
 		"to": []string{
@@ -361,7 +345,9 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		},
 		"object": apReference,
 		"actor":  ap.c.Server.BaseURL,
-	}, inbox)
+	}
+
+	return ap.sendActivityToFollowers(activity, inbox)
 }
 
 func (ap *ActivityPub) SendLike(e *eagle.Entry) error {
