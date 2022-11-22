@@ -608,7 +608,7 @@ func (d *Postgres) GetFollowers() ([]*activitypub.Follower, error) {
 }
 
 func (d *Postgres) GetFollowersByPage(page, limit int) ([]*activitypub.Follower, error) {
-	return d.getFollowers("select name, iri, inbox, handle from activitypub_followers order by iri offset " + strconv.Itoa(page*limit) + " limit " + strconv.Itoa(limit))
+	return d.getFollowers("select name, iri, inbox, handle from activitypub_followers order by iri offset " + strconv.Itoa((page-1)*limit) + " limit " + strconv.Itoa(limit))
 }
 
 func (d *Postgres) GetFollowersCount() (int, error) {
