@@ -273,6 +273,11 @@ func (ap *ActivityPub) SendCreate(e *eagle.Entry) error {
 func (ap *ActivityPub) SendUpdate(e *eagle.Entry) error {
 	activity := ap.GetEntry(e)
 
+	var inboxes []string
+	for _, mention := range e.UserMentions {
+		inboxes = append(inboxes, mention.Inbox)
+	}
+
 	update := map[string]interface{}{
 		"@context": []string{"https://www.w3.org/ns/activitystreams"},
 		"type":     "Update",
@@ -290,7 +295,7 @@ func (ap *ActivityPub) SendUpdate(e *eagle.Entry) error {
 		update["updated"] = updated
 	}
 
-	return ap.sendActivityToFollowers(update)
+	return ap.sendActivityToFollowers(update, inboxes...)
 }
 
 func (ap *ActivityPub) SendDelete(permalink string) error {
