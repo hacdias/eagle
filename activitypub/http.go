@@ -42,6 +42,10 @@ func (ap *ActivityPub) FollowersHandler(w http.ResponseWriter, r *http.Request) 
 		return http.StatusBadRequest, err
 	}
 
+	if page < 1 {
+		return http.StatusBadRequest, errors.New("page number is invalid, must be >= 1")
+	}
+
 	followers, err := ap.Storage.GetFollowersByPage(page, followersPerPage)
 	if err != nil {
 		return http.StatusInternalServerError, err
