@@ -96,8 +96,7 @@ func (ap *ActivityPub) EntryHook(old, new *eagle.Entry) error {
 }
 
 const (
-	propertyPrefix       = "ap-"
-	checkedReplyProperty = propertyPrefix + "reply-checked"
+	propertyPrefix = "ap-"
 )
 
 var userMention = regexp.MustCompile(`\@\@[^\s]+\@[^\s]+\.[^\s]+`)
@@ -126,15 +125,32 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 		return s
 	})
 
-	var replyTo string
+	var (
+		replyTo   string
+		apReplyTo string
+	)
 
 	mm := e.Helper()
 	if mm.PostType() == mf2.TypeReply {
-		replyTo = mm.String(mm.TypeProperty())
-		// Avoid checking twice.
-		if replyTo != "" && replyTo != mm.String(checkedReplyProperty) {
-			actor, _, err := ap.getActorFromActivity(context.Background(), replyTo)
+		property := mm.TypeProperty()
+		apProperty := propertyPrefix + property
+
+		replyTo = mm.String(property)
+		apReplyTo = mm.String(apProperty)
+
+		// Do not check URLs already checked, or that are replies to self. Servers
+		// such as Mastodon will only send the user a notification if they're directly
+		// mentioned by a post. Therefore, we need to add a mention to the content and tags.
+		// When replying to ourselves, we can ignore that.
+		if replyTo != "" && apReplyTo == "" && !strings.HasPrefix(replyTo, ap.c.Server.BaseURL) {
+			actor, activity, err := ap.getActorFromActivity(context.Background(), replyTo)
 			if err == nil {
+				// Update apReplyTo URL if it's different from the original replyTo.
+				if id := activity.String("id"); id != "" && id != replyTo {
+					apReplyTo = id
+				}
+
+				// Check for the actor information.
 				inbox := actor.String("inbox")
 				id := actor.String("id")
 				if inbox != "" && id != "" {
@@ -168,8 +184,8 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 	return ap.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
 		e.Content = content
 		e.UserMentions = mentions
-		if replyTo != "" {
-			e.Properties[checkedReplyProperty] = replyTo
+		if apReplyTo != "" {
+			e.Properties[propertyPrefix+mm.TypeProperty()] = apReplyTo
 		}
 		return e, nil
 	})
