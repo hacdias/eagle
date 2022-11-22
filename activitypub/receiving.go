@@ -24,7 +24,7 @@ var (
 	ErrNotHandled = errors.New("request not handled")
 )
 
-func (ap *ActivityPub) HandleInbox(r *http.Request) (int, error) {
+func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
 	var activity typed.Typed
 	err := json.NewDecoder(r.Body).Decode(&activity)
 	if err != nil {

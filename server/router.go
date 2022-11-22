@@ -47,9 +47,9 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	if s.ap != nil {
-		r.Post("/activitypub/inbox", s.activityPubInboxPost)
-		r.Get("/activitypub/outbox", s.activityPubOutboxGet)
-		r.Get("/activitypub/followers", s.activityPubFollowersGet)
+		r.Post(activityPubInboxRoute, s.activityPubInboxPost)
+		r.Get(activityPubOutboxRoute, s.activityPubOutboxGet)
+		r.Get(activityPubFollowersRoute, s.activityPubFollowersGet)
 	}
 
 	r.Get("/search", s.searchGet)

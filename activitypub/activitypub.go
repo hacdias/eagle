@@ -54,6 +54,10 @@ type Options struct {
 	Webmentions *webmentions.Webmentions
 	Media       *media.Media
 	Store       Storage
+
+	InboxURL     string
+	OutboxURL    string
+	FollowersURL string
 }
 
 type ActivityPub struct {
@@ -69,6 +73,7 @@ type ActivityPub struct {
 	privKey    *rsa.PrivateKey
 	httpClient *http.Client
 	Storage    Storage
+	options    *Options
 
 	signerMu sync.Mutex
 	signer   httpsig.Signer
@@ -84,6 +89,8 @@ func NewActivityPub(options *Options) (*ActivityPub, error) {
 		wm:      options.Webmentions,
 		Storage: options.Store,
 		log:     log.S().Named("activitypub"),
+
+		options: options,
 
 		httpClient: &http.Client{
 			Timeout: time.Minute,
@@ -214,8 +221,8 @@ func (ap *ActivityPub) initSelf() {
 			"owner":        ap.c.Server.BaseURL,
 			"publicKeyPem": ap.publicKey,
 		},
-		"inbox":  ap.c.Server.AbsoluteURL("/activitypub/inbox"),
-		"outbox": ap.c.Server.AbsoluteURL("/activitypub/outbox"),
+		"inbox":  ap.options.InboxURL,
+		"outbox": ap.options.OutboxURL,
 	}
 
 	if ap.c.User.Photo != "" {

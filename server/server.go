@@ -240,13 +240,16 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	if c.Server.ActivityPub != nil {
 		options := &activitypub.Options{
-			Config:      c,
-			Renderer:    s.renderer,
-			FS:          s.fs,
-			Notifier:    s.n,
-			Webmentions: s.webmentions,
-			Media:       s.media,
-			Store:       postgres,
+			Config:       c,
+			Renderer:     s.renderer,
+			FS:           s.fs,
+			Notifier:     s.n,
+			Webmentions:  s.webmentions,
+			Media:        s.media,
+			Store:        postgres,
+			InboxURL:     c.Server.AbsoluteURL(activityPubInboxRoute),
+			OutboxURL:    c.Server.AbsoluteURL(activityPubOutboxRoute),
+			FollowersURL: c.Server.AbsoluteURL(activityPubFollowersRoute),
 		}
 
 		s.ap, err = activitypub.NewActivityPub(options)
