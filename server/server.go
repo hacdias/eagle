@@ -412,6 +412,7 @@ func (s *Server) indexAll() {
 	if err != nil {
 		s.n.Error(err)
 	}
+	s.cache.Clear()
 	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
 }
 
