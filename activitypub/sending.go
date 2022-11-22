@@ -371,7 +371,7 @@ func (ap *ActivityPub) SendUndo(e *eagle.Entry) error {
 		"to": []string{
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
-		"object": e.Helper().String(e.Helper().TypeProperty()),
+		"object": e.Permalink,
 		"actor":  ap.c.Server.BaseURL,
 	}
 
