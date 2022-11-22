@@ -124,7 +124,7 @@ func (ap *ActivityPub) GetSelf() typed.Typed {
 	return ap.self
 }
 
-func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
+func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 	activity := map[string]interface{}{
 		"@context": []string{
 			"https://www.w3.org/ns/activitystreams",

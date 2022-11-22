@@ -247,7 +247,7 @@ func (ap *ActivityPub) SendAccept(activity typed.Typed, inbox string) {
 }
 
 func (ap *ActivityPub) sendCreateOrUpdate(e *eagle.Entry, activityType string) error {
-	object := ap.GetEntry(e)
+	object := ap.GetEntryAsActivity(e)
 
 	var inboxes []string
 	for _, mention := range e.UserMentions {
