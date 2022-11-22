@@ -252,7 +252,7 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		Handle: fmt.Sprintf("@%s@%s", actor.String("preferredUsername"), util.Domain(id)),
 	}
 
-	if _, err := ap.Storage.GetFollower(id); err != nil {
+	if v, err := ap.Storage.GetFollower(id); err != nil || v == nil {
 		err = ap.Storage.AddOrUpdateFollower(follower)
 		if err != nil {
 			return fmt.Errorf("failed to store followers: %w", err)
