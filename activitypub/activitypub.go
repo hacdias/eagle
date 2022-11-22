@@ -165,7 +165,10 @@ func (ap *ActivityPub) GetEntry(e *eagle.Entry) typed.Typed {
 	}
 
 	if e.Helper().PostType() == mf2.TypeReply {
-		activity["inReplyTo"] = e.Helper().String(e.Helper().TypeProperty())
+		mm := e.Helper()
+		property := mm.TypeProperty()
+		apProperty := propertyPrefix + e.Helper().TypeProperty()
+		activity["inReplyTo"] = mm.Properties.StringOr(apProperty, mm.String(property))
 	}
 
 	tags := []map[string]string{}
