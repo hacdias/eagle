@@ -87,8 +87,8 @@ func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
 
 	if err != nil {
 		if errors.Is(err, ErrNotHandled) {
-			ap.log.Infow("unhandled", "err", err, "activity", activity, "actor", actor)
-			ap.n.Info("activity not handled: " + err.Error())
+			ap.log.Warnw("unhandled", "err", err, "activity", activity, "actor", actor)
+			ap.n.Info("unhandled activity")
 		} else {
 			ap.log.Errorw("failed", "err", err, "activity", activity, "actor", actor)
 			return http.StatusInternalServerError, err
@@ -98,16 +98,12 @@ func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, activity typed.Typed) error {
-	object, ok := activity.ObjectIf("object")
-	if !ok {
-		return errors.New("activity.object is not present or is not string")
+func (ap *ActivityPub) handleReplyOrMention(ctx context.Context, actor, activity typed.Typed) (bool, error) {
+	object, err := ap.getObject(ctx, activity)
+	if err != nil {
+		return false, err
 	}
-
-	id := object.String("id")
-	if id == "" {
-		return errors.New("activity.object.id is not present or is not string")
-	}
+	activity["object"] = object
 
 	var (
 		mentionType mf2.Type
@@ -125,17 +121,17 @@ func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, acti
 	// Activity is some sort of mention.
 	content := object.String("content")
 	if content != "" && strings.Contains(content, ap.c.Server.BaseURL) {
-		contentIDs, err := ap.discoverLinksAsIDs(content)
+		contentIDs, err := ap.getTrimmedLinksFromContent(content)
 		if err == nil {
 			ids = append(ids, contentIDs...)
 		}
 	}
 
 	if len(ids) == 0 {
-		return nil
+		return false, nil
 	}
 
-	mention := ap.mentionFromActivity(actor, activity)
+	mention := ap.getActivityAsMention(actor, activity)
 	mention.Type = mentionType
 
 	var errs *multierror.Error
@@ -146,74 +142,58 @@ func (ap *ActivityPub) createOrUpdateWebmention(ctx context.Context, actor, acti
 		}
 		errs = multierror.Append(errs, err)
 	}
-	return errs.ErrorOrNil()
+	return false, errs.ErrorOrNil()
+}
+
+func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typed, isUpdate bool) {
+	tags, ok := activity.ObjectsIf("tag")
+	if !ok {
+		return
+	}
+
+	mentioned := false
+	for _, tag := range tags {
+		if tag.String("href") == ap.c.Server.BaseURL {
+			mentioned = true
+			break
+		}
+	}
+
+	if mentioned {
+		if id, err := ap.getObjectID(activity); err == nil {
+			if isUpdate {
+				ap.n.Info("✏️ Updated mention in: " + id)
+			} else {
+				ap.n.Info("✏️ You were mentioned in: " + id)
+			}
+		}
+	}
+}
+
+func (ap *ActivityPub) handleCreateOrUpdate(ctx context.Context, actor, activity typed.Typed, isUpdate bool) error {
+	handled, err := ap.handleReplyOrMention(ctx, actor, activity)
+	if err == nil {
+		if !handled {
+			ap.handleMentionsTag(ctx, activity, isUpdate)
+		}
+	} else {
+		return err
+	}
+
+	// TODO: check if I follow "actor". If so, store the activity.
+	return ErrNotHandled
 }
 
 func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.Typed) error {
-	err := ap.createOrUpdateWebmention(ctx, actor, activity)
-	if err != nil {
-		return err
-	}
-
-	// multierror.Append(
-	// 	ap.handleReplies(),
-	// 	ap.handleMentions(),
-	// 	ap.handleFollowers()
-	// )
-
-	// "tag": [
-	// 		[...]
-	// 		{
-	// 			"href": "https://hacdias.com",
-	// 			"name": "@hacdias@hacdias.com",
-	// 			"type": "Mention"
-	// 		}
-	// 	],
-
-	// TODO: check if I follow "actor", or if mentions IRI. If so, store the activity.
-	if object, ok := activity.ObjectIf("object"); ok {
-		if id := object.String("id"); id != "" {
-			ap.n.Info("✏️ New Post: " + id)
-			return nil
-		}
-	}
-
-	return ErrNotHandled
+	return ap.handleCreateOrUpdate(ctx, actor, activity, false)
 }
 
 func (ap *ActivityPub) handleUpdate(ctx context.Context, actor, activity typed.Typed) error {
-	err := ap.createOrUpdateWebmention(ctx, actor, activity)
-	if err != nil {
-		return err
-	}
-
-	// TODO: check if I follow "actor", or if mentions IRI. If so, update the activity.
-	if object, ok := activity.ObjectIf("object"); ok {
-		if id := object.String("id"); id != "" {
-			ap.n.Info("✏️ Updated Post: " + id)
-			return nil
-		}
-	}
-
-	return ErrNotHandled
-}
-
-func (ap *ActivityPub) getObjectAsString(activity typed.Typed) (string, error) {
-	if object := activity.String("object"); object != "" {
-		return object, nil
-	} else if object, ok := activity.ObjectIf("object"); ok {
-		if id := object.String("id"); id != "" {
-			return id, nil
-		}
-
-		return "", errors.New("activity.object.id not found")
-	}
-
-	return "", errors.New("activity.object must be string or object")
+	return ap.handleCreateOrUpdate(ctx, actor, activity, true)
 }
 
 func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.Typed) error {
-	object, err := ap.getObjectAsString(activity)
+	object, err := ap.getObjectID(activity)
 	if err != nil {
 		return err
 	}
@@ -259,13 +239,13 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		}
 	}
 
-	ap.n.Info(fmt.Sprintf("☃️ %s (%s) followed you!", follower.Handle, follower.ID))
+	ap.n.Info(fmt.Sprintf("☃️ [%s](%s) followed you!", follower.Handle, follower.ID))
 	ap.SendAccept(activity, inbox)
 	return nil
 }
 
 func (ap *ActivityPub) handleLikeOrAnnounce(ctx context.Context, actor, activity typed.Typed, postType mf2.Type) error {
-	object, err := ap.getObjectAsString(activity)
+	object, err := ap.getObjectID(activity)
 	if err != nil {
 		return err
 	}
@@ -275,7 +255,7 @@ func (ap *ActivityPub) handleLikeOrAnnounce(ctx context.Context, actor, activity
 	}
 
 	id := strings.TrimPrefix(object, ap.c.Server.BaseURL)
-	mention := ap.mentionFromActivity(actor, activity)
+	mention := ap.getActivityAsMention(actor, activity)
 	mention.Type = postType
 
 	err = ap.wm.AddOrUpdateWebmention(id, mention)
@@ -338,10 +318,49 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 	return errors.New("activity.object must be string or map[string]interface{}")
 }
 
-func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.Mention {
+func (ap *ActivityPub) getObjectID(activity typed.Typed) (string, error) {
+	if object := activity.String("object"); object != "" {
+		return object, nil
+	} else if object, ok := activity.ObjectIf("object"); ok {
+		if id := object.String("id"); id != "" {
+			return id, nil
+		}
+
+		return "", errors.New("activity.object.id not found")
+	}
+
+	return "", errors.New("activity.object must be string or object")
+}
+
+func (ap *ActivityPub) getObject(ctx context.Context, activity typed.Typed) (typed.Typed, error) {
+	var (
+		object typed.Typed
+		err    error
+	)
+
+	if objectStr := activity.String("object"); objectStr != "" {
+		object, err = ap.getActivity(ctx, objectStr)
+	} else if objectMap, ok := activity.ObjectIf("object"); ok {
+		object = objectMap
+	} else {
+		return nil, errors.New("could not retrieve activity.object")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if id := object.String("id"); id == "" {
+		return nil, errors.New("object.id is not present or is not string")
+	}
+
+	return object, nil
+}
+
+func (ap *ActivityPub) getActivityAsMention(actor, activity typed.Typed) *eagle.Mention {
 	post := &eagle.Mention{
 		Post: xray.Post{
-			Author: ap.activityActorToXray(actor),
+			Author: ap.getActorAsXRay(actor),
 		},
 		ID: activity.String("id"),
 	}
@@ -381,7 +400,7 @@ func (ap *ActivityPub) mentionFromActivity(actor, activity typed.Typed) *eagle.M
 	return post
 }
 
-func (ap *ActivityPub) activityActorToXray(actor typed.Typed) xray.Author {
+func (ap *ActivityPub) getActorAsXRay(actor typed.Typed) xray.Author {
 	author := xray.Author{
 		URL:  actor.String("id"),
 		Name: actor.String("name"),
@@ -403,7 +422,7 @@ func (ap *ActivityPub) activityActorToXray(actor typed.Typed) xray.Author {
 	return author
 }
 
-func (ap *ActivityPub) discoverLinksAsIDs(body string) ([]string, error) {
+func (ap *ActivityPub) getTrimmedLinksFromContent(body string) ([]string, error) {
 	links, err := webmention.DiscoverLinksFromReader(strings.NewReader(body), "", "a")
 	if err != nil {
 		return nil, err
