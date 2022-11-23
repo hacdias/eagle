@@ -36,5 +36,9 @@ func (s *Server) initWebfinger() {
 }
 
 func (s *Server) webfingerGet(w http.ResponseWriter, r *http.Request) {
-	s.serveJSON(w, http.StatusOK, s.webfinger)
+	if r.URL.Query().Get("resource") == s.webfinger.Subject {
+		s.serveJSON(w, http.StatusOK, s.webfinger)
+	} else {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	}
 }
