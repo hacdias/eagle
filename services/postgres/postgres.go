@@ -673,3 +673,8 @@ func (d *Postgres) GetActivityPubLinks(activity string) ([]string, error) {
 	}
 	return entries, nil
 }
+
+func (d *Postgres) DeleteActivityPubLinks(activity string) error {
+	_, err := d.pool.Exec(context.Background(), "delete from activitypub_links where object_id=$1", activity)
+	return err
+}

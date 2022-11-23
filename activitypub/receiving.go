@@ -209,7 +209,11 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return err
 	} else if len(entries) != 0 {
 		// Then, it is a reply or some kind of mention.
-		return ap.deleteMultipleWebmentions(entries, object)
+		err = ap.deleteMultipleWebmentions(entries, object)
+		if err == nil {
+			_ = ap.Storage.DeleteActivityPubLinks(object)
+		}
+		return err
 	} else if actor.String("id") == object {
 		// Otherwise, it is a user deletion.
 		_ = ap.Storage.DeleteFollower(object)
@@ -286,7 +290,11 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 			return err
 		}
 
-		return ap.deleteMultipleWebmentions(entries, object)
+		err = ap.deleteMultipleWebmentions(entries, object)
+		if err == nil {
+			_ = ap.Storage.DeleteActivityPubLinks(object)
+		}
+		return err
 	}
 
 	if object, ok := activity.ObjectIf("object"); ok {

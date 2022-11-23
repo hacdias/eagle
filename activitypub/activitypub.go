@@ -46,6 +46,7 @@ type FollowersStorage interface {
 type LinksStorage interface {
 	AddActivityPubLink(entry, activity string) error
 	GetActivityPubLinks(activity string) ([]string, error)
+	DeleteActivityPubLinks(activity string) error
 }
 
 type Storage interface {
