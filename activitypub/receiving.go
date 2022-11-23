@@ -145,10 +145,10 @@ func (ap *ActivityPub) handleReplyOrMention(ctx context.Context, actor, activity
 	return false, errs.ErrorOrNil()
 }
 
-func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typed, isUpdate bool) {
+func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typed, isUpdate bool) bool {
 	tags, ok := activity.ObjectsIf("tag")
 	if !ok {
-		return
+		return false
 	}
 
 	mentioned := false
@@ -166,22 +166,28 @@ func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typ
 			} else {
 				ap.n.Info("✏️ You were mentioned in: " + id)
 			}
+			return true
 		}
 	}
+
+	return false
 }
 
 func (ap *ActivityPub) handleCreateOrUpdate(ctx context.Context, actor, activity typed.Typed, isUpdate bool) error {
 	handled, err := ap.handleReplyOrMention(ctx, actor, activity)
 	if err == nil {
 		if !handled {
-			ap.handleMentionsTag(ctx, activity, isUpdate)
+			handled = ap.handleMentionsTag(ctx, activity, isUpdate)
 		}
-	} else {
-		return err
 	}
 
 	// TODO: check if I follow "actor". If so, store the activity.
-	return ErrNotHandled
+
+	if handled {
+		return err
+	} else {
+		return ErrNotHandled
+	}
 }
 
 func (ap *ActivityPub) handleCreate(ctx context.Context, actor, activity typed.Typed) error {
