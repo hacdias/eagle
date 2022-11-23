@@ -9,7 +9,6 @@ import (
 
 	"net/http"
 	"path"
-	"strings"
 	"sync"
 	"time"
 
@@ -273,19 +272,9 @@ func isDeleted(code int) bool {
 }
 
 func imageToActivity(url string) map[string]string {
-	ext := path.Ext(url)
-	mimeType := mime.TypeByExtension(ext)
-	if mimeType == "" {
-		if ext == ".jpg" {
-			mimeType = "image/jpeg"
-		} else {
-			mimeType = "image/" + strings.TrimPrefix(ext, ".")
-		}
-	}
-
 	return map[string]string{
 		"type":      "Image",
-		"mediaType": mimeType,
+		"mediaType": mime.TypeByExtension(path.Ext(url)),
 		"url":       url,
 	}
 }
