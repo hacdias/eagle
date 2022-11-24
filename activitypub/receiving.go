@@ -62,6 +62,7 @@ func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
 		return http.StatusForbidden, errors.New("request actor and activity actor do not match")
 	}
 
+	// TODO: Store to FS, or log to FS, https://github.com/google/uuid
 	ap.log.Debugw("will handle", "activity", activity, "actor", actor)
 
 	switch activity.String("type") {
@@ -142,7 +143,7 @@ func (ap *ActivityPub) handleReplyOrMention(ctx context.Context, actor, activity
 		}
 		errs = multierror.Append(errs, err)
 	}
-	return false, errs.ErrorOrNil()
+	return true, errs.ErrorOrNil()
 }
 
 func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typed, isUpdate bool) bool {
@@ -174,17 +175,19 @@ func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typ
 }
 
 func (ap *ActivityPub) handleCreateOrUpdate(ctx context.Context, actor, activity typed.Typed, isUpdate bool) error {
-	handled, err := ap.handleReplyOrMention(ctx, actor, activity)
-	if err == nil {
-		if !handled {
-			handled = ap.handleMentionsTag(ctx, activity, isUpdate)
-		}
-	}
+	var errs *multierror.Error
+
+	handledReplyOrMention, err := ap.handleReplyOrMention(ctx, actor, activity)
+	errs = multierror.Append(errs, err)
+
+	handledMentionsTag := ap.handleMentionsTag(ctx, activity, isUpdate)
 
 	// TODO: check if I follow "actor". If so, store the activity.
 
-	if handled {
+	if err := errs.ErrorOrNil(); err != nil {
 		return err
+	} else if handledReplyOrMention || handledMentionsTag {
+		return nil
 	} else {
 		return ErrNotHandled
 	}
