@@ -156,11 +156,11 @@ func (ap *ActivityPub) sendSigned(ctx context.Context, activity interface{}, inb
 	r.Header.Add("Accept-Charset", "utf-8")
 	r.Header.Add("Content-Type", contenttype.ASUTF8)
 	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
-	r.Header.Add("User-Agent", ap.c.Server.BaseURL)
+	r.Header.Add("User-Agent", ap.Config.Server.BaseURL)
 	r.Header.Add("Host", r.URL.Host)
 
 	ap.signerMu.Lock()
-	err = ap.signer.SignRequest(ap.privKey, ap.getSelfKeyID(), r, body)
+	err = ap.signer.SignRequest(ap.privateKey, ap.getSelfKeyID(), r, body)
 	ap.signerMu.Unlock()
 	if err != nil {
 		return fmt.Errorf("could not sign request: %w", err)

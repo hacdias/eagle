@@ -46,7 +46,7 @@ func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
 			if err == nil {
 				url.Fragment = ""
 				url.RawFragment = ""
-				_ = ap.Storage.DeleteFollower(url.String())
+				_ = ap.Store.DeleteFollower(url.String())
 				return http.StatusOK, nil
 			}
 		}
@@ -88,7 +88,7 @@ func (ap *ActivityPub) InboxHandler(r *http.Request) (int, error) {
 	if err != nil {
 		if errors.Is(err, ErrNotHandled) {
 			ap.log.Warnw("unhandled", "err", err, "activity", activity, "actor", actor)
-			ap.n.Info("unhandled activity")
+			ap.Notifier.Info("unhandled activity")
 		} else {
 			ap.log.Errorw("failed", "err", err, "activity", activity, "actor", actor)
 			return http.StatusInternalServerError, err
@@ -112,15 +112,15 @@ func (ap *ActivityPub) handleReplyOrMention(ctx context.Context, actor, activity
 
 	// Activity is a reply.
 	reply := object.String("inReplyTo")
-	if reply != "" && strings.HasPrefix(reply, ap.c.Server.BaseURL) {
+	if reply != "" && strings.HasPrefix(reply, ap.Config.Server.BaseURL) {
 		mentionType = mf2.TypeReply
-		id := strings.TrimPrefix(reply, ap.c.Server.BaseURL)
+		id := strings.TrimPrefix(reply, ap.Config.Server.BaseURL)
 		ids = append(ids, id)
 	}
 
 	// Activity is some sort of mention.
 	content := object.String("content")
-	if content != "" && strings.Contains(content, ap.c.Server.BaseURL) {
+	if content != "" && strings.Contains(content, ap.Config.Server.BaseURL) {
 		contentIDs, err := ap.getTrimmedLinksFromContent(content)
 		if err == nil {
 			ids = append(ids, contentIDs...)
@@ -136,9 +136,9 @@ func (ap *ActivityPub) handleReplyOrMention(ctx context.Context, actor, activity
 
 	var errs *multierror.Error
 	for _, id := range ids {
-		err := ap.wm.AddOrUpdateWebmention(id, mention)
+		err := ap.Webmentions.AddOrUpdateWebmention(id, mention)
 		if err == nil {
-			err = ap.Storage.AddActivityPubLink(id, mention.ID)
+			err = ap.Store.AddActivityPubLink(id, mention.ID)
 		}
 		errs = multierror.Append(errs, err)
 	}
@@ -153,7 +153,7 @@ func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typ
 
 	mentioned := false
 	for _, tag := range tags {
-		if tag.String("href") == ap.c.Server.BaseURL {
+		if tag.String("href") == ap.Config.Server.BaseURL {
 			mentioned = true
 			break
 		}
@@ -162,9 +162,9 @@ func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typ
 	if mentioned {
 		if id, err := ap.getObjectID(activity); err == nil {
 			if isUpdate {
-				ap.n.Info("✏️ Updated mention in: " + id)
+				ap.Notifier.Info("✏️ Updated mention in: " + id)
 			} else {
-				ap.n.Info("✏️ You were mentioned in: " + id)
+				ap.Notifier.Info("✏️ You were mentioned in: " + id)
 			}
 			return true
 		}
@@ -204,19 +204,19 @@ func (ap *ActivityPub) handleDelete(ctx context.Context, actor, activity typed.T
 		return err
 	}
 
-	entries, err := ap.Storage.GetActivityPubLinks(object)
+	entries, err := ap.Store.GetActivityPubLinks(object)
 	if err != nil {
 		return err
 	} else if len(entries) != 0 {
 		// Then, it is a reply or some kind of mention.
 		err = ap.deleteMultipleWebmentions(entries, object)
 		if err == nil {
-			_ = ap.Storage.DeleteActivityPubLinks(object)
+			_ = ap.Store.DeleteActivityPubLinks(object)
 		}
 		return err
 	} else if actor.String("id") == object {
 		// Otherwise, it is a user deletion.
-		_ = ap.Storage.DeleteFollower(object)
+		_ = ap.Store.DeleteFollower(object)
 		return nil
 	}
 
@@ -242,14 +242,14 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		Handle: fmt.Sprintf("@%s@%s", actor.String("preferredUsername"), util.Domain(id)),
 	}
 
-	if v, err := ap.Storage.GetFollower(id); err != nil || v == nil {
-		err = ap.Storage.AddOrUpdateFollower(follower)
+	if v, err := ap.Store.GetFollower(id); err != nil || v == nil {
+		err = ap.Store.AddOrUpdateFollower(follower)
 		if err != nil {
 			return fmt.Errorf("failed to store followers: %w", err)
 		}
 	}
 
-	ap.n.Info(fmt.Sprintf("☃️ [%s](%s) followed you!", follower.Handle, follower.ID))
+	ap.Notifier.Info(fmt.Sprintf("☃️ [%s](%s) followed you!", follower.Handle, follower.ID))
 	ap.SendAccept(activity, inbox)
 	return nil
 }
@@ -260,19 +260,19 @@ func (ap *ActivityPub) handleLikeOrAnnounce(ctx context.Context, actor, activity
 		return err
 	}
 
-	if !strings.HasPrefix(object, ap.c.Server.BaseURL) {
+	if !strings.HasPrefix(object, ap.Config.Server.BaseURL) {
 		return errors.New("activity.object is for someone else")
 	}
 
-	id := strings.TrimPrefix(object, ap.c.Server.BaseURL)
+	id := strings.TrimPrefix(object, ap.Config.Server.BaseURL)
 	mention := ap.getActivityAsMention(actor, activity)
 	mention.Type = postType
 
-	err = ap.wm.AddOrUpdateWebmention(id, mention)
+	err = ap.Webmentions.AddOrUpdateWebmention(id, mention)
 	if err != nil {
 		return err
 	}
-	return ap.Storage.AddActivityPubLink(id, mention.ID)
+	return ap.Store.AddActivityPubLink(id, mention.ID)
 }
 
 func (ap *ActivityPub) handleLike(ctx context.Context, actor, activity typed.Typed) error {
@@ -285,14 +285,14 @@ func (ap *ActivityPub) handleAnnounce(ctx context.Context, actor, activity typed
 
 func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typed) error {
 	if object, ok := activity.StringIf("object"); ok {
-		entries, err := ap.Storage.GetActivityPubLinks(object)
+		entries, err := ap.Store.GetActivityPubLinks(object)
 		if err != nil {
 			return err
 		}
 
 		err = ap.deleteMultipleWebmentions(entries, object)
 		if err == nil {
-			_ = ap.Storage.DeleteActivityPubLinks(object)
+			_ = ap.Store.DeleteActivityPubLinks(object)
 		}
 		return err
 	}
@@ -304,8 +304,8 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 			if object.String("actor") != id {
 				return errors.New("activity.object.actor differs from activity.actor")
 			}
-			ap.n.Info(fmt.Sprintf("☃️ %s unfollowed you.", id))
-			_ = ap.Storage.DeleteFollower(id)
+			ap.Notifier.Info(fmt.Sprintf("☃️ %s unfollowed you.", id))
+			_ = ap.Store.DeleteFollower(id)
 			return nil
 		case "Like", "Announce":
 			source := object.String("id")
@@ -314,12 +314,12 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 			}
 
 			permalink := object.String("object")
-			if !strings.HasPrefix(permalink, ap.c.Server.BaseURL) {
+			if !strings.HasPrefix(permalink, ap.Config.Server.BaseURL) {
 				return errors.New("activity.object.object is not string or is for someone else")
 			}
 
-			id := strings.TrimPrefix(permalink, ap.c.Server.BaseURL)
-			return ap.wm.DeleteWebmention(id, source)
+			id := strings.TrimPrefix(permalink, ap.Config.Server.BaseURL)
+			return ap.Webmentions.DeleteWebmention(id, source)
 		case "Create":
 			// "Create based activities should instead use Delete, and Add activities
 			// should use Remove." https://www.w3.org/TR/activitypub/#undo-activity-inbox
@@ -425,8 +425,8 @@ func (ap *ActivityPub) getActorAsXRay(actor typed.Typed) xray.Author {
 		if icon.String("type") == "Image" {
 			url := icon.String("url")
 
-			if ap.media != nil {
-				author.Photo = ap.media.SafeUploadFromURL("wm", url, true)
+			if ap.Media != nil {
+				author.Photo = ap.Media.SafeUploadFromURL("wm", url, true)
 			} else {
 				author.Photo = url
 			}
@@ -443,11 +443,11 @@ func (ap *ActivityPub) getTrimmedLinksFromContent(body string) ([]string, error)
 	}
 
 	links = lo.Filter(links, func(link string, _ int) bool {
-		return strings.HasPrefix(link, ap.c.Server.BaseURL)
+		return strings.HasPrefix(link, ap.Config.Server.BaseURL)
 	})
 
 	for i := range links {
-		links[i] = strings.TrimPrefix(links[i], ap.c.Server.BaseURL)
+		links[i] = strings.TrimPrefix(links[i], ap.Config.Server.BaseURL)
 	}
 
 	return links, nil
@@ -456,7 +456,7 @@ func (ap *ActivityPub) getTrimmedLinksFromContent(body string) ([]string, error)
 func (ap *ActivityPub) deleteMultipleWebmentions(entries []string, object string) error {
 	var errs *multierror.Error
 	for _, entry := range entries {
-		errs = multierror.Append(errs, ap.wm.DeleteWebmention(entry, object))
+		errs = multierror.Append(errs, ap.Webmentions.DeleteWebmention(entry, object))
 	}
 	return errs.ErrorOrNil()
 }

@@ -29,10 +29,10 @@ func (ap *ActivityPub) getActivity(ctx context.Context, url string) (typed.Typed
 	req.Header.Add("Accept-Charset", "utf-8")
 	req.Header.Set("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
 	req.Header.Set("Host", req.URL.Host)
-	req.Header.Set("User-Agent", ap.c.Server.BaseURL)
+	req.Header.Set("User-Agent", ap.Config.Server.BaseURL)
 
 	ap.signerMu.Lock()
-	err = ap.signer.SignRequest(ap.privKey, ap.getSelfKeyID(), req, []byte(""))
+	err = ap.signer.SignRequest(ap.privateKey, ap.getSelfKeyID(), req, []byte(""))
 	ap.signerMu.Unlock()
 	if err != nil {
 		return nil, err

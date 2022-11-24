@@ -35,7 +35,7 @@ func (ap *ActivityPub) sendActivity(activity typed.Typed, inboxes []string) {
 }
 
 func (ap *ActivityPub) sendActivityToFollowers(activity typed.Typed, inboxes ...string) error {
-	followers, err := ap.Storage.GetFollowers()
+	followers, err := ap.Store.GetFollowers()
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (ap *ActivityPub) canBePosted(e *eagle.Entry) bool {
 	return !e.Draft &&
 		!e.Deleted &&
 		e.Visibility() != eagle.VisibilityPrivate &&
-		(lo.Contains(e.Sections, ap.c.Site.IndexSection) ||
+		(lo.Contains(e.Sections, ap.Config.Site.IndexSection) ||
 			postType == mf2.TypeReply ||
 			postType == mf2.TypeLike ||
 			postType == mf2.TypeRepost)
@@ -142,7 +142,7 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 		// such as Mastodon will only send the user a notification if they're directly
 		// mentioned by a post. Therefore, we need to add a mention to the content and tags.
 		// When replying to ourselves, we can ignore that.
-		if replyTo != "" && apReplyTo == "" && !strings.HasPrefix(replyTo, ap.c.Server.BaseURL) {
+		if replyTo != "" && apReplyTo == "" && !strings.HasPrefix(replyTo, ap.Config.Server.BaseURL) {
 			actor, activity, err := ap.getActorFromActivity(context.Background(), replyTo)
 			if err == nil {
 				// Update apReplyTo URL if it's different from the original replyTo.
@@ -181,7 +181,7 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 		return e, nil
 	}
 
-	return ap.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+	return ap.FS.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
 		e.Content = content
 		e.UserMentions = mentions
 		if apReplyTo != "" {
@@ -237,9 +237,9 @@ func (ap *ActivityPub) SendAccept(activity typed.Typed, inbox string) {
 	accept := map[string]interface{}{
 		"@context": "https://www.w3.org/ns/activitystreams",
 		"type":     "Accept",
-		"id":       ap.c.Server.BaseURL + "#" + uniuri.New(),
+		"id":       ap.Config.Server.BaseURL + "#" + uniuri.New(),
 		"to":       activity["actor"],
-		"actor":    ap.c.Server.BaseURL,
+		"actor":    ap.Config.Server.BaseURL,
 		"object":   activity,
 	}
 
@@ -260,7 +260,7 @@ func (ap *ActivityPub) sendCreateOrUpdate(e *eagle.Entry, activityType string) e
 		"id":       e.Permalink,
 		"to":       object["to"],
 		"object":   object,
-		"actor":    ap.c.Server.BaseURL,
+		"actor":    ap.Config.Server.BaseURL,
 	}
 
 	if published, ok := object["published"]; ok {
@@ -288,7 +288,7 @@ func (ap *ActivityPub) SendDelete(permalink string) error {
 		"type":     "Delete",
 		"to":       []string{"https://www.w3.org/ns/activitystreams#Public"},
 		"object":   permalink,
-		"actor":    ap.c.Server.BaseURL,
+		"actor":    ap.Config.Server.BaseURL,
 	}
 
 	return ap.sendActivityToFollowers(create)
@@ -325,7 +325,7 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 	if id != "" && id != apReference {
 		apReference = id
 
-		_, _ = ap.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+		_, _ = ap.FS.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
 			e.Properties["ap-"+property] = apReference
 			return e, nil
 		})
@@ -338,13 +338,13 @@ func (ap *ActivityPub) sendLikeOrAnnounce(e *eagle.Entry, activityType string) e
 		"published": e.Published.Format(time.RFC3339),
 		"cc": []string{
 			remoteActor.String("id"),
-			ap.options.FollowersURL,
+			ap.Options.FollowersURL,
 		},
 		"to": []string{
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
 		"object": apReference,
-		"actor":  ap.c.Server.BaseURL,
+		"actor":  ap.Config.Server.BaseURL,
 	}
 
 	return ap.sendActivityToFollowers(activity, inbox)
@@ -379,7 +379,7 @@ func (ap *ActivityPub) SendUndo(e *eagle.Entry) error {
 			"https://www.w3.org/ns/activitystreams#Public",
 		},
 		"object": e.Permalink,
-		"actor":  ap.c.Server.BaseURL,
+		"actor":  ap.Config.Server.BaseURL,
 	}
 
 	return ap.sendActivityToFollowers(announce)
@@ -390,7 +390,7 @@ func (ap *ActivityPub) SendProfileUpdate() error {
 		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
 		"type":      "Update",
 		"object":    ap.self,
-		"actor":     ap.c.Server.BaseURL,
+		"actor":     ap.Config.Server.BaseURL,
 		"published": time.Now().Format(time.RFC3339),
 	}
 

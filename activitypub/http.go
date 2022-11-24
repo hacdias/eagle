@@ -19,7 +19,7 @@ func (ap *ActivityPub) FollowersHandler(w http.ResponseWriter, r *http.Request) 
 		return http.StatusMethodNotAllowed, errors.New("method not allowed")
 	}
 
-	count, err := ap.Storage.GetFollowersCount()
+	count, err := ap.Store.GetFollowersCount()
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -29,10 +29,10 @@ func (ap *ActivityPub) FollowersHandler(w http.ResponseWriter, r *http.Request) 
 	if pageQuery == "" {
 		ap.serve(w, http.StatusOK, map[string]interface{}{
 			"@context":   "https://www.w3.org/ns/activitystreams",
-			"id":         ap.options.FollowersURL,
+			"id":         ap.Options.FollowersURL,
 			"type":       "OrderedCollection",
 			"totalItems": count,
-			"first":      ap.options.FollowersURL + "?page=1",
+			"first":      ap.Options.FollowersURL + "?page=1",
 		})
 		return 0, nil
 	}
@@ -46,15 +46,15 @@ func (ap *ActivityPub) FollowersHandler(w http.ResponseWriter, r *http.Request) 
 		return http.StatusBadRequest, errors.New("page number is invalid, must be >= 1")
 	}
 
-	followers, err := ap.Storage.GetFollowersByPage(page, followersPerPage)
+	followers, err := ap.Store.GetFollowersByPage(page, followersPerPage)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	activity := map[string]interface{}{
 		"@context":   "https://www.w3.org/ns/activitystreams",
-		"id":         ap.options.FollowersURL + "?page=" + pageQuery,
-		"partOf":     ap.options.FollowersURL,
+		"id":         ap.Options.FollowersURL + "?page=" + pageQuery,
+		"partOf":     ap.Options.FollowersURL,
 		"type":       "OrderedCollectionPage",
 		"totalItems": count,
 	}
@@ -66,7 +66,7 @@ func (ap *ActivityPub) FollowersHandler(w http.ResponseWriter, r *http.Request) 
 	activity["orderedItems"] = items
 
 	if len(followers) == followersPerPage {
-		activity["next"] = ap.options.FollowersURL + "?page=" + strconv.Itoa(page+1)
+		activity["next"] = ap.Options.FollowersURL + "?page=" + strconv.Itoa(page+1)
 	}
 
 	ap.serve(w, http.StatusOK, activity)
@@ -78,6 +78,6 @@ func (ap *ActivityPub) serve(w http.ResponseWriter, code int, data interface{}) 
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		ap.n.Error(fmt.Errorf("serving activity: %w", err))
+		ap.Notifier.Error(fmt.Errorf("serving activity: %w", err))
 	}
 }

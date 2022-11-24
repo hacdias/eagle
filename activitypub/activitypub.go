@@ -68,19 +68,14 @@ type Options struct {
 }
 
 type ActivityPub struct {
-	c          *eagle.Config
-	r          *renderer.Renderer
-	fs         *fs.FS
-	n          eagle.Notifier
-	wm         *webmentions.Webmentions
+	*Options
+
 	log        *zap.SugaredLogger
-	media      *media.Media
-	self       typed.Typed
-	publicKey  string
-	privKey    *rsa.PrivateKey
 	httpClient *http.Client
-	Storage    Storage
-	options    *Options
+
+	publicKey  string
+	privateKey *rsa.PrivateKey
+	self       typed.Typed
 
 	signerMu sync.Mutex
 	signer   httpsig.Signer
@@ -88,17 +83,8 @@ type ActivityPub struct {
 
 func NewActivityPub(options *Options) (*ActivityPub, error) {
 	a := &ActivityPub{
-		c:       options.Config,
-		r:       options.Renderer,
-		fs:      options.FS,
-		n:       options.Notifier,
-		media:   options.Media,
-		wm:      options.Webmentions,
-		Storage: options.Store,
+		Options: options,
 		log:     log.S().Named("activitypub"),
-
-		options: options,
-
 		httpClient: &http.Client{
 			Timeout: time.Minute,
 		},
@@ -106,7 +92,7 @@ func NewActivityPub(options *Options) (*ActivityPub, error) {
 
 	var err error
 
-	a.privKey, a.publicKey, err = getKeyPair(a.c.Server.ActivityPub.Directory)
+	a.privateKey, a.publicKey, err = getKeyPair(a.Config.Server.ActivityPub.Directory)
 	if err != nil {
 		return nil, err
 	}
@@ -135,13 +121,13 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		"id":           e.Permalink,
 		"url":          e.Permalink,
 		"mediaType":    contenttype.HTML,
-		"attributedTo": ap.c.Server.BaseURL,
+		"attributedTo": ap.Config.Server.BaseURL,
 	}
 
 	var buf bytes.Buffer
-	err := ap.r.Render(&buf, &renderer.RenderData{Entry: e}, []string{renderer.TemplateActivityPub}, true)
+	err := ap.Renderer.Render(&buf, &renderer.RenderData{Entry: e}, []string{renderer.TemplateActivityPub}, true)
 	if err != nil {
-		activity["content"] = string(ap.r.RenderAbsoluteMarkdown(e.Content))
+		activity["content"] = string(ap.Renderer.RenderAbsoluteMarkdown(e.Content))
 	} else {
 		activity["content"] = buf.String()
 	}
@@ -173,12 +159,12 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 
 	tags := []map[string]string{}
 
-	if ap.c.Server.ActivityPub.TagTaxonomy != "" {
-		for _, tag := range e.Taxonomy(ap.c.Server.ActivityPub.TagTaxonomy) {
+	if ap.Config.Server.ActivityPub.TagTaxonomy != "" {
+		for _, tag := range e.Taxonomy(ap.Config.Server.ActivityPub.TagTaxonomy) {
 			tags = append(tags, map[string]string{
 				"type": "Hashtag",
 				"name": tag,
-				"id":   ap.c.Server.AbsoluteURL(fmt.Sprintf("/%s/%s", ap.c.Server.ActivityPub.TagTaxonomy, tag)),
+				"id":   ap.Config.Server.AbsoluteURL(fmt.Sprintf("/%s/%s", ap.Config.Server.ActivityPub.TagTaxonomy, tag)),
 			})
 		}
 	}
@@ -200,7 +186,7 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 	for _, photo := range e.Helper().Photos() {
 		url := typed.Typed(photo).String("value")
 		if url != "" {
-			url = ap.r.GetPictureURL(url, "2000", "jpeg")
+			url = ap.Renderer.GetPictureURL(url, "2000", "jpeg")
 			attachments = append(attachments, imageToActivity(url))
 		}
 
@@ -220,35 +206,35 @@ func (ap *ActivityPub) initSelf() {
 			"https://www.w3.org/ns/activitystreams",
 			"https://w3id.org/security/v1",
 		},
-		"id":                ap.c.Server.BaseURL,
-		"url":               ap.c.Server.BaseURL,
+		"id":                ap.Config.Server.BaseURL,
+		"url":               ap.Config.Server.BaseURL,
 		"type":              "Person",
-		"name":              ap.c.User.Name,
-		"summary":           ap.c.Site.Description,
-		"preferredUsername": ap.c.User.Username,
+		"name":              ap.Config.User.Name,
+		"summary":           ap.Config.Site.Description,
+		"preferredUsername": ap.Config.User.Username,
 		"publicKey": map[string]interface{}{
 			"id":           ap.getSelfKeyID(),
-			"owner":        ap.c.Server.BaseURL,
+			"owner":        ap.Config.Server.BaseURL,
 			"publicKeyPem": ap.publicKey,
 		},
-		"inbox":  ap.options.InboxURL,
-		"outbox": ap.options.OutboxURL,
+		"inbox":  ap.Options.InboxURL,
+		"outbox": ap.Options.OutboxURL,
 	}
 
-	if ap.c.User.Photo != "" {
-		self["icon"] = imageToActivity(ap.c.User.Photo)
+	if ap.Config.User.Photo != "" {
+		self["icon"] = imageToActivity(ap.Config.User.Photo)
 	}
 
-	if ap.c.User.CoverPhoto != "" {
-		self["image"] = imageToActivity(ap.c.User.CoverPhoto)
+	if ap.Config.User.CoverPhoto != "" {
+		self["image"] = imageToActivity(ap.Config.User.CoverPhoto)
 	}
 
-	if !ap.c.User.Published.IsZero() {
-		self["published"] = ap.c.User.Published.Format(time.RFC3339)
+	if !ap.Config.User.Published.IsZero() {
+		self["published"] = ap.Config.User.Published.Format(time.RFC3339)
 	}
 
 	attachments := []map[string]string{
-		linkToActivity(ap.c.Server.ActivityPub.WebsitePropertyName, ap.c.Server.BaseURL),
+		linkToActivity(ap.Config.Server.ActivityPub.WebsitePropertyName, ap.Config.Server.BaseURL),
 	}
 
 	self["attachment"] = attachments
@@ -256,7 +242,7 @@ func (ap *ActivityPub) initSelf() {
 }
 
 func (ap *ActivityPub) getSelfKeyID() string {
-	return ap.c.Server.BaseURL + "#main-key"
+	return ap.Config.Server.BaseURL + "#main-key"
 }
 
 func isSuccess(code int) bool {
