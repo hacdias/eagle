@@ -116,7 +116,7 @@ func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) 
 func (ws *Webmentions) sendWebmention(source, target string) error {
 	endpoint, err := ws.client.DiscoverEndpoint(target)
 	if err != nil {
-		return err
+		return fmt.Errorf("err discovering endpoint: %w", err)
 	}
 
 	if isPrivate(endpoint) {
@@ -125,7 +125,7 @@ func (ws *Webmentions) sendWebmention(source, target string) error {
 
 	res, err := ws.client.SendWebmention(endpoint, source, target)
 	if err != nil {
-		return err
+		return fmt.Errorf("err sending webmention: %w", err)
 	}
 	_, _ = io.Copy(io.Discard, res.Body)
 	defer res.Body.Close()
