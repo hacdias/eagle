@@ -35,7 +35,6 @@ import (
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
-	"github.com/hacdias/eagle/services/lastfm"
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/reddit"
@@ -231,11 +230,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateBlogroll),
 			s.RegisterAction("Update Miniflux Blogroll", mf.UpdateBlogroll),
 		)
-	}
-
-	if c.Lastfm != nil {
-		lastfm := lastfm.NewLastFm(c.Lastfm.Key, c.Lastfm.User, s.fs, s.media)
-		errs = multierror.Append(errs, s.RegisterCron("00 05 * * *", "LastFm Daily", lastfm.DailyJob))
 	}
 
 	if c.Server.ActivityPub != nil {
