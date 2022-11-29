@@ -74,8 +74,12 @@ func (t *Trakt) InteractiveLogin(port int) error {
 		request <- r
 	})}
 
-	go server.ListenAndServe()
-	defer server.Shutdown(context.Background())
+	go func() {
+		_ = server.ListenAndServe()
+	}()
+	defer func() {
+		_ = server.Shutdown(context.Background())
+	}()
 
 	r := <-request
 
