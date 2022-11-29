@@ -202,6 +202,13 @@ lastfm:
   key: lastfmKey
   user: lastfmUser
 
+# Optional Trakt (https://trakt.tv/) integration for watches summary integration.
+trakt:
+  client: traktClientId
+  secret: traktClientSecret
+  # Token to access Trakt. This file can be generated via 'eagle trakt login'.
+  token: /path/to/token.json
+
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
 imgproxy:

@@ -340,6 +340,12 @@ type Lastfm struct {
 	User string
 }
 
+type Trakt struct {
+	Client string
+	Secret string
+	Token  string
+}
+
 type ImgProxy struct {
 	Directory string
 	Endpoint  string
@@ -362,6 +368,7 @@ type Config struct {
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
 	Lastfm        *Lastfm
+	Trakt         *Trakt
 	ImgProxy      *ImgProxy
 }
 
