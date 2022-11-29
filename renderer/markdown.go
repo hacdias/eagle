@@ -104,7 +104,7 @@ func (r *markdownRenderer) renderLink(w util.BufWriter, source []byte, node ast.
 			_ = w.WriteByte('"')
 		}
 		if !(bytes.HasPrefix(destination, []byte("/")) || bytes.HasPrefix(destination, []byte("#"))) {
-			_, _ = w.WriteString(` rel="noopener noreferrer" target="_blank" `)
+			_, _ = w.WriteString(` rel="noopener noreferrer" `)
 		}
 		_ = w.WriteByte('>')
 	} else {
@@ -137,7 +137,7 @@ func (r *markdownRenderer) renderAutoLink(w util.BufWriter, source []byte, node 
 	}
 
 	if n.AutoLinkType == ast.AutoLinkURL && !(bytes.HasPrefix(url, []byte("/")) || bytes.HasPrefix(destination, []byte("#"))) {
-		_, _ = w.WriteString(` rel="noopener noreferrer" target="_blank" `)
+		_, _ = w.WriteString(` rel="noopener noreferrer" `)
 	}
 
 	_ = w.WriteByte('>')
