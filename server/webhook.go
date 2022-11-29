@@ -26,7 +26,7 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 	mac := hmac.New(sha1.New, []byte(s.c.Server.WebhookSecret))
 	_, err = mac.Write(payload)
 	if err != nil {
-		s.log.Error("webook: could not write mac", err)
+		s.log.Error("webhook: could not write mac", err)
 		return
 	}
 	expectedMAC := hex.EncodeToString(mac.Sum(nil))
