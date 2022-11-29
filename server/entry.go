@@ -45,7 +45,10 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	templates := lo.Keys(s.archetypes)
 	sort.Strings(templates)
 
-	id := eagle.NewID("", time.Now().Local())
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		id = eagle.NewID("", time.Now().Local())
+	}
 
 	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &eagle.Entry{},
