@@ -213,13 +213,11 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	var errs *multierror.Error
 	readsSummaryUpdater := hooks.NewReadsSummaryUpdater(s.fs, postgres)
-	watchesSummaryUpdater := hooks.NewWatchesSummaryUpdater(s.fs, postgres)
-	s.AppendPostSaveHook(readsSummaryUpdater, watchesSummaryUpdater)
+	s.AppendPostSaveHook(hooks.NewReadsSummaryUpdater(s.fs, postgres))
 
 	errs = multierror.Append(
 		errs,
 		s.RegisterAction("Update Reads Summary", readsSummaryUpdater.UpdateReadsSummary),
-		s.RegisterAction("Update Watches Summary", watchesSummaryUpdater.UpdateWatchesSummary),
 	)
 
 	if c.Miniflux != nil {
