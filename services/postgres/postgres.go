@@ -266,9 +266,9 @@ func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string
 
 	if len(search.Sections) > 0 {
 		sectionsSql := []string{}
-		for i, section := range search.Sections {
-			sectionsSql = append(sectionsSql, "section=$"+strconv.Itoa(i+2))
+		for _, section := range search.Sections {
 			args = append(args, section)
+			sectionsSql = append(sectionsSql, "section=$"+strconv.Itoa(len(args)))
 		}
 
 		sql += " and (" + strings.Join(sectionsSql, " or ") + ")"
