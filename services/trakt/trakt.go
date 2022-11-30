@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	entryID         = "/watches"
+	entryID         = "/watches/summary"
 	historyFileName = ".history.json"
 	summaryStartTag = "<!--WATCHES-->"
 	summaryEndTag   = "<!--/WATCHES-->"
