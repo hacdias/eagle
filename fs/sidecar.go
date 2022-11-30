@@ -63,11 +63,11 @@ func (f *FS) UpdateSidecar(entry *eagle.Entry, t func(*eagle.Sidecar) (*eagle.Si
 	}
 
 	sort.SliceStable(newSd.Replies, func(i, j int) bool {
-		return newSd.Replies[i].Published.Before(newSd.Replies[j].Published)
+		return newSd.Replies[i].Published.After(newSd.Replies[j].Published)
 	})
 
 	sort.SliceStable(newSd.Interactions, func(i, j int) bool {
-		return newSd.Interactions[i].Published.Before(newSd.Interactions[j].Published)
+		return newSd.Interactions[i].Published.After(newSd.Interactions[j].Published)
 	})
 
 	if f.AfterSaveHook != nil {
