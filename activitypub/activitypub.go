@@ -195,7 +195,7 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		url := typed.Typed(video).String("value")
 		if url != "" {
 			attachments = append(attachments, map[string]string{
-				"type":      "Video",
+				"type":      "Document",
 				"mediaType": mime.TypeByExtension(path.Ext(url)),
 				"url":       url,
 			})
@@ -206,7 +206,7 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		url := typed.Typed(audio).String("value")
 		if url != "" {
 			attachments = append(attachments, map[string]string{
-				"type":      "Audio",
+				"type":      "Document",
 				"mediaType": mime.TypeByExtension(path.Ext(url)),
 				"url":       url,
 			})
