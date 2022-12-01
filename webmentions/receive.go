@@ -47,6 +47,7 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 
 	isInteraction := isInteraction(mention)
 
+	updated := false
 	err = ws.fs.UpdateSidecar(e, func(sidecar *eagle.Sidecar) (*eagle.Sidecar, error) {
 		var mentions []*eagle.Mention
 		if isInteraction {
@@ -55,18 +56,17 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 			mentions = sidecar.Replies
 		}
 
-		replaced := false
 		for i, m := range mentions {
 			if (m.URL == mention.URL && len(m.URL) != 0) || (m.ID == mention.ID && len(m.ID) != 0) ||
 				lo.Contains(sourcesOrIDs, m.URL) || lo.Contains(sourcesOrIDs, m.ID) {
 				mention.Hidden = mentions[i].Hidden
 				mentions[i] = mention
-				replaced = true
+				updated = true
 				break
 			}
 		}
 
-		if !replaced {
+		if !updated {
 			mentions = append(mentions, mention)
 		}
 
@@ -82,7 +82,11 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 	if err != nil {
 		ws.notifier.Error(err)
 	} else {
-		ws.notifier.Info("💬 Received webmention at " + e.Permalink)
+		action := "received"
+		if updated {
+			action += "updated"
+		}
+		ws.notifier.Info(fmt.Sprintf("💬 #webmention %s on %s, via %s.", action, e.Permalink, mention.URL))
 	}
 
 	return err
@@ -115,7 +119,7 @@ func (ws *Webmentions) DeleteWebmention(id, urlOrID string) error {
 	if err != nil {
 		ws.notifier.Error(err)
 	} else {
-		ws.notifier.Info("💬 Deleted webmention at " + e.Permalink)
+		ws.notifier.Info(fmt.Sprintf("💬 #webmention deleted on %s, via %s.", e.Permalink, urlOrID))
 	}
 
 	return err

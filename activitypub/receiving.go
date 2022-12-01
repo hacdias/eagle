@@ -163,9 +163,9 @@ func (ap *ActivityPub) handleMentionsTag(ctx context.Context, activity typed.Typ
 	if mentioned {
 		if id, err := ap.getObjectID(activity); err == nil {
 			if isUpdate {
-				ap.Notifier.Info("✏️ Updated mention in: " + id)
+				ap.Notifier.Info(fmt.Sprintf("💭 #mention added in %s.", id))
 			} else {
-				ap.Notifier.Info("✏️ You were mentioned in: " + id)
+				ap.Notifier.Info(fmt.Sprintf("💭 #mention updated in %s.", id))
 			}
 			return true
 		}
@@ -252,7 +252,7 @@ func (ap *ActivityPub) handleFollow(ctx context.Context, actor, activity typed.T
 		}
 	}
 
-	ap.Notifier.Info(fmt.Sprintf("☃️ [%s](%s) followed you!", follower.Handle, follower.ID))
+	ap.Notifier.Info(fmt.Sprintf("🔔 #followed %s (%s).", follower.Handle, follower.ID))
 	ap.SendAccept(activity, inbox)
 	return nil
 }
@@ -307,7 +307,7 @@ func (ap *ActivityPub) handleUndo(ctx context.Context, actor, activity typed.Typ
 			if object.String("actor") != id {
 				return errors.New("activity.object.actor differs from activity.actor")
 			}
-			ap.Notifier.Info(fmt.Sprintf("☃️ %s unfollowed you.", id))
+			ap.Notifier.Info(fmt.Sprintf("🔕 #unfollowed %s.", id))
 			_ = ap.Store.DeleteFollower(id)
 			return nil
 		case "Like", "Announce":
