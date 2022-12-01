@@ -189,8 +189,28 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 			url = ap.Renderer.GetPictureURL(url, "2000", "jpeg")
 			attachments = append(attachments, imageToActivity(url))
 		}
+	}
 
-		// TODO: add videos and audios.
+	for _, video := range e.Helper().Videos() {
+		url := typed.Typed(video).String("value")
+		if url != "" {
+			attachments = append(attachments, map[string]string{
+				"type":      "Video",
+				"mediaType": mime.TypeByExtension(path.Ext(url)),
+				"url":       url,
+			})
+		}
+	}
+
+	for _, audio := range e.Helper().Audios() {
+		url := typed.Typed(audio).String("value")
+		if url != "" {
+			attachments = append(attachments, map[string]string{
+				"type":      "Audio",
+				"mediaType": mime.TypeByExtension(path.Ext(url)),
+				"url":       url,
+			})
+		}
 	}
 
 	if len(attachments) > 0 {
