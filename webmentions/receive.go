@@ -84,7 +84,7 @@ func (ws *Webmentions) AddOrUpdateWebmention(id string, mention *eagle.Mention, 
 	} else {
 		action := "received"
 		if updated {
-			action += "updated"
+			action = "updated"
 		}
 		ws.notifier.Info(fmt.Sprintf("💬 #webmention %s on %s, via %s.", action, e.Permalink, mention.URL))
 	}
