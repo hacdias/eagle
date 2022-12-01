@@ -9,9 +9,12 @@ import (
 // https://trakt.docs.apiary.io/#introduction/standard-media-objects
 
 type traktGeneric struct {
-	Title string   `json:"title"`
-	Year  int      `json:"year"`
-	IDs   traktIDs `json:"ids"`
+	Title   string   `json:"title"`
+	Year    int      `json:"year"`
+	IDs     traktIDs `json:"ids"`
+	Runtime int      `json:"runtime,omitempty"`
+	Country string   `json:"country,omitempty"`
+	Genres  []string `json:"genres,omitempty"`
 }
 
 type traktMovie traktGeneric

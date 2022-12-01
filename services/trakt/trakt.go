@@ -118,6 +118,7 @@ func (t *Trakt) Fetch(ctx context.Context, page int, start time.Time, end time.T
 	}
 
 	q := u.Query()
+	q.Set("extended", "full")
 	q.Set("limit", strconv.Itoa(limit))
 	q.Set("page", strconv.Itoa(page))
 
