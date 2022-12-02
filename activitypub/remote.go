@@ -38,22 +38,27 @@ func (ap *ActivityPub) getActivity(ctx context.Context, url string) (typed.Typed
 		return nil, err
 	}
 
-	resp, err := ap.httpClient.Do(req)
+	res, err := ap.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
-	if !isSuccess(resp.StatusCode) {
-		if isDeleted(resp.StatusCode) {
+	if !isSuccess(res.StatusCode) {
+		if isDeleted(res.StatusCode) {
 			return nil, errNotFound
 		}
 
 		return nil, errStatusUnsuccessful
 	}
 
+	// NOTE: maybe make this stronger and check for activity
+	if !strings.Contains(res.Header.Get("Content-Type"), "json") {
+		return nil, errNotFound
+	}
+
 	var activity typed.Typed
-	err = json.NewDecoder(resp.Body).Decode(&activity)
+	err = json.NewDecoder(res.Body).Decode(&activity)
 	if err != nil {
 		return nil, err
 	}
@@ -68,12 +73,12 @@ func (ap *ActivityPub) getActorByIRI(ctx context.Context, iri string) (typed.Typ
 
 	domain := strings.SplitN(iri, "@", 2)[1]
 
-	webfinger, err := ap.getWebfinger(ctx, domain, "acct:"+iri)
+	webFinger, err := ap.getWebFinger(ctx, domain, "acct:"+iri)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, link := range webfinger.Links {
+	for _, link := range webFinger.Links {
 		if link.Rel == "self" && strings.Contains(link.Type, contenttype.AS) {
 			return ap.getActorByID(ctx, link.Href)
 		}
@@ -124,24 +129,32 @@ func (ap *ActivityPub) getActorFromActivity(ctx context.Context, url string) (ty
 	return actor, activity, nil
 }
 
-func (ap *ActivityPub) getWebfinger(ctx context.Context, domain, resource string) (*eagle.WebFinger, error) {
+func (ap *ActivityPub) getWebFinger(ctx context.Context, domain, resource string) (*eagle.WebFinger, error) {
 	url := fmt.Sprintf("https://%s/.well-known/webfinger?resource=%s", domain, resource)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := ap.httpClient.Do(req)
+	res, err := ap.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
-	var webfinger *eagle.WebFinger
-	err = json.NewDecoder(resp.Body).Decode(&webfinger)
+	if !isSuccess(res.StatusCode) {
+		if isDeleted(res.StatusCode) {
+			return nil, errNotFound
+		}
+
+		return nil, errStatusUnsuccessful
+	}
+
+	var webFinger *eagle.WebFinger
+	err = json.NewDecoder(res.Body).Decode(&webFinger)
 	if err != nil {
 		return nil, err
 	}
 
-	return webfinger, nil
+	return webFinger, nil
 }
