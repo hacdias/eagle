@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	activityPubFollowersRoute = "/activitypub/followers"
-	activityPubInboxRoute     = "/activitypub/inbox"
-	activityPubOutboxRoute    = "/activitypub/outbox"
+	activityPubInboxRoute        = "/activitypub/inbox"
+	activityPubOutboxRoute       = "/activitypub/outbox"
+	activityPubFollowersRoute    = "/activitypub/followers"
+	activityPubRemoteFollowRoute = "/activitypub/remote-follow"
 )
 
 func (s *Server) serveActivityError(w http.ResponseWriter, statusCode int, err error) {
@@ -33,6 +34,15 @@ func (s *Server) activityPubFollowersGet(w http.ResponseWriter, r *http.Request)
 	statusCode, err := s.ap.FollowersHandler(w, r)
 	if err != nil {
 		s.serveActivityError(w, statusCode, err)
+	} else if statusCode != 0 {
+		w.WriteHeader(statusCode)
+	}
+}
+
+func (s *Server) activityPubRemoteFollowPost(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := s.ap.RemoteFollowHandler(w, r)
+	if err != nil {
+		s.serveErrorHTML(w, r, statusCode, err)
 	} else if statusCode != 0 {
 		w.WriteHeader(statusCode)
 	}

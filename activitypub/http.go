@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/hacdias/eagle/pkg/contenttype"
 )
@@ -80,4 +81,51 @@ func (ap *ActivityPub) serve(w http.ResponseWriter, code int, data interface{}) 
 	if err != nil {
 		ap.Notifier.Error(fmt.Errorf("serving activity: %w", err))
 	}
+}
+
+func (ap *ActivityPub) RemoteFollowHandler(w http.ResponseWriter, r *http.Request) (int, error) {
+	if r.Method != http.MethodPost {
+		return http.StatusMethodNotAllowed, errors.New("method not allowed")
+	}
+
+	if err := r.ParseForm(); err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	acct := strings.TrimPrefix(r.Form.Get("acct"), "@")
+	acctParts := strings.Split(acct, "@")
+	if len(acctParts) != 2 {
+		return http.StatusBadRequest, errors.New("user handle must be in form of user@example.org or @user@example.org")
+	}
+
+	user := acctParts[0]
+	domain := acctParts[1]
+	if user == "" || domain == "" {
+		return http.StatusBadRequest, errors.New("user and domain must not be empty in user@example.org")
+	}
+
+	webFinger, err := ap.getWebFinger(r.Context(), domain, "acct:"+acct)
+	if err != nil {
+		if err == errNotFound {
+			return http.StatusNotFound, fmt.Errorf("%s does not provide a WebFinger for %s", domain, acct)
+		}
+
+		return http.StatusInternalServerError, err
+	}
+
+	template := ""
+	for _, link := range webFinger.Links {
+		if link.Rel == "http://ostatus.org/schema/1.0/subscribe" {
+			template = link.Template
+			break
+		}
+	}
+
+	if template == "" {
+		return http.StatusBadRequest, fmt.Errorf("%s does not support subscribe schema version 1.0", domain)
+	}
+
+	redirect := strings.ReplaceAll(template, "{uri}", ap.Config.Server.BaseURL)
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
+	return 0, nil
 }
