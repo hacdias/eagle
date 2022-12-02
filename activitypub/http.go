@@ -125,7 +125,7 @@ func (ap *ActivityPub) RemoteFollowHandler(w http.ResponseWriter, r *http.Reques
 		return http.StatusBadRequest, fmt.Errorf("%s does not support subscribe schema version 1.0", domain)
 	}
 
-	redirect := strings.ReplaceAll(template, "{uri}", ap.Config.Server.BaseURL)
+	redirect := strings.ReplaceAll(template, "{uri}", ap.account)
 	http.Redirect(w, r, redirect, http.StatusSeeOther)
 	return 0, nil
 }

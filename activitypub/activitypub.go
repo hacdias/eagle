@@ -9,6 +9,7 @@ import (
 	"mime"
 
 	"net/http"
+	urlpkg "net/url"
 	"path"
 	"sync"
 	"time"
@@ -77,6 +78,7 @@ type ActivityPub struct {
 
 	publicKey  string
 	privateKey *rsa.PrivateKey
+	account    string // username@domain.org
 	self       typed.Typed
 
 	signerMu sync.Mutex
@@ -90,12 +92,15 @@ func NewActivityPub(options *Options) (*ActivityPub, error) {
 		return nil, errors.New("required fields in Options are missing")
 	}
 
+	url, _ := urlpkg.Parse(options.Config.Server.BaseURL)
+
 	a := &ActivityPub{
 		Options: options,
 		log:     log.S().Named("activitypub"),
 		httpClient: &http.Client{
 			Timeout: time.Minute,
 		},
+		account: fmt.Sprintf("%s@%s", options.Config.User.Username, url.Host),
 	}
 
 	var err error
