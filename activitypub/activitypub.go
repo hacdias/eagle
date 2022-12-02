@@ -4,6 +4,7 @@ package activitypub
 import (
 	"bytes"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"mime"
 
@@ -59,9 +60,10 @@ type Options struct {
 	FS          *fs.FS
 	Notifier    eagle.Notifier
 	Webmentions *webmentions.Webmentions
-	Media       *media.Media
 	Store       Storage
 
+	// Optional fields.
+	Media        *media.Media
 	InboxURL     string
 	OutboxURL    string
 	FollowersURL string
@@ -82,6 +84,12 @@ type ActivityPub struct {
 }
 
 func NewActivityPub(options *Options) (*ActivityPub, error) {
+	if options.Config == nil || options.Renderer == nil ||
+		options.FS == nil || options.Notifier == nil ||
+		options.Webmentions == nil || options.Store == nil {
+		return nil, errors.New("required fields in Options are missing")
+	}
+
 	a := &ActivityPub{
 		Options: options,
 		log:     log.S().Named("activitypub"),
