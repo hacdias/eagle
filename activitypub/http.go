@@ -101,13 +101,13 @@ func (ap *ActivityPub) RemoteFollowHandler(w http.ResponseWriter, r *http.Reques
 	user := acctParts[0]
 	domain := acctParts[1]
 	if user == "" || domain == "" {
-		return http.StatusBadRequest, errors.New("user handle must be in form of user@example.org or @user@example.org")
+		return http.StatusBadRequest, errors.New("user and domain must not be empty in user@example.org")
 	}
 
 	webFinger, err := ap.getWebFinger(r.Context(), domain, "acct:"+acct)
 	if err != nil {
 		if err == errNotFound {
-			return http.StatusNotFound, nil
+			return http.StatusNotFound, fmt.Errorf("%s does not provide a WebFinger for %s", domain, acct)
 		}
 
 		return http.StatusInternalServerError, err
@@ -122,7 +122,7 @@ func (ap *ActivityPub) RemoteFollowHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	if template == "" {
-		return http.StatusBadRequest, errors.New("instance does not support subscribe schema version 1.0")
+		return http.StatusBadRequest, fmt.Errorf("%s does not support subscribe schema version 1.0", domain)
 	}
 
 	redirect := strings.ReplaceAll(template, "{uri}", ap.Config.Server.BaseURL)
