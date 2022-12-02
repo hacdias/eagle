@@ -50,6 +50,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post(activityPubInboxRoute, s.activityPubInboxPost)
 		r.Get(activityPubOutboxRoute, s.activityPubOutboxGet)
 		r.Get(activityPubFollowersRoute, s.activityPubFollowersGet)
+		r.Post(activityPubRemoteFollowRoute, s.activityPubRemoteFollowPost)
 	}
 
 	r.Get("/search", s.searchGet)
