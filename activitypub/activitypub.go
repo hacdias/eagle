@@ -200,29 +200,21 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		url := typed.Typed(photo).String("value")
 		if url != "" {
 			url = ap.Renderer.GetPictureURL(url, "2000", "jpeg")
-			attachments = append(attachments, imageToActivity(url))
+			attachments = append(attachments, mediaToActivity(url, "Image"))
 		}
 	}
 
 	for _, video := range e.Helper().Videos() {
 		url := typed.Typed(video).String("value")
 		if url != "" {
-			attachments = append(attachments, map[string]string{
-				"type":      "Document",
-				"mediaType": mime.TypeByExtension(path.Ext(url)),
-				"url":       url,
-			})
+			attachments = append(attachments, mediaToActivity(url, "Video"))
 		}
 	}
 
 	for _, audio := range e.Helper().Audios() {
 		url := typed.Typed(audio).String("value")
 		if url != "" {
-			attachments = append(attachments, map[string]string{
-				"type":      "Document",
-				"mediaType": mime.TypeByExtension(path.Ext(url)),
-				"url":       url,
-			})
+			attachments = append(attachments, mediaToActivity(url, "Audio"))
 		}
 	}
 
@@ -255,11 +247,11 @@ func (ap *ActivityPub) initSelf() {
 	}
 
 	if ap.Config.User.Photo != "" {
-		self["icon"] = imageToActivity(ap.Config.User.Photo)
+		self["icon"] = mediaToActivity(ap.Config.User.Photo, "Image")
 	}
 
 	if ap.Config.User.CoverPhoto != "" {
-		self["image"] = imageToActivity(ap.Config.User.CoverPhoto)
+		self["image"] = mediaToActivity(ap.Config.User.CoverPhoto, "Image")
 	}
 
 	if !ap.Config.User.Published.IsZero() {
@@ -290,9 +282,9 @@ func isDeleted(code int) bool {
 		code == http.StatusNotFound
 }
 
-func imageToActivity(url string) map[string]string {
+func mediaToActivity(url, typ string) map[string]string {
 	return map[string]string{
-		"type":      "Image",
+		"type":      typ,
 		"mediaType": mime.TypeByExtension(path.Ext(url)),
 		"url":       url,
 	}
