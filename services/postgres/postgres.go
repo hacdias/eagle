@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/hacdias/eagle/activitypub"
 	"github.com/hacdias/eagle/eagle"
@@ -15,7 +16,10 @@ import (
 )
 
 type Postgres struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 func NewPostgres(cfg *eagle.PostgreSQL) (*Postgres, error) {
@@ -37,7 +41,13 @@ func NewPostgres(cfg *eagle.PostgreSQL) (*Postgres, error) {
 		return nil, err
 	}
 
-	return &Postgres{pool}, nil
+	ctx, cancel := context.WithCancel(context.Background())
+
+	return &Postgres{
+		pool:   pool,
+		ctx:    ctx,
+		cancel: cancel,
+	}, nil
 }
 
 func (d *Postgres) Remove(id string) {
@@ -469,6 +479,8 @@ func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]
 }
 
 func (d *Postgres) Close() error {
+	d.cancel()
+	d.wg.Wait()
 	d.pool.Close()
 	return nil
 }
