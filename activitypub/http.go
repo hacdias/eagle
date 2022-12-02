@@ -92,19 +92,19 @@ func (ap *ActivityPub) RemoteFollowHandler(w http.ResponseWriter, r *http.Reques
 		return http.StatusBadRequest, err
 	}
 
-	handle := strings.TrimPrefix(r.Form.Get("handle"), "@")
-	handleParts := strings.Split(handle, "@")
-	if len(handleParts) != 2 {
+	acct := strings.TrimPrefix(r.Form.Get("acct"), "@")
+	acctParts := strings.Split(acct, "@")
+	if len(acctParts) != 2 {
 		return http.StatusBadRequest, errors.New("user handle must be in form of user@example.org or @user@example.org")
 	}
 
-	user := handleParts[0]
-	instance := handleParts[1]
-	if user == "" || instance == "" {
+	user := acctParts[0]
+	domain := acctParts[1]
+	if user == "" || domain == "" {
 		return http.StatusBadRequest, errors.New("user handle must be in form of user@example.org or @user@example.org")
 	}
 
-	webFinger, err := ap.getWebFinger(r.Context(), instance, handle)
+	webFinger, err := ap.getWebFinger(r.Context(), domain, "acct:"+acct)
 	if err != nil {
 		if err == errNotFound {
 			return http.StatusNotFound, nil
