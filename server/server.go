@@ -71,7 +71,7 @@ type Server struct {
 	cron         *cron.Cron
 	redirects    map[string]string
 	archetypes   map[string]*template.Template
-	webfinger    *eagle.WebFinger
+	webFinger    *eagle.WebFinger
 
 	serversMu sync.Mutex
 	servers   []*httpServer
@@ -264,7 +264,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		s.AppendPostSaveHook(s.ap)
 	}
 
-	s.initWebfinger()
+	s.initWebFinger()
 
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
