@@ -147,37 +147,37 @@ func (ap *ActivityPub) sendSigned(ctx context.Context, activity interface{}, inb
 		return fmt.Errorf("could not marshal data: %w", err)
 	}
 
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, inbox, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, inbox, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}
 
-	r.Header.Add("Accept", contenttype.ASUTF8)
-	r.Header.Add("Accept-Charset", "utf-8")
-	r.Header.Add("Content-Type", contenttype.ASUTF8)
-	r.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
-	r.Header.Add("User-Agent", ap.Config.Server.BaseURL)
-	r.Header.Add("Host", r.URL.Host)
+	req.Header.Add("Accept", contenttype.ASUTF8)
+	req.Header.Add("Accept-Charset", "utf-8")
+	req.Header.Add("Content-Type", contenttype.ASUTF8)
+	req.Header.Add("Date", time.Now().UTC().Format("Mon, 02 Jan 2006 15:04:05")+" GMT")
+	req.Header.Add("User-Agent", ap.Config.Server.BaseURL)
+	req.Header.Add("Host", req.URL.Host)
 
 	ap.signerMu.Lock()
-	err = ap.signer.SignRequest(ap.privateKey, ap.getSelfKeyID(), r, body)
+	err = ap.signer.SignRequest(ap.privateKey, ap.getSelfKeyID(), req, body)
 	ap.signerMu.Unlock()
 	if err != nil {
 		return fmt.Errorf("could not sign request: %w", err)
 	}
 
-	resp, err := ap.httpClient.Do(r)
+	res, err := ap.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 
-	if !isSuccess(resp.StatusCode) {
-		body, _ := io.ReadAll(resp.Body)
+	if !isSuccess(res.StatusCode) {
+		body, _ := io.ReadAll(res.Body)
 		return fmt.Errorf(
 			"could not send signed request: failed with status %d\n\nBody:\n%s\n\nHeaders:\n%v\n\nContent:\n%s",
-			resp.StatusCode,
+			res.StatusCode,
 			string(body),
-			r.Header,
+			req.Header,
 			string(body),
 		)
 	}
