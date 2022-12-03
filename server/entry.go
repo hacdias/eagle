@@ -53,18 +53,19 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Override some properties according to query URL values.
+	// TODO: perhaps there's some way of simplifying this for all fields that can
+	// be strings in the FrontMatter.
 	for k, v := range r.URL.Query() {
 		if strings.HasPrefix(k, "properties.") {
 			e.Properties[strings.TrimPrefix(k, "properties.")] = v
 		}
 	}
-
-	if content := r.URL.Query().Get("content"); content != "" {
-		e.Content = content
-	}
-
 	if title := r.URL.Query().Get("title"); title != "" {
 		e.Title = title
+	}
+	if content := r.URL.Query().Get("content"); content != "" {
+		e.Content = content
 	}
 
 	str, err = e.String()
