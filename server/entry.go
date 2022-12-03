@@ -63,6 +63,10 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		e.Content = content
 	}
 
+	if title := r.URL.Query().Get("title"); title != "" {
+		e.Title = title
+	}
+
 	str, err = e.String()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
