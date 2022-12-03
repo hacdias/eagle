@@ -78,7 +78,11 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	sort.Strings(templates)
 
 	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{},
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
+				Title: "New",
+			},
+		},
 		Data: map[string]interface{}{
 			"ID":          id,
 			"Content":     str,
@@ -155,7 +159,11 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{},
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
+				Title: "Edit",
+			},
+		},
 		Data: map[string]interface{}{
 			"Title":       ee.Title,
 			"Content":     str,
