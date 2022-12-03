@@ -476,7 +476,7 @@ func (d *Postgres) Close() error {
 func (d *Postgres) AddOrUpdateFollower(follower activitypub.Follower) error {
 	_, err := d.pool.Exec(
 		context.Background(),
-		"insert into activitypub_followers(name, iri, inbox, handle) values($1, $2, $3, $4) on conflict (iri) do update set name=$1, inbox=$3, handle=$4",
+		"insert into activitypub_followers(name, id, inbox, handle) values($1, $2, $3, $4) on conflict (id) do update set name=$1, inbox=$3, handle=$4",
 		follower.Name, follower.ID, follower.Inbox, follower.Handle,
 	)
 	return err
@@ -521,7 +521,7 @@ func (d *Postgres) getFollowers(sql string, args ...interface{}) ([]*activitypub
 }
 
 func (d *Postgres) GetFollower(id string) (*activitypub.Follower, error) {
-	followers, err := d.getFollowers("select name, iri, inbox, handle from activitypub_followers where iri=$1", id)
+	followers, err := d.getFollowers("select name, id, inbox, handle from activitypub_followers where id=$1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -534,11 +534,11 @@ func (d *Postgres) GetFollower(id string) (*activitypub.Follower, error) {
 }
 
 func (d *Postgres) GetFollowers() ([]*activitypub.Follower, error) {
-	return d.getFollowers("select name, iri, inbox, handle from activitypub_followers order by iri")
+	return d.getFollowers("select name, id, inbox, handle from activitypub_followers order by id")
 }
 
 func (d *Postgres) GetFollowersByPage(page, limit int) ([]*activitypub.Follower, error) {
-	return d.getFollowers("select name, iri, inbox, handle from activitypub_followers order by iri offset " + strconv.Itoa((page-1)*limit) + " limit " + strconv.Itoa(limit))
+	return d.getFollowers("select name, id, inbox, handle from activitypub_followers order by id offset " + strconv.Itoa((page-1)*limit) + " limit " + strconv.Itoa(limit))
 }
 
 func (d *Postgres) GetFollowersCount() (int, error) {
@@ -566,8 +566,8 @@ func (d *Postgres) GetFollowersCount() (int, error) {
 	return n, nil
 }
 
-func (d *Postgres) DeleteFollower(iri string) error {
-	_, err := d.pool.Exec(context.Background(), "delete from activitypub_followers where iri=$1", iri)
+func (d *Postgres) DeleteFollower(id string) error {
+	_, err := d.pool.Exec(context.Background(), "delete from activitypub_followers where id=$1", id)
 	return err
 }
 
