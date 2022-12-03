@@ -11,7 +11,6 @@ var defaultTemplate = template.Must(template.New("default").Parse(`---
 published: {{ .Now.Format "2006-01-02T15:04:05Z07:00" }}
 ---
 
-What's on your mind?
 `))
 
 func (f *FS) LoadArchetypes() (map[string]*template.Template, error) {
