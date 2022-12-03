@@ -101,6 +101,10 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 
 	e.CreatedWith = s.c.ID()
 
+	if location := r.FormValue("location"); location != "" {
+		e.Properties["location"] = location
+	}
+
 	if err := s.preSaveEntry(nil, e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
