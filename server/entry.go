@@ -7,6 +7,7 @@ import (
 	urlpkg "net/url"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -22,33 +23,50 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		template = "default"
 	}
 
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		id = eagle.NewID("", time.Now().Local())
+	}
+
 	var str string
 
-	if at, ok := s.archetypes[template]; ok {
-		var buf bytes.Buffer
-
-		err := at.Execute(&buf, map[string]interface{}{
-			"Now": time.Now(),
-		})
-
-		if err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-			return
-		}
-
-		str = buf.String()
-	} else {
+	at, ok := s.archetypes[template]
+	if !ok {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("requested template does not exist"))
+		return
+	}
+
+	var buf bytes.Buffer
+
+	err := at.Execute(&buf, map[string]interface{}{
+		"Now":   time.Now(),
+		"Query": r.URL.Query(),
+	})
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	e, err := s.parser.FromRaw(id, buf.String())
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	for k, v := range r.URL.Query() {
+		if strings.HasPrefix(k, "properties.") {
+			e.Properties[strings.TrimPrefix(k, "properties.")] = v
+		}
+	}
+
+	str, err = e.String()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	templates := lo.Keys(s.archetypes)
 	sort.Strings(templates)
-
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		id = eagle.NewID("", time.Now().Local())
-	}
 
 	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &eagle.Entry{},
