@@ -3,6 +3,9 @@ package server
 import (
 	"errors"
 	"net/http"
+
+	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/renderer"
 )
 
 var (
@@ -31,12 +34,33 @@ func (s *Server) activityPubInboxPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) activityPubFollowersGet(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := s.ap.FollowersHandler(w, r)
-	if err != nil {
-		s.serveActivityError(w, statusCode, err)
-	} else if statusCode != 0 {
-		w.WriteHeader(statusCode)
+	if isActivityPub(r) {
+		statusCode, err := s.ap.FollowersHandler(w, r)
+		if err != nil {
+			s.serveActivityError(w, statusCode, err)
+		} else if statusCode != 0 {
+			w.WriteHeader(statusCode)
+		}
+		return
 	}
+
+	followers, err := s.ap.Store.GetFollowers()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.serveHTML(w, r, &renderer.RenderData{
+		Entry: &eagle.Entry{
+			FrontMatter: eagle.FrontMatter{
+				Title: "Followers",
+			},
+		},
+		Data: map[string]interface{}{
+			"Followers": followers,
+		},
+		NoIndex: true,
+	}, []string{renderer.TemplateActivityPubFollowers})
 }
 
 func (s *Server) activityPubRemoteFollowPost(w http.ResponseWriter, r *http.Request) {
