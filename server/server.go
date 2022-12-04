@@ -18,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -70,7 +69,7 @@ type Server struct {
 	actions      map[string]func() error
 	cron         *cron.Cron
 	redirects    map[string]string
-	archetypes   map[string]*template.Template
+	archetypes   map[string]eagle.Archetype
 	webFinger    *eagle.WebFinger
 
 	serversMu sync.Mutex
@@ -159,7 +158,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		servers:       []*httpServer{},
 		cron:          cron.New(),
 		redirects:     map[string]string{},
-		archetypes:    map[string]*template.Template{},
+		archetypes:    eagle.DefaultArchetypes,
 		fs:            fs,
 		media:         m,
 		cache:         cache,
@@ -269,7 +268,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
 		return nil
-	}), s.loadRedirects(), s.loadArchetypes())
+	}), s.loadRedirects())
 
 	err = errs.ErrorOrNil()
 	return s, err
@@ -281,6 +280,10 @@ func (s *Server) AppendPreSaveHook(hooks ...eagle.EntryHook) {
 
 func (s *Server) AppendPostSaveHook(hooks ...eagle.EntryHook) {
 	s.postSaveHooks = append(s.postSaveHooks, hooks...)
+}
+
+func (s *Server) RegisterArchetype(name string, archetype eagle.Archetype) {
+	s.archetypes[name] = archetype
 }
 
 func (s *Server) RegisterAction(name string, action func() error) error {
@@ -371,9 +374,6 @@ func (s *Server) initActions() {
 		"Reload Redirects": func() error {
 			return s.loadRedirects()
 		},
-		"Reload Archetypes": func() error {
-			return s.loadArchetypes()
-		},
 	}
 }
 
@@ -392,15 +392,6 @@ func (s *Server) loadRedirects() error {
 		return err
 	}
 	s.redirects = redirects
-	return nil
-}
-
-func (s *Server) loadArchetypes() error {
-	archetypes, err := s.fs.LoadArchetypes()
-	if err != nil {
-		return err
-	}
-	s.archetypes = archetypes
 	return nil
 }
 

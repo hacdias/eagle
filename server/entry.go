@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"errors"
 	"net/http"
 	urlpkg "net/url"
@@ -18,64 +17,45 @@ import (
 )
 
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
-	template := r.URL.Query().Get("template")
-	if template == "" {
-		template = "default"
+	archetypeName := r.URL.Query().Get("archetype")
+	if archetypeName == "" {
+		archetypeName = "default"
 	}
 
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		id = eagle.NewID("", time.Now().Local())
-	}
-
-	var str string
-
-	at, ok := s.archetypes[template]
+	archetype, ok := s.archetypes[archetypeName]
 	if !ok {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("requested template does not exist"))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("requested archetype does not exist"))
 		return
 	}
 
-	var buf bytes.Buffer
-
-	err := at.Execute(&buf, map[string]interface{}{
-		"Now":   time.Now(),
-		"Query": r.URL.Query(),
-	})
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	e, err := s.parser.FromRaw(id, buf.String())
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
+	e := archetype(s.c, r)
 
 	// Override some properties according to query URL values.
-	// TODO: perhaps there's some way of simplifying this for all fields that can
-	// be strings in the FrontMatter.
-	for k, v := range r.URL.Query() {
-		if strings.HasPrefix(k, "properties.") {
-			e.Properties[strings.TrimPrefix(k, "properties.")] = v
-		}
-	}
 	if title := r.URL.Query().Get("title"); title != "" {
 		e.Title = title
 	}
 	if content := r.URL.Query().Get("content"); content != "" {
 		e.Content = content
 	}
+	if id := r.URL.Query().Get("id"); id != "" {
+		e.ID = id
+	}
+	for k, v := range r.URL.Query() {
+		if strings.HasPrefix(k, "properties.") {
+			e.Properties[strings.TrimPrefix(k, "properties.")] = v
+		}
+	}
 
-	str, err = e.String()
+	// Get stringified entry.
+	str, err := e.String()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	templates := lo.Keys(s.archetypes)
-	sort.Strings(templates)
+	// Get all archetype names.
+	archetypeNames := lo.Keys(s.archetypes)
+	sort.Strings(archetypeNames)
 
 	s.serveHTML(w, r, &renderer.RenderData{
 		Entry: &eagle.Entry{
@@ -84,10 +64,10 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		Data: map[string]interface{}{
-			"ID":          id,
+			"ID":          e.ID,
 			"Content":     str,
 			"Syndicators": s.syndicator.Config(),
-			"Templates":   templates,
+			"Archetypes":  archetypeNames,
 		},
 		NoIndex: true,
 	}, []string{renderer.TemplateNew})
@@ -99,10 +79,15 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := r.FormValue("content")
+	now := time.Now().Local()
 	id := r.FormValue("id")
-	if content == "" || id == "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content and slug cannot be empty"))
+	if id == "" {
+		id = eagle.NewID("", now)
+	}
+
+	content := r.FormValue("content")
+	if content == "" {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content cannot be empty"))
 		return
 	}
 
@@ -113,6 +98,10 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e.CreatedWith = s.c.ID()
+
+	if r.FormValue("published") != "" {
+		e.Published = now
+	}
 
 	if location := r.FormValue("location"); location != "" {
 		e.Properties["location"] = location
