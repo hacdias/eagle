@@ -145,8 +145,12 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 	profile = indieauth.CanonicalizeURL(profile)
 	if err := indieauth.IsValidProfileURL(profile); err != nil {
 		err = fmt.Errorf("invalid profile url: %w", err)
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
+		if s.c.Development {
+			s.log.Warn(err)
+		} else {
+			s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	i, redirect, err := s.iac.Authenticate(profile, "")
@@ -185,8 +189,12 @@ func (s *Server) loginCallbackGet(w http.ResponseWriter, r *http.Request) {
 
 	if err := indieauth.IsValidProfileURL(profile.Me); err != nil {
 		err = fmt.Errorf("invalid 'me': %w", err)
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
+		if s.c.Development {
+			s.log.Warn(err)
+		} else {
+			s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	expiration := time.Now().Add(time.Hour * 24 * 7)
