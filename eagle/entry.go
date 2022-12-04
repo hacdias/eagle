@@ -139,6 +139,16 @@ func (e *Entry) TextContent() string {
 	return makePlainText(e.Content)
 }
 
+func (e *Entry) EnsureMaps() {
+	if e.Properties == nil {
+		e.Properties = map[string]interface{}{}
+	}
+
+	if e.Taxonomies == nil {
+		e.Taxonomies = map[string][]string{}
+	}
+}
+
 func (e *Entry) Update(newProps map[string][]interface{}) error {
 	props := typed.New(mf2.Flatten(newProps))
 

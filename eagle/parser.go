@@ -15,23 +15,19 @@ func NewParser(baseURL string) *Parser {
 }
 
 func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry, error) {
-	entry := &Entry{
-		FrontMatter: FrontMatter{
-			Properties: map[string]interface{}{},
-			Taxonomies: map[string][]string{},
-		},
-	}
+	e := &Entry{}
+	e.EnsureMaps()
 
-	err := entry.Update(mf2Data)
+	err := e.Update(mf2Data)
 	if err != nil {
 		return nil, err
 	}
 
-	id := NewID(slug, entry.Published)
-	entry.ID = cleanID(id)
-	entry.Permalink, err = p.makePermalink(entry.ID)
+	id := NewID(slug, e.Published)
+	e.ID = cleanID(id)
+	e.Permalink, err = p.makePermalink(e.ID)
 
-	return entry, err
+	return e, err
 }
 
 func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
@@ -53,7 +49,7 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 		content += "\n"
 	}
 
-	entry := &Entry{
+	e := &Entry{
 		ID:          id,
 		Permalink:   permalink,
 		Content:     content,
@@ -65,17 +61,10 @@ func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
 		return nil, err
 	}
 
-	entry.FrontMatter = *fr
+	e.FrontMatter = *fr
+	e.EnsureMaps()
 
-	if entry.Properties == nil {
-		entry.Properties = map[string]interface{}{}
-	}
-
-	if entry.Taxonomies == nil {
-		entry.Taxonomies = map[string][]string{}
-	}
-
-	return entry, nil
+	return e, nil
 }
 
 func (p *Parser) makePermalink(id string) (string, error) {

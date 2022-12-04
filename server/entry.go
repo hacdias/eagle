@@ -29,6 +29,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e := archetype(s.c, r)
+	e.EnsureMaps()
 
 	// Override some properties according to query URL values.
 	if title := r.URL.Query().Get("title"); title != "" {
