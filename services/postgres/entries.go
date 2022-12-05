@@ -148,7 +148,7 @@ func (d *Postgres) GetByDate(opts *indexer.Query, year, month, day int) ([]strin
 }
 
 func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
-	rows, err := d.pool.Query(context.Background(), "select term from taxonomies where taxonomy=$1 order by term", taxonomy)
+	rows, err := d.pool.Query(context.Background(), "select distinct (term) term from taxonomies where taxonomy=$1 order by term", taxonomy)
 	if err != nil {
 		return nil, err
 	}
