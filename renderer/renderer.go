@@ -5,13 +5,15 @@ import (
 	"errors"
 	"html/template"
 	"io"
+	osfs "io/fs"
 	"path"
 	"path/filepath"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/pkg/contenttype"
-	"github.com/hashicorp/go-multierror"
 	"github.com/tdewolff/minify/v2"
 	"github.com/yuin/goldmark"
 )
@@ -51,7 +53,67 @@ func NewRenderer(c *eagle.Config, fs *fs.FS, mediaBaseURL string) (*Renderer, er
 		return nil, err
 	}
 
+	if c.Development {
+		go r.watch(TemplatesDirectory, r.LoadTemplates)
+		go r.watch(AssetsDirectory, r.LoadAssets)
+	}
+
 	return r, nil
+}
+
+func (r *Renderer) watch(dir string, exec func() error) {
+	log := log.S().Named("renderer")
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	defer watcher.Close()
+
+	go func() {
+		for {
+			select {
+			case evt, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+
+				// Ignore CHMOD only events.
+				if evt.Op != fsnotify.Chmod {
+					log.Infof("%s changed", evt.Name)
+					err := exec()
+					if err != nil {
+						log.Error(err)
+					}
+				}
+
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				log.Error(err)
+			}
+		}
+	}()
+
+	err = r.fs.Walk(dir, func(filename string, info osfs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			return nil
+		}
+
+		return watcher.Add(filepath.Join(r.c.Source.Directory, filename))
+	})
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	<-make(chan struct{})
 }
 
 func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string, absoluteURLs bool) error {
@@ -59,14 +121,6 @@ func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string, abs
 	data.Site = r.c.Site
 	data.Assets = r.assets
 	data.fs = r.fs
-
-	if r.c.Development {
-		// Not concurrent safe, but it's only for development purposes.
-		err := multierror.Append(r.LoadAssets(), r.LoadTemplates()).ErrorOrNil()
-		if err != nil {
-			return err
-		}
-	}
 
 	var htmlTemplates map[string]*template.Template
 	if absoluteURLs {

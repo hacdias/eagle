@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/contenttype"
 )
 
 const (
-	AssetsBaseURL string = "/assets"
+	AssetsBaseURL   string = "/assets"
+	AssetsDirectory string = "assets"
 )
 
 type Assets struct {
@@ -70,7 +70,7 @@ func (r *Renderer) buildAsset(asset *eagle.Asset) (*Asset, error) {
 	var data bytes.Buffer
 
 	for _, file := range asset.Files {
-		filename := filepath.Join(fs.AssetsDirectory, file)
+		filename := filepath.Join(AssetsDirectory, file)
 		raw, err := r.fs.ReadFile(filename)
 		if err != nil {
 			return nil, err
