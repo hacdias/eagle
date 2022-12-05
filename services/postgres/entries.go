@@ -67,7 +67,9 @@ func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
 		sql += " where " + strings.Join(where, " and ")
 	}
 
-	return d.queryEntries(sql+" order by published_at desc"+d.offset(opts.Pagination), 0, args...)
+	sql += d.orderBy(opts)
+	sql += d.offset(opts.Pagination)
+	return d.queryEntries(sql, 0, args...)
 }
 
 func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
