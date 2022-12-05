@@ -113,34 +113,30 @@ func (d *Postgres) GetByDate(opts *indexer.Query, year, month, day int) ([]strin
 		return nil, errors.New("year, month or day must be set")
 	}
 
-	i := 0
-	args := []interface{}{}
-
 	sql := "select id from entries where "
+	args := []interface{}{}
 	where := []string{}
 
 	if year > 0 {
-		i++
-		where = append(where, "date_part('year', published_at)=$"+strconv.Itoa(i))
 		args = append(args, year)
+		where = append(where, "date_part('year', published_at)=$"+strconv.Itoa(len(args)))
 	}
 
 	if month > 0 {
-		i++
-		where = append(where, "date_part('month', published_at)=$"+strconv.Itoa(i))
 		args = append(args, month)
+		where = append(where, "date_part('month', published_at)=$"+strconv.Itoa(len(args)))
 	}
 
 	if day > 0 {
-		i++
-		where = append(where, "date_part('day', published_at)=$"+strconv.Itoa(i))
 		args = append(args, day)
+		where = append(where, "date_part('day', published_at)=$"+strconv.Itoa(len(args)))
 	}
 
-	wwhere, aargs := d.whereConstraints(opts, i)
+	if w, a := d.whereConstraints(opts, len(args)); len(w) > 0 {
+		where = append(where, w...)
+		args = append(args, a...)
+	}
 
-	where = append(where, wwhere...)
-	args = append(args, aargs...)
 	sql += strings.Join(where, " and ")
 	sql += d.orderBy(opts)
 	sql += d.offset(opts.Pagination)
