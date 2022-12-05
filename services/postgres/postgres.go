@@ -87,26 +87,20 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 }
 
 func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
-	rows, err := d.pool.Query(context.Background(), "select distinct term, count(*) from taxonomies where taxonomy=$1 group by term order by term", taxonomy)
+	rows, err := d.pool.Query(context.Background(), "select term from taxonomies where taxonomy=$1 order by term", taxonomy)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	terms := []*eagle.Term{}
+	terms := []string{}
 	for rows.Next() {
-		var (
-			term  string
-			count int
-		)
-		err := rows.Scan(&term, &count)
+		var term string
+		err := rows.Scan(&term)
 		if err != nil {
 			return nil, err
 		}
-		terms = append(terms, &eagle.Term{
-			Name:  term,
-			Count: count,
-		})
+		terms = append(terms, term)
 	}
 
 	return terms, nil
