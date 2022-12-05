@@ -7,6 +7,7 @@ import (
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/util"
 )
@@ -78,14 +79,14 @@ const (
 )
 
 type ReadsSummaryUpdater struct {
-	fs       *fs.FS
-	provider ReadsSummaryProvider
+	fs      *fs.FS
+	indexer *indexer.Indexer
 }
 
-func NewReadsSummaryUpdater(fs *fs.FS, provider ReadsSummaryProvider) *ReadsSummaryUpdater {
+func NewReadsSummaryUpdater(fs *fs.FS, indexer *indexer.Indexer) *ReadsSummaryUpdater {
 	return &ReadsSummaryUpdater{
-		fs:       fs,
-		provider: provider,
+		fs:      fs,
+		indexer: indexer,
 	}
 }
 
@@ -97,8 +98,52 @@ func (u *ReadsSummaryUpdater) EntryHook(_, e *eagle.Entry) error {
 	return nil
 }
 
+func (u *ReadsSummaryUpdater) getSummary() (*ReadsSummary, error) {
+	ee, err := u.indexer.GetBySection(&indexer.Query{}, "books")
+	if err != nil {
+		return nil, err
+	}
+
+	stats := &ReadsSummary{
+		ToRead:  []*Read{},
+		Reading: []*Read{},
+	}
+
+	finished := ReadList([]*Read{})
+
+	for _, e := range ee {
+		mm := e.Helper()
+		read := mm.Sub("read-of")
+		statuses := mm.Properties.Objects("read-status")
+
+		if read == nil || len(statuses) < 1 {
+			continue
+		}
+
+		r := &Read{
+			ID:     e.ID,
+			Name:   read.Name(),
+			Author: read.String("author"),
+			Date:   e.Updated,
+		}
+
+		switch statuses[0].String("status") {
+		case "to-read":
+			stats.ToRead = append(stats.ToRead, r)
+		case "reading":
+			stats.Reading = append(stats.Reading, r)
+		case "finished":
+			finished = append(finished, r)
+		}
+
+	}
+
+	stats.Finished = *finished.ByYear()
+	return stats, nil
+}
+
 func (u *ReadsSummaryUpdater) UpdateReadsSummary() error {
-	stats, err := u.provider.GetReadsSummary()
+	stats, err := u.getSummary()
 	if err != nil {
 		return err
 	}

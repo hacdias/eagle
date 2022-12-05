@@ -212,8 +212,8 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	var errs *multierror.Error
-	readsSummaryUpdater := hooks.NewReadsSummaryUpdater(s.fs, postgres)
-	s.AppendPostSaveHook(hooks.NewReadsSummaryUpdater(s.fs, postgres))
+	readsSummaryUpdater := hooks.NewReadsSummaryUpdater(s.fs, s.i)
+	s.AppendPostSaveHook(hooks.NewReadsSummaryUpdater(s.fs, s.i))
 
 	errs = multierror.Append(
 		errs,

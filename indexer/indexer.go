@@ -32,6 +32,7 @@ type Search struct {
 	Sections []string
 }
 
+// TODO: make it GetEntries, GetDeletedEntries, etc
 type Backend interface {
 	io.Closer
 
