@@ -206,7 +206,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 				opts.Visibility = nil
 			}
 
-			return s.i.Search(opts, search)
+			return s.i.GetSearch(opts, search)
 		},
 		templates: []string{renderer.TemplateSearch},
 	})

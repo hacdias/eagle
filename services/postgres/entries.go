@@ -12,10 +12,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (d *Postgres) Remove(id string) {
-	_, _ = d.pool.Exec(context.Background(), "delete from entries where id=$1", id)
-}
-
 func (d *Postgres) Add(entries ...*eagle.Entry) error {
 	b := &pgx.Batch{}
 
@@ -57,27 +53,62 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 	return nil
 }
 
-func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
-	rows, err := d.pool.Query(context.Background(), "select term from taxonomies where taxonomy=$1 order by term", taxonomy)
-	if err != nil {
-		return nil, err
+func (d *Postgres) Remove(ids ...string) {
+	for _, id := range ids {
+		_, _ = d.pool.Exec(context.Background(), "delete from entries where id=$1", id)
 	}
-	defer rows.Close()
-
-	terms := []string{}
-	for rows.Next() {
-		var term string
-		err := rows.Scan(&term)
-		if err != nil {
-			return nil, err
-		}
-		terms = append(terms, term)
-	}
-
-	return terms, nil
 }
 
-func (d *Postgres) ByDate(opts *indexer.Query, year, month, day int) ([]string, error) {
+func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
+	sql := "select id from entries"
+
+	where, args := d.whereConstraints(opts, 0)
+	if len(where) > 0 {
+		sql += " where " + strings.Join(where, " and ")
+	}
+
+	return d.queryEntries(sql+" order by published_at desc"+d.offset(opts.Pagination), 0, args...)
+}
+
+func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
+	sql := "select id from entries where isDraft=true order by published_at desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetDeleted(opts *indexer.Pagination) ([]string, error) {
+	sql := "select id from entries where isDeleted=true order by published_at desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetBySection(opts *indexer.Query, section string) ([]string, error) {
+	args := []interface{}{section}
+	sql := "select id from entries inner join sections on id=entry_id where section=$1"
+
+	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
+	}
+
+	sql += d.orderBy(opts)
+	sql += d.offset(opts.Pagination)
+	return d.queryEntries(sql, 0, args...)
+}
+
+func (d *Postgres) GetByTaxonomy(opts *indexer.Query, taxonomy, term string) ([]string, error) {
+	args := []interface{}{taxonomy, term}
+	sql := "select id from entries inner join taxonomies on id=entry_id where taxonomy=$1 and term=$2"
+
+	if where, aargs := d.whereConstraints(opts, 2); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
+	}
+
+	sql += d.orderBy(opts)
+	sql += d.offset(opts.Pagination)
+	return d.queryEntries(sql, 0, args...)
+}
+
+func (d *Postgres) GetByDate(opts *indexer.Query, year, month, day int) ([]string, error) {
 	if year == 0 && month == 0 && day == 0 {
 		return nil, errors.New("year, month or day must be set")
 	}
@@ -116,70 +147,27 @@ func (d *Postgres) ByDate(opts *indexer.Query, year, month, day int) ([]string, 
 	return d.queryEntries(sql, 0, args...)
 }
 
-func (d *Postgres) ByTaxonomy(opts *indexer.Query, taxonomy, term string) ([]string, error) {
-	args := []interface{}{taxonomy, term}
-	sql := "select id from entries inner join taxonomies on id=entry_id where taxonomy=$1 and term=$2"
+func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
+	rows, err := d.pool.Query(context.Background(), "select term from taxonomies where taxonomy=$1 order by term", taxonomy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	if where, aargs := d.whereConstraints(opts, 2); len(where) > 0 {
-		sql += " and " + strings.Join(where, " and ")
-		args = append(args, aargs...)
+	terms := []string{}
+	for rows.Next() {
+		var term string
+		err := rows.Scan(&term)
+		if err != nil {
+			return nil, err
+		}
+		terms = append(terms, term)
 	}
 
-	sql += d.orderBy(opts)
-	sql += d.offset(opts.Pagination)
-	return d.queryEntries(sql, 0, args...)
+	return terms, nil
 }
 
-func (d *Postgres) BySection(opts *indexer.Query, section string) ([]string, error) {
-	args := []interface{}{section}
-	sql := "select id from entries inner join sections on id=entry_id where section=$1"
-
-	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
-		sql += " and " + strings.Join(where, " and ")
-		args = append(args, aargs...)
-	}
-
-	sql += d.orderBy(opts)
-	sql += d.offset(opts.Pagination)
-	return d.queryEntries(sql, 0, args...)
-}
-
-func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
-	sql := "select id from entries"
-
-	where, args := d.whereConstraints(opts, 0)
-	if len(where) > 0 {
-		sql += " where " + strings.Join(where, " and ")
-	}
-
-	return d.queryEntries(sql+" order by published_at desc"+d.offset(opts.Pagination), 0, args...)
-}
-
-func (d *Postgres) GetDeleted(opts *indexer.Pagination) ([]string, error) {
-	sql := "select id from entries where isDeleted=true order by published_at desc" + d.offset(opts)
-	return d.queryEntries(sql, 0)
-}
-
-func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
-	sql := "select id from entries where isDraft=true order by published_at desc" + d.offset(opts)
-	return d.queryEntries(sql, 0)
-}
-
-func (d *Postgres) GetUnlisted(opts *indexer.Pagination) ([]string, error) {
-	sql := "select id from entries where visibility='unlisted' order by published_at desc" + d.offset(opts)
-	return d.queryEntries(sql, 0)
-}
-
-func (d *Postgres) GetPrivate(opts *indexer.Pagination, audience string) ([]string, error) {
-	if audience == "" {
-		return nil, errors.New("audience is required")
-	}
-
-	sql := "select id from entries where visibility='private' and $1=any(audience) and isDraft=false and isDeleted=false order by date desc" + d.offset(opts)
-	return d.queryEntries(sql, 0, audience)
-}
-
-func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string, error) {
+func (d *Postgres) GetSearch(opts *indexer.Query, search *indexer.Search) ([]string, error) {
 	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility, audience"
 	mainFrom := "from entries as e"
 
@@ -212,7 +200,7 @@ func (d *Postgres) Search(opts *indexer.Query, search *indexer.Search) ([]string
 	return d.queryEntries(sql, 1, args...)
 }
 
-func (d *Postgres) Count() (int, error) {
+func (d *Postgres) GetCount() (int, error) {
 	sql := `select count(*) from entries;`
 
 	rows, err := d.pool.Query(context.Background(), sql)
