@@ -188,25 +188,6 @@ func (d *Postgres) BySection(opts *indexer.Query, section string) ([]string, err
 	return d.queryEntries(sql, 0, args...)
 }
 
-func (d *Postgres) ByProperty(opts *indexer.Query, property, value string) ([]string, error) {
-	args := []interface{}{property, value}
-	sql := "select id from entries where properties->>$1=$2"
-
-	if where, aargs := d.whereConstraints(opts, 2); len(where) > 0 {
-		sql += " and " + strings.Join(where, " and ")
-		args = append(args, aargs...)
-	}
-
-	if opts.OrderByUpdated {
-		sql += " order by updated desc"
-	} else {
-		sql += " order by date desc"
-	}
-
-	sql += d.offset(opts.Pagination)
-	return d.queryEntries(sql, 0, args...)
-}
-
 func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
 	sql := "select id from entries"
 
