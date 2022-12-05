@@ -268,6 +268,14 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 	return where, args
 }
 
+func (d *Postgres) orderBy(opts *indexer.Query) string {
+	if opts.OrderByUpdated {
+		return " order by updated_at desc"
+	} else {
+		return " order by published_at desc"
+	}
+}
+
 func (d *Postgres) offset(opts *indexer.Pagination) string {
 	if opts == nil {
 		return ""
@@ -280,14 +288,6 @@ func (d *Postgres) offset(opts *indexer.Pagination) string {
 	}
 
 	return sql + " limit " + strconv.Itoa(opts.Limit)
-}
-
-func (d *Postgres) orderBy(opts *indexer.Query) string {
-	if opts.OrderByUpdated {
-		return " order by updated_at desc"
-	} else {
-		return " order by published_at desc"
-	}
 }
 
 func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]string, error) {
