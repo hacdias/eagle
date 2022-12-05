@@ -45,8 +45,6 @@ type Backend interface {
 	GetAll(opts *Query) ([]string, error)
 	GetDeleted(opts *Pagination) ([]string, error)
 	GetDrafts(opts *Pagination) ([]string, error)
-	GetUnlisted(opts *Pagination) ([]string, error)
-	GetPrivate(opts *Pagination, audience string) ([]string, error)
 
 	ByTaxonomy(opt *Query, taxonomy, term string) ([]string, error)
 	BySection(opt *Query, section string) ([]string, error)
@@ -105,14 +103,6 @@ func (e *Indexer) GetDeleted(opts *Pagination) ([]*eagle.Entry, error) {
 
 func (e *Indexer) GetDrafts(opts *Pagination) ([]*eagle.Entry, error) {
 	return e.idsToEntries(e.backend.GetDrafts(opts))
-}
-
-func (e *Indexer) GetUnlisted(opts *Pagination) ([]*eagle.Entry, error) {
-	return e.idsToEntries(e.backend.GetUnlisted(opts))
-}
-
-func (e *Indexer) GetPrivate(opts *Pagination, audience string) ([]*eagle.Entry, error) {
-	return e.idsToEntries(e.backend.GetPrivate(opts, audience))
 }
 
 func (e *Indexer) Count() (int, error) {

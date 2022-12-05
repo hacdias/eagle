@@ -254,7 +254,6 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 		for _, vis := range opts.Visibility {
 			i++
 			if vis == eagle.VisibilityPrivate && opts.Audience != "" {
-				visibilityOr = append(visibilityOr, "(visibility='private' and audience is null)")
 				visibilityOr = append(visibilityOr, "(visibility='private' and $"+strconv.Itoa(i)+" = ANY (audience) )")
 				args = append(args, opts.Audience)
 			} else {
