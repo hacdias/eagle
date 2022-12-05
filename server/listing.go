@@ -206,7 +206,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 				opts.Visibility = nil
 			}
 
-			return s.i.Search(opts, search)
+			return s.i.GetSearch(opts, search)
 		},
 		templates: []string{renderer.TemplateSearch},
 	})
@@ -219,7 +219,11 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
-			return s.i.GetPrivate(opts.Pagination, s.getUser(r))
+			// Override as we only want private entries. Audience is already set by
+			// listingGet. It will show all private entries for the admin, and user-
+			// -specific for other logged in users.
+			opts.Visibility = []eagle.Visibility{eagle.VisibilityPrivate}
+			return s.i.GetAll(opts)
 		},
 	})
 }
@@ -255,7 +259,9 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
-			return s.i.GetUnlisted(opts.Pagination)
+			// Override visibility as we only want to see unlisted ones.
+			opts.Visibility = []eagle.Visibility{eagle.VisibilityUnlisted}
+			return s.i.GetAll(opts)
 		},
 	})
 }

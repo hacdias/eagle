@@ -74,7 +74,7 @@ func (s *Server) activityPubRemoteFollowPost(w http.ResponseWriter, r *http.Requ
 
 func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 	// TODO: integrate this somehow with the activitypub package.
-	count, err := s.i.Count()
+	count, err := s.i.GetCount()
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
