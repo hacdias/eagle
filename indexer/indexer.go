@@ -53,7 +53,6 @@ type Backend interface {
 	ByDate(opts *Query, year, month, day int) ([]string, error)
 
 	Count() (int, error)
-	CountBySection() (map[string]int, error)
 }
 
 type Indexer struct {
@@ -118,10 +117,6 @@ func (e *Indexer) GetPrivate(opts *Pagination, audience string) ([]*eagle.Entry,
 
 func (e *Indexer) Count() (int, error) {
 	return e.backend.Count()
-}
-
-func (e *Indexer) CountBySection() (map[string]int, error) {
-	return e.backend.CountBySection()
 }
 
 func (e *Indexer) Close() error {

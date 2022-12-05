@@ -237,40 +237,6 @@ func (d *Postgres) Count() (int, error) {
 	return n, nil
 }
 
-func (d *Postgres) CountBySection() (map[string]int, error) {
-	sql := `select section, COUNT(*)
-from sections inner join entries on id=entry_id
-group by section
-order by section;`
-
-	rows, err := d.pool.Query(context.Background(), sql)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	count := map[string]int{}
-
-	for rows.Next() {
-		var (
-			section string
-			n       int
-		)
-		err := rows.Scan(&section, &n)
-		if err != nil {
-			return nil, err
-		}
-
-		count[section] = n
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return count, nil
-}
-
 func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []interface{}) {
 	var where []string
 	var args []interface{}
