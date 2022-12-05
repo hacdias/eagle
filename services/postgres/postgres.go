@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -111,7 +112,6 @@ func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
 	return terms, nil
 }
 
-// TODO: support opts.OrderByUpdated?
 func (d *Postgres) ByDate(opts *indexer.Query, year, month, day int) ([]string, error) {
 	if year == 0 && month == 0 && day == 0 {
 		return nil, errors.New("year, month or day must be set")
@@ -146,44 +146,23 @@ func (d *Postgres) ByDate(opts *indexer.Query, year, month, day int) ([]string, 
 	where = append(where, wwhere...)
 	args = append(args, aargs...)
 	sql += strings.Join(where, " and ")
-	sql += " order by date desc"
+	if opts.OrderByUpdated {
+		sql += " order by updated desc"
+	} else {
+		sql += " order by date desc"
+	}
 	sql += d.offset(opts.Pagination)
 
 	return d.queryEntries(sql, 0, args...)
 }
 
-// TODO: support opts.OrderByUpdated?
 func (d *Postgres) ByTaxonomy(opts *indexer.Query, taxonomy, term string) ([]string, error) {
 	args := []interface{}{taxonomy, term}
-	sql := "select id from taxonomies inner join entries on id=entry_id where taxonomy=$1 and term=$2"
+	sql := "select id from entries inner join taxonomies on id=entry_id where taxonomy=$1 and term=$2"
 
 	if where, aargs := d.whereConstraints(opts, 2); len(where) > 0 {
 		sql += " and " + strings.Join(where, " and ")
 		args = append(args, aargs...)
-	}
-
-	sql += " order by date desc" + d.offset(opts.Pagination)
-	return d.queryEntries(sql, 0, args...)
-}
-
-func (d *Postgres) BySection(opts *indexer.Query, sections ...string) ([]string, error) {
-	sql := "select distinct (id) id, updated, date from sections inner join entries on id=entry_id"
-	where, args := d.whereConstraints(opts, 0)
-	i := len(args)
-
-	var sectionsWhere []string
-	for _, section := range sections {
-		i++
-		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i))
-		args = append(args, section)
-	}
-
-	if len(sectionsWhere) > 0 {
-		where = append(where, "("+strings.Join(sectionsWhere, " or ")+")")
-	}
-
-	if len(where) > 0 {
-		sql += " where " + strings.Join(where, " and ")
 	}
 
 	if opts.OrderByUpdated {
@@ -193,10 +172,39 @@ func (d *Postgres) BySection(opts *indexer.Query, sections ...string) ([]string,
 	}
 
 	sql += d.offset(opts.Pagination)
-	return d.queryEntries(sql, 2, args...)
+	return d.queryEntries(sql, 0, args...)
 }
 
-// TODO: support opts.OrderByUpdated?
+func (d *Postgres) BySection(opts *indexer.Query, sections ...string) ([]string, error) {
+	if len(sections) == 0 {
+		return d.GetAll(opts)
+	}
+
+	args := []interface{}{}
+	sql := "select id from entries inner join sections on id=entry_id where"
+
+	sectionsWhere := []string{}
+	for i, section := range sections {
+		args = append(args, section)
+		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i+1))
+	}
+	sql += " (" + strings.Join(sectionsWhere, " or ") + ")"
+
+	if where, aargs := d.whereConstraints(opts, len(args)); len(where) > 0 {
+		sql += " and " + strings.Join(where, " and ")
+		args = append(args, aargs...)
+	}
+
+	if opts.OrderByUpdated {
+		sql += " order by updated desc"
+	} else {
+		sql += " order by date desc"
+	}
+
+	sql += d.offset(opts.Pagination)
+	return d.queryEntries(sql, 0, args...)
+}
+
 func (d *Postgres) ByProperty(opts *indexer.Query, property, value string) ([]string, error) {
 	args := []interface{}{property, value}
 	sql := "select id from entries where properties->>$1=$2"
@@ -206,7 +214,13 @@ func (d *Postgres) ByProperty(opts *indexer.Query, property, value string) ([]st
 		args = append(args, aargs...)
 	}
 
-	sql += " order by date desc" + d.offset(opts.Pagination)
+	if opts.OrderByUpdated {
+		sql += " order by updated desc"
+	} else {
+		sql += " order by date desc"
+	}
+
+	sql += d.offset(opts.Pagination)
 	return d.queryEntries(sql, 0, args...)
 }
 
@@ -401,6 +415,10 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 		where = append(where, "isDeleted=false")
 	}
 
+	if !opts.WithDrafts {
+		where = append(where, "isDraft=false")
+	}
+
 	if len(opts.Visibility) > 0 {
 		visibilityOr := []string{}
 		for _, vis := range opts.Visibility {
@@ -415,10 +433,6 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 			}
 		}
 		where = append(where, "("+strings.Join(visibilityOr, " or ")+")")
-	}
-
-	if !opts.WithDrafts {
-		where = append(where, "isDraft=false")
 	}
 
 	return where, args
@@ -439,6 +453,7 @@ func (d *Postgres) offset(opts *indexer.Pagination) string {
 }
 
 func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]string, error) {
+	fmt.Println(sql, args)
 	rows, err := d.pool.Query(context.Background(), sql, args...)
 	if err != nil {
 		return nil, err
