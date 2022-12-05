@@ -48,7 +48,7 @@ type Backend interface {
 	GetPrivate(opts *Pagination, audience string) ([]string, error)
 
 	ByTaxonomy(opt *Query, taxonomy, term string) ([]string, error)
-	BySection(opt *Query, sections ...string) ([]string, error)
+	BySection(opt *Query, section string) ([]string, error)
 	ByDate(opts *Query, year, month, day int) ([]string, error)
 
 	Count() (int, error)
@@ -91,8 +91,8 @@ func (e *Indexer) GetByTaxonomy(opts *Query, taxonomy, term string) ([]*eagle.En
 	return e.idsToEntries(e.backend.ByTaxonomy(opts, taxonomy, term))
 }
 
-func (e *Indexer) GetBySection(opts *Query, sections ...string) ([]*eagle.Entry, error) {
-	return e.idsToEntries(e.backend.BySection(opts, sections...))
+func (e *Indexer) GetBySection(opts *Query, section string) ([]*eagle.Entry, error) {
+	return e.idsToEntries(e.backend.BySection(opts, section))
 }
 
 func (e *Indexer) GetByDate(opts *Query, year, month, day int) ([]*eagle.Entry, error) {

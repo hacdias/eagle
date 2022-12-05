@@ -169,22 +169,11 @@ func (d *Postgres) ByTaxonomy(opts *indexer.Query, taxonomy, term string) ([]str
 	return d.queryEntries(sql, 0, args...)
 }
 
-func (d *Postgres) BySection(opts *indexer.Query, sections ...string) ([]string, error) {
-	if len(sections) == 0 {
-		return d.GetAll(opts)
-	}
+func (d *Postgres) BySection(opts *indexer.Query, section string) ([]string, error) {
+	args := []interface{}{section}
+	sql := "select id from entries inner join sections on id=entry_id where section=$1"
 
-	args := []interface{}{}
-	sql := "select id from entries inner join sections on id=entry_id where"
-
-	sectionsWhere := []string{}
-	for i, section := range sections {
-		args = append(args, section)
-		sectionsWhere = append(sectionsWhere, "section=$"+strconv.Itoa(i+1))
-	}
-	sql += " (" + strings.Join(sectionsWhere, " or ") + ")"
-
-	if where, aargs := d.whereConstraints(opts, len(args)); len(where) > 0 {
+	if where, aargs := d.whereConstraints(opts, 1); len(where) > 0 {
 		sql += " and " + strings.Join(where, " and ")
 		args = append(args, aargs...)
 	}
