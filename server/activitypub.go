@@ -90,7 +90,7 @@ func (s *Server) activityPubOutboxGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
+func (s *Server) activityPubManualPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
@@ -112,14 +112,18 @@ func (s *Server) activityPubHookPost(w http.ResponseWriter, r *http.Request) {
 	action := r.Form.Get("action")
 
 	switch action {
-	case "create":
-		err = s.ap.SendCreate(e)
-	case "update":
-		err = s.ap.SendUpdate(e)
 	case "announce":
 		err = s.ap.SendAnnounce(e)
+	case "create":
+		err = s.ap.SendCreate(e)
 	case "delete":
 		err = s.ap.SendDelete(e.ID)
+	case "like":
+		err = s.ap.SendLike(e)
+	case "undo":
+		err = s.ap.SendUndo(e)
+	case "update":
+		err = s.ap.SendUpdate(e)
 	default:
 		err = errors.New("invalid action")
 	}

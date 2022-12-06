@@ -105,7 +105,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/dashboard", s.dashboardPost)
 
 		if s.ap != nil {
-			r.Post("/dashboard/activitypub", s.activityPubHookPost)
+			r.Post("/activitypub/manual", s.activityPubManualPost)
 		}
 
 		r.Get("/deleted", s.deletedGet)
