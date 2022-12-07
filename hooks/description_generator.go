@@ -56,14 +56,6 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 		url := mm.String(mm.TypeProperty())
 		urlDomain := util.Domain(url)
 		description = typeToDescription[mm.PostType()] + "a post on " + urlDomain
-	case mf2.TypePhoto:
-		description = "A photo"
-	case mf2.TypeVideo:
-		description = "A video"
-	case mf2.TypeAudio:
-		description = "An audio"
-	case mf2.TypeNote:
-		description = "A note"
 	case mf2.TypeAte, mf2.TypeDrank:
 		// Matches Teacup
 		food := mm.Sub(mm.TypeProperty())
