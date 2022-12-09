@@ -14,7 +14,6 @@ import (
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/karlseguin/typed"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +28,7 @@ type Twitter struct {
 	TokenSecret string
 }
 
-type Reddit = reddit.Credentials
-
 type Config struct {
-	Reddit      *Reddit
 	Twitter     *Twitter
 	GitHubToken string
 	Endpoint    string
@@ -40,10 +36,9 @@ type Config struct {
 }
 
 type XRay struct {
-	c            *Config
-	log          *zap.SugaredLogger
-	redditClient *reddit.Client
-	httpClient   *http.Client
+	c          *Config
+	log        *zap.SugaredLogger
+	httpClient *http.Client
 }
 
 func NewXRay(c *Config, log *zap.SugaredLogger) (*XRay, error) {
@@ -53,14 +48,6 @@ func NewXRay(c *Config, log *zap.SugaredLogger) (*XRay, error) {
 		httpClient: &http.Client{
 			Timeout: 2 * time.Minute,
 		},
-	}
-
-	if c.Reddit != nil {
-		client, err := reddit.NewClient(*c.Reddit)
-		if err != nil {
-			return nil, err
-		}
-		x.redditClient = client
 	}
 
 	return x, nil
@@ -75,15 +62,6 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if strings.Contains(url.Host, "reddit.com") && x.redditClient != nil {
-		parsed, raw, err := x.fetchAndParseRedditURL(urlStr)
-		if err == nil {
-			return parsed, raw, nil
-		} else {
-			x.log.Warnf("could not download info from reddit %s: %s", urlStr, err.Error())
-		}
 	}
 
 	data := urlpkg.Values{}
