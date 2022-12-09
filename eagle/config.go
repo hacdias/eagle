@@ -256,7 +256,6 @@ func (u *User) validate() error {
 
 type Syndication struct {
 	Twitter bool
-	Reddit  bool
 }
 
 type Telegram struct {
@@ -306,7 +305,6 @@ type Webmentions struct {
 type XRay struct {
 	Endpoint string
 	Twitter  bool
-	Reddit   bool
 }
 
 type Twitter struct {
@@ -315,13 +313,6 @@ type Twitter struct {
 	Secret      string
 	Token       string
 	TokenSecret string
-}
-
-type Reddit struct {
-	User     string
-	Password string
-	App      string
-	Secret   string
 }
 
 type BunnyCDN struct {
@@ -364,7 +355,6 @@ type Config struct {
 	Webmentions   Webmentions
 	XRay          *XRay
 	Twitter       *Twitter
-	Reddit        *Reddit
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
 	Lastfm        *Lastfm
@@ -402,10 +392,6 @@ func (c *Config) validate() error {
 		return errors.New("syndication.twitter is true but twitter is not defined")
 	}
 
-	if c.Syndications.Reddit && c.Reddit == nil {
-		return errors.New("syndication.reddit is true but reddit is not defined")
-	}
-
 	err = c.Micropub.validate()
 	if err != nil {
 		return err
@@ -425,10 +411,6 @@ func (c *Config) validate() error {
 	if c.XRay != nil {
 		if c.XRay.Twitter && c.Twitter == nil {
 			return errors.New("xray.twitter is true but twitter is not defined")
-		}
-
-		if c.XRay.Reddit && c.Reddit == nil {
-			return errors.New("xray.reddit is true but reddit is not defined")
 		}
 	}
 

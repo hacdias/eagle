@@ -10,7 +10,6 @@ import (
 	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
-	"github.com/vartanbeno/go-reddit/v2/reddit"
 )
 
 type ContextFetcher struct {
@@ -31,15 +30,6 @@ func NewContextFetcher(c *eagle.Config, fs *fs.FS, media *media.Media) (*Context
 			Secret:      c.Twitter.Secret,
 			Token:       c.Twitter.Token,
 			TokenSecret: c.Twitter.TokenSecret,
-		}
-	}
-
-	if c.XRay.Reddit && c.Reddit != nil {
-		xrayConf.Reddit = &reddit.Credentials{
-			ID:       c.Reddit.App,
-			Secret:   c.Reddit.Secret,
-			Username: c.Reddit.User,
-			Password: c.Reddit.Password,
 		}
 	}
 

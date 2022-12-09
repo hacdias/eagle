@@ -115,8 +115,6 @@ user:
 syndications:
   # Enable Twitter syndication. Requires twitter to be set.
   twitter: true
-  # Enable Twitter syndication. Requires reddit to be set.
-  reddit: true
 
 # Notifications configuration.
 notifications:
@@ -164,8 +162,6 @@ xray:
   endpoint: https://xray.p3k.app
   # Enable Twitter integration. Requires twitter to be set.
   twitter: true
-  # Enable Twitter syndication. Requires reddit to be set.
-  reddit: true
 
 # Optional Twitter (https://developer.twitter.com) credentials.
 # Can be used with xray and syndications.
@@ -175,14 +171,6 @@ twitter:
   secret:
   token:
   tokenSecret:
-
-# Optional Reddit (https://www.reddit.com/dev/api) credentials.
-# Can be used with xray and syndications.
-reddit:
-  user:
-  password:
-  app:
-  secret:
 
 # Optional BunnyCDN (https://bunny.net) credentials used for the micropub
 # media endpoint, for media such as 'photos', for webmentions author photos,

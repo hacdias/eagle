@@ -36,7 +36,6 @@ import (
 	"github.com/hacdias/eagle/services/imgproxy"
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
-	"github.com/hacdias/eagle/services/reddit"
 	"github.com/hacdias/eagle/services/telegram"
 	"github.com/hacdias/eagle/services/trakt"
 	"github.com/hacdias/eagle/services/twitter"
@@ -183,14 +182,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	if c.Twitter != nil && c.Syndications.Twitter {
 		s.syndicator.Add(twitter.NewTwitter(c.Twitter))
-	}
-
-	if c.Reddit != nil && c.Syndications.Reddit {
-		reddit, err := reddit.NewReddit(c.Reddit)
-		if err != nil {
-			return nil, err
-		}
-		s.syndicator.Add(reddit)
 	}
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
