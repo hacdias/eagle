@@ -3,6 +3,7 @@ package eagle
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hacdias/eagle/util"
@@ -55,7 +56,7 @@ var DefaultArchetypes = map[string]Archetype{
 				},
 			},
 			Content: "How was last month?",
-			ID:      NewID(fmt.Sprintf("%s-%s", t.Format("january"), t.Format("06")), time.Now()),
+			ID:      NewID(fmt.Sprintf("%s-%s", strings.ToLower(month), t.Format("06")), time.Now()),
 		}
 	},
 	"book": func(c *Config, r *http.Request) *Entry {
