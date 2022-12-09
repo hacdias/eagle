@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -276,7 +275,6 @@ func (d *Postgres) offset(opts *indexer.Pagination) string {
 }
 
 func (d *Postgres) queryEntries(sql string, ignore int, args ...interface{}) ([]string, error) {
-	fmt.Println(sql, args)
 	rows, err := d.pool.Query(context.Background(), sql, args...)
 	if err != nil {
 		return nil, err
