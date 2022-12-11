@@ -208,6 +208,13 @@ func (rd *RenderData) GetJSON(path string) interface{} {
 	return data
 }
 
+func (rd *RenderData) GetYAML(path string) interface{} {
+	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
+	var data interface{}
+	_ = rd.fs.ReadYAML(filename, &data)
+	return data
+}
+
 func (rd *RenderData) GetFile(path string) string {
 	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
 	v, _ := rd.fs.ReadFile(filename)
