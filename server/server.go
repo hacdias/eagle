@@ -37,7 +37,6 @@ import (
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
-	"github.com/hacdias/eagle/services/trakt"
 	"github.com/hacdias/eagle/services/twitter"
 	"github.com/hacdias/eagle/webmentions"
 	"github.com/hacdias/indieauth/v3"
@@ -219,14 +218,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateBlogroll),
 			s.RegisterAction("Update Miniflux Blogroll", mf.UpdateBlogroll),
 		)
-	}
-
-	if c.Trakt != nil {
-		trakt, err := trakt.NewTrakt(c.Trakt, s.fs)
-		if err != nil {
-			return nil, err
-		}
-		errs = multierror.Append(errs, s.RegisterCron("00 00 * * *", "Fetch and Update Watches", trakt.FetchAndUpdateWatches))
 	}
 
 	if c.Server.ActivityPub != nil {
