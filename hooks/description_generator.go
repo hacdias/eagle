@@ -143,7 +143,6 @@ func (d *DescriptionGenerator) generateRsvpDescription(e *eagle.Entry) (string, 
 }
 
 func (d *DescriptionGenerator) generateWatchDescription(e *eagle.Entry) (string, error) {
-	// Matches OwnYourTrakt
 	mm := e.Helper()
 	sub := mm.Sub(mm.TypeProperty())
 	series := sub.Sub("episode-of")
