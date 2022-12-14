@@ -5,32 +5,33 @@ import (
 	"time"
 )
 
-type Watch struct {
+type Log struct {
 	Name   string    `yaml:"name,omitempty"`
 	Author string    `yaml:"author,omitempty"`
-	Season int       `yaml:"season,omitempty"`
+	URL    string    `yaml:"url,omitempty"`
+	Season int       `yaml:"season,omitempty"` // TODO: remove.
 	Rating int       `yaml:"rating,omitempty"`
 	Date   time.Time `yaml:"date,omitempty"`
 }
 
-type Watches []Watch
+type Logs []Log
 
-type WatchesByYear struct {
+type LogsByYear struct {
 	Years []int
-	Map   map[int]Watches
+	Map   map[int]Logs
 }
 
-func (w Watches) ByYear() *WatchesByYear {
+func (l Logs) ByYear() *LogsByYear {
 	years := []int{}
-	byYear := map[int]Watches{}
+	byYear := map[int]Logs{}
 
-	for _, r := range w {
+	for _, r := range l {
 		year := r.Date.Year()
 
 		_, ok := byYear[year]
 		if !ok {
 			years = append(years, year)
-			byYear[year] = Watches{}
+			byYear[year] = Logs{}
 		}
 
 		byYear[year] = append(byYear[year], r)
@@ -42,18 +43,18 @@ func (w Watches) ByYear() *WatchesByYear {
 		byYear[year].Sort()
 	}
 
-	return &WatchesByYear{
+	return &LogsByYear{
 		Years: years,
 		Map:   byYear,
 	}
 }
 
-func (w Watches) Sort() {
-	sort.SliceStable(w, func(i, j int) bool {
-		if w[i].Date.Equal(w[j].Date) {
-			return w[i].Name < w[j].Name
+func (l Logs) Sort() {
+	sort.SliceStable(l, func(i, j int) bool {
+		if l[i].Date.Equal(l[j].Date) {
+			return l[i].Name < l[j].Name
 		}
 
-		return w[i].Date.After(w[j].Date)
+		return l[i].Date.After(l[j].Date)
 	})
 }

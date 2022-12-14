@@ -215,9 +215,9 @@ func (rd *RenderData) GetYAML(path string) interface{} {
 	return data
 }
 
-func (rd *RenderData) GetWatches(path string) interface{} {
+func (rd *RenderData) GetLogs(path string) interface{} {
 	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
-	var data eagle.Watches
+	var data eagle.Logs
 	_ = rd.fs.ReadYAML(filename, &data)
 	return data
 }

@@ -361,3 +361,35 @@ func getCategoryStrings(props typed.Typed) ([]string, []interface{}) {
 
 	return nil, nil
 }
+
+type Entries []*Entry
+
+func (ee Entries) AsLogs() Logs {
+	l := Logs{}
+
+	for _, e := range ee {
+		mm := e.Helper()
+		sub := mm.Sub(mm.TypeProperty())
+
+		name := e.Title
+		author := ""
+
+		if sub != nil {
+			if n := sub.Name(); n != "" {
+				name = n
+			}
+
+			author = sub.String("author")
+		}
+
+		l = append(l, Log{
+			Name:   name,
+			Author: author,
+			Rating: mm.Int("rating"),
+			Date:   e.Published,
+			URL:    e.ID,
+		})
+	}
+
+	return l
+}
