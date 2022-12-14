@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DefaultEntryID = "/links"
+	DefaultEntryID = "/blogroll"
 
 	blogrollFileName = ".feeds.json"
 	blogrollTagStart = "<!--BLOGROLL-->"
