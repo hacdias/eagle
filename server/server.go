@@ -590,7 +590,7 @@ func (s *Server) syncStorage() {
 	// an action in the dashboard to reload assets and templates
 	// on-demand.
 	ids = lo.Uniq(ids)
-	entries := []*eagle.Entry{}
+	entries := eagle.Entries{}
 
 	for _, id := range ids {
 		entry, err := s.fs.GetEntry(id)
@@ -614,7 +614,7 @@ func (s *Server) syncStorage() {
 	}
 }
 
-func (s *Server) afterSaveHook(updated, deleted []*eagle.Entry) {
+func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
 	for _, e := range updated {
 		_ = s.i.Add(e)
 		s.cache.Delete(e)

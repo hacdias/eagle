@@ -28,8 +28,8 @@ func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
 	return e, nil
 }
 
-func (fs *FS) GetEntries(includeList bool) ([]*eagle.Entry, error) {
-	ee := []*eagle.Entry{}
+func (fs *FS) GetEntries(includeList bool) (eagle.Entries, error) {
+	ee := eagle.Entries{}
 	err := fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -115,7 +115,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 	}
 
 	if f.AfterSaveHook != nil {
-		f.AfterSaveHook([]*eagle.Entry{new}, []*eagle.Entry{old})
+		f.AfterSaveHook(eagle.Entries{new}, eagle.Entries{old})
 	}
 
 	return new, nil
@@ -165,7 +165,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 	}
 
 	if f.AfterSaveHook != nil {
-		f.AfterSaveHook([]*eagle.Entry{e}, nil)
+		f.AfterSaveHook(eagle.Entries{e}, nil)
 	}
 
 	return nil

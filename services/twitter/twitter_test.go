@@ -16,7 +16,7 @@ func newTestTwitter() *Twitter {
 	})
 }
 
-var isNotByContext = []*eagle.Entry{
+var isNotByContext = eagle.Entries{
 	{
 		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{
@@ -51,7 +51,7 @@ func TestTwitterIsNotByContext(t *testing.T) {
 	}
 }
 
-var isByContext = []*eagle.Entry{
+var isByContext = eagle.Entries{
 	{
 		FrontMatter: eagle.FrontMatter{
 			Properties: map[string]interface{}{

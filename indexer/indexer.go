@@ -71,27 +71,27 @@ func (e *Indexer) Remove(ids ...string) {
 	e.backend.Remove(ids...)
 }
 
-func (e *Indexer) GetAll(opts *Query) ([]*eagle.Entry, error) {
+func (e *Indexer) GetAll(opts *Query) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetAll(opts))
 }
 
-func (e *Indexer) GetDrafts(opts *Pagination) ([]*eagle.Entry, error) {
+func (e *Indexer) GetDrafts(opts *Pagination) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetDrafts(opts))
 }
 
-func (e *Indexer) GetDeleted(opts *Pagination) ([]*eagle.Entry, error) {
+func (e *Indexer) GetDeleted(opts *Pagination) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetDeleted(opts))
 }
 
-func (e *Indexer) GetBySection(opts *Query, section string) ([]*eagle.Entry, error) {
+func (e *Indexer) GetBySection(opts *Query, section string) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetBySection(opts, section))
 }
 
-func (e *Indexer) GetByTaxonomy(opts *Query, taxonomy, term string) ([]*eagle.Entry, error) {
+func (e *Indexer) GetByTaxonomy(opts *Query, taxonomy, term string) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetByTaxonomy(opts, taxonomy, term))
 }
 
-func (e *Indexer) GetByDate(opts *Query, year, month, day int) ([]*eagle.Entry, error) {
+func (e *Indexer) GetByDate(opts *Query, year, month, day int) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetByDate(opts, year, month, day))
 }
 
@@ -99,7 +99,7 @@ func (e *Indexer) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
 	return e.backend.GetTaxonomyTerms(taxonomy)
 }
 
-func (e *Indexer) GetSearch(opts *Query, search *Search) ([]*eagle.Entry, error) {
+func (e *Indexer) GetSearch(opts *Query, search *Search) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetSearch(opts, search))
 }
 
@@ -111,12 +111,12 @@ func (e *Indexer) Close() error {
 	return e.backend.Close()
 }
 
-func (e *Indexer) idsToEntries(ids []string, err error) ([]*eagle.Entry, error) {
+func (e *Indexer) idsToEntries(ids []string, err error) (eagle.Entries, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	entries := []*eagle.Entry{}
+	entries := eagle.Entries{}
 
 	for _, id := range ids {
 		entry, err := e.fs.GetEntry(id)

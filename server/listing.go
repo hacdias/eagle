@@ -21,7 +21,7 @@ import (
 
 func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			return s.i.GetAll(opts)
 		},
 	})
@@ -37,7 +37,7 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 		rd: &renderer.RenderData{
 			IsHome: true,
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			return s.i.GetBySection(opts, s.c.Site.IndexSection)
 		},
 		templates: []string{renderer.TemplateIndex},
@@ -55,7 +55,7 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 			rd: &renderer.RenderData{
 				Entry: ee,
 			},
-			exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			exec: func(opts *indexer.Query) (eagle.Entries, error) {
 				return s.i.GetBySection(opts, section)
 			},
 			templates: []string{},
@@ -115,7 +115,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			return s.i.GetByDate(opts, year, month, day)
 		},
 	})
@@ -158,7 +158,7 @@ func (s *Server) taxonomyTermGet(id string, taxonomy eagle.Taxonomy) http.Handle
 			rd: &renderer.RenderData{
 				Entry: s.getListingEntryOrEmpty(r.URL.Path, taxonomy.Singular+": "+term),
 			},
-			exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+			exec: func(opts *indexer.Query) (eagle.Entries, error) {
 				return s.i.GetByTaxonomy(opts, id, term)
 			},
 			templates: []string{},
@@ -199,7 +199,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		lp: listingPage{
 			Search: search,
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			if s.isAdmin(r) {
 				opts.WithDrafts = true
 				opts.WithDeleted = true
@@ -218,7 +218,7 @@ func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
 			NoIndex: true,
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			// Override as we only want private entries. Audience is already set by
 			// listingGet. It will show all private entries for the admin, and user-
 			// -specific for other logged in users.
@@ -234,7 +234,7 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 			NoIndex: true,
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			return s.i.GetDeleted(opts.Pagination)
 		},
 	})
@@ -246,7 +246,7 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 			NoIndex: true,
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			return s.i.GetDrafts(opts.Pagination)
 		},
 	})
@@ -258,7 +258,7 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
 			NoIndex: true,
 		},
-		exec: func(opts *indexer.Query) ([]*eagle.Entry, error) {
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			// Override visibility as we only want to see unlisted ones.
 			opts.Visibility = []eagle.Visibility{eagle.VisibilityUnlisted}
 			return s.i.GetAll(opts)
@@ -286,7 +286,7 @@ func (s *Server) getListingEntryOrEmpty(id, title string) *eagle.Entry {
 }
 
 type listingSettings struct {
-	exec      func(*indexer.Query) ([]*eagle.Entry, error)
+	exec      func(*indexer.Query) (eagle.Entries, error)
 	rd        *renderer.RenderData
 	lp        listingPage
 	templates []string
@@ -296,7 +296,7 @@ type listingPage struct {
 	Search   *indexer.Search
 	Taxonomy string
 	Terms    eagle.Terms
-	Entries  []*eagle.Entry
+	Entries  eagle.Entries
 	Page     int
 	NextPage string
 }
