@@ -26,26 +26,28 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(middleware.RedirectSlashes)
 	r.Use(cleanPath)
 	r.Use(middleware.GetHead)
-
 	r.Use(s.recoverer)
 	r.Use(s.securityHeaders)
-
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 
+	// TOR Handler
 	if s.c.Server.Tor != nil {
 		r.Use(s.onionHeader)
 		r.Get("/onion", s.onionRedirGet)
 	}
 
+	// GitHub WebHook
 	if s.c.Server.WebhookSecret != "" {
 		r.Post("/webhook", s.webhookPost)
 	}
 
+	// Webmentions Handler
 	if s.c.Webmentions.Secret != "" {
 		r.Post("/webmention", s.webmentionPost)
 	}
 
+	// ActivityPub
 	if s.ap != nil {
 		r.Post(activityPubInboxRoute, s.activityPubInboxPost)
 		r.Get(activityPubOutboxRoute, s.activityPubOutboxGet)
@@ -53,47 +55,36 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post(activityPubRemoteFollowRoute, s.activityPubRemoteFollowPost)
 	}
 
-	r.Get("/search", s.searchGet)
-	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
-	r.Get("/.well-known/webfinger", s.webFingerGet)
-	r.Get("/on-this-day", s.onThisDayGet)
-
-	// IndieAuth Server
-	r.Get("/.well-known/oauth-authorization-server", s.indieauthGet)
-	r.Get("/auth", s.authGet)
-	r.Post("/auth/accept", s.authAcceptPost)
-	r.Post("/auth", s.authPost)
-	r.Post("/token", s.tokenPost)
-	r.Post("/token/verify", s.tokenVerifyPost)
-
 	// Tiles API
 	if s.c.Server.TilesSource != "" {
 		r.Get("/tiles/{s}/{z}/{x}/{y}", s.tilesGet)
 		r.Get("/tiles/{s}/{z}/{x}/{y}@{r}", s.tilesGet)
 	}
 
-	// IndieAuth Client
+	// Random
+	r.Get("/search", s.searchGet)
+	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
+	r.Get("/.well-known/webfinger", s.webFingerGet)
+	r.Get("/on-this-day", s.onThisDayGet)
+
+	// Login
 	r.Get("/login", s.loginGet)
 	r.Post("/login", s.loginPost)
-	r.Get("/login/callback", s.loginCallbackGet)
 	r.Get("/logout", s.logoutGet)
 
-	r.Group(func(r chi.Router) {
-		r.Use(s.mustIndieAuth)
-
-		r.Get("/micropub", s.micropubGet)
-		r.Post("/micropub", s.micropubPost)
-		r.Post("/micropub/media", s.micropubMediaPost)
-
-		// IndieAuth Server
-		r.Get("/token", s.tokenGet) // Backwards compatible token verification endpoint
-		r.Get("/userinfo", s.userInfoGet)
-	})
+	// IndieAuth Server (Part I)
+	r.Get("/.well-known/oauth-authorization-server", s.indieauthGet)
+	r.Post("/auth", s.authPost)
+	r.Post("/token", s.tokenPost)
+	r.Post("/token/verify", s.tokenVerifyPost)
 
 	// Admin only pages.
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustLoggedIn)
-		r.Use(s.mustAdmin)
+
+		// IndieAuth Server (Part II)
+		r.Get("/auth", s.authGet)
+		r.Post("/auth/accept", s.authAcceptPost)
 
 		r.Get("/new", s.newGet)
 		r.Post("/new", s.newPost)
@@ -113,6 +104,18 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/unlisted", s.unlistedGet)
 
 		r.Get("/mention-toggle*", s.mentionToggleGet)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(s.mustIndieAuth)
+
+		r.Get("/micropub", s.micropubGet)
+		r.Post("/micropub", s.micropubPost)
+		r.Post("/micropub/media", s.micropubMediaPost)
+
+		// IndieAuth Server
+		r.Get("/token", s.tokenGet) // Backwards compatible token verification endpoint
+		r.Get("/userinfo", s.userInfoGet)
 	})
 
 	// Listing HTML pages. Cached.

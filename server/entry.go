@@ -238,13 +238,13 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	admin := s.isAdmin(r)
-	if ee.Deleted && !admin {
+	loggedIn := s.isLoggedIn(r)
+	if ee.Deleted && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusGone, nil)
 		return
 	}
 
-	if ee.Draft && !admin {
+	if ee.Draft && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 		return
 	}

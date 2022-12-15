@@ -182,10 +182,8 @@ type RenderData struct {
 	Data interface{}
 
 	Alternates   []Alternate
-	User         string
 	IsHome       bool
 	IsLoggedIn   bool
-	IsAdmin      bool
 	NoIndex      bool
 	TorUsed      bool
 	OnionAddress string

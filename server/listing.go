@@ -200,7 +200,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			Search: search,
 		},
 		exec: func(opts *indexer.Query) (eagle.Entries, error) {
-			if s.isAdmin(r) {
+			if s.isLoggedIn(r) {
 				opts.WithDrafts = true
 				opts.WithDeleted = true
 				opts.WithUnlisted = true

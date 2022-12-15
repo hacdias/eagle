@@ -7,16 +7,6 @@ This powers my website. It is open-source. However, I won't be supporting other 
 cases as this is just a personal project for personal use. If you're interested in doing
 something similar, I encourage you to take a look at the code.
 
-This repository replaces the old, JavaScript based, [API](https://github.com/hacdias/eagle-js).
-
-## Features
-
-This is a non-extensive list of features.
-
-- Micropub endpoint
-- IndieAuth authorization and token endpoints
-- Login via IndieAuth
-
 ## License
 
 MIT © Henrique Dias

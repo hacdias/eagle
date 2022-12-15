@@ -17,7 +17,7 @@ func (s *Server) cacheScope(r *http.Request) cache.CacheScope {
 }
 
 func (s *Server) isCacheable(r *http.Request) bool {
-	return s.getUser(r) == "" && r.URL.RawQuery == "" && !isActivityPub(r)
+	return r.URL.RawQuery == "" && !s.isLoggedIn(r) && !isActivityPub(r)
 }
 
 func (s *Server) isCached(r *http.Request) ([]byte, time.Time, bool) {

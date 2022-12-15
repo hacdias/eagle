@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	urlpkg "net/url"
 	"strconv"
@@ -14,14 +13,13 @@ import (
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/jwt"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // https://indieauth.spec.indieweb.org
 
 const (
-	AuthCodeSubject string = "Eagle Auth Code"
-	TokenSubject    string = "Eagle Token"
+	authCodeSubject string = "Eagle Auth Code"
+	tokenSubject    string = "Eagle Token"
 
 	scopesContextKey contextKey = "scopes"
 	clientContextKey contextKey = "client"
@@ -73,15 +71,6 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.User.Password), []byte(password)) == nil
-
-	if username != s.c.User.Username || !correctPassword {
-		s.serveErrorHTML(w, r, http.StatusUnauthorized, errors.New("wrong credentials"))
-		return
-	}
-
 	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
@@ -89,7 +78,7 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
-		jwt.SubjectKey:          AuthCodeSubject,
+		jwt.SubjectKey:          authCodeSubject,
 		jwt.IssuedAtKey:         time.Now().Unix(),
 		jwt.ExpirationKey:       time.Now().Add(time.Minute * 5),
 		"scope":                 strings.Join(req.Scopes, " "),
@@ -164,7 +153,7 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 	token, _, err := jwtauth.FromContext(r.Context())
-	isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != TokenSubject)
+	isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != tokenSubject)
 	if !isValid {
 		s.serveJSON(w, http.StatusOK, map[string]interface{}{
 			"active": false,
@@ -201,7 +190,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if token.Subject() != AuthCodeSubject {
+	if token.Subject() != authCodeSubject {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "token has invalid subject")
 		return
 	}
@@ -293,7 +282,7 @@ func handleExpiry(expiry string) (time.Duration, error) {
 
 func (s *Server) generateToken(client, scope string, expiry time.Duration) (string, error) {
 	claims := map[string]interface{}{
-		jwt.SubjectKey:  TokenSubject,
+		jwt.SubjectKey:  tokenSubject,
 		jwt.IssuedAtKey: time.Now().Unix(),
 		"client_id":     client,
 		"scope":         scope,
@@ -322,7 +311,7 @@ func getString(token jwt.Token, prop string) string {
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := jwtauth.FromContext(r.Context())
-		isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != TokenSubject)
+		isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != tokenSubject)
 		if !isValid {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
