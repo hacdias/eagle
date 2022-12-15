@@ -96,7 +96,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 	}
 
 	updates := []string{oldDir, newDir}
-	if !old.Draft && !old.Deleted && old.Visibility() == eagle.VisibilityPublic {
+	if !old.Draft && !old.Unlisted && !old.Deleted {
 		err = f.AppendRedirect(oldID, newID)
 		if err != nil {
 			return nil, err

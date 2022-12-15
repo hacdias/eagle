@@ -115,13 +115,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/mention-toggle*", s.mentionToggleGet)
 	})
 
-	// Logged-in only pages.
-	r.Group(func(r chi.Router) {
-		r.Use(s.mustLoggedIn)
-
-		r.Get("/private", s.privateGet)
-	})
-
 	// Listing HTML pages. Cached.
 	r.Group(func(r chi.Router) {
 		r.Use(s.withCache)

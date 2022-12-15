@@ -23,8 +23,8 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 		}
 
 		b.Queue("delete from entries where id=$1", entry.ID)
-		b.Queue("insert into entries(id, content, isDraft, isDeleted, visibility, audience, published_at, updated_at) values($1, $2, $3, $4, $5, $6, $7, $8)",
-			entry.ID, content, entry.Draft, entry.Deleted, entry.Visibility(), entry.Audience(), entry.Published.UTC(), updated)
+		b.Queue("insert into entries(id, content, isDraft, isDeleted, isUnlisted, published_at, updated_at) values($1, $2, $3, $4, $5, $6, $7)",
+			entry.ID, content, entry.Draft, entry.Deleted, entry.Unlisted, entry.Published.UTC(), updated)
 
 		for taxonomy, terms := range entry.Taxonomies {
 			for _, term := range terms {
@@ -73,6 +73,11 @@ func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
 
 func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
 	sql := "select id from entries where isDraft=true order by published_at desc" + d.offset(opts)
+	return d.queryEntries(sql, 0)
+}
+
+func (d *Postgres) GetUnlisted(opts *indexer.Pagination) ([]string, error) {
+	sql := "select id from entries where isUnlisted=true order by published_at desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
@@ -165,7 +170,7 @@ func (d *Postgres) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
 }
 
 func (d *Postgres) GetSearch(opts *indexer.Query, search *indexer.Search) ([]string, error) {
-	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, visibility, audience"
+	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isUnlisted"
 	mainFrom := "from entries as e"
 
 	if len(search.Sections) > 0 {
@@ -230,23 +235,12 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 		where = append(where, "isDeleted=false")
 	}
 
-	if !opts.WithDrafts {
-		where = append(where, "isDraft=false")
+	if !opts.WithUnlisted {
+		where = append(where, "isUnlisted=false")
 	}
 
-	if len(opts.Visibility) > 0 {
-		visibilityOr := []string{}
-		for _, vis := range opts.Visibility {
-			i++
-			if vis == eagle.VisibilityPrivate && opts.Audience != "" {
-				visibilityOr = append(visibilityOr, "(visibility='private' and $"+strconv.Itoa(i)+" = ANY (audience) )")
-				args = append(args, opts.Audience)
-			} else {
-				visibilityOr = append(visibilityOr, "visibility=$"+strconv.Itoa(i))
-				args = append(args, vis)
-			}
-		}
-		where = append(where, "("+strings.Join(visibilityOr, " or ")+")")
+	if !opts.WithDrafts {
+		where = append(where, "isDraft=false")
 	}
 
 	return where, args

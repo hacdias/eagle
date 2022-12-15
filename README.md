@@ -17,16 +17,6 @@ This is a non-extensive list of features.
 - IndieAuth authorization and token endpoints
 - Login via IndieAuth
 
-### Visibility and Audience
-
-The properties [visibility](https://indieweb.org/Micropub-extensions#Visibility) and [audience](https://indieweb.org/Micropub-extensions#Audience) are supported. The behaviour is as follows:
-
-- `visibility=unlisted`: posts can be viewed, but they are not listed anywhere, except for `/unlisted`. `/unlisted` is only accessible to the administrator.
-- `visibility=public`: anyone can access and is listed everywhere.
-- `visibility=private`: only accessible to logged in users with the following constraints:
-  - No `audience` set: all logged in users can view and is listed.
-  - Specific `audience`: only the specified subset of users can view, listed under `/private`.
-
 ## License
 
 MIT © Henrique Dias

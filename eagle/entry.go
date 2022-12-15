@@ -38,32 +38,6 @@ func (e *Entry) Helper() *mf2.FlatHelper {
 	return e.helper
 }
 
-func (e *Entry) Visibility() Visibility {
-	m := typed.New(e.Properties)
-	switch m.String("visibility") {
-	case "private":
-		return VisibilityPrivate
-	case "unlisted":
-		return VisibilityUnlisted
-	default:
-		return VisibilityPublic
-	}
-}
-
-func (e *Entry) Audience() []string {
-	m := typed.New(e.Properties)
-
-	if a := m.String("audience"); a != "" {
-		return []string{a}
-	}
-
-	if aa := m.Strings("audience"); len(aa) != 0 {
-		return aa
-	}
-
-	return nil
-}
-
 func (e *Entry) HasMore() bool {
 	return strings.Contains(e.Content, MoreSeparator)
 }
@@ -228,11 +202,6 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 	case mf2.TypeItinerary:
 		if err := e.parseDateFromItinerary(props, mm); err != nil {
 			return err
-		}
-
-		// Make itineraries private if they're in the future.
-		if e.Published.After(time.Now()) {
-			e.Properties["visibility"] = VisibilityPrivate
 		}
 	}
 
