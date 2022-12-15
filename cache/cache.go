@@ -59,6 +59,8 @@ func (c *Cache) Delete(ee *eagle.Entry) {
 		}
 		c.delete("/" + taxonomy)
 	}
+
+	// TODO: invalidate year/month/day archives.
 }
 
 func (c *Cache) Clear() {
