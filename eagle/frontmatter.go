@@ -8,14 +8,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-type Visibility string
-
-const (
-	VisibilityPrivate  Visibility = "private"
-	VisibilityUnlisted Visibility = "unlisted"
-	VisibilityPublic   Visibility = "public"
-)
-
 type Listing struct {
 	DisablePagination bool `yaml:"disablePagination,omitempty"`
 	OrderByUpdated    bool `yaml:"orderByUpdated,omitempty"`
@@ -32,6 +24,7 @@ type FrontMatter struct {
 	Title              string                 `yaml:"title,omitempty"`
 	Description        string                 `yaml:"description,omitempty"`
 	Draft              bool                   `yaml:"draft,omitempty"`
+	Unlisted           bool                   `yaml:"unlisted,omitempty"`
 	Deleted            bool                   `yaml:"deleted,omitempty"`
 	Published          time.Time              `yaml:"published,omitempty"`
 	Updated            time.Time              `yaml:"updated,omitempty"`

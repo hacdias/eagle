@@ -16,18 +16,6 @@ var DefaultArchetypes = map[string]Archetype{
 	"default": func(c *Config, r *http.Request) *Entry {
 		return &Entry{}
 	},
-	"private": func(c *Config, r *http.Request) *Entry {
-		return &Entry{
-			Content: "What's on your mind?",
-			FrontMatter: FrontMatter{
-				Published: time.Now().Local(),
-				Properties: map[string]interface{}{
-					"visibility": "private",
-					"audience":   c.Server.BaseURL,
-				},
-			},
-		}
-	},
 	"article": func(c *Config, r *http.Request) *Entry {
 		return &Entry{
 			FrontMatter: FrontMatter{

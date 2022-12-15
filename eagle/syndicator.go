@@ -38,7 +38,7 @@ func (m *Manager) Add(s Syndicator) {
 func (m *Manager) Syndicate(e *Entry, syndicators []string) ([]string, error) {
 	// TODO: support syndicating deleted, especially if the post was published
 	// and had a syndication. Then, we should support deleting the syndication.
-	if e.Draft || e.Deleted || e.Visibility() == VisibilityPrivate {
+	if e.Draft || e.Deleted {
 		return nil, nil
 	}
 

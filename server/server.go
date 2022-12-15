@@ -60,7 +60,6 @@ type Server struct {
 	i *indexer.Indexer
 
 	log          *zap.SugaredLogger
-	iac          *indieauth.Client
 	ias          *indieauth.Server
 	jwtAuth      *jwtauth.JWTAuth
 	onionAddress string
@@ -87,8 +86,6 @@ type Server struct {
 }
 
 func NewServer(c *eagle.Config) (*Server, error) {
-	clientID := c.Server.BaseURL + "/"
-	redirectURL := c.Server.BaseURL + "/login/callback"
 	secret := base64.StdEncoding.EncodeToString([]byte(c.Server.TokensSecret))
 
 	var notifier eagle.Notifier
@@ -150,7 +147,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		c:             c,
 		i:             indexer.NewIndexer(fs, postgres),
 		log:           log.S().Named("server"),
-		iac:           indieauth.NewClient(clientID, redirectURL, &http.Client{Timeout: time.Second * 30}),
 		ias:           indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 		jwtAuth:       jwtauth.New("HS256", []byte(secret), nil),
 		servers:       []*httpServer{},
@@ -491,9 +487,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 
 	data.TorUsed = s.isUsingTor(r)
 	data.OnionAddress = s.onionAddress
-	data.IsLoggedIn = s.getUser(r) != ""
-	data.IsAdmin = s.isAdmin(r)
-	data.User = s.getUser(r)
+	data.IsLoggedIn = s.isLoggedIn(r)
 
 	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)

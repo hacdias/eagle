@@ -238,31 +238,15 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	admin := s.isAdmin(r)
-	if ee.Deleted && !admin {
+	loggedIn := s.isLoggedIn(r)
+	if ee.Deleted && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusGone, nil)
 		return
 	}
 
-	if ee.Draft && !admin {
+	if ee.Draft && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 		return
-	}
-
-	if ee.Visibility() == eagle.VisibilityPrivate && !admin {
-		user := s.getUser(r)
-		hasUser := user != ""
-		hasAudience := len(ee.Audience()) != 0
-
-		if !hasUser {
-			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
-			return
-		}
-
-		if hasAudience && !lo.Contains(ee.Audience(), user) {
-			s.serveErrorHTML(w, r, http.StatusForbidden, nil)
-			return
-		}
 	}
 
 	if s.ap != nil && isActivityPub(r) {
@@ -277,7 +261,7 @@ func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.En
 	postType := ee.Helper().PostType()
 	s.serveHTML(w, r, &renderer.RenderData{
 		Entry:   ee,
-		NoIndex: ee.NoIndex || ee.Visibility() != eagle.VisibilityPublic || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
+		NoIndex: ee.NoIndex || ee.Unlisted || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
 	}, renderer.EntryTemplates(ee))
 }
 

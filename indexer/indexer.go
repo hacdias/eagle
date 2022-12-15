@@ -17,14 +17,9 @@ type Query struct {
 	Pagination     *Pagination
 	OrderByUpdated bool
 
-	WithDrafts  bool
-	WithDeleted bool
-
-	// Empty matches all visibilities.
-	Visibility []eagle.Visibility
-
-	// Empty matches all audiences.
-	Audience string
+	WithDrafts   bool
+	WithDeleted  bool
+	WithUnlisted bool
 }
 
 type Search struct {
@@ -40,6 +35,7 @@ type Backend interface {
 
 	GetAll(opts *Query) ([]string, error)
 	GetDrafts(opts *Pagination) ([]string, error)
+	GetUnlisted(opts *Pagination) ([]string, error)
 	GetDeleted(opts *Pagination) ([]string, error)
 
 	GetBySection(opt *Query, section string) ([]string, error)
@@ -77,6 +73,10 @@ func (e *Indexer) GetAll(opts *Query) (eagle.Entries, error) {
 
 func (e *Indexer) GetDrafts(opts *Pagination) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetDrafts(opts))
+}
+
+func (e *Indexer) GetUnlisted(opts *Pagination) (eagle.Entries, error) {
+	return e.idsToEntries(e.backend.GetUnlisted(opts))
 }
 
 func (e *Indexer) GetDeleted(opts *Pagination) (eagle.Entries, error) {

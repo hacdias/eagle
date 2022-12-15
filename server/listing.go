@@ -200,43 +200,15 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 			Search: search,
 		},
 		exec: func(opts *indexer.Query) (eagle.Entries, error) {
-			if s.isAdmin(r) {
+			if s.isLoggedIn(r) {
 				opts.WithDrafts = true
 				opts.WithDeleted = true
-				opts.Visibility = nil
+				opts.WithUnlisted = true
 			}
 
 			return s.i.GetSearch(opts, search)
 		},
 		templates: []string{renderer.TemplateSearch},
-	})
-}
-
-func (s *Server) privateGet(w http.ResponseWriter, r *http.Request) {
-	s.listingGet(w, r, &listingSettings{
-		rd: &renderer.RenderData{
-			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Private"),
-			NoIndex: true,
-		},
-		exec: func(opts *indexer.Query) (eagle.Entries, error) {
-			// Override as we only want private entries. Audience is already set by
-			// listingGet. It will show all private entries for the admin, and user-
-			// -specific for other logged in users.
-			opts.Visibility = []eagle.Visibility{eagle.VisibilityPrivate}
-			return s.i.GetAll(opts)
-		},
-	})
-}
-
-func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
-	s.listingGet(w, r, &listingSettings{
-		rd: &renderer.RenderData{
-			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
-			NoIndex: true,
-		},
-		exec: func(opts *indexer.Query) (eagle.Entries, error) {
-			return s.i.GetDeleted(opts.Pagination)
-		},
 	})
 }
 
@@ -259,9 +231,19 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 			NoIndex: true,
 		},
 		exec: func(opts *indexer.Query) (eagle.Entries, error) {
-			// Override visibility as we only want to see unlisted ones.
-			opts.Visibility = []eagle.Visibility{eagle.VisibilityUnlisted}
-			return s.i.GetAll(opts)
+			return s.i.GetUnlisted(opts.Pagination)
+		},
+	})
+}
+
+func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
+	s.listingGet(w, r, &listingSettings{
+		rd: &renderer.RenderData{
+			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
+			NoIndex: true,
+		},
+		exec: func(opts *indexer.Query) (eagle.Entries, error) {
+			return s.i.GetDeleted(opts.Pagination)
 		},
 	})
 }
@@ -303,16 +285,6 @@ type listingPage struct {
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
 	opts := &indexer.Query{}
-
-	user := s.getUser(r)
-	if user == "" {
-		opts.Visibility = []eagle.Visibility{eagle.VisibilityPublic}
-	} else {
-		opts.Visibility = []eagle.Visibility{eagle.VisibilityPublic, eagle.VisibilityPrivate}
-		if !s.isAdmin(r) {
-			opts.Audience = s.getUser(r)
-		}
-	}
 
 	if ls.rd == nil {
 		ls.rd = &renderer.RenderData{}
