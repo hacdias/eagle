@@ -333,32 +333,52 @@ func getCategoryStrings(props typed.Typed) ([]string, []interface{}) {
 
 type Entries []*Entry
 
-func (ee Entries) AsLogs() Logs {
-	l := Logs{}
+// TODO: make this a function in the renderer perhaps.
+type ReadsLogs struct {
+	ToRead   Logs
+	Reading  Logs
+	Finished Logs
+}
+
+func (ee Entries) AsReadsLogs() *ReadsLogs {
+	toRead := Logs{}
+	reading := Logs{}
+	finished := Logs{}
 
 	for _, e := range ee {
 		mm := e.Helper()
-		sub := mm.Sub(mm.TypeProperty())
+		read := mm.Sub("read-of")
+		statuses := mm.Properties.Objects("read-status")
 
-		name := e.Title
-		author := ""
-
-		if sub != nil {
-			if n := sub.Name(); n != "" {
-				name = n
-			}
-
-			author = sub.String("author")
+		if read == nil || len(statuses) < 1 {
+			continue
 		}
 
-		l = append(l, Log{
-			Name:   name,
-			Author: author,
-			Rating: mm.Int("rating"),
-			Date:   e.Published,
+		l := Log{
 			URL:    e.ID,
-		})
+			Name:   read.Name(),
+			Author: read.String("author"),
+			Date:   e.Published,
+			Rating: mm.Int("rating"),
+		}
+
+		if e.Updated.After(e.Published) {
+			l.Date = e.Updated
+		}
+
+		switch statuses[0].String("status") {
+		case "to-read":
+			toRead = append(toRead, l)
+		case "reading":
+			reading = append(reading, l)
+		case "finished":
+			finished = append(finished, l)
+		}
 	}
 
-	return l
+	return &ReadsLogs{
+		ToRead:   toRead,
+		Reading:  reading,
+		Finished: finished,
+	}
 }
