@@ -56,7 +56,7 @@ var DefaultArchetypes = map[string]Archetype{
 
 		date := time.Now().Local()
 		return &Entry{
-			ID: fmt.Sprintf("/books/%s", util.Slugify(name)),
+			ID: NewID(util.Slugify(name), time.Now()),
 			FrontMatter: FrontMatter{
 				Published:   date,
 				Description: fmt.Sprintf("%s by %s (ISBN: %s)", name, author, isbn),
@@ -71,12 +71,6 @@ var DefaultArchetypes = map[string]Archetype{
 							"uid":       fmt.Sprintf("isbn:%s", isbn),
 						},
 						"type": "h-cite",
-					},
-					"read-status": []interface{}{
-						map[string]interface{}{
-							"status": "to-read",
-							"date":   date,
-						},
 					},
 				},
 			},
