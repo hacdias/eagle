@@ -333,31 +333,15 @@ func getCategoryStrings(props typed.Typed) ([]string, []interface{}) {
 
 type Entries []*Entry
 
-// TODO: make this a function in the renderer perhaps.
-type ReadsLogs struct {
-	ToRead   Logs
-	Reading  Logs
-	Finished Logs
-}
-
-func (ee Entries) AsReadsLogs() *ReadsLogs {
-	toRead := Logs{}
-	reading := Logs{}
-	finished := Logs{}
+func (ee Entries) AsLogs() Logs {
+	logs := Logs{}
 
 	for _, e := range ee {
 		mm := e.Helper()
-		read := mm.Sub("read-of")
-		statuses := mm.Properties.Objects("read-status")
-
-		if read == nil || len(statuses) < 1 {
-			continue
-		}
+		sub := mm.Sub(mm.TypeProperty())
 
 		l := Log{
 			URL:    e.ID,
-			Name:   read.Name(),
-			Author: read.String("author"),
 			Date:   e.Published,
 			Rating: mm.Int("rating"),
 		}
@@ -366,19 +350,15 @@ func (ee Entries) AsReadsLogs() *ReadsLogs {
 			l.Date = e.Updated
 		}
 
-		switch statuses[0].String("status") {
-		case "to-read":
-			toRead = append(toRead, l)
-		case "reading":
-			reading = append(reading, l)
-		case "finished":
-			finished = append(finished, l)
+		if sub == nil {
+			l.Name = e.Title
+		} else {
+			l.Name = sub.Name()
+			l.Author = sub.String("author")
 		}
+
+		logs = append(logs, l)
 	}
 
-	return &ReadsLogs{
-		ToRead:   toRead,
-		Reading:  reading,
-		Finished: finished,
-	}
+	return logs
 }
