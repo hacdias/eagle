@@ -216,7 +216,12 @@ func (rd *RenderData) GetYAML(path string) interface{} {
 func (rd *RenderData) GetLogs(path string) interface{} {
 	filename := filepath.Join(fs.ContentDirectory, rd.ID, path)
 	var data eagle.Logs
-	_ = rd.fs.ReadYAML(filename, &data)
+	switch filepath.Ext(path) {
+	case ".json":
+		_ = rd.fs.ReadJSON(filename, &data)
+	case ".yaml", ".yml":
+		_ = rd.fs.ReadYAML(filename, &data)
+	}
 	return data
 }
 
