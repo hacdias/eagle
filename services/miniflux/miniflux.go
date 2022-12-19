@@ -1,22 +1,17 @@
 package miniflux
 
 import (
-	"fmt"
 	"path/filepath"
-	"strings"
+	"time"
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/miniflux"
-	"github.com/hacdias/eagle/util"
 )
 
 const (
-	DefaultEntryID = "/blogroll"
-
+	DefaultEntryID   = "/blogroll"
 	blogrollFileName = ".feeds.json"
-	blogrollTagStart = "<!--BLOGROLL-->"
-	blogrollTagEnd   = "<!--/BLOGROLL-->"
 )
 
 type BlogrollUpdater struct {
@@ -41,32 +36,15 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		return err
 	}
 
-	e, err := u.fs.TransformEntry(u.entryID, func(e *eagle.Entry) (*eagle.Entry, error) {
-		var err error
-		md := minifluxFeedsToMarkdown(feeds)
-		e.Content, err = util.ReplaceInBetween(e.Content, blogrollTagStart, blogrollTagEnd, md)
-		return e, err
-	})
-	if err != nil {
-		return err
-	}
-
-	filename := filepath.Join(fs.ContentDirectory, e.ID, blogrollFileName)
+	filename := filepath.Join(fs.ContentDirectory, u.entryID, blogrollFileName)
 	err = u.fs.WriteJSON(filename, feeds, "update blogroll")
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func minifluxFeedsToMarkdown(feeds []miniflux.Feed) string {
-	md := ""
-	for _, feed := range feeds {
-		if strings.ToLower(feed.Category) == "following" {
-			md += fmt.Sprintf("- [%s](%s)\n", feed.Title, feed.Site)
-		}
-	}
-
-	return md
+	_, err = u.fs.TransformEntry(u.entryID, func(e *eagle.Entry) (*eagle.Entry, error) {
+		e.Updated = time.Now()
+		return e, err
+	})
+	return err
 }
