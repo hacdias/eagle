@@ -104,7 +104,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 		updates = append(updates, RedirectsFile)
 	}
 
-	err = f.sync.Persist(fmt.Sprintf("rename %s to %s", oldID, newID), updates...)
+	err = f.sync.Persist(updates...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 		return err
 	}
 
-	err = f.WriteFile(filename, []byte(str), "update "+e.ID)
+	err = f.WriteFile(filename, []byte(str))
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}

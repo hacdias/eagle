@@ -15,12 +15,12 @@ const (
 
 type Sync interface {
 	Sync() (updated []string, err error)
-	Persist(message string, filename ...string) error
+	Persist(filename ...string) error
 }
 
 type NopSync struct{}
 
-func (g *NopSync) Persist(msg string, file ...string) error {
+func (g *NopSync) Persist(file ...string) error {
 	return nil
 }
 
@@ -62,13 +62,13 @@ func (f *FS) Sync() ([]string, error) {
 	return f.sync.Sync()
 }
 
-func (f *FS) WriteFile(filename string, data []byte, message string) error {
+func (f *FS) WriteFile(filename string, data []byte) error {
 	err := f.Afero.WriteFile(filename, data, 0644)
 	if err != nil {
 		return err
 	}
 
-	err = f.sync.Persist(message, filename)
+	err = f.sync.Persist(filename)
 	if err != nil {
 		return err
 	}
@@ -76,13 +76,13 @@ func (f *FS) WriteFile(filename string, data []byte, message string) error {
 	return nil
 }
 
-func (f *FS) WriteJSON(filename string, data interface{}, msg string) error {
+func (f *FS) WriteJSON(filename string, data interface{}) error {
 	json, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	return f.WriteFile(filename, json, msg)
+	return f.WriteFile(filename, json)
 }
 
 func (f *FS) ReadJSON(filename string, v interface{}) error {

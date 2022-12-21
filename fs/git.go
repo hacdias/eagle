@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 )
 
 var nothingToCommit = []byte("nothing to commit, working tree clean")
@@ -19,10 +20,19 @@ func NewGitSync(path string) Sync {
 	return &GitSync{dir: path}
 }
 
-func (g *GitSync) Persist(msg string, file ...string) error {
+func (g *GitSync) Persist(file ...string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
+	err := g.add(file...)
+	if err != nil {
+		return err
+	}
+
+	return g.commit(file...)
+}
+
+func (g *GitSync) add(file ...string) error {
 	args := append([]string{"add"}, file...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
@@ -30,12 +40,15 @@ func (g *GitSync) Persist(msg string, file ...string) error {
 	if err != nil {
 		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}
+	return nil
+}
 
-	args = []string{"commit", "-m", msg, "--"}
+func (g *GitSync) commit(file ...string) error {
+	args := []string{"commit", "-m", time.Now().Format(time.RFC3339), "--"}
 	args = append(args, file...)
-	cmd = exec.Command("git", args...)
+	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
-	out, err = cmd.CombinedOutput()
+	out, err := cmd.CombinedOutput()
 	if err != nil && !bytes.Contains(out, nothingToCommit) {
 		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}

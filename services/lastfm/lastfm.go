@@ -63,7 +63,7 @@ func (l *LastFm) FetchLastFmListens(year int, month time.Month, day int) (bool, 
 	if err != nil {
 		return false, err
 	}
-	return true, l.fs.WriteJSON(filename, tracks, fmt.Sprintf("lastfm data for %04d-%02d-%02d", year, month, day))
+	return true, l.fs.WriteJSON(filename, tracks)
 }
 
 func (l *LastFm) CreateDailyListensEntry(year int, month time.Month, day int) error {

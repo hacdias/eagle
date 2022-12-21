@@ -74,5 +74,5 @@ func (f *FS) UpdateSidecar(entry *eagle.Entry, t func(*eagle.Sidecar) (*eagle.Si
 		f.AfterSaveHook(eagle.Entries{entry}, nil)
 	}
 
-	return f.WriteJSON(filename, newSd, "sidecar: "+entry.ID)
+	return f.WriteJSON(filename, newSd)
 }
