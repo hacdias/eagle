@@ -185,11 +185,6 @@ miniflux:
   endpoint: minifluxEndpoint
   key: minifluxKey
 
-# Optional Last.fm (https://last.fm) integration for scrobbles integration.
-lastfm:
-  key: lastfmKey
-  user: lastfmUser
-
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
 imgproxy:

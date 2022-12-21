@@ -326,11 +326,6 @@ type Miniflux struct {
 	Key      string
 }
 
-type Lastfm struct {
-	Key  string
-	User string
-}
-
 type ImgProxy struct {
 	Directory string
 	Endpoint  string
@@ -351,7 +346,6 @@ type Config struct {
 	Twitter       *Twitter
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
-	Lastfm        *Lastfm
 	ImgProxy      *ImgProxy
 }
 
