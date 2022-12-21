@@ -265,12 +265,13 @@ type listingSettings struct {
 }
 
 type listingPage struct {
-	Search   *indexer.Search
-	Taxonomy string
-	Terms    eagle.Terms
-	Entries  eagle.Entries
-	Page     int
-	NextPage string
+	Search       *indexer.Search
+	Taxonomy     string
+	Terms        eagle.Terms
+	Entries      eagle.Entries
+	Page         int
+	PreviousPage string
+	NextPage     string
 }
 
 func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
@@ -312,12 +313,21 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	ls.lp.Entries = ee
 
-	if len(ee) != 0 && !ls.rd.Entry.Listing.DisablePagination {
+	if !ls.rd.Entry.Listing.DisablePagination {
 		url, _ := urlpkg.Parse(r.URL.String())
 		values := url.Query()
-		values.Set("page", strconv.Itoa(opts.Pagination.Page+1))
-		url.RawQuery = values.Encode()
-		ls.lp.NextPage = url.String()
+
+		if opts.Pagination.Page > 0 {
+			values.Set("page", strconv.Itoa(opts.Pagination.Page-1))
+			url.RawQuery = values.Encode()
+			ls.lp.PreviousPage = url.String()
+		}
+
+		if len(ee) > 0 {
+			values.Set("page", strconv.Itoa(opts.Pagination.Page+1))
+			url.RawQuery = values.Encode()
+			ls.lp.NextPage = url.String()
+		}
 	}
 
 	ls.rd.Data = ls.lp
