@@ -46,14 +46,9 @@ func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) sectionGet(section string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ee := s.getListingEntryOrEmpty(r.URL.Path, section)
-		if len(ee.Sections) == 0 {
-			ee.Sections = []string{section}
-		}
-
 		s.listingGet(w, r, &listingSettings{
 			rd: &renderer.RenderData{
-				Entry: ee,
+				Entry: s.getListingEntryOrEmpty(r.URL.Path, section),
 			},
 			exec: func(opts *indexer.Query) (eagle.Entries, error) {
 				return s.i.GetBySection(opts, section)
@@ -108,12 +103,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &renderer.RenderData{
-			Entry: &eagle.Entry{
-				FrontMatter: eagle.FrontMatter{
-					Title:   title.String(),
-					Listing: &eagle.Listing{},
-				},
-			},
+			Entry: s.getListingEntryOrEmpty(r.URL.Path, title.String()),
 		},
 		exec: func(opts *indexer.Query) (eagle.Entries, error) {
 			return s.i.GetByDate(opts, year, month, day)
@@ -179,10 +169,10 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	ee := s.getListingEntryOrEmpty(r.URL.Path, "Search")
+	e := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	if search.Query == "" {
 		s.serveHTML(w, r, &renderer.RenderData{
-			Entry:   ee,
+			Entry:   e,
 			NoIndex: true,
 			Data: &listingPage{
 				Search: search,
@@ -193,7 +183,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	s.listingGet(w, r, &listingSettings{
 		rd: &renderer.RenderData{
-			Entry:   ee,
+			Entry:   e,
 			NoIndex: true,
 		},
 		lp: listingPage{
@@ -250,12 +240,12 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) getListingEntryOrEmpty(id, title string) *eagle.Entry {
 	id = strings.TrimSuffix(id, filepath.Ext(id))
-	if ee, err := s.fs.GetEntry(id); err == nil {
-		if ee.Listing == nil {
-			s.log.Warnf("entry %s should be marked as listing", ee.ID)
-			ee.Listing = &eagle.Listing{}
+	if e, err := s.fs.GetEntry(id); err == nil {
+		if e.Listing == nil {
+			s.log.Warnf("entry %s should be marked as listing", e.ID)
+			e.Listing = &eagle.Listing{}
 		}
-		return ee
+		return e
 	}
 
 	return &eagle.Entry{
@@ -314,15 +304,15 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		}
 	}
 
-	entries, err := ls.exec(opts)
+	ee, err := ls.exec(opts)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	ls.lp.Entries = entries
+	ls.lp.Entries = ee
 
-	if len(entries) != 0 && !ls.rd.Entry.Listing.DisablePagination {
+	if len(ee) != 0 && !ls.rd.Entry.Listing.DisablePagination {
 		url, _ := urlpkg.Parse(r.URL.String())
 		values := url.Query()
 		values.Set("page", strconv.Itoa(opts.Pagination.Page+1))
@@ -333,33 +323,37 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	ls.rd.Data = ls.lp
 
 	feedType := chi.URLParam(r, "feed")
-	if feedType == "" {
-		templates := ls.templates
-		if ls.rd.Template != "" {
-			templates = append(templates, ls.rd.Template)
-		}
-		templates = append(templates, renderer.TemplateList)
-		path := r.URL.Path
-
-		ls.rd.Alternates = []renderer.Alternate{
-			{
-				Type: contenttype.JSONFeed,
-				Href: path + ".json",
-			},
-			{
-				Type: contenttype.ATOM,
-				Href: path + ".atom",
-			},
-			{
-				Type: contenttype.RSS,
-				Href: path + ".rss",
-			},
-		}
-
-		s.serveHTML(w, r, ls.rd, templates)
+	if feedType != "" {
+		s.listingFeedGet(w, r, ls, feedType, ee)
 		return
 	}
 
+	templates := ls.templates
+	if ls.rd.Template != "" {
+		templates = append(templates, ls.rd.Template)
+	}
+	templates = append(templates, renderer.TemplateList)
+	path := r.URL.Path
+
+	ls.rd.Alternates = []renderer.Alternate{
+		{
+			Type: contenttype.JSONFeed,
+			Href: path + ".json",
+		},
+		{
+			Type: contenttype.ATOM,
+			Href: path + ".atom",
+		},
+		{
+			Type: contenttype.RSS,
+			Href: path + ".rss",
+		},
+	}
+
+	s.serveHTML(w, r, ls.rd, templates)
+}
+
+func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *listingSettings, feedType string, ee eagle.Entries) {
 	feed := &feeds.Feed{
 		Title:       ls.rd.Entry.TextTitle(),
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.c.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
@@ -372,9 +366,9 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		Items:   []*feeds.Item{},
 	}
 
-	for _, entry := range entries {
+	for _, entry := range ee {
 		var buf bytes.Buffer
-		err = s.renderer.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed}, true)
+		err := s.renderer.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed}, true)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
@@ -395,7 +389,10 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		})
 	}
 
-	var feedString, feedMediaType string
+	var (
+		err                       error
+		feedString, feedMediaType string
+	)
 
 	switch feedType {
 	case "rss":
