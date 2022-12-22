@@ -131,11 +131,14 @@ micropub:
     article:
       - articles
       - home
-    photos:
+    photo:
       - photos
       - home
-    likes:
+    reply:
       - micro
+  # Post types to mark as unlisted by default.
+  unlisted:
+    - like
   # Optional support for 'post-types' Micropub extension:
   # https://indieweb.org/Micropub-extensions#Post-Type
   postTypes:

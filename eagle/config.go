@@ -276,19 +276,18 @@ type PostType struct {
 
 type Micropub struct {
 	Sections  map[mf2.Type][]string
+	Unlisted  []mf2.Type
 	PostTypes []PostType
-}
-
-func (m *Micropub) AllowedTypes() []mf2.Type {
-	var allowedTypes []mf2.Type
-	for typ := range m.Sections {
-		allowedTypes = append(allowedTypes, typ)
-	}
-	return allowedTypes
 }
 
 func (m *Micropub) validate() error {
 	for mf2Type := range m.Sections {
+		if !mf2.IsType(mf2Type) {
+			return fmt.Errorf("%s is not a valid micropub type", mf2Type)
+		}
+	}
+
+	for _, mf2Type := range m.Unlisted {
 		if !mf2.IsType(mf2Type) {
 			return fmt.Errorf("%s is not a valid micropub type", mf2Type)
 		}
