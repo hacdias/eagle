@@ -259,11 +259,19 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 }
 
 func (d *Postgres) orderBy(opts *indexer.Query) string {
+	q := ""
+
 	if opts.OrderByUpdated {
-		return " order by updated_at desc"
+		q = " order by updated_at "
 	} else {
-		return " order by published_at desc"
+		q = " order by published_at "
 	}
+
+	if opts.Ascending {
+		return q + "asc"
+	}
+
+	return q + "desc"
 }
 
 func (d *Postgres) offset(opts *indexer.Pagination) string {

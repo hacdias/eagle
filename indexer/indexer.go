@@ -16,6 +16,7 @@ type Pagination struct {
 
 type Query struct {
 	Pagination     *Pagination
+	Ascending      bool
 	OrderByUpdated bool
 
 	After  time.Time
