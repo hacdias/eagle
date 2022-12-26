@@ -243,6 +243,18 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 		where = append(where, "isDraft=false")
 	}
 
+	if !opts.After.IsZero() {
+		i++
+		where = append(where, "published_at>=$"+strconv.Itoa(i))
+		args = append(args, opts.After)
+	}
+
+	if !opts.Before.IsZero() {
+		i++
+		where = append(where, "published_at<=$"+strconv.Itoa(i))
+		args = append(args, opts.Before)
+	}
+
 	return where, args
 }
 

@@ -3,6 +3,7 @@ package indexer
 import (
 	"io"
 	"os"
+	"time"
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
@@ -16,6 +17,9 @@ type Pagination struct {
 type Query struct {
 	Pagination     *Pagination
 	OrderByUpdated bool
+
+	After  time.Time
+	Before time.Time
 
 	WithDrafts   bool
 	WithDeleted  bool
