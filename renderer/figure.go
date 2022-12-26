@@ -130,6 +130,13 @@ func (r *Renderer) writeFigure(w figureWriter, imgURL, alt, title string, absURL
 		_, _ = w.Write(util.EscapeHTML([]byte(alt)))
 		_, _ = w.WriteRune('"')
 	}
+
+	if title != "" {
+		_, _ = w.WriteString(` title="`)
+		_, _ = w.Write(util.EscapeHTML([]byte(title)))
+		_, _ = w.WriteRune('"')
+	}
+
 	_, _ = w.WriteString(" loading=\"lazy\">")
 	_, _ = w.WriteString("</picture>")
 
