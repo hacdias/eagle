@@ -258,8 +258,8 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 
 	if e.Helper().PostType() == mf2.TypeTrip {
 		sub := e.Helper().Sub(e.Helper().TypeProperty())
-		from, _ := dateparse.ParseStrict(sub.String("from"))
-		to, _ := dateparse.ParseStrict(sub.String("to"))
+		from, _ := dateparse.ParseStrict(sub.String("start"))
+		to, _ := dateparse.ParseStrict(sub.String("end"))
 		e.Listing = &eagle.Listing{}
 
 		// TODO: custom template type so that I can use post/header.
@@ -274,6 +274,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 				opts.Ascending = true
 				return s.i.GetAll(opts)
 			},
+			templates: []string{renderer.TemplateTrip},
 		})
 		return
 	}
