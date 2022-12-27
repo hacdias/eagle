@@ -618,7 +618,7 @@ func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
 }
 
 func isActivityPub(r *http.Request) bool {
-	accept := r.Header.Get("Accept")
+	accept := strings.Join(r.Header.Values("Accept"), ",")
 	return strings.Contains(accept, contenttype.AS) &&
 		!strings.Contains(accept, contenttype.HTML)
 }
