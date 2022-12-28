@@ -20,10 +20,10 @@ ENV UID 501
 ENV GID 20
 
 RUN apk update && \
-  apk add --no-cache git ca-certificates openssh tor tzdata mailcap && \
+  apk add --no-cache git ca-certificates openssh tzdata mailcap && \
   addgroup -g $UID eagle && \
   adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
-  mkdir /app /app/source /app/public /app/onion /app/activitypub /imgproxy && \
+  mkdir /app /app/source /app/public /app/activitypub /imgproxy && \
   chown -R eagle:eagle /app /imgproxy
 
 USER eagle
@@ -34,7 +34,6 @@ RUN git config --global user.name "Eagle" && \
 WORKDIR /app
 VOLUME /app/source
 VOLUME /app/public
-VOLUME /app/onion
 VOLUME /app/activitypub
 VOLUME /imgproxy
 

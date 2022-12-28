@@ -59,15 +59,14 @@ type Server struct {
 	c *eagle.Config
 	i *indexer.Indexer
 
-	log          *zap.SugaredLogger
-	ias          *indieauth.Server
-	jwtAuth      *jwtauth.JWTAuth
-	onionAddress string
-	actions      map[string]func() error
-	cron         *cron.Cron
-	redirects    map[string]string
-	archetypes   map[string]eagle.Archetype
-	webFinger    *eagle.WebFinger
+	log        *zap.SugaredLogger
+	ias        *indieauth.Server
+	jwtAuth    *jwtauth.JWTAuth
+	actions    map[string]func() error
+	cron       *cron.Cron
+	redirects  map[string]string
+	archetypes map[string]eagle.Archetype
+	webFinger  *eagle.WebFinger
 
 	serversMu sync.Mutex
 	servers   []*httpServer
@@ -294,14 +293,6 @@ func (s *Server) Start() error {
 		return err
 	}
 
-	if s.c.Server.Tor != nil {
-		err = s.startTor(errCh, router)
-		if err != nil {
-			err = fmt.Errorf("onion service failed to start: %w", err)
-			s.log.Error(err)
-		}
-	}
-
 	// Collect errors when the server stops
 	var errs *multierror.Error
 	for i := 0; i < len(s.servers); i++ {
@@ -482,8 +473,6 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		data.Entry.ID = r.URL.Path
 	}
 
-	data.TorUsed = s.isUsingTor(r)
-	data.OnionAddress = s.onionAddress
 	data.IsLoggedIn = s.isLoggedIn(r)
 
 	setCacheHTML(w)
