@@ -227,6 +227,10 @@ func (d *Postgres) GetCount() (int, error) {
 	return n, nil
 }
 
+func (d *Postgres) ClearEntries() {
+	_, _ = d.pool.Exec(context.Background(), "truncate table entries")
+}
+
 func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []interface{}) {
 	var where []string
 	var args []interface{}

@@ -50,6 +50,8 @@ type Backend interface {
 	GetTaxonomyTerms(taxonomy string) (eagle.Terms, error)
 	GetSearch(opt *Query, search *Search) ([]string, error)
 	GetCount() (int, error)
+
+	ClearEntries()
 }
 
 type Indexer struct {
@@ -110,6 +112,10 @@ func (e *Indexer) GetSearch(opts *Query, search *Search) (eagle.Entries, error) 
 
 func (e *Indexer) GetCount() (int, error) {
 	return e.backend.GetCount()
+}
+
+func (e *Indexer) ClearEntries() {
+	e.backend.ClearEntries()
 }
 
 func (e *Indexer) Close() error {

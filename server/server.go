@@ -344,6 +344,11 @@ func (s *Server) initActions() {
 		"Reload Redirects": func() error {
 			return s.loadRedirects()
 		},
+		"Reset Index": func() error {
+			s.i.ClearEntries()
+			s.indexAll()
+			return nil
+		},
 	}
 }
 
