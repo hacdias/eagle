@@ -1,8 +1,6 @@
 package renderer
 
 import (
-	"bytes"
-
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
 	"github.com/yuin/goldmark/ast"
@@ -31,8 +29,10 @@ var defaultGoldmarkOptions = []goldmark.Option{
 	),
 }
 
-func newMarkdown(r *Renderer, absURLs bool) goldmark.Markdown {
-	exts := []goldmark.Extender{}
+func newMarkdown(r *Renderer, absoluteURLs bool) goldmark.Markdown {
+	exts := []goldmark.Extender{
+		newLinksRenderer(r, absoluteURLs),
+	}
 
 	if r.c.Site.ChromaTheme != "" {
 		exts = append(exts, highlighting.NewHighlighting(
@@ -42,7 +42,7 @@ func newMarkdown(r *Renderer, absURLs bool) goldmark.Markdown {
 
 	exts = append(exts, &markdown{
 		r:       r,
-		absURLs: absURLs,
+		absURLs: absoluteURLs,
 	})
 
 	return goldmark.New(append(defaultGoldmarkOptions, goldmark.WithExtensions(exts...))...)
@@ -79,71 +79,7 @@ func (r *markdownRenderer) SetOption(name renderer.OptionName, value interface{}
 
 // RegisterFuncs implements NodeRenderer.RegisterFuncs.
 func (r *markdownRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
-	reg.Register(ast.KindLink, r.renderLink)
 	reg.Register(ast.KindImage, r.renderImage)
-	reg.Register(ast.KindAutoLink, r.renderAutoLink)
-}
-
-// https://github.com/yuin/goldmark/blob/5588d92a56fe1642791cf4aa8e9eae8227cfeecd/renderer/html/html.go#L439
-
-func (r *markdownRenderer) renderLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
-	n := node.(*ast.Link)
-	if entering {
-		_, _ = w.WriteString("<a href=\"")
-		destination := util.URLEscape(n.Destination, true)
-		if r.absURLs && r.r.c.Server.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
-			_, _ = w.Write(util.EscapeHTML([]byte(r.r.c.Server.BaseURL)))
-		}
-		if r.Unsafe || !html.IsDangerousURL(destination) {
-			_, _ = w.Write(util.EscapeHTML(destination))
-		}
-		_ = w.WriteByte('"')
-		if n.Title != nil {
-			_, _ = w.WriteString(` title="`)
-			r.Writer.Write(w, n.Title)
-			_ = w.WriteByte('"')
-		}
-		if !(bytes.HasPrefix(destination, []byte("/")) || bytes.HasPrefix(destination, []byte("#"))) {
-			_, _ = w.WriteString(` rel="noopener noreferrer" `)
-		}
-		_ = w.WriteByte('>')
-	} else {
-		_, _ = w.WriteString("</a>")
-	}
-	return ast.WalkContinue, nil
-}
-
-func (r *markdownRenderer) renderAutoLink(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
-	n := node.(*ast.AutoLink)
-	if !entering {
-		return ast.WalkContinue, nil
-	}
-	_, _ = w.WriteString(`<a href="`)
-	url := n.URL(source)
-	label := n.Label(source)
-	if n.AutoLinkType == ast.AutoLinkEmail && !bytes.HasPrefix(bytes.ToLower(url), []byte("mailto:")) {
-		_, _ = w.WriteString("mailto:")
-	}
-	destination := util.URLEscape(url, false)
-	if r.absURLs && r.r.c.Server.BaseURL != "" && bytes.HasPrefix(destination, []byte("/")) {
-		_, _ = w.Write(util.EscapeHTML([]byte(r.r.c.Server.BaseURL)))
-	}
-	_, _ = w.Write(util.EscapeHTML(destination))
-	if n.Attributes() != nil {
-		_ = w.WriteByte('"')
-		html.RenderAttributes(w, n, html.LinkAttributeFilter)
-	} else {
-		_, _ = w.WriteString(`"`)
-	}
-
-	if n.AutoLinkType == ast.AutoLinkURL && !(bytes.HasPrefix(url, []byte("/")) || bytes.HasPrefix(destination, []byte("#"))) {
-		_, _ = w.WriteString(` rel="noopener noreferrer" `)
-	}
-
-	_ = w.WriteByte('>')
-	_, _ = w.Write(util.EscapeHTML(label))
-	_, _ = w.WriteString(`</a>`)
-	return ast.WalkContinue, nil
 }
 
 // Hijack the image rendering and output <figure>!
