@@ -60,7 +60,15 @@ var brokenLinksCmd = &cobra.Command{
 				return nil, err
 			}
 
-			return md.md.urls, nil
+			urls := md.md.urls
+
+			prop := e.Helper().TypeProperty()
+			if prop != "" {
+				ctxUrls := e.Helper().Strings(prop)
+				urls = append(urls, ctxUrls...)
+			}
+
+			return urls, nil
 		}
 
 		getSidecarURLs := func(e *eagle.Entry) ([]string, error) {
