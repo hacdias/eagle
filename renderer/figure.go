@@ -10,7 +10,7 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-func (r *Renderer) GetPictureURL(urlStr, size, format string) string {
+func (r *Renderer) ImageURL(urlStr string) string {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return ""
@@ -22,23 +22,12 @@ func (r *Renderer) GetPictureURL(urlStr, size, format string) string {
 	query.Del("caption")
 	url.RawQuery = query.Encode()
 
-	if url.Scheme == "cdn" && r.mediaBaseURL != "" {
+	if url.Scheme == "cdn" && r.m != nil {
 		id := strings.TrimPrefix(url.Path, "/")
-		return r.getCdnURL(id, size, format)
+		return r.m.ImageURL(id)
 	} else {
 		return url.String()
 	}
-}
-
-func (r *Renderer) getCdnSourceSet(id, format string) string {
-	return r.getCdnURL(id, "250", format) + " 250w" +
-		", " + r.getCdnURL(id, "500", format) + " 500w" +
-		", " + r.getCdnURL(id, "1000", format) + " 1000w" +
-		", " + r.getCdnURL(id, "2000", format) + " 2000w"
-}
-
-func (r *Renderer) getCdnURL(id, size, format string) string {
-	return r.mediaBaseURL + "/img/" + size + "/" + id + "." + format
 }
 
 type figureWriter interface {
@@ -97,17 +86,17 @@ func (r *Renderer) writeFigure(w figureWriter, imgURL, alt, title string, absURL
 
 	_, _ = w.WriteString("<picture>")
 
-	if url.Scheme == "cdn" && r.mediaBaseURL != "" {
+	if url.Scheme == "cdn" && r.m != nil {
 		id := strings.TrimPrefix(url.Path, "/")
-		imgSrc = []byte(r.getCdnURL(id, "2000", "jpeg"))
+		imgSrc = []byte(r.m.ImageURL(id))
 
-		_, _ = w.WriteString("<source srcset=\"")
-		_, _ = w.WriteString(r.getCdnSourceSet(id, "webp"))
-		_, _ = w.WriteString("\" type=\"image/webp\">")
-
-		_, _ = w.WriteString("<source srcset=\"")
-		_, _ = w.WriteString(r.getCdnSourceSet(id, "jpeg"))
-		_, _ = w.WriteString("\">")
+		for format, srcset := range r.m.ImageSourceSet(id) {
+			_, _ = w.WriteString("<source srcset=\"")
+			_, _ = w.WriteString(srcset)
+			_, _ = w.WriteString("\" type=\"image/")
+			_, _ = w.WriteString(format)
+			_, _ = w.WriteString("\">")
+		}
 	} else {
 		imgSrc = []byte(url.String())
 	}

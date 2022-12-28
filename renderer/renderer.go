@@ -13,6 +13,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
+	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/tdewolff/minify/v2"
 	"github.com/yuin/goldmark"
@@ -21,7 +22,7 @@ import (
 type Renderer struct {
 	c                 *eagle.Config
 	fs                *fs.FS
-	mediaBaseURL      string
+	m                 *media.Media
 	minify            *minify.M
 	markdown          goldmark.Markdown
 	absoluteMarkdown  goldmark.Markdown
@@ -30,11 +31,11 @@ type Renderer struct {
 	assets            *Assets
 }
 
-func NewRenderer(c *eagle.Config, fs *fs.FS, mediaBaseURL string) (*Renderer, error) {
+func NewRenderer(c *eagle.Config, fs *fs.FS, m *media.Media) (*Renderer, error) {
 	r := &Renderer{
-		c:            c,
-		fs:           fs,
-		mediaBaseURL: mediaBaseURL,
+		c:  c,
+		fs: fs,
+		m:  m,
 
 		templates: map[string]*template.Template{},
 		minify:    newMinify(),

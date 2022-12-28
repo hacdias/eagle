@@ -35,6 +35,9 @@ type Media struct {
 }
 
 func (m *Media) BaseURL() string {
+	if m.storage == nil {
+		return ""
+	}
 	return m.storage.BaseURL()
 }
 
@@ -167,4 +170,25 @@ func (m *Media) uploadImage(filename string, data []byte) (string, error) {
 	}
 
 	return "cdn:/" + filename, nil
+}
+
+func (m *Media) getCdnURL(id, format string, size int) string {
+	return fmt.Sprintf("%s/img/%d/%s.%s", m.BaseURL(), size, id, format)
+}
+
+func (m *Media) ImageURL(id string) string {
+	return m.getCdnURL(id, "jpeg", 2000)
+}
+
+func (m *Media) ImageSourceSet(id string) map[string]string {
+	return map[string]string{
+		"jpeg": m.getCdnURL(id, "jpeg", 250) + " 250w" +
+			", " + m.getCdnURL(id, "jpeg", 500) + " 500w" +
+			", " + m.getCdnURL(id, "jpeg", 1000) + " 1000w" +
+			", " + m.getCdnURL(id, "jpeg", 2000) + " 2000w",
+		"webp": m.getCdnURL(id, "webp", 250) + " 250w" +
+			", " + m.getCdnURL(id, "webp", 500) + " 500w" +
+			", " + m.getCdnURL(id, "webp", 1000) + " 1000w" +
+			", " + m.getCdnURL(id, "webp", 2000) + " 2000w",
+	}
 }

@@ -108,7 +108,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	var (
 		m           *media.Media
-		mBaseURL    string
 		storage     media.Storage
 		transformer media.Transformer
 	)
@@ -123,10 +122,9 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	if storage != nil {
 		m = media.NewMedia(storage, transformer)
-		mBaseURL = m.BaseURL()
 	}
 
-	renderer, err := renderer.NewRenderer(c, fs, mBaseURL)
+	renderer, err := renderer.NewRenderer(c, fs, m)
 	if err != nil {
 		return nil, err
 	}

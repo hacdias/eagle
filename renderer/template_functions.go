@@ -135,7 +135,7 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
 		"figure":              figure,
-		"figureURL":           r.GetPictureURL,
+		"figureURL":           r.ImageURL,
 		"dateFormat":          dateFormat,
 		"now":                 time.Now,
 		"include":             r.getIncludeTemplate(alwaysAbsolute),
