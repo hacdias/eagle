@@ -365,7 +365,7 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *listingSettings, feedType string, ee eagle.Entries) {
 	feed := &feeds.Feed{
-		Title:       ls.rd.Entry.TextTitle(),
+		Title:       fmt.Sprintf("%s - %s", ls.rd.Entry.TextTitle(), s.c.Site.Title),
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.c.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
 		Description: ls.rd.Entry.TextDescription(),
 		Author: &feeds.Author{
