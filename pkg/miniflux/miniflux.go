@@ -7,11 +7,12 @@ import (
 	miniflux "miniflux.app/client"
 )
 
+type Feeds map[string][]Feed
+
 type Feed struct {
-	Title    string `json:"title"`
-	Site     string `json:"site"`
-	Feed     string `json:"feed"`
-	Category string `json:"category"`
+	Title string `json:"title"`
+	Site  string `json:"site"`
+	Feed  string `json:"feed"`
 }
 
 type Miniflux struct {
@@ -26,7 +27,7 @@ func NewMiniflux(endpoint, key string) *Miniflux {
 	}
 }
 
-func (m *Miniflux) Fetch() ([]Feed, error) {
+func (m *Miniflux) Fetch() (Feeds, error) {
 	client := miniflux.New(m.endpoint, m.key)
 
 	rawFeeds, err := client.Feeds()
@@ -38,13 +39,17 @@ func (m *Miniflux) Fetch() ([]Feed, error) {
 		return rawFeeds[i].Title < rawFeeds[j].Title
 	})
 
-	var feeds []Feed
+	feeds := Feeds{}
 	for _, feed := range rawFeeds {
-		feeds = append(feeds, Feed{
-			Title:    feed.Title,
-			Feed:     feed.FeedURL,
-			Site:     feed.SiteURL,
-			Category: strings.ToLower(feed.Category.Title),
+		category := strings.ToLower(feed.Category.Title)
+		if _, ok := feeds[category]; !ok {
+			feeds[category] = []Feed{}
+		}
+
+		feeds[category] = append(feeds[category], Feed{
+			Title: feed.Title,
+			Feed:  feed.FeedURL,
+			Site:  feed.SiteURL,
 		})
 	}
 
