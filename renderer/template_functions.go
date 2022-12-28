@@ -14,6 +14,8 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/util"
 	"github.com/samber/lo"
+	"github.com/yuin/goldmark/renderer/html"
+	gutil "github.com/yuin/goldmark/util"
 )
 
 func (r *Renderer) getIncludeTemplate(absoluteURLs bool) func(name string, data ...interface{}) (template.HTML, error) {
@@ -114,16 +116,58 @@ func (r *Renderer) getRenderMarkdown(absoluteURLs bool) func(string) template.HT
 	}
 }
 
-func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
-	figure := func(url, alt string, uPhoto bool) template.HTML {
+func (r *Renderer) getUPhoto(absoluteURLs bool) func(url, alt string) template.HTML {
+	return func(urlStr, alt string) template.HTML {
 		var w strings.Builder
-		err := r.writeFigure(&w, url, alt, "", alwaysAbsolute, true, uPhoto)
+
+		url, err := urlpkg.Parse(urlStr)
 		if err != nil {
 			return template.HTML("")
 		}
+
+		_, _ = w.WriteString("<figure>")
+		_, _ = w.WriteString("<picture>")
+
+		var imgSrc []byte
+		if url.Scheme == "cdn" && r.m != nil {
+			id := strings.TrimPrefix(url.Path, "/")
+			imgSrc = []byte(r.m.ImageURL(id))
+
+			for format, srcset := range r.m.ImageSourceSet(id) {
+				_, _ = w.WriteString("<source srcset=\"")
+				_, _ = w.WriteString(srcset)
+				_, _ = w.WriteString("\" type=\"image/")
+				_, _ = w.WriteString(format)
+				_, _ = w.WriteString("\">")
+			}
+		} else {
+			imgSrc = []byte(url.String())
+		}
+
+		_, _ = w.WriteString("<img src=\"")
+		if absoluteURLs && r.c.Server.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
+			_, _ = w.Write(gutil.EscapeHTML([]byte(r.c.Server.BaseURL)))
+		}
+		if !html.IsDangerousURL(imgSrc) {
+			_, _ = w.Write(gutil.EscapeHTML(imgSrc))
+		}
+		_, _ = w.WriteRune('"')
+		_, _ = w.WriteString(" class=\"u-photo\"")
+
+		if alt != "" {
+			_, _ = w.WriteString(` alt="`)
+			_, _ = w.Write(gutil.EscapeHTML([]byte(alt)))
+			_, _ = w.WriteRune('"')
+		}
+
+		_, _ = w.WriteString(" loading=\"lazy\">")
+		_, _ = w.WriteString("</picture>")
+		_, _ = w.WriteString("</figure>")
 		return template.HTML(w.String())
 	}
+}
 
+func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	funcs := template.FuncMap{
 		"truncate":            util.TruncateStringWithEllipsis,
 		"domain":              util.Domain,
@@ -134,7 +178,7 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"containsString":      lo.Contains[string],
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
-		"figure":              figure,
+		"uPhoto":              r.getUPhoto(alwaysAbsolute),
 		"figureURL":           r.ImageURL,
 		"dateFormat":          dateFormat,
 		"now":                 time.Now,
