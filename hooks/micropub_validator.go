@@ -39,7 +39,7 @@ func (m MicropubValidator) DeduceSections(e *eagle.Entry) {
 }
 
 func (m MicropubValidator) MarkUnlisted(e *eagle.Entry) {
-	if len(m.Unlisted) == 0 {
+	if len(m.Unlisted) == 0 || len(e.Sections) != 0 {
 		return
 	}
 

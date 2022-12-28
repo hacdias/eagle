@@ -129,7 +129,7 @@ micropub:
       - home
     reply:
       - micro
-  # Post types to mark as unlisted by default.
+  # Post types to mark as unlisted by default if not attributed to any section.
   unlisted:
     - like
   # Optional support for 'post-types' Micropub extension:
