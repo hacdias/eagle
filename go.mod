@@ -5,7 +5,6 @@ go 1.19
 require (
 	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/cretz/bine v0.2.0
 	github.com/dchest/uniuri v1.2.0
 	github.com/dghubble/oauth1 v0.7.1
 	github.com/dgraph-io/ristretto v0.1.1

@@ -181,12 +181,10 @@ type RenderData struct {
 	// For page-specific variables.
 	Data interface{}
 
-	Alternates   []Alternate
-	IsHome       bool
-	IsLoggedIn   bool
-	NoIndex      bool
-	TorUsed      bool
-	OnionAddress string
+	Alternates []Alternate
+	IsHome     bool
+	IsLoggedIn bool
+	NoIndex    bool
 
 	fs      *fs.FS
 	sidecar *eagle.Sidecar

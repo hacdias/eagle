@@ -7,13 +7,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 )
 
-type CacheScope string
-
-const (
-	CacheRegular CacheScope = "reg"
-	CacheTor     CacheScope = "tor"
-)
-
 type Cache struct {
 	r *ristretto.Cache
 }
@@ -38,10 +31,10 @@ type cacheEntry struct {
 	modtime time.Time
 }
 
-func (c *Cache) Save(scope CacheScope, filename string, data []byte, modtime time.Time) {
+func (c *Cache) Save(filename string, data []byte, modtime time.Time) {
 	value := &cacheEntry{data, modtime}
 	cost := int64(len(data))
-	c.r.SetWithTTL(c.cacheKey(scope, filename), value, cost, time.Hour*24)
+	c.r.SetWithTTL(filename, value, cost, time.Hour*24)
 }
 
 func (c *Cache) Delete(ee *eagle.Entry) {
@@ -67,8 +60,8 @@ func (c *Cache) Clear() {
 	c.r.Clear()
 }
 
-func (c *Cache) Cached(scope CacheScope, filename string) ([]byte, time.Time, bool) {
-	data, ok := c.r.Get(c.cacheKey(scope, filename))
+func (c *Cache) Cached(filename string) ([]byte, time.Time, bool) {
+	data, ok := c.r.Get(filename)
 	if ok {
 		ce := data.(*cacheEntry)
 		return ce.data, ce.modtime, true
@@ -76,11 +69,6 @@ func (c *Cache) Cached(scope CacheScope, filename string) ([]byte, time.Time, bo
 	return nil, time.Time{}, false
 }
 
-func (c *Cache) cacheKey(scope CacheScope, filename string) string {
-	return string(scope) + filename
-}
-
 func (c *Cache) delete(filename string) {
-	c.r.Del(c.cacheKey(CacheRegular, filename))
-	c.r.Del(c.cacheKey(CacheTor, filename))
+	c.r.Del(filename)
 }

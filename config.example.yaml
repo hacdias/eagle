@@ -18,13 +18,6 @@ server:
   tilesSource: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
   # Enable request logging.
   logging: false
-  # Optional Tor configuration (https://www.torproject.org). 'tor' must be
-  # available on your PATH.
-  tor:
-    # Configuration directory of the Tor service.
-    directory: /path/to/conf/dir
-    # Enable Tor service logging (can be noisy).
-    logging: false
   # Optional ActivityPub configuration"
   activitypub:
     # Data directory for the ActivityPub handling. The keys 'private.key' and 'public.key'

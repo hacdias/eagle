@@ -31,12 +31,6 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 
-	// TOR Handler
-	if s.c.Server.Tor != nil {
-		r.Use(s.onionHeader)
-		r.Get("/onion", s.onionRedirGet)
-	}
-
 	// GitHub WebHook
 	if s.c.Server.WebhookSecret != "" {
 		r.Post("/webhook", s.webhookPost)
