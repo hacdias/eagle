@@ -199,7 +199,7 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 	for _, photo := range e.Helper().Photos() {
 		url := typed.Typed(photo).String("value")
 		if url != "" {
-			url = ap.Renderer.ImageURL(url)
+			url = ap.Renderer.ResolveImageURL(url)
 			attachments = append(attachments, mediaToActivity(url, "Image"))
 		}
 	}

@@ -117,11 +117,11 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 			id := strings.TrimPrefix(url.Path, "/")
 			imgSrc = []byte(r.m.ImageURL(id))
 
-			for format, srcset := range r.m.ImageSourceSet(id) {
+			for _, srcset := range r.m.ImageSourceSet(id) {
 				_, _ = w.WriteString("<source srcset=\"")
-				_, _ = w.WriteString(srcset)
+				_, _ = w.WriteString(srcset.Images)
 				_, _ = w.WriteString("\" type=\"image/")
-				_, _ = w.WriteString(format)
+				_, _ = w.WriteString(srcset.Type)
 				_, _ = w.WriteString("\">")
 			}
 		} else {

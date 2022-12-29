@@ -180,15 +180,26 @@ func (m *Media) ImageURL(id string) string {
 	return m.getCdnURL(id, "jpeg", 2000)
 }
 
-func (m *Media) ImageSourceSet(id string) map[string]string {
-	return map[string]string{
-		"webp": m.getCdnURL(id, "webp", 250) + " 250w" +
-			", " + m.getCdnURL(id, "webp", 500) + " 500w" +
-			", " + m.getCdnURL(id, "webp", 1000) + " 1000w" +
-			", " + m.getCdnURL(id, "webp", 2000) + " 2000w",
-		"jpeg": m.getCdnURL(id, "jpeg", 250) + " 250w" +
-			", " + m.getCdnURL(id, "jpeg", 500) + " 500w" +
-			", " + m.getCdnURL(id, "jpeg", 1000) + " 1000w" +
-			", " + m.getCdnURL(id, "jpeg", 2000) + " 2000w",
+type SourceSet struct {
+	Type   string
+	Images string
+}
+
+func (m *Media) ImageSourceSet(id string) []SourceSet {
+	return []SourceSet{
+		{
+			Type: "webp",
+			Images: m.getCdnURL(id, "webp", 250) + " 250w" +
+				", " + m.getCdnURL(id, "webp", 500) + " 500w" +
+				", " + m.getCdnURL(id, "webp", 1000) + " 1000w" +
+				", " + m.getCdnURL(id, "webp", 2000) + " 2000w",
+		},
+		{
+			Type: "jpeg",
+			Images: m.getCdnURL(id, "jpeg", 250) + " 250w" +
+				", " + m.getCdnURL(id, "jpeg", 500) + " 500w" +
+				", " + m.getCdnURL(id, "jpeg", 1000) + " 1000w" +
+				", " + m.getCdnURL(id, "jpeg", 2000) + " 2000w",
+		},
 	}
 }
