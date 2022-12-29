@@ -2,7 +2,6 @@ package renderer
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -13,7 +12,6 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/util"
-	"github.com/samber/lo"
 )
 
 func (r *Renderer) getIncludeTemplate(absoluteURLs bool) func(name string, data ...interface{}) (template.HTML, error) {
@@ -72,14 +70,6 @@ func safeCSS(text string) template.CSS {
 	return template.CSS(text)
 }
 
-func asJSON(a interface{}) string {
-	data, err := json.Marshal(a)
-	if err != nil {
-		return ""
-	}
-	return string(data)
-}
-
 func dateFormat(date, template string) string {
 	t, err := dateparse.ParseStrict(date)
 	if err != nil {
@@ -116,28 +106,25 @@ func (r *Renderer) getRenderMarkdown(absoluteURLs bool) func(string) template.HT
 
 func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 	funcs := template.FuncMap{
-		"truncate":            util.TruncateStringWithEllipsis,
-		"domain":              util.Domain,
-		"humanDomain":         humanDomain,
-		"strContains":         strings.Contains,
-		"strSplit":            strings.Split,
-		"strJoin":             strings.Join,
-		"containsString":      lo.Contains[string],
-		"safeHTML":            safeHTML,
-		"safeCSS":             safeCSS,
-		"imageURL":            r.ResolveImageURL,
-		"imageSourceSet":      r.ResolveImageSourceSet,
-		"dateFormat":          dateFormat,
-		"now":                 time.Now,
-		"include":             r.getIncludeTemplate(alwaysAbsolute),
-		"md":                  r.getRenderMarkdown(alwaysAbsolute),
-		"absURL":              r.c.Server.AbsoluteURL,
-		"relURL":              r.c.Server.RelativeURL,
-		"stars":               stars,
-		"sprintf":             fmt.Sprintf,
-		"durationFromSeconds": durationFromSeconds,
-		"asJSON":              asJSON,
-		"slugify":             util.Slugify,
+		"truncate":       util.TruncateStringWithEllipsis,
+		"domain":         util.Domain,
+		"humanDomain":    humanDomain,
+		"strContains":    strings.Contains,
+		"strSplit":       strings.Split,
+		"strJoin":        strings.Join,
+		"safeHTML":       safeHTML,
+		"safeCSS":        safeCSS,
+		"imageURL":       r.ResolveImageURL,
+		"imageSourceSet": r.ResolveImageSourceSet,
+		"dateFormat":     dateFormat,
+		"now":            time.Now,
+		"include":        r.getIncludeTemplate(alwaysAbsolute),
+		"md":             r.getRenderMarkdown(alwaysAbsolute),
+		"absURL":         r.c.Server.AbsoluteURL,
+		"relURL":         r.c.Server.RelativeURL,
+		"stars":          stars,
+		"sprintf":        fmt.Sprintf,
+		"slugify":        util.Slugify,
 	}
 
 	if alwaysAbsolute {
