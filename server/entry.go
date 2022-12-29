@@ -262,8 +262,6 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		to, _ := dateparse.ParseStrict(sub.String("end"))
 		e.Listing = &eagle.Listing{}
 
-		// TODO: custom template type so that I can use post/header.
-
 		s.listingGet(w, r, &listingSettings{
 			rd: &renderer.RenderData{
 				Entry: e,
