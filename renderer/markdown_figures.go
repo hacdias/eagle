@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"bytes"
+	"fmt"
 	urlpkg "net/url"
 	"strings"
 
@@ -88,22 +89,21 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 	if err != nil {
 		return ast.WalkStop, err
 	}
-	query := url.Query()
 
+	query := url.Query()
 	var (
 		class   string
 		caption = true
 	)
-
 	if v := query.Get("class"); v != "" {
 		query.Del("class")
 		class = v
 	}
-
 	if v := query.Get("caption"); v != "" {
 		query.Del("caption")
 		caption = v == "true"
 	}
+	url.RawQuery = query.Encode()
 
 	var (
 		id     string
@@ -135,6 +135,8 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 			}
 		}
 	}
+
+	fmt.Println(string(imgSrc))
 
 	w.WriteString("<img src=\"")
 	if r.absoluteURLs && r.c.Server.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
