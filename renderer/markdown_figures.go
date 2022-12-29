@@ -16,7 +16,8 @@ import (
 //
 // An image ~~with nonempty alt text~~, occurring by itself in a paragraph, will
 // be rendered as a figure with a caption. The image's alt text will be used as
-// the caption. You can disable caption with ?caption=false.
+// the caption. You can disable caption with ?caption=false. You can add classes
+// to the <figure>, or <img> element with ?class=my-class.
 type figuresRenderer struct {
 	*Renderer
 	html.Config
@@ -76,10 +77,8 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 			if node.HasChildren() {
 				w.WriteString("</figcaption>")
 			}
-
 			_, _ = w.WriteString("</figure>\n")
 		}
-
 		return ast.WalkContinue, nil
 	}
 
@@ -106,7 +105,17 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 		caption = v == "true"
 	}
 
-	var imgSrc []byte
+	var (
+		id     string
+		imgSrc []byte
+	)
+	if url.Scheme == "cdn" && r.m != nil {
+		id = strings.TrimPrefix(url.Path, "/")
+		imgSrc = []byte(r.m.ImageURL(id))
+	} else {
+		imgSrc = []byte(url.String())
+	}
+
 	if isFigure {
 		_, _ = w.WriteString("<figure")
 		if class != "" {
@@ -115,12 +124,8 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 			_ = w.WriteByte('"')
 		}
 		_ = w.WriteByte('>')
-
 		_, _ = w.WriteString("<picture>")
-		if url.Scheme == "cdn" && r.m != nil {
-			id := strings.TrimPrefix(url.Path, "/")
-			imgSrc = []byte(r.m.ImageURL(id))
-
+		if id != "" {
 			for _, srcset := range r.m.ImageSourceSet(id) {
 				_, _ = w.WriteString("<source srcset=\"")
 				_, _ = w.WriteString(srcset.Images)
@@ -128,15 +133,6 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 				_, _ = w.WriteString(srcset.Type)
 				_, _ = w.WriteString("\">")
 			}
-		} else {
-			imgSrc = []byte(url.String())
-		}
-	} else {
-		if url.Scheme == "cdn" && r.m != nil {
-			id := strings.TrimPrefix(url.Path, "/")
-			imgSrc = []byte(r.m.ImageURL(id))
-		} else {
-			imgSrc = []byte(url.String())
 		}
 	}
 
@@ -168,7 +164,6 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 	if isFigure {
 		_, _ = w.WriteString("</picture>")
 
-		// Special case for figure, to render the caption.
 		if node.HasChildren() && caption {
 			w.WriteString("\n<figcaption>")
 			return ast.WalkContinue, nil
