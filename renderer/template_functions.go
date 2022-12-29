@@ -92,10 +92,6 @@ func stars(rating, total int) template.HTML {
 	return template.HTML(stars)
 }
 
-func durationFromSeconds(seconds float64) time.Duration {
-	return time.Second * time.Duration(seconds)
-}
-
 func (r *Renderer) getRenderMarkdown(absoluteURLs bool) func(string) template.HTML {
 	if absoluteURLs {
 		return r.RenderAbsoluteMarkdown
