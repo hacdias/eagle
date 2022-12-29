@@ -174,7 +174,6 @@ func (r *Renderer) ResolveImageURL(urlStr string) string {
 
 	query := url.Query()
 	query.Del("class")
-	query.Del("id")
 	query.Del("caption")
 	url.RawQuery = query.Encode()
 
