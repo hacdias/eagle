@@ -6,8 +6,10 @@ import (
 	"html/template"
 	"io"
 	osfs "io/fs"
+	urlpkg "net/url"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/hacdias/eagle/eagle"
@@ -162,6 +164,45 @@ func (r *Renderer) RenderRelativeMarkdown(source string) template.HTML {
 	var buffer bytes.Buffer
 	_ = r.markdown.Convert([]byte(source), &buffer)
 	return template.HTML(buffer.Bytes())
+}
+
+func (r *Renderer) ResolveImageURL(urlStr string) string {
+	url, err := urlpkg.Parse(urlStr)
+	if err != nil {
+		return ""
+	}
+
+	query := url.Query()
+	query.Del("class")
+	query.Del("caption")
+	url.RawQuery = query.Encode()
+
+	if url.Scheme == "cdn" && r.m != nil {
+		id := strings.TrimPrefix(url.Path, "/")
+		return r.m.ImageURL(id)
+	} else {
+		return url.String()
+	}
+}
+
+func (r *Renderer) ResolveImageSourceSet(urlStr string) []media.SourceSet {
+	url, err := urlpkg.Parse(urlStr)
+	if err != nil {
+		return nil
+	}
+
+	query := url.Query()
+	query.Del("class")
+	query.Del("id")
+	query.Del("caption")
+	url.RawQuery = query.Encode()
+
+	if url.Scheme == "cdn" && r.m != nil {
+		id := strings.TrimPrefix(url.Path, "/")
+		return r.m.ImageSourceSet(id)
+	} else {
+		return nil
+	}
 }
 
 type Alternate struct {

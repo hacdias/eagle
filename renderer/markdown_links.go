@@ -27,9 +27,9 @@ func newLinksRenderer(renderer *Renderer, absoluteURLs bool) goldmark.Extender {
 	return e
 }
 
-func (md *linksRenderer) Extend(m goldmark.Markdown) {
+func (r *linksRenderer) Extend(m goldmark.Markdown) {
 	m.Renderer().AddOptions(renderer.WithNodeRenderers(
-		util.Prioritized(md, 0),
+		util.Prioritized(r, 100),
 	))
 }
 

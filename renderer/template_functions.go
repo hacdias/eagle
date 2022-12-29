@@ -115,15 +115,6 @@ func (r *Renderer) getRenderMarkdown(absoluteURLs bool) func(string) template.HT
 }
 
 func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
-	figure := func(url, alt string, uPhoto bool) template.HTML {
-		var w strings.Builder
-		err := r.writeFigure(&w, url, alt, "", alwaysAbsolute, true, uPhoto)
-		if err != nil {
-			return template.HTML("")
-		}
-		return template.HTML(w.String())
-	}
-
 	funcs := template.FuncMap{
 		"truncate":            util.TruncateStringWithEllipsis,
 		"domain":              util.Domain,
@@ -134,8 +125,8 @@ func (r *Renderer) getTemplateFuncMap(alwaysAbsolute bool) template.FuncMap {
 		"containsString":      lo.Contains[string],
 		"safeHTML":            safeHTML,
 		"safeCSS":             safeCSS,
-		"figure":              figure,
-		"figureURL":           r.ImageURL,
+		"imageURL":            r.ResolveImageURL,
+		"imageSourceSet":      r.ResolveImageSourceSet,
 		"dateFormat":          dateFormat,
 		"now":                 time.Now,
 		"include":             r.getIncludeTemplate(alwaysAbsolute),
