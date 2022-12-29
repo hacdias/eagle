@@ -9,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/samber/lo"
@@ -227,7 +229,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
-	ee, err := s.fs.GetEntry(r.URL.Path)
+	e, err := s.fs.GetEntry(r.URL.Path)
 	if os.IsNotExist(err) {
 		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		return
@@ -239,22 +241,43 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loggedIn := s.isLoggedIn(r)
-	if ee.Deleted && !loggedIn {
+	if e.Deleted && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusGone, nil)
 		return
 	}
 
-	if ee.Draft && !loggedIn {
+	if e.Draft && !loggedIn {
 		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
 		return
 	}
 
 	if s.ap != nil && isActivityPub(r) {
-		s.serveActivity(w, http.StatusAccepted, s.ap.GetEntryAsActivity(ee))
+		s.serveActivity(w, http.StatusAccepted, s.ap.GetEntryAsActivity(e))
 		return
 	}
 
-	s.serveEntry(w, r, ee)
+	if e.Helper().PostType() == mf2.TypeTrip {
+		sub := e.Helper().Sub(e.Helper().TypeProperty())
+		from, _ := dateparse.ParseStrict(sub.String("start"))
+		to, _ := dateparse.ParseStrict(sub.String("end"))
+		e.Listing = &eagle.Listing{}
+
+		s.listingGet(w, r, &listingSettings{
+			rd: &renderer.RenderData{
+				Entry: e,
+			},
+			exec: func(opts *indexer.Query) (eagle.Entries, error) {
+				opts.After = from
+				opts.Before = to
+				opts.Ascending = true
+				return s.i.GetAll(opts)
+			},
+			templates: []string{renderer.TemplateTrip},
+		})
+		return
+	}
+
+	s.serveEntry(w, r, e)
 }
 
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.Entry) {
