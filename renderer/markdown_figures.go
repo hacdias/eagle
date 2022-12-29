@@ -12,7 +12,11 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// Pandoc syntax: https://pandoc.org/MANUAL.html#images
+// Modified Pandoc syntax: https://pandoc.org/MANUAL.html#images
+//
+// An image ~~with nonempty alt text~~, occurring by itself in a paragraph, will
+// be rendered as a figure with a caption. The image's alt text will be used as
+// the caption. You can disable caption with ?caption=false.
 type figuresRenderer struct {
 	*Renderer
 	html.Config
@@ -182,5 +186,4 @@ func isFigure(node ast.Node) bool {
 		child != nil &&
 		child == node.LastChild() &&
 		child.Kind() == ast.KindImage
-	// child.HasChildren()
 }
