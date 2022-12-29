@@ -2,7 +2,6 @@ package renderer
 
 import (
 	"bytes"
-	"fmt"
 	urlpkg "net/url"
 	"strings"
 
@@ -76,7 +75,7 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 	if !entering {
 		if isFigure {
 			if node.HasChildren() {
-				w.WriteString("</figcaption>")
+				_, _ = w.WriteString("</figcaption>")
 			}
 			_, _ = w.WriteString("</figure>\n")
 		}
@@ -136,27 +135,25 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 		}
 	}
 
-	fmt.Println(string(imgSrc))
-
-	w.WriteString("<img src=\"")
+	_, _ = w.WriteString("<img src=\"")
 	if r.absoluteURLs && r.c.Server.BaseURL != "" && bytes.HasPrefix(imgSrc, []byte("/")) {
 		_, _ = w.Write(util.EscapeHTML([]byte(r.c.Server.BaseURL)))
 	}
 	if r.Unsafe || !html.IsDangerousURL(imgSrc) {
 		_, _ = w.Write(util.EscapeHTML(imgSrc))
 	}
-	w.WriteString(`" alt="`)
-	w.Write(n.Text(source))
-	w.WriteByte('"')
+	_, _ = w.WriteString(`" alt="`)
+	_, _ = w.Write(n.Text(source))
+	_ = w.WriteByte('"')
 	if !isFigure && class != "" {
 		_, _ = w.WriteString(` class="`)
 		_, _ = w.WriteString(class)
 		_ = w.WriteByte('"')
 	}
 	if n.Title != nil {
-		w.WriteString(` title="`)
+		_, _ = w.WriteString(` title="`)
 		r.Writer.Write(w, n.Title)
-		w.WriteByte('"')
+		_ = w.WriteByte('"')
 	}
 	if n.Attributes() != nil {
 		html.RenderAttributes(w, n, html.ImageAttributeFilter)
@@ -167,7 +164,7 @@ func (r *figuresRenderer) renderImage(w util.BufWriter, source []byte, node ast.
 		_, _ = w.WriteString("</picture>")
 
 		if node.HasChildren() && caption {
-			w.WriteString("\n<figcaption>")
+			_, _ = w.WriteString("\n<figcaption>")
 			return ast.WalkContinue, nil
 		}
 
