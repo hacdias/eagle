@@ -9,12 +9,17 @@ type Log struct {
 	Name   string    `yaml:"name,omitempty"`
 	Author string    `yaml:"author,omitempty"`
 	URL    string    `yaml:"url,omitempty"`
-	Season int       `yaml:"season,omitempty"` // TODO: remove.
+	Season int       `yaml:"season,omitempty"`
+	UID    string    `yaml:"uid,omitempty"`
 	Rating int       `yaml:"rating,omitempty"`
 	Date   time.Time `yaml:"date,omitempty"`
 }
 
 type Logs []Log
+
+func (l Logs) Append(ll Logs) Logs {
+	return append(l, ll...)
+}
 
 type LogsByYear struct {
 	Years []int
