@@ -49,7 +49,7 @@ func (l Logs) ByYear() *LogsByYear {
 	}
 }
 
-func (l Logs) Sort() {
+func (l Logs) Sort() Logs {
 	sort.SliceStable(l, func(i, j int) bool {
 		if l[i].Date.Equal(l[j].Date) {
 			return l[i].Name < l[j].Name
@@ -57,4 +57,6 @@ func (l Logs) Sort() {
 
 		return l[i].Date.After(l[j].Date)
 	})
+
+	return l
 }
