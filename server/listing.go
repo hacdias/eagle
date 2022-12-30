@@ -281,9 +281,35 @@ type listingPage struct {
 	NextPage     string
 }
 
-func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
-	opts := &indexer.Query{}
+func (s *Server) listingQuery(r *http.Request, ls *listingSettings) *indexer.Query {
+	opts := &indexer.Query{
+		OrderByUpdated: ls.rd.Entry.Listing.OrderByUpdated,
+	}
 
+	if ls.rd.Listing.DisablePagination {
+		return opts
+	}
+
+	opts.Pagination = &indexer.Pagination{}
+
+	if ls.rd.Entry.Listing.ItemsPerPage > 0 {
+		opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
+	} else {
+		opts.Pagination.Limit = s.c.Site.Pagination
+	}
+
+	if v := r.URL.Query().Get("page"); v != "" {
+		p, _ := strconv.Atoi(v)
+		if p >= 0 {
+			opts.Pagination.Page = p
+			ls.lp.Page = p
+		}
+	}
+
+	return opts
+}
+
+func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
 	if ls.rd == nil {
 		ls.rd = &renderer.RenderData{}
 	}
@@ -292,27 +318,14 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path, "")
 	}
 
-	opts.OrderByUpdated = ls.rd.Entry.Listing.OrderByUpdated
-
-	if !ls.rd.Entry.Listing.DisablePagination {
-		opts.Pagination = &indexer.Pagination{}
-
-		if ls.rd.Entry.Listing.ItemsPerPage > 0 {
-			opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
-		} else {
-			opts.Pagination.Limit = s.c.Site.Pagination
-		}
-
-		if v := r.URL.Query().Get("page"); v != "" {
-			vv, _ := strconv.Atoi(v)
-			if vv >= 0 {
-				opts.Pagination.Page = vv
-				ls.lp.Page = vv
-			}
-		}
+	feedType := chi.URLParam(r, "feed")
+	if !ls.noFeed && feedType != "" {
+		s.listingFeedGet(w, r, ls, feedType)
+		return
 	}
 
-	ee, err := ls.exec(opts)
+	query := s.listingQuery(r, ls)
+	ee, err := ls.exec(query)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
@@ -324,28 +337,20 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		url, _ := urlpkg.Parse(r.URL.String())
 		values := url.Query()
 
-		if opts.Pagination.Page > 0 {
-			values.Set("page", strconv.Itoa(opts.Pagination.Page-1))
+		if query.Pagination.Page > 0 {
+			values.Set("page", strconv.Itoa(query.Pagination.Page-1))
 			url.RawQuery = values.Encode()
 			ls.lp.PreviousPage = url.String()
 		}
 
 		if len(ee) > 0 {
-			values.Set("page", strconv.Itoa(opts.Pagination.Page+1))
+			values.Set("page", strconv.Itoa(query.Pagination.Page+1))
 			url.RawQuery = values.Encode()
 			ls.lp.NextPage = url.String()
 		}
 	}
 
 	ls.rd.Data = ls.lp
-
-	if !ls.noFeed {
-		feedType := chi.URLParam(r, "feed")
-		if feedType != "" {
-			s.listingFeedGet(w, r, ls, feedType, ee)
-			return
-		}
-	}
 
 	templates := ls.templates
 	if ls.rd.Template != "" {
@@ -374,7 +379,19 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	s.serveHTML(w, r, ls.rd, templates)
 }
 
-func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *listingSettings, feedType string, ee eagle.Entries) {
+func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *listingSettings, feedType string) {
+	opts := &indexer.Query{
+		Pagination: &indexer.Pagination{
+			Limit: s.c.Site.Pagination,
+		},
+	}
+
+	ee, err := ls.exec(opts)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
 	feed := &feeds.Feed{
 		Title:       fmt.Sprintf("%s - %s", ls.rd.Entry.TextTitle(), s.c.Site.Title),
 		Link:        &feeds.Link{Href: strings.TrimSuffix(s.c.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
@@ -411,7 +428,6 @@ func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *list
 	}
 
 	var (
-		err                       error
 		feedString, feedMediaType string
 	)
 
