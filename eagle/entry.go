@@ -392,10 +392,6 @@ func (ee Entries) AsLogs() Logs {
 			Rating: mm.Int("rating"),
 		}
 
-		if e.Updated.After(e.Published) {
-			l.Date = e.Updated
-		}
-
 		if sub == nil {
 			l.Name = e.Title
 		} else {
