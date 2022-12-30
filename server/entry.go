@@ -263,6 +263,7 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 		e.Listing = &eagle.Listing{}
 
 		s.listingGet(w, r, &listingSettings{
+			noFeed: true,
 			rd: &renderer.RenderData{
 				Entry: e,
 			},

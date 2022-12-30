@@ -134,21 +134,15 @@ func (s *Server) makeRouter() http.Handler {
 		}
 	})
 
-	// Listing JSON, XML and ATOM feeds. Not cached.
+	// Listing JSON, XML and ATOM feeds. Not cached. Taxonomies
+	// and date pages do not have feeds.
 	r.Get("/"+feedPath, s.indexGet)
 	r.Get("/all"+feedPath, s.allGet)
-	r.Get(yearPath+feedPath, s.dateGet)
-	r.Get(monthPath+feedPath, s.dateGet)
-	r.Get(dayPath+feedPath, s.dateGet)
 
 	for _, section := range s.c.Site.Sections {
 		if section != s.c.Site.IndexSection {
 			r.Get("/"+section+feedPath, s.sectionGet(section))
 		}
-	}
-
-	for id, taxonomy := range s.c.Site.Taxonomies {
-		r.Get("/"+id+"/{term}"+feedPath, s.taxonomyTermGet(id, taxonomy))
 	}
 
 	// Everything that was not matched so far.

@@ -102,6 +102,7 @@ func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
+		noFeed: true,
 		rd: &renderer.RenderData{
 			Entry: s.getListingEntryOrEmpty(r.URL.Path, title.String()),
 		},
@@ -145,6 +146,7 @@ func (s *Server) taxonomyTermGet(id string, taxonomy eagle.Taxonomy) http.Handle
 		}
 
 		s.listingGet(w, r, &listingSettings{
+			noFeed: true,
 			rd: &renderer.RenderData{
 				Entry: s.getListingEntryOrEmpty(r.URL.Path, taxonomy.Singular+": "+term),
 			},
@@ -182,6 +184,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.listingGet(w, r, &listingSettings{
+		noFeed: true,
 		rd: &renderer.RenderData{
 			Entry:   e,
 			NoIndex: true,
@@ -204,6 +207,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
+		noFeed: true,
 		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 			NoIndex: true,
@@ -216,6 +220,7 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
+		noFeed: true,
 		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
 			NoIndex: true,
@@ -228,6 +233,7 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
+		noFeed: true,
 		rd: &renderer.RenderData{
 			Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 			NoIndex: true,
@@ -262,6 +268,7 @@ type listingSettings struct {
 	rd        *renderer.RenderData
 	lp        listingPage
 	templates []string
+	noFeed    bool
 }
 
 type listingPage struct {
@@ -332,10 +339,12 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 
 	ls.rd.Data = ls.lp
 
-	feedType := chi.URLParam(r, "feed")
-	if feedType != "" {
-		s.listingFeedGet(w, r, ls, feedType, ee)
-		return
+	if !ls.noFeed {
+		feedType := chi.URLParam(r, "feed")
+		if feedType != "" {
+			s.listingFeedGet(w, r, ls, feedType, ee)
+			return
+		}
 	}
 
 	templates := ls.templates
@@ -345,19 +354,21 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	templates = append(templates, renderer.TemplateList)
 	path := r.URL.Path
 
-	ls.rd.Alternates = []renderer.Alternate{
-		{
-			Type: contenttype.JSONFeed,
-			Href: path + ".json",
-		},
-		{
-			Type: contenttype.ATOM,
-			Href: path + ".atom",
-		},
-		{
-			Type: contenttype.RSS,
-			Href: path + ".rss",
-		},
+	if !ls.noFeed {
+		ls.rd.Alternates = []renderer.Alternate{
+			{
+				Type: contenttype.JSONFeed,
+				Href: path + ".json",
+			},
+			{
+				Type: contenttype.ATOM,
+				Href: path + ".atom",
+			},
+			{
+				Type: contenttype.RSS,
+				Href: path + ".rss",
+			},
+		}
 	}
 
 	s.serveHTML(w, r, ls.rd, templates)
