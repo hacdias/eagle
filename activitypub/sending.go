@@ -163,13 +163,11 @@ func (ap *ActivityPub) autoLinkMentions(e *eagle.Entry) (*eagle.Entry, error) {
 					}
 
 					if !found {
-						name := "@" + actor.String("preferredUsername") + "@" + util.Domain(id)
 						mentions = append(mentions, &eagle.UserMention{
-							Name:  name,
+							Name:  "@" + actor.String("preferredUsername") + "@" + util.Domain(id),
 							Href:  id,
 							Inbox: inbox,
 						})
-						content = fmt.Sprintf("[%s](%s) ", name, id) + content
 					}
 				}
 			}
@@ -260,6 +258,10 @@ func (ap *ActivityPub) sendCreateOrUpdate(e *eagle.Entry, activityType string) e
 		"to":       object["to"],
 		"object":   object,
 		"actor":    ap.Config.Server.BaseURL,
+	}
+
+	if cc, ok := object["cc"]; ok {
+		activity["cc"] = cc
 	}
 
 	if published, ok := object["published"]; ok {

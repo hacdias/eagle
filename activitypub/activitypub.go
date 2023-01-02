@@ -179,6 +179,7 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 	}
 
 	tags := []map[string]string{}
+	cc := []string{}
 
 	if ap.Config.Server.ActivityPub.TagTaxonomy != "" {
 		for _, tag := range e.Taxonomy(ap.Config.Server.ActivityPub.TagTaxonomy) {
@@ -197,10 +198,16 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 			"href": mention.Href,
 			"id":   mention.Href,
 		})
+
+		cc = append(cc, mention.Href)
 	}
 
 	if len(tags) > 0 {
 		activity["tag"] = tags
+	}
+
+	if len(cc) > 0 {
+		activity["cc"] = cc
 	}
 
 	attachments := []map[string]string{}
