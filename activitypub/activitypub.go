@@ -129,9 +129,6 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		"@context": []string{
 			"https://www.w3.org/ns/activitystreams",
 		},
-		"to": []string{
-			"https://www.w3.org/ns/activitystreams#Public",
-		},
 		"id":           e.Permalink,
 		"url":          e.Permalink,
 		"mediaType":    contenttype.HTML,
@@ -179,7 +176,6 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 	}
 
 	tags := []map[string]string{}
-	cc := []string{}
 
 	if ap.Config.Server.ActivityPub.TagTaxonomy != "" {
 		for _, tag := range e.Taxonomy(ap.Config.Server.ActivityPub.TagTaxonomy) {
@@ -191,6 +187,7 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		}
 	}
 
+	to := []string{"https://www.w3.org/ns/activitystreams#Public"}
 	for _, mention := range e.UserMentions {
 		tags = append(tags, map[string]string{
 			"type": "Mention",
@@ -199,15 +196,12 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 			"id":   mention.Href,
 		})
 
-		cc = append(cc, mention.Href)
+		to = append(to, mention.Href)
 	}
+	activity["to"] = to
 
 	if len(tags) > 0 {
 		activity["tag"] = tags
-	}
-
-	if len(cc) > 0 {
-		activity["cc"] = cc
 	}
 
 	attachments := []map[string]string{}
