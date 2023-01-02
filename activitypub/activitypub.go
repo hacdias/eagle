@@ -25,6 +25,7 @@ import (
 	"github.com/hacdias/eagle/util"
 	"github.com/hacdias/eagle/webmentions"
 	"github.com/karlseguin/typed"
+	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
 )
 
@@ -137,12 +138,19 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		"attributedTo": ap.Config.Server.BaseURL,
 	}
 
-	var buf bytes.Buffer
+	var (
+		buf     bytes.Buffer
+		content string
+	)
 	err := ap.Renderer.Render(&buf, &renderer.RenderData{Entry: e}, []string{renderer.TemplateActivityPub}, true)
 	if err != nil {
-		activity["content"] = string(ap.Renderer.RenderAbsoluteMarkdown(e.Content))
+		content = string(ap.Renderer.RenderAbsoluteMarkdown(e.Content))
 	} else {
-		activity["content"] = buf.String()
+		content = buf.String()
+	}
+
+	if content != "" {
+		activity["content"] = bluemonday.UGCPolicy().Sanitize(content)
 	}
 
 	if e.Title != "" {
