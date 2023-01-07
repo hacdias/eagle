@@ -83,19 +83,22 @@ func (f *FS) ClosestCheckin(t time.Time, loc *maze.Location) (*eagle.Checkin, er
 		checkins = append(checkins, oldCheckins...).Sort()
 	}
 
-	var checkin *eagle.Checkin
-
+	j := -1
 	for i, c := range checkins {
-		if c.Date.After(t) {
-			if i != 0 {
-				checkin = checkins[i-1]
-			}
-
+		if c.Date.Before(t) {
+			j = i
+		} else {
 			break
 		}
 	}
 
-	if checkin == nil || t.Sub(checkin.Date).Hours() > 1 {
+	if j == -1 {
+		return nil, nil
+	}
+
+	checkin := checkins[j]
+
+	if t.Sub(checkin.Date).Hours() > 1 {
 		return nil, nil
 	}
 

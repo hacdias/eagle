@@ -35,14 +35,14 @@ func (s *Server) newCheckinPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		date time.Time
-		err  error
+		t   time.Time
+		err error
 	)
 
 	if dateStr := r.FormValue("date"); dateStr != "" {
-		date, err = dateparse.ParseStrict(dateStr)
+		t, err = dateparse.ParseStrict(dateStr)
 	} else {
-		date = time.Now()
+		t = time.Now()
 	}
 
 	if err != nil {
@@ -50,15 +50,17 @@ func (s *Server) newCheckinPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.Local)
 	location, err := s.maze.ReverseGeoURI(s.c.Site.Language, geouri)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
+	location.Name = name
 	c := &eagle.Checkin{
 		Location: *location,
-		Date:     date,
+		Date:     t,
 	}
 
 	err = s.fs.SaveCheckin(c)

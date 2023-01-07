@@ -60,6 +60,15 @@ func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
 		return nil
 	}
 
+	checkin, err := l.fs.ClosestCheckin(e.Published, location)
+	if err != nil {
+		return err
+	}
+
+	if checkin != nil {
+		location = &checkin.Location
+	}
+
 	_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
 		delete(ee.Properties, "location")
 		ee.Location = location
