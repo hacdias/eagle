@@ -62,7 +62,7 @@ func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
 
 	_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
 		delete(ee.Properties, "location")
-		e.Location = location
+		ee.Location = location
 		return ee, nil
 	})
 
