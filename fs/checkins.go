@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/gocarina/gocsv"
@@ -29,11 +28,7 @@ func (f *FS) SaveCheckin(c *eagle.Checkin) error {
 	if err != nil {
 		return err
 	}
-	checkins = append(checkins, c)
-
-	sort.Slice(checkins, func(i, j int) bool {
-		return checkins[i].Date.Before(checkins[j].Date)
-	})
+	checkins = append(checkins, c).Sort()
 
 	data, err := gocsv.MarshalBytes(&checkins)
 	if err != nil {
@@ -49,7 +44,7 @@ func (f *FS) SaveCheckin(c *eagle.Checkin) error {
 	return f.WriteFile(filename, data)
 }
 
-func (f *FS) GetCheckins(year int, month time.Month) ([]*eagle.Checkin, error) {
+func (f *FS) GetCheckins(year int, month time.Month) (eagle.Checkins, error) {
 	filename := checkinsFilename(year, month)
 	checkins := []*eagle.Checkin{}
 
@@ -71,6 +66,31 @@ func (f *FS) GetCheckins(year int, month time.Month) ([]*eagle.Checkin, error) {
 }
 
 func (f *FS) ClosestCheckin(t time.Time) (*eagle.Checkin, error) {
-	// lastMonth := t.AddDate(0, -1, 0)
+	checkins, err := f.GetCheckins(t.Year(), t.Month())
+	if err != nil {
+		return nil, err
+	}
+
+	if t.Day() == 1 {
+		lastMonth := t.AddDate(0, -1, 0)
+
+		lastMonthCheckins, err := f.GetCheckins(lastMonth.Year(), lastMonth.Month())
+		if err != nil {
+			return nil, err
+		}
+
+		checkins = append(checkins, lastMonthCheckins...).Sort()
+	}
+
+	for i, c := range checkins {
+		if c.Date.After(t) {
+			if i != 0 {
+				return checkins[i-1], nil
+			} else {
+				return nil, nil
+			}
+		}
+	}
+
 	return nil, errors.New("not implemented")
 }
