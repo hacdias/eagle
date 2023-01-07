@@ -31,6 +31,7 @@ import (
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/contenttype"
+	"github.com/hacdias/eagle/pkg/maze"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
@@ -79,6 +80,7 @@ type Server struct {
 	renderer    *renderer.Renderer
 	parser      *eagle.Parser
 	ap          *activitypub.ActivityPub
+	maze        *maze.Maze
 
 	preSaveHooks  []eagle.EntryHook
 	postSaveHooks []eagle.EntryHook
@@ -140,23 +142,26 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	s := &Server{
-		n:             notifier,
-		c:             c,
-		i:             indexer.NewIndexer(fs, postgres),
-		log:           log.S().Named("server"),
-		ias:           indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth:       jwtauth.New("HS256", []byte(secret), nil),
-		servers:       []*httpServer{},
-		cron:          cron.New(),
-		redirects:     map[string]string{},
-		archetypes:    eagle.DefaultArchetypes,
-		fs:            fs,
-		media:         m,
-		cache:         cache,
-		webmentions:   webmentions.NewWebmentions(fs, notifier, renderer, m),
-		syndicator:    eagle.NewManager(),
-		renderer:      renderer,
-		parser:        eagle.NewParser(c.Server.BaseURL),
+		n:           notifier,
+		c:           c,
+		i:           indexer.NewIndexer(fs, postgres),
+		log:         log.S().Named("server"),
+		ias:         indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		jwtAuth:     jwtauth.New("HS256", []byte(secret), nil),
+		servers:     []*httpServer{},
+		cron:        cron.New(),
+		redirects:   map[string]string{},
+		archetypes:  eagle.DefaultArchetypes,
+		fs:          fs,
+		media:       m,
+		cache:       cache,
+		webmentions: webmentions.NewWebmentions(fs, notifier, renderer, m),
+		syndicator:  eagle.NewManager(),
+		renderer:    renderer,
+		parser:      eagle.NewParser(c.Server.BaseURL),
+		maze: maze.NewMaze(&http.Client{
+			Timeout: time.Minute,
+		}),
 		preSaveHooks:  []eagle.EntryHook{},
 		postSaveHooks: []eagle.EntryHook{},
 	}

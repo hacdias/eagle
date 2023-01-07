@@ -2,13 +2,11 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/maze"
 	"github.com/hacdias/eagle/renderer"
 )
 
@@ -52,16 +50,27 @@ func (s *Server) newCheckinPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	location, err := maze.NewMaze(&http.Client{
-		Timeout: time.Minute,
-	}).ReverseGeoURI(s.c.Site.Language, geouri)
+	location, err := s.maze.ReverseGeoURI(s.c.Site.Language, geouri)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	// TODO: save checkin.
-	fmt.Println(name, location, date)
+	c := &eagle.Checkin{
+		Date:      date,
+		Latitude:  location.Latitude,
+		Longitude: location.Longitude,
+		Name:      name,
+		Locality:  location.Locality,
+		Region:    location.Region,
+		Country:   location.Country,
+	}
+
+	err = s.fs.SaveCheckin(c)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
 
 	http.Redirect(w, r, "/checkins", http.StatusSeeOther)
 }

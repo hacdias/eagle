@@ -32,7 +32,7 @@ func (f *FS) SaveCheckin(c *eagle.Checkin) error {
 	checkins = append(checkins, c)
 
 	sort.Slice(checkins, func(i, j int) bool {
-		return checkins[i].Date.After(checkins[j].Date)
+		return checkins[i].Date.Before(checkins[j].Date)
 	})
 
 	data, err := gocsv.MarshalBytes(&checkins)
