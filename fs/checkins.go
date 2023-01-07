@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/gocarina/gocsv"
 	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/pkg/maze"
 )
 
 func checkinsFilename(year int, month time.Month) string {
@@ -65,32 +65,46 @@ func (f *FS) GetCheckins(year int, month time.Month) (eagle.Checkins, error) {
 	return checkins, err
 }
 
-func (f *FS) ClosestCheckin(t time.Time, lat, lon float64) (*eagle.Checkin, error) {
+// ClosestCheckin returns the closest checkin to t (less than 1 hour) and loc
+// (less than 500 meters).
+func (f *FS) ClosestCheckin(t time.Time, loc *maze.Location) (*eagle.Checkin, error) {
 	checkins, err := f.GetCheckins(t.Year(), t.Month())
 	if err != nil {
 		return nil, err
 	}
 
-	if t.Day() == 1 {
-		lastMonth := t.AddDate(0, -1, 0)
-
-		lastMonthCheckins, err := f.GetCheckins(lastMonth.Year(), lastMonth.Month())
+	// Get last month's checkins if we're close to midnight of the day before.
+	if t.Day() == 1 && t.Hour() <= 5 {
+		ot := t.AddDate(0, -1, 0)
+		oldCheckins, err := f.GetCheckins(ot.Year(), ot.Month())
 		if err != nil {
 			return nil, err
 		}
-
-		checkins = append(checkins, lastMonthCheckins...).Sort()
+		checkins = append(checkins, oldCheckins...).Sort()
 	}
+
+	var checkin *eagle.Checkin
 
 	for i, c := range checkins {
 		if c.Date.After(t) {
 			if i != 0 {
-				return checkins[i-1], nil
-			} else {
-				return nil, nil
+				checkin = checkins[i-1]
 			}
+
+			break
 		}
 	}
 
-	return nil, errors.New("not implemented")
+	if checkin == nil || t.Sub(checkin.Date).Hours() > 1 {
+		return nil, nil
+	}
+
+	if loc != nil {
+		// If the distance is over 500 meters, ignore.
+		if loc.Distance(&checkin.Location) > 500 {
+			return nil, nil
+		}
+	}
+
+	return checkin, nil
 }
