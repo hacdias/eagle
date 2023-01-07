@@ -61,7 +61,8 @@ func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
 	}
 
 	_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
-		ee.Properties["location"] = location
+		delete(ee.Properties, "location")
+		e.Location = location
 		return ee, nil
 	})
 
@@ -89,7 +90,7 @@ func (l *LocationFetcher) processItineraryLocations(e *eagle.Entry) error {
 		return errors.New("itinerary has no legs")
 	}
 
-	var lastDest map[string]interface{}
+	var lastDest *maze.Location
 
 	for _, leg := range legs {
 		props, ok := leg.ObjectIf("properties")
@@ -110,16 +111,16 @@ func (l *LocationFetcher) processItineraryLocations(e *eagle.Entry) error {
 			return err
 		}
 
-		loc, err := l.parseItineraryLocation(props, "destination", transitType)
+		lastDest, err = l.parseItineraryLocation(props, "destination", transitType)
 		if err != nil {
 			return err
 		}
-		lastDest = loc
 	}
 
 	_, err := l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
 		if lastDest != nil {
-			ee.Properties["location"] = lastDest
+			delete(ee.Properties, "location")
+			ee.Location = lastDest
 		}
 
 		if len(legs) == 1 {
@@ -134,14 +135,14 @@ func (l *LocationFetcher) processItineraryLocations(e *eagle.Entry) error {
 	return err
 }
 
-func (l *LocationFetcher) parseItineraryLocation(props typed.Typed, prop, transitType string) (map[string]interface{}, error) {
+func (l *LocationFetcher) parseItineraryLocation(props typed.Typed, prop, transitType string) (*maze.Location, error) {
 	str := props.String(prop)
 	if str == "" {
 		return nil, errors.New(prop + " missing")
 	}
 
 	var (
-		location map[string]interface{}
+		location *maze.Location
 		err      error
 	)
 
@@ -155,11 +156,11 @@ func (l *LocationFetcher) parseItineraryLocation(props typed.Typed, prop, transi
 		return nil, err
 	}
 
-	props[prop] = location
+	props[prop] = locationToMultiformat(location)
 	return location, nil
 }
 
-func (l *LocationFetcher) parseAirportLocation(str string) (map[string]interface{}, error) {
+func (l *LocationFetcher) parseAirportLocation(str string) (*maze.Location, error) {
 	var code string
 
 	if strings.Contains(str, "(") {
@@ -182,10 +183,10 @@ func (l *LocationFetcher) parseAirportLocation(str string) (map[string]interface
 		return nil, err
 	}
 
-	return locationToMultiformat(location), nil
+	return location, nil
 }
 
-func (l *LocationFetcher) parseLocation(str string) (map[string]interface{}, error) {
+func (l *LocationFetcher) parseLocation(str string) (*maze.Location, error) {
 	var (
 		location *maze.Location
 		err      error
@@ -204,7 +205,7 @@ func (l *LocationFetcher) parseLocation(str string) (map[string]interface{}, err
 		return nil, err
 	}
 
-	return locationToMultiformat(location), nil
+	return location, nil
 }
 
 func locationToMultiformat(loc *maze.Location) map[string]interface{} {

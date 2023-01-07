@@ -7,12 +7,12 @@ import (
 )
 
 type Location struct {
-	Latitude  float64 `json:"latitude,omitempty" yaml:"latitude,omitempty"`
-	Longitude float64 `json:"longitude,omitempty" yaml:"longitude,omitempty"`
-	Name      string  `json:"name,omitempty" yaml:"name,omitempty"`
-	Locality  string  `json:"locality,omitempty" yaml:"locality,omitempty"`
-	Region    string  `json:"region,omitempty" yaml:"region,omitempty"`
-	Country   string  `json:"country-name,omitempty" yaml:"country-name,omitempty"`
+	Latitude  float64 `json:"latitude,omitempty" yaml:"latitude,omitempty" csv:"latitude"`
+	Longitude float64 `json:"longitude,omitempty" yaml:"longitude,omitempty" csv:"longitude"`
+	Name      string  `json:"name,omitempty" yaml:"name,omitempty" csv:"name"`
+	Locality  string  `json:"locality,omitempty" yaml:"locality,omitempty" csv:"locality"`
+	Region    string  `json:"region,omitempty" yaml:"region,omitempty" csv:"region"`
+	Country   string  `json:"country,omitempty" yaml:"country,omitempty" csv:"country"`
 }
 
 type Maze struct {

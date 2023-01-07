@@ -65,7 +65,7 @@ func (f *FS) GetCheckins(year int, month time.Month) (eagle.Checkins, error) {
 	return checkins, err
 }
 
-func (f *FS) ClosestCheckin(t time.Time) (*eagle.Checkin, error) {
+func (f *FS) ClosestCheckin(t time.Time, lat, lon float64) (*eagle.Checkin, error) {
 	checkins, err := f.GetCheckins(t.Year(), t.Month())
 	if err != nil {
 		return nil, err

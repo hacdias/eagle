@@ -57,13 +57,8 @@ func (s *Server) newCheckinPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := &eagle.Checkin{
-		Date:      date,
-		Latitude:  location.Latitude,
-		Longitude: location.Longitude,
-		Name:      name,
-		Locality:  location.Locality,
-		Region:    location.Region,
-		Country:   location.Country,
+		Location: *location,
+		Date:     date,
 	}
 
 	err = s.fs.SaveCheckin(c)
