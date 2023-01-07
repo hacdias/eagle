@@ -19,6 +19,9 @@ func checkinsFilename(year int, month time.Month) string {
 }
 
 func (f *FS) SaveCheckin(c *eagle.Checkin) error {
+	f.checkinsMu.Lock()
+	defer f.checkinsMu.Unlock()
+
 	year := c.Date.Year()
 	month := c.Date.Month()
 
@@ -26,6 +29,7 @@ func (f *FS) SaveCheckin(c *eagle.Checkin) error {
 	if err != nil {
 		return err
 	}
+	checkins = append(checkins, c)
 
 	sort.Slice(checkins, func(i, j int) bool {
 		return checkins[i].Date.After(checkins[j].Date)
@@ -68,6 +72,5 @@ func (f *FS) GetCheckins(year int, month time.Month) ([]*eagle.Checkin, error) {
 
 func (f *FS) ClosestCheckin(t time.Time) (*eagle.Checkin, error) {
 	// lastMonth := t.AddDate(0, -1, 0)
-
 	return nil, errors.New("not implemented")
 }

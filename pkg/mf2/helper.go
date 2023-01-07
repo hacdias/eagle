@@ -1,7 +1,6 @@
 package mf2
 
 import (
-	"html/template"
 	"reflect"
 	"strings"
 
@@ -175,24 +174,6 @@ func (m *FlatHelper) LocalityCountry() string {
 	}
 
 	return strings.Join(strs, ", ")
-}
-
-func (m *FlatHelper) LocationHTML() template.HTML {
-	strs := []string{}
-
-	if v, ok := m.Properties.StringIf("locality"); ok {
-		strs = append(strs, `<span class="p-locality">`+v+`</span>`)
-	}
-
-	if v, ok := m.Properties.StringIf("region"); ok {
-		strs = append(strs, `<span class="p-region">`+v+`</span>`)
-	}
-
-	if v, ok := m.Properties.StringIf("country-name"); ok {
-		strs = append(strs, `<span class="p-country">`+v+`</span>`)
-	}
-
-	return template.HTML(strings.Join(strs, ", "))
 }
 
 func (m *FlatHelper) Sub(prop string) *FlatHelper {
