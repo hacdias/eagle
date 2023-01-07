@@ -47,6 +47,7 @@ var countCmd = &cobra.Command{
 			fmt.Printf("%s: %d\n", k, count[k])
 		}
 
+		fmt.Println("\nTotal:", len(ee))
 		return nil
 	},
 }

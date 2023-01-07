@@ -195,9 +195,5 @@ func Parse(data map[string]interface{}) *Post {
 		parsed.Private = raw.String("wm-private") == "true"
 	}
 
-	if coins, ok := raw.IntIf("swarm-coins"); ok {
-		parsed.SwarmCoins = coins
-	}
-
 	return parsed
 }

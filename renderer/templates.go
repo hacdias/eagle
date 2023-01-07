@@ -23,6 +23,7 @@ const (
 	TemplateSearch               string = "search"
 	TemplateEditor               string = "editor"
 	TemplateNew                  string = "new"
+	TemplateNewCheckin           string = "new-checkin"
 	TemplateIndex                string = "index"
 	TemplateTerms                string = "terms"
 	TemplateAuth                 string = "auth"

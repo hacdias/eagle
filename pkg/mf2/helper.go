@@ -1,9 +1,7 @@
 package mf2
 
 import (
-	"html/template"
 	"reflect"
-	"strings"
 
 	"github.com/karlseguin/typed"
 )
@@ -161,38 +159,6 @@ func (m *FlatHelper) Photo() map[string]interface{} {
 
 func (m *FlatHelper) Name() string {
 	return m.Properties.StringOr("name", "")
-}
-
-func (m *FlatHelper) LocalityCountry() string {
-	strs := []string{}
-
-	if v, ok := m.Properties.StringIf("locality"); ok {
-		strs = append(strs, v)
-	}
-
-	if v, ok := m.Properties.StringIf("country-name"); ok {
-		strs = append(strs, v)
-	}
-
-	return strings.Join(strs, ", ")
-}
-
-func (m *FlatHelper) LocationHTML() template.HTML {
-	strs := []string{}
-
-	if v, ok := m.Properties.StringIf("locality"); ok {
-		strs = append(strs, `<span class="p-locality">`+v+`</span>`)
-	}
-
-	if v, ok := m.Properties.StringIf("region"); ok {
-		strs = append(strs, `<span class="p-region">`+v+`</span>`)
-	}
-
-	if v, ok := m.Properties.StringIf("country-name"); ok {
-		strs = append(strs, `<span class="p-country">`+v+`</span>`)
-	}
-
-	return template.HTML(strings.Join(strs, ", "))
 }
 
 func (m *FlatHelper) Sub(prop string) *FlatHelper {

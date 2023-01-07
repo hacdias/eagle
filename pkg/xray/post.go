@@ -13,12 +13,11 @@ type Author struct {
 }
 
 type Post struct {
-	Author     Author    `json:"author,omitempty"`
-	Published  time.Time `json:"published,omitempty"`
-	Name       string    `json:"name,omitempty"`
-	Content    string    `json:"content,omitempty"`
-	URL        string    `json:"url,omitempty"`
-	Type       mf2.Type  `json:"type,omitempty"`
-	Private    bool      `json:"private,omitempty"`
-	SwarmCoins int       `json:"swarmCoins,omitempty"`
+	Author    Author    `json:"author,omitempty"`
+	Published time.Time `json:"published,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	Content   string    `json:"content,omitempty"`
+	URL       string    `json:"url,omitempty"`
+	Type      mf2.Type  `json:"type,omitempty"`
+	Private   bool      `json:"private,omitempty"`
 }

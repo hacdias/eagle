@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hacdias/eagle/pkg/maze"
 	"github.com/spf13/cast"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -39,6 +40,7 @@ type FrontMatter struct {
 	Listing            *Listing               `yaml:"listing,omitempty"`
 	Taxonomies         map[string][]string    `yaml:"taxonomies,omitempty"`
 	UserMentions       []*UserMention         `yaml:"userMentions,omitempty"`
+	Location           *maze.Location         `yaml:"location,omitempty"`
 }
 
 func (f *FrontMatter) Taxonomy(name string) []string {
