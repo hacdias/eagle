@@ -38,26 +38,20 @@ func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
 }
 
 func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
-	if e.Properties == nil {
-		return nil
-	}
-
 	if e.Helper().PostType() == mf2.TypeItinerary {
 		return l.processItineraryLocations(e)
 	}
 
-	locationStr, ok := e.Properties["location"].(string)
-	if locationStr == "" || !ok {
-		return nil
-	}
+	var (
+		location *maze.Location
+		err      error
+	)
 
-	location, err := l.parseLocation(locationStr)
-	if err != nil {
-		return err
-	}
-
-	if location == nil {
-		return nil
+	if v := e.Helper().String("location"); v != "" {
+		location, err = l.parseLocation(v)
+		if err != nil {
+			return err
+		}
 	}
 
 	checkin, err := l.fs.ClosestCheckin(e.Published, location)
