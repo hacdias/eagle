@@ -171,6 +171,7 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 			return http.StatusInternalServerError, err
 		}
 
+		s.n.Info(fmt.Sprintf("📍 #checkin at %s", sub.String("name")))
 		http.Redirect(w, r, s.c.Server.BaseURL+"/checkins", http.StatusAccepted)
 		return 0, nil
 	}
