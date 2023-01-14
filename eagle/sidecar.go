@@ -18,3 +18,10 @@ type Sidecar struct {
 func (s *Sidecar) MentionsCount() int {
 	return len(s.Replies) + len(s.Interactions)
 }
+
+func (s *Sidecar) Empty() bool {
+	return len(s.Targets) == 0 &&
+		s.Context == nil &&
+		len(s.Replies) == 0 &&
+		len(s.Interactions) == 0
+}

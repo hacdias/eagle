@@ -77,6 +77,23 @@ func (f *FS) WriteFile(filename string, data []byte) error {
 	return nil
 }
 
+func (f *FS) RemoveFile(filename string) error {
+	if _, err := f.Stat(filename); err == nil {
+		err := f.Afero.Remove(filename)
+		if err != nil {
+			return err
+		}
+
+		err = f.sync.Persist(filename)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
 func (f *FS) WriteJSON(filename string, data interface{}) error {
 	json, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

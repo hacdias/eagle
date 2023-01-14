@@ -74,5 +74,9 @@ func (f *FS) UpdateSidecar(entry *eagle.Entry, t func(*eagle.Sidecar) (*eagle.Si
 		f.AfterSaveHook(eagle.Entries{entry}, nil)
 	}
 
+	if newSd.Empty() {
+		return f.RemoveFile(filename)
+	}
+
 	return f.WriteJSON(filename, newSd)
 }
