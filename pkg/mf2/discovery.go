@@ -32,7 +32,6 @@ const (
 	TypeAte       Type = "ate"
 	TypeDrank     Type = "drank"
 	TypeItinerary Type = "itinerary"
-	TypeTrip      Type = "trip"
 )
 
 type propTyp struct {
@@ -54,7 +53,6 @@ var propertyToType = []propTyp{
 	{"ate", TypeAte},
 	{"drank", TypeDrank},
 	{"itinerary", TypeItinerary},
-	{"trip", TypeTrip},
 
 	// Most of the posts above can be accompanied by these,
 	// so they are naturally the last ones.
