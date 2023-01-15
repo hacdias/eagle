@@ -28,7 +28,6 @@ const (
 	TemplateTerms                string = "terms"
 	TemplateAuth                 string = "auth"
 	TemplateDashboard            string = "dashboard"
-	TemplateTrip                 string = "trip"
 	TemplateActivityPub          string = "activitypub"
 	TemplateActivityPubFollowers string = "activitypub-followers"
 )

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"html"
-	"sort"
 	"strings"
 	"time"
 
@@ -333,51 +332,6 @@ func getCategoryStrings(props typed.Typed) ([]string, []interface{}) {
 }
 
 type Entries []*Entry
-
-type EntriesByYear struct {
-	Years []int
-	Map   map[int]Entries
-}
-
-func (ee Entries) ByYear() *EntriesByYear {
-	years := []int{}
-	byYear := map[int]Entries{}
-
-	for _, r := range ee {
-		year := r.Published.Year()
-
-		_, ok := byYear[year]
-		if !ok {
-			years = append(years, year)
-			byYear[year] = Entries{}
-		}
-
-		byYear[year] = append(byYear[year], r)
-	}
-
-	sort.Sort(sort.Reverse(sort.IntSlice(years)))
-
-	for _, year := range years {
-		byYear[year].Sort()
-	}
-
-	return &EntriesByYear{
-		Years: years,
-		Map:   byYear,
-	}
-}
-
-func (ee Entries) Sort() Entries {
-	sort.SliceStable(ee, func(i, j int) bool {
-		if ee[i].Published.Equal(ee[j].Published) {
-			return ee[i].Title < ee[j].Title
-		}
-
-		return ee[i].Published.After(ee[j].Published)
-	})
-
-	return ee
-}
 
 func (ee Entries) AsLogs() Logs {
 	logs := Logs{}
