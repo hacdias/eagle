@@ -131,7 +131,6 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 	// the media endpoint as a property. This is unnecessary.
 	delete(props, "file")
 
-	mm := mf2.NewFlatHelper(props)
 	e.Properties = props
 
 	if published, ok := props.StringIf("published"); ok {
@@ -199,46 +198,8 @@ func (e *Entry) Update(newProps map[string][]interface{}) error {
 		}
 	}
 
-	switch mm.PostType() {
-	case mf2.TypeItinerary:
-		if err := e.parseDateFromItinerary(props, mm); err != nil {
-			return err
-		}
-	}
-
 	if e.Published.IsZero() {
 		e.Published = time.Now().Local()
-	}
-
-	return nil
-}
-
-func (e *Entry) parseDateFromItinerary(data typed.Typed, mm *mf2.FlatHelper) error {
-	if !e.Published.IsZero() {
-		return nil
-	}
-
-	dateFromLeg := func(leg typed.Typed) error {
-		props, ok := leg.ObjectIf("properties")
-		if !ok {
-			return nil
-		}
-
-		if arrival, ok := props.StringIf("arrival"); ok {
-			p, err := dateparse.ParseStrict(arrival)
-			if err != nil {
-				return err
-			}
-			e.Published = p
-		}
-
-		return nil
-	}
-
-	if leg, ok := data.ObjectIf(mm.TypeProperty()); ok {
-		return dateFromLeg(leg)
-	} else if legs, ok := data.ObjectsIf(mm.TypeProperty()); ok {
-		return dateFromLeg(legs[len(legs)-1])
 	}
 
 	return nil
