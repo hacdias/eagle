@@ -6,13 +6,16 @@ import (
 )
 
 type Log struct {
-	Name   string    `yaml:"name,omitempty"`
-	Author string    `yaml:"author,omitempty"`
-	URL    string    `yaml:"url,omitempty"`
-	Season int       `yaml:"season,omitempty"`
-	UID    string    `yaml:"uid,omitempty"`
-	Rating int       `yaml:"rating,omitempty"`
-	Date   time.Time `yaml:"date,omitempty"`
+	Name      string    `yaml:"name,omitempty"`
+	Author    string    `yaml:"author,omitempty"`
+	URL       string    `yaml:"url,omitempty"`
+	Season    int       `yaml:"season,omitempty"`
+	UID       string    `yaml:"uid,omitempty"`
+	Rating    int       `yaml:"rating,omitempty"`
+	Date      time.Time `yaml:"date,omitempty"`
+	Start     time.Time `yaml:"start,omitempty"`
+	Latitude  float64   `yaml:"latitude,omitempty"`
+	Longitude float64   `yaml:"longitude,omitempty"`
 }
 
 type Logs []Log
