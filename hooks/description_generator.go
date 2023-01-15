@@ -1,8 +1,6 @@
 package hooks
 
 import (
-	"strconv"
-
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/mf2"
@@ -66,8 +64,6 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 		description = "At " + checkin.Name()
 	case mf2.TypeRsvp:
 		description, err = d.generateRsvpDescription(e)
-	case mf2.TypeWatch:
-		description, err = d.generateWatchDescription(e)
 	}
 
 	if err != nil {
@@ -114,21 +110,4 @@ func (d *DescriptionGenerator) generateRsvpDescription(e *eagle.Entry) (string, 
 	}
 
 	return "", nil
-}
-
-func (d *DescriptionGenerator) generateWatchDescription(e *eagle.Entry) (string, error) {
-	mm := e.Helper()
-	sub := mm.Sub(mm.TypeProperty())
-	series := sub.Sub("episode-of")
-
-	what := ""
-	if series == nil {
-		what = sub.Name()
-	} else {
-		season := sub.Int("season")
-		episode := sub.Int("episode")
-		what = sub.Name() + " (" + series.Name() + " S" + strconv.Itoa(season) + "E" + strconv.Itoa(episode) + ")"
-	}
-
-	return "Just watched: " + what, nil
 }
