@@ -12,7 +12,6 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/maze"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/micropub"
 	"github.com/samber/lo"
@@ -149,31 +148,6 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 
 	if err := s.preSaveEntry(nil, e); err != nil {
 		return http.StatusInternalServerError, err
-	}
-
-	if e.Helper().PostType() == mf2.TypeCheckin {
-		sub := e.Helper().Sub(e.Helper().TypeProperty())
-
-		c := &eagle.Checkin{
-			Date: e.Published,
-			Location: maze.Location{
-				Latitude:  sub.Float("latitude"),
-				Longitude: sub.Float("longitude"),
-				Name:      sub.String("name"),
-				Locality:  sub.String("locality"),
-				Region:    sub.String("region"),
-				Country:   sub.String("country-name"),
-			},
-		}
-
-		err = s.fs.SaveCheckin(c)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
-		s.n.Info(fmt.Sprintf("📍 #checkin at %s", sub.String("name")))
-		http.Redirect(w, r, s.c.Server.BaseURL+"/checkins", http.StatusAccepted)
-		return 0, nil
 	}
 
 	err = s.fs.SaveEntry(e)

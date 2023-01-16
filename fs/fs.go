@@ -40,7 +40,6 @@ type FS struct {
 	// would probably make it much slower though.
 	entriesMu  sync.Mutex
 	sidecarsMu sync.Mutex
-	checkinsMu sync.Mutex
 
 	// AfterSaveHook is a hook that is executed after
 	// saving an entry to the file system.
