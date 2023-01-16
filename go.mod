@@ -13,7 +13,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/jwtauth/v5 v5.0.2
 	github.com/go-fed/httpsig v1.1.0
-	github.com/gocarina/gocsv v0.0.0-20221216233619-1fea7ae8d380
 	github.com/hacdias/indieauth/v3 v3.0.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.1.1

@@ -35,32 +35,23 @@ func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
 }
 
 func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
-	var (
-		location *maze.Location
-		err      error
-	)
-
-	if v := e.Helper().String("location"); v != "" {
-		location, err = l.parseLocation(v)
-		if err != nil {
-			return err
-		}
+	locationStr := e.Helper().String("location")
+	if locationStr == "" {
+		return nil
 	}
 
-	checkin, err := l.fs.ClosestCheckin(e.Published, location)
+	location, err := l.parseLocation(locationStr)
 	if err != nil {
 		return err
 	}
 
-	if checkin != nil {
-		location = &checkin.Location
+	if location != nil {
+		_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
+			delete(ee.Properties, "location")
+			ee.Location = location
+			return ee, nil
+		})
 	}
-
-	_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
-		delete(ee.Properties, "location")
-		ee.Location = location
-		return ee, nil
-	})
 
 	return err
 }
