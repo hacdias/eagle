@@ -1,8 +1,6 @@
 package hooks
 
 import (
-	"strconv"
-
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/mf2"
@@ -64,12 +62,8 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 		// Matches OwnYourSwarm
 		checkin := mm.Sub(mm.TypeProperty())
 		description = "At " + checkin.Name()
-	case mf2.TypeItinerary:
-		description, err = d.generateItineraryDescription(e)
 	case mf2.TypeRsvp:
 		description, err = d.generateRsvpDescription(e)
-	case mf2.TypeWatch:
-		description, err = d.generateWatchDescription(e)
 	}
 
 	if err != nil {
@@ -82,30 +76,6 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 
 	e.Description = description
 	return nil
-}
-
-func (d *DescriptionGenerator) generateItineraryDescription(e *eagle.Entry) (string, error) {
-	mm := e.Helper()
-
-	subs := mm.Subs(mm.TypeProperty())
-	if len(subs) == 0 {
-		return "", nil
-	}
-
-	start := subs[0]
-	end := subs[len(subs)-1]
-
-	origin := start.String("origin")
-	if o := start.Sub("origin"); o != nil {
-		origin = o.Name()
-	}
-
-	destination := end.String("destination")
-	if d := end.Sub("destination"); d != nil {
-		destination = d.Name()
-	}
-
-	return "Trip from " + origin + " to " + destination, nil
 }
 
 func (d *DescriptionGenerator) generateRsvpDescription(e *eagle.Entry) (string, error) {
@@ -140,21 +110,4 @@ func (d *DescriptionGenerator) generateRsvpDescription(e *eagle.Entry) (string, 
 	}
 
 	return "", nil
-}
-
-func (d *DescriptionGenerator) generateWatchDescription(e *eagle.Entry) (string, error) {
-	mm := e.Helper()
-	sub := mm.Sub(mm.TypeProperty())
-	series := sub.Sub("episode-of")
-
-	what := ""
-	if series == nil {
-		what = sub.Name()
-	} else {
-		season := sub.Int("season")
-		episode := sub.Int("episode")
-		what = sub.Name() + " (" + series.Name() + " S" + strconv.Itoa(season) + "E" + strconv.Itoa(episode) + ")"
-	}
-
-	return "Just watched: " + what, nil
 }
