@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/renderer"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
