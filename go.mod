@@ -12,12 +12,12 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/jwtauth/v5 v5.1.0
 	github.com/go-fed/httpsig v1.1.0
-	github.com/hacdias/indieauth/v3 v3.0.0
+	github.com/hacdias/indieauth/v3 v3.0.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.2.0
 	github.com/jlelse/feeds v1.2.0
 	github.com/karlseguin/typed v1.1.8
-	github.com/lestrrat-go/jwx/v2 v2.0.6
+	github.com/lestrrat-go/jwx/v2 v2.0.8
 	github.com/lopezator/migrator v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.22
 	github.com/paulmach/go.geojson v1.4.0
