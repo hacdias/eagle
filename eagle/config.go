@@ -254,9 +254,7 @@ func (u *User) validate() error {
 	return nil
 }
 
-type Syndication struct {
-	Twitter bool
-}
+type Syndication struct{}
 
 type Telegram struct {
 	Token  string
@@ -303,15 +301,6 @@ type Webmentions struct {
 
 type XRay struct {
 	Endpoint string
-	Twitter  bool
-}
-
-type Twitter struct {
-	User        string
-	Key         string
-	Secret      string
-	Token       string
-	TokenSecret string
 }
 
 type BunnyCDN struct {
@@ -342,7 +331,6 @@ type Config struct {
 	Micropub      Micropub
 	Webmentions   Webmentions
 	XRay          *XRay
-	Twitter       *Twitter
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
 	ImgProxy      *ImgProxy
@@ -374,10 +362,6 @@ func (c *Config) validate() error {
 		return err
 	}
 
-	if c.Syndications.Twitter && c.Twitter == nil {
-		return errors.New("syndication.twitter is true but twitter is not defined")
-	}
-
 	err = c.Micropub.validate()
 	if err != nil {
 		return err
@@ -392,12 +376,6 @@ func (c *Config) validate() error {
 	intersect := lo.Intersect(c.Site.Sections, micropubSections)
 	if len(intersect) != len(micropubSections) {
 		return fmt.Errorf("Micropub.Sections can only use sections defined in Sections")
-	}
-
-	if c.XRay != nil {
-		if c.XRay.Twitter && c.Twitter == nil {
-			return errors.New("xray.twitter is true but twitter is not defined")
-		}
 	}
 
 	return nil

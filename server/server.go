@@ -38,7 +38,6 @@ import (
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
-	"github.com/hacdias/eagle/services/twitter"
 	"github.com/hacdias/eagle/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
@@ -175,10 +174,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	)
 
 	s.initActions()
-
-	if c.Twitter != nil && c.Syndications.Twitter {
-		s.syndicator.Add(twitter.NewTwitter(c.Twitter))
-	}
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
 		xray, err := hooks.NewContextFetcher(c, s.fs, s.media)

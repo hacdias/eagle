@@ -24,15 +24,6 @@ func NewContextFetcher(c *eagle.Config, fs *fs.FS, media *media.Media) (*Context
 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", c.ID()),
 	}
 
-	if c.XRay.Twitter && c.Twitter != nil {
-		xrayConf.Twitter = &xray.Twitter{
-			Key:         c.Twitter.Key,
-			Secret:      c.Twitter.Secret,
-			Token:       c.Twitter.Token,
-			TokenSecret: c.Twitter.TokenSecret,
-		}
-	}
-
 	xray, err := xray.NewXRay(xrayConf, log.S().Named("xray"))
 	return &ContextFetcher{
 		xray:  xray,

@@ -21,15 +21,7 @@ var (
 	ErrPostNotFound = errors.New("post xray not found")
 )
 
-type Twitter struct {
-	Key         string
-	Secret      string
-	Token       string
-	TokenSecret string
-}
-
 type Config struct {
-	Twitter     *Twitter
 	GitHubToken string
 	Endpoint    string
 	UserAgent   string
@@ -66,13 +58,6 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 
 	data := urlpkg.Values{}
 	data.Set("url", url.String())
-
-	if strings.Contains(url.Host, "twitter.com") && x.c.Twitter != nil {
-		data.Set("twitter_api_key", x.c.Twitter.Key)
-		data.Set("twitter_api_secret", x.c.Twitter.Secret)
-		data.Set("twitter_access_token", x.c.Twitter.Token)
-		data.Set("twitter_access_token_secret", x.c.Twitter.TokenSecret)
-	}
 
 	if strings.Contains(url.Host, "github.com") && x.c.GitHubToken != "" {
 		data.Set("github_access_token", x.c.GitHubToken)

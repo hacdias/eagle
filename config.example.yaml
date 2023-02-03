@@ -99,15 +99,12 @@ user:
   published: 2000-01-01T00:00:00Z
   # Other identities the user may have.
   identities:
-    - https://twitter.com/profile
     - https://github.com/profile
     - https://facebook.com/profile
     - https://my.other/profile
 
 # Syndications configuration.
-syndications:
-  # Enable Twitter syndication. Requires twitter to be set.
-  twitter: true
+syndications: {}
 
 # Notifications configuration.
 notifications:
@@ -156,17 +153,6 @@ webmentions:
 # Optional XRay configuration.
 xray:
   endpoint: https://xray.p3k.app
-  # Enable Twitter integration. Requires twitter to be set.
-  twitter: true
-
-# Optional Twitter (https://developer.twitter.com) credentials.
-# Can be used with xray and syndications.
-twitter:
-  user:
-  key:
-  secret:
-  token:
-  tokenSecret:
 
 # Optional BunnyCDN (https://bunny.net) credentials used for the micropub
 # media endpoint, for media such as 'photos', for webmentions author photos,
