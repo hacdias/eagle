@@ -12,7 +12,7 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 // https://indieauth.spec.indieweb.org
