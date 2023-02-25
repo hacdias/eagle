@@ -136,10 +136,6 @@ func (m *FlatHelper) media(prop string) []map[string]interface{} {
 	return parsed
 }
 
-func (m *FlatHelper) Audios() []map[string]interface{} {
-	return m.media("audio")
-}
-
 func (m *FlatHelper) Photos() []map[string]interface{} {
 	return m.media("photo")
 }

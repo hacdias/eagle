@@ -220,13 +220,6 @@ func (ap *ActivityPub) GetEntryAsActivity(e *eagle.Entry) typed.Typed {
 		}
 	}
 
-	for _, audio := range e.Helper().Audios() {
-		url := typed.Typed(audio).String("value")
-		if url != "" {
-			attachments = append(attachments, mediaToActivity(url, "Audio"))
-		}
-	}
-
 	if len(attachments) > 0 {
 		activity["attachment"] = attachments
 	}
