@@ -397,3 +397,15 @@ func (ap *ActivityPub) SendProfileUpdate() error {
 
 	return ap.sendActivityToFollowers(update)
 }
+
+func (ap *ActivityPub) SendProfileDelete() error {
+	activity := map[string]any{
+		"@context":  []string{"https://www.w3.org/ns/activitystreams"},
+		"type":      "Delete",
+		"object":    ap.Config.Server.BaseURL,
+		"actor":     ap.Config.Server.BaseURL,
+		"published": time.Now().Format(time.RFC3339),
+	}
+
+	return ap.sendActivityToFollowers(activity)
+}

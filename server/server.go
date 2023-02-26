@@ -227,7 +227,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		// Must be run after the Context Fetcher, such that the context URL
 		// is updated to its canonical version. The XRay will resolve Mastodon
 		// links across different instances.
-		s.AppendPostSaveHook(s.ap)
+		// s.AppendPostSaveHook(s.ap)
 	}
 
 	s.initWebFinger()
@@ -276,7 +276,7 @@ func (s *Server) Start() error {
 	go func() {
 		s.indexAll()
 		if s.ap != nil {
-			_ = s.ap.SendProfileUpdate()
+			_ = s.ap.SendProfileDelete()
 		}
 	}()
 

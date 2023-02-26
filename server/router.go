@@ -42,7 +42,7 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	// ActivityPub
-	if s.ap != nil {
+	if s.ap != nil && false {
 		r.Post(activityPubInboxRoute, s.activityPubInboxPost)
 		r.Get(activityPubOutboxRoute, s.activityPubOutboxGet)
 		r.Get(activityPubFollowersRoute, s.activityPubFollowersGet)
