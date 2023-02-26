@@ -18,15 +18,6 @@ server:
   tilesSource: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
   # Enable request logging.
   logging: false
-  # Optional ActivityPub configuration"
-  activitypub:
-    # Data directory for the ActivityPub handling. The keys 'private.key' and 'public.key'
-    # will be automatically generated if they're not present in the directory
-    directory: /path/to/data/activity
-    # Taxonomy used as Hashtags in ActivityPub
-    tagTaxonomy: tags
-    # Name of the attachment property in your profile
-    websitePropertyName: Blog
 
 # Website source directory. It is assumed to be a Git repository.
 source:
@@ -93,10 +84,6 @@ user:
   email: your@email.com
   # The user's photo.
   photo: https://example.com/beautiful.jpeg
-  # The user's cover photo (used in ActivityPub).
-  coverPhoto: https://example.com/amazing.jpeg
-  # Your birth date or publishing time. Used in the ActivityPub profile.
-  published: 2000-01-01T00:00:00Z
   # Other identities the user may have.
   identities:
     - https://github.com/profile

@@ -41,14 +41,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/webmention", s.webmentionPost)
 	}
 
-	// ActivityPub
-	if s.ap != nil && false {
-		r.Post(activityPubInboxRoute, s.activityPubInboxPost)
-		r.Get(activityPubOutboxRoute, s.activityPubOutboxGet)
-		r.Get(activityPubFollowersRoute, s.activityPubFollowersGet)
-		r.Post(activityPubRemoteFollowRoute, s.activityPubRemoteFollowPost)
-	}
-
 	// Tiles API
 	if s.c.Server.TilesSource != "" {
 		r.Get("/tiles/{s}/{z}/{x}/{y}", s.tilesGet)
@@ -88,10 +80,6 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get("/dashboard", s.dashboardGet)
 		r.Post("/dashboard", s.dashboardPost)
-
-		if s.ap != nil {
-			r.Post("/activitypub/manual", s.activityPubManualPost)
-		}
 
 		r.Get("/deleted", s.deletedGet)
 		r.Get("/drafts", s.draftsGet)

@@ -22,7 +22,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/activitypub"
 	"github.com/hacdias/eagle/cache"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
@@ -78,7 +77,6 @@ type Server struct {
 	syndicator  *eagle.Manager
 	renderer    *renderer.Renderer
 	parser      *eagle.Parser
-	ap          *activitypub.ActivityPub
 	maze        *maze.Maze
 
 	preSaveHooks  []eagle.EntryHook
@@ -205,31 +203,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		)
 	}
 
-	if c.Server.ActivityPub != nil {
-		options := &activitypub.Options{
-			Config:       c,
-			Renderer:     s.renderer,
-			FS:           s.fs,
-			Notifier:     s.n,
-			Webmentions:  s.webmentions,
-			Media:        s.media,
-			Store:        postgres,
-			InboxURL:     c.Server.AbsoluteURL(activityPubInboxRoute),
-			OutboxURL:    c.Server.AbsoluteURL(activityPubOutboxRoute),
-			FollowersURL: c.Server.AbsoluteURL(activityPubFollowersRoute),
-		}
-
-		s.ap, err = activitypub.NewActivityPub(options)
-		if err != nil {
-			return nil, err
-		}
-
-		// Must be run after the Context Fetcher, such that the context URL
-		// is updated to its canonical version. The XRay will resolve Mastodon
-		// links across different instances.
-		// s.AppendPostSaveHook(s.ap)
-	}
-
 	s.initWebFinger()
 
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
@@ -275,9 +248,6 @@ func (s *Server) RegisterCron(schedule, name string, job func() error) error {
 func (s *Server) Start() error {
 	go func() {
 		s.indexAll()
-		if s.ap != nil {
-			_ = s.ap.SendProfileDelete()
-		}
 	}()
 
 	s.cron.Start()
@@ -531,15 +501,6 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
 }
 
-func (s *Server) serveActivity(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", contenttype.ASUTF8)
-	w.WriteHeader(code)
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html: %w", err))
-	}
-}
-
 func (s *Server) syncStorage() {
 	changedFiles, err := s.fs.Sync()
 	if err != nil {
@@ -607,10 +568,4 @@ func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
 		// Then it's likely a rename.
 		_ = s.loadRedirects()
 	}
-}
-
-func isActivityPub(r *http.Request) bool {
-	accept := strings.Join(r.Header.Values("Accept"), ",")
-	return strings.Contains(accept, contenttype.AS) &&
-		!strings.Contains(accept, contenttype.HTML)
 }

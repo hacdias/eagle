@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Server) isCacheable(r *http.Request) bool {
-	return r.URL.RawQuery == "" && !s.isLoggedIn(r) && !isActivityPub(r)
+	return r.URL.RawQuery == "" && !s.isLoggedIn(r)
 }
 
 func (s *Server) isCached(r *http.Request) ([]byte, time.Time, bool) {

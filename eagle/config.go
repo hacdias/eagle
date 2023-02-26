@@ -5,36 +5,11 @@ import (
 	"fmt"
 	urlpkg "net/url"
 	"path/filepath"
-	"time"
 
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
-
-type ActivityPub struct {
-	Directory           string
-	TagTaxonomy         string
-	WebsitePropertyName string
-}
-
-func (a *ActivityPub) validate() error {
-	if a.Directory == "" {
-		return fmt.Errorf("activitypub.directory must be set")
-	}
-
-	if a.TagTaxonomy == "" {
-		a.TagTaxonomy = "tags"
-	}
-
-	if a.WebsitePropertyName == "" {
-		a.WebsitePropertyName = "Blog"
-	}
-
-	var err error
-	a.Directory, err = filepath.Abs(a.Directory)
-	return err
-}
 
 type Tor struct {
 	Directory string
@@ -58,7 +33,6 @@ type Server struct {
 	WebhookSecret string
 	TilesSource   string
 	Logging       bool
-	ActivityPub   *ActivityPub
 	Tor           *Tor
 }
 
@@ -79,12 +53,6 @@ func (s *Server) validate() error {
 
 	if s.Tor != nil {
 		if err = s.Tor.validate(); err != nil {
-			return err
-		}
-	}
-
-	if s.ActivityPub != nil {
-		if err = s.ActivityPub.validate(); err != nil {
 			return err
 		}
 	}
@@ -237,8 +205,6 @@ type User struct {
 	Password   string
 	Email      string
 	Photo      string
-	CoverPhoto string
-	Published  time.Time
 	Identities []string
 }
 

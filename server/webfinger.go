@@ -6,7 +6,6 @@ import (
 	urlpkg "net/url"
 
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/contenttype"
 )
 
 func (s *Server) initWebFinger() {
@@ -24,14 +23,6 @@ func (s *Server) initWebFinger() {
 				Href: s.c.Server.BaseURL,
 			},
 		},
-	}
-
-	if s.ap != nil {
-		s.webFinger.Links = append(s.webFinger.Links, eagle.WebFingerLink{
-			Href: s.c.Server.BaseURL,
-			Rel:  "self",
-			Type: contenttype.AS,
-		})
 	}
 }
 
