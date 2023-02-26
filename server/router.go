@@ -51,7 +51,6 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get("/search", s.searchGet)
 	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
 	r.Get("/.well-known/webfinger", s.webFingerGet)
-	r.Get("/on-this-day", s.onThisDayGet)
 
 	// Login
 	r.Get("/login", s.loginGet)

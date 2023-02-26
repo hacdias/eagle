@@ -53,11 +53,6 @@ func (s *Server) sectionGet(section string) http.HandlerFunc {
 	}
 }
 
-func (s *Server) onThisDayGet(w http.ResponseWriter, r *http.Request) {
-	now := time.Now()
-	http.Redirect(w, r, fmt.Sprintf("/x/%02d/%02d", now.Month(), now.Day()), http.StatusSeeOther)
-}
-
 func (s *Server) dateGet(w http.ResponseWriter, r *http.Request) {
 	var year, month, day int
 
