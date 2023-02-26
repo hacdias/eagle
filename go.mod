@@ -5,13 +5,11 @@ go 1.19
 require (
 	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/dchest/uniuri v1.2.0
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gabriel-vasile/mimetype v1.4.1
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/jwtauth/v5 v5.1.0
-	github.com/go-fed/httpsig v1.1.0
 	github.com/hacdias/indieauth/v3 v3.0.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.2.0
