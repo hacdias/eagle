@@ -13,9 +13,6 @@ server:
   tokensSecret: SecureSecret
   # Optional GitHub (https://docs.github.com/) webhook secret to update the source repository.
   webhookSecret: GitHub
-  # Configure a tiles server to work at /tiles/{s}/{z}/{x}/{y}@{r}. OpenStreetMap
-  # provides a free tiles server linked below.
-  tilesSource: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
   # Enable request logging.
   logging: false
 

@@ -41,12 +41,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/webmention", s.webmentionPost)
 	}
 
-	// Tiles API
-	if s.c.Server.TilesSource != "" {
-		r.Get("/tiles/{s}/{z}/{x}/{y}", s.tilesGet)
-		r.Get("/tiles/{s}/{z}/{x}/{y}@{r}", s.tilesGet)
-	}
-
 	// Random
 	r.Get("/search", s.searchGet)
 	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
