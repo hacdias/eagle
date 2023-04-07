@@ -36,12 +36,12 @@ func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Rende
 	}
 }
 
-func (ws *Webmentions) EntryHook(_, e *eagle.Entry) error {
-	if e.Listing != nil {
+func (ws *Webmentions) EntryHook(old, new *eagle.Entry) error {
+	if new.Listing != nil {
 		return nil
 	}
 
-	return ws.SendWebmentions(e)
+	return ws.SendWebmentions(old, new)
 }
 
 func isInteraction(post *eagle.Mention) bool {
