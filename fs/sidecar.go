@@ -3,7 +3,6 @@ package fs
 import (
 	"os"
 	"path/filepath"
-	"sort"
 
 	"github.com/hacdias/eagle/eagle"
 )
@@ -28,14 +27,6 @@ func (f *FS) getSidecar(entry *eagle.Entry) (*eagle.Sidecar, string, error) {
 		sidecar = &eagle.Sidecar{}
 	}
 
-	if sidecar.Replies == nil {
-		sidecar.Replies = []*eagle.Mention{}
-	}
-
-	if sidecar.Interactions == nil {
-		sidecar.Interactions = []*eagle.Mention{}
-	}
-
 	return sidecar, filename, err
 }
 
@@ -57,14 +48,6 @@ func (f *FS) UpdateSidecar(entry *eagle.Entry, t func(*eagle.Sidecar) (*eagle.Si
 	if err != nil {
 		return err
 	}
-
-	sort.SliceStable(newSd.Replies, func(i, j int) bool {
-		return newSd.Replies[i].Published.After(newSd.Replies[j].Published)
-	})
-
-	sort.SliceStable(newSd.Interactions, func(i, j int) bool {
-		return newSd.Interactions[i].Published.After(newSd.Interactions[j].Published)
-	})
 
 	if f.AfterSaveHook != nil {
 		f.AfterSaveHook(eagle.Entries{entry}, nil)

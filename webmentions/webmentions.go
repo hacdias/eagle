@@ -7,8 +7,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
-	"github.com/hacdias/eagle/media"
-	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
@@ -20,10 +18,9 @@ type Webmentions struct {
 	fs       *fs.FS
 	notifier eagle.Notifier
 	renderer *renderer.Renderer
-	media    *media.Media
 }
 
-func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Renderer, media *media.Media) *Webmentions {
+func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Renderer) *Webmentions {
 	return &Webmentions{
 		log: log.S().Named("webmentions"),
 		client: webmention.New(&http.Client{
@@ -32,17 +29,9 @@ func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Rende
 		fs:       fs,
 		notifier: notifier,
 		renderer: renderer,
-		media:    media,
 	}
 }
 
 func (ws *Webmentions) EntryHook(old, new *eagle.Entry) error {
 	return ws.SendWebmentions(old, new)
-}
-
-func isInteraction(post *eagle.Mention) bool {
-	return post.Type == mf2.TypeLike ||
-		post.Type == mf2.TypeRepost ||
-		post.Type == mf2.TypeBookmark ||
-		post.Type == mf2.TypeRsvp
 }

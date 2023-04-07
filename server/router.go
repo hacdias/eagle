@@ -77,8 +77,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/deleted", s.deletedGet)
 		r.Get("/drafts", s.draftsGet)
 		r.Get("/unlisted", s.unlistedGet)
-
-		r.Get("/mention-toggle*", s.mentionToggleGet)
 	})
 
 	r.Group(func(r chi.Router) {
