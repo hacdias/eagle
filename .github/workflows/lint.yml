@@ -13,11 +13,11 @@ jobs:
     steps:
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.19.x
+          go-version: 1.20.x
       - uses: actions/checkout@v3
       - uses: golangci/golangci-lint-action@v3
         with:
-          version: v1.48
+          version: v1.52
           # Remove this when upgrading golanci-lint
           # https://github.com/golangci/golangci-lint/issues/2997#issuecomment-1216864452
           args: --timeout=5m
