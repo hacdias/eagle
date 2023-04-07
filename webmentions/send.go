@@ -18,7 +18,7 @@ import (
 func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 	var targets []string
 
-	if old != nil && !old.NoSendInteractions && !old.Draft && !old.Deleted {
+	if canSendWebmentions(old) {
 		oldTargets, err := ws.getTargetsFromHTML(old)
 		if err != nil {
 			return err
@@ -26,7 +26,7 @@ func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 		targets = append(targets, oldTargets...)
 	}
 
-	if new != nil && !new.NoSendInteractions && !new.Draft && !new.Deleted {
+	if canSendWebmentions(new) {
 		newTargets, err := ws.getTargetsFromHTML(new)
 		if err != nil {
 			return err
@@ -98,6 +98,14 @@ func (ws *Webmentions) sendWebmention(source, target string) error {
 	defer res.Body.Close()
 
 	return nil
+}
+
+func canSendWebmentions(e *eagle.Entry) bool {
+	return e != nil &&
+		!e.NoSendInteractions &&
+		!e.Draft &&
+		!e.Deleted &&
+		e.Listing == nil
 }
 
 func isPrivate(urlStr string) bool {
