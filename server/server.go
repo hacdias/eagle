@@ -152,7 +152,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		fs:          fs,
 		media:       m,
 		cache:       cache,
-		webmentions: webmentions.NewWebmentions(fs, notifier, renderer, m),
+		webmentions: webmentions.NewWebmentions(fs, notifier, renderer),
 		syndicator:  eagle.NewManager(),
 		renderer:    renderer,
 		parser:      eagle.NewParser(c.Server.BaseURL),

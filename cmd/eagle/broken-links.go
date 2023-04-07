@@ -83,16 +83,6 @@ var brokenLinksCmd = &cobra.Command{
 				urls = append(urls, s.Context.URL)
 			}
 
-			for _, i := range s.Interactions {
-				urls = append(urls, i.URL)
-				urls = append(urls, i.ID)
-			}
-
-			for _, i := range s.Replies {
-				urls = append(urls, i.URL)
-				urls = append(urls, i.ID)
-			}
-
 			return lo.Uniq(urls), nil
 		}
 
