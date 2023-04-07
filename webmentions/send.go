@@ -7,7 +7,6 @@ import (
 	"io"
 	"net"
 	urlpkg "net/url"
-	"os"
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/renderer"
@@ -16,75 +15,43 @@ import (
 	"willnorris.com/go/webmention"
 )
 
-func (ws *Webmentions) SendWebmentions(e *eagle.Entry) error {
-	if e.NoSendInteractions ||
-		e.Draft {
-		return nil
+func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
+	var targets []string
+
+	if canSendWebmentions(old) {
+		oldTargets, err := ws.getTargetsFromHTML(old)
+		if err != nil {
+			return err
+		}
+		targets = append(targets, oldTargets...)
 	}
 
-	all, curr, _, err := ws.GetWebmentionTargets(e)
-	if err != nil {
-		return err
+	if canSendWebmentions(new) {
+		newTargets, err := ws.getTargetsFromHTML(new)
+		if err != nil {
+			return err
+		}
+		targets = append(targets, newTargets...)
 	}
+
+	targets = lo.Uniq(targets)
 
 	var errs *multierror.Error
 
-	for _, target := range all {
-		// if strings.HasPrefix(target, e.Config.Site.BaseURL) {
-		// TODO: it is a self-mention.
-		// }
-
-		err := ws.sendWebmention(e.Permalink, target)
+	for _, target := range targets {
+		err := ws.sendWebmention(new.Permalink, target)
 		if err != nil && !errors.Is(err, webmention.ErrNoEndpointFound) {
 			err = fmt.Errorf("send webmention error %s: %w", target, err)
 			errs = multierror.Append(errs, err)
 		}
 	}
 
-	if !e.Deleted {
-		// If it's not a deleted entry, update the targets list.
-		err = ws.fs.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
-			data.Targets = curr
-			return data, nil
-		})
-
-		errs = multierror.Append(errs, err)
-	}
-
-	err = errs.ErrorOrNil()
-	if err == nil {
-		return nil
-	}
-
-	return fmt.Errorf("webmention errors for %s: %w", e.ID, err)
-}
-
-func (ws *Webmentions) GetWebmentionTargets(entry *eagle.Entry) ([]string, []string, []string, error) {
-	currentTargets, err := ws.getTargetsFromHTML(entry)
+	err := errs.ErrorOrNil()
 	if err != nil {
-		if os.IsNotExist(err) {
-			if entry.Deleted {
-				currentTargets = []string{}
-			} else {
-				return nil, nil, nil, fmt.Errorf("entry should exist as it is not deleted %s: %w", entry.ID, err)
-			}
-		} else {
-			return nil, nil, nil, err
-		}
+		return fmt.Errorf("webmention errors for %s: %w", new.ID, err)
 	}
 
-	sidecar, err := ws.fs.GetSidecar(entry)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	oldTargets := sidecar.Targets
-	oldTargets = lo.Uniq(oldTargets)
-
-	targets := append(currentTargets, oldTargets...)
-	targets = lo.Uniq(targets)
-
-	return targets, currentTargets, oldTargets, nil
+	return nil
 }
 
 func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) {
@@ -131,6 +98,14 @@ func (ws *Webmentions) sendWebmention(source, target string) error {
 	defer res.Body.Close()
 
 	return nil
+}
+
+func canSendWebmentions(e *eagle.Entry) bool {
+	return e != nil &&
+		!e.NoSendInteractions &&
+		!e.Draft &&
+		!e.Deleted &&
+		e.Listing == nil
 }
 
 func isPrivate(urlStr string) bool {

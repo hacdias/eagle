@@ -28,10 +28,6 @@ func (f *FS) getSidecar(entry *eagle.Entry) (*eagle.Sidecar, string, error) {
 		sidecar = &eagle.Sidecar{}
 	}
 
-	if sidecar.Targets == nil {
-		sidecar.Targets = []string{}
-	}
-
 	if sidecar.Replies == nil {
 		sidecar.Replies = []*eagle.Mention{}
 	}
