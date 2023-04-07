@@ -18,7 +18,7 @@ import (
 func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 	var targets []string
 
-	if old != nil && !old.NoSendInteractions && !old.Draft {
+	if old != nil && !old.NoSendInteractions && !old.Draft && !old.Deleted {
 		oldTargets, err := ws.getTargetsFromHTML(old)
 		if err != nil {
 			return err
@@ -26,7 +26,7 @@ func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 		targets = append(targets, oldTargets...)
 	}
 
-	if new != nil && !new.NoSendInteractions && !new.Draft {
+	if new != nil && !new.NoSendInteractions && !new.Draft && !new.Deleted {
 		newTargets, err := ws.getTargetsFromHTML(new)
 		if err != nil {
 			return err
