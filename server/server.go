@@ -181,10 +181,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		s.AppendPostSaveHook(xray)
 	}
 
-	if s.media != nil {
-		s.AppendPostSaveHook(hooks.NewPhotosUploader(s.fs, s.media))
-	}
-
 	s.AppendPostSaveHook(hooks.NewLocationFetcher(s.fs, c.Site.Language))
 
 	if !c.Webmentions.DisableSending {
