@@ -98,8 +98,6 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e.CreatedWith = s.c.ID()
-
 	if r.FormValue("published") != "" {
 		e.Published = now
 	}
