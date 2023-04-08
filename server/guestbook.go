@@ -5,20 +5,23 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"sort"
 	"time"
 
 	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/fs"
 	"github.com/microcosm-cc/bluemonday"
 )
 
-const (
-	guestbookFilename = "/content/guestbook/.entries.json"
+var (
+	guestbookFilename = filepath.Join(fs.ContentDirectory, "guestbook/.entries.json")
 )
 
 func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.log.Warnf("error when decoding guestbook entry: %s", err.Error())
 		return
 	}
 
@@ -43,6 +46,7 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.fs.ReadJSON(guestbookFilename, &entries); err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.log.Warnf("error when reading guestbook: %s", err.Error())
 		return
 	}
 
@@ -60,6 +64,7 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.fs.WriteJSON(guestbookFilename, entries); err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.log.Warnf("error when writing guestbook: %s", err.Error())
 		return
 	}
 
