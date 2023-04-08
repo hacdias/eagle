@@ -174,7 +174,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	s.initActions()
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
-		xray, err := hooks.NewContextFetcher(c, s.fs, s.media)
+		xray, err := hooks.NewContextFetcher(c, s.fs)
 		if err != nil {
 			return nil, err
 		}

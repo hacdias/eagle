@@ -36,7 +36,6 @@ func (r *Renderer) getIncludeTemplate(absoluteURLs bool) func(name string, data 
 			listing := nrd.Entry.Listing
 			nrd.Entry = data[1].(*eagle.Entry)
 			nrd.Entry.Listing = listing
-			nrd.sidecar = nil
 			err = templates[name].ExecuteTemplate(&buf, name, &nrd)
 		} else {
 			return "", errors.New("wrong parameters")

@@ -15,10 +15,11 @@ type Listing struct {
 	ItemsPerPage      int  `yaml:"itemsPerPage,omitempty"`
 }
 
-type UserMention struct {
-	Name  string `yaml:"name,omitempty"`
-	Href  string `yaml:"href,omitempty"`
-	Inbox string `yaml:"inbox,omitempty"`
+type Context struct {
+	Author    string    `yaml:"name,omitempty"`
+	URL       string    `yaml:"url,omitempty"`
+	Content   string    `yaml:"content,omitempty"`
+	Published time.Time `yaml:"published,omitempty"`
 }
 
 type FrontMatter struct {
@@ -38,8 +39,8 @@ type FrontMatter struct {
 	NoIndex            bool                   `yaml:"noIndex,omitempty"`
 	Listing            *Listing               `yaml:"listing,omitempty"`
 	Taxonomies         map[string][]string    `yaml:"taxonomies,omitempty"`
-	UserMentions       []*UserMention         `yaml:"userMentions,omitempty"`
 	Location           *maze.Location         `yaml:"location,omitempty"`
+	Context            *Context               `yaml:"context,omitempty"`
 }
 
 func (f *FrontMatter) Taxonomy(name string) []string {
