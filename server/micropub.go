@@ -138,10 +138,6 @@ func (s *Server) micropubCreate(w http.ResponseWriter, r *http.Request, mr *micr
 		return http.StatusBadRequest, err
 	}
 
-	if client := s.getClient(r); client != "" {
-		e.CreatedWith = client
-	}
-
 	if s := cmds.Strings("mp-channel"); len(s) > 0 {
 		e.Sections = append(e.Sections, s...)
 	}
