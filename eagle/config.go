@@ -238,9 +238,8 @@ type PostType struct {
 }
 
 type Micropub struct {
-	Sections  map[mf2.Type][]string
-	Unlisted  []mf2.Type
-	PostTypes []PostType
+	Sections map[mf2.Type][]string
+	Unlisted []mf2.Type
 }
 
 func (m *Micropub) validate() error {

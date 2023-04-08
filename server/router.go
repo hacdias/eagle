@@ -83,10 +83,6 @@ func (s *Server) makeRouter() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
 
-		r.Get("/micropub", s.micropubGet)
-		r.Post("/micropub", s.micropubPost)
-		r.Post("/micropub/media", s.micropubMediaPost)
-
 		// IndieAuth Server
 		r.Get("/token", s.tokenGet) // Backwards compatible token verification endpoint
 		r.Get("/userinfo", s.userInfoGet)

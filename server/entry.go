@@ -92,7 +92,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e, err := s.parser.FromRaw(id, content)
+	e, err := s.parser.Parse(id, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
@@ -198,7 +198,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e, err := s.parser.FromRaw(old.ID, content)
+	e, err := s.parser.Parse(old.ID, content)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return

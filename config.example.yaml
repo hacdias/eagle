@@ -113,17 +113,6 @@ micropub:
   # Post types to mark as unlisted by default if not attributed to any section.
   unlisted:
     - like
-  # Optional support for 'post-types' Micropub extension:
-  # https://indieweb.org/Micropub-extensions#Post-Type
-  postTypes:
-    - type: note
-      name: Note
-      properties:
-        - content
-        - category
-        - location
-      required:
-        - content
 
 # Webmentions configurations.
 webmentions:
