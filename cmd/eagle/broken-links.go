@@ -9,7 +9,6 @@ import (
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
-	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -71,21 +70,6 @@ var brokenLinksCmd = &cobra.Command{
 			return urls, nil
 		}
 
-		getSidecarURLs := func(e *eagle.Entry) ([]string, error) {
-			s, err := fs.GetSidecar(e)
-			if err != nil {
-				return nil, err
-			}
-
-			urls := []string{}
-
-			if s.Context != nil {
-				urls = append(urls, s.Context.URL)
-			}
-
-			return lo.Uniq(urls), nil
-		}
-
 		isBroken := func(urlStr string) (bool, string, error) {
 			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, c.Server.BaseURL) {
 				u, err := url.Parse(urlStr)
@@ -143,22 +127,6 @@ var brokenLinksCmd = &cobra.Command{
 				}
 			}
 			printBroken(e, "Entry", brokenLinks)
-
-			sidecarURLs, err := getSidecarURLs(e)
-			if err != nil {
-				return err
-			}
-			brokenLinks = []string{}
-			for _, urlStr := range sidecarURLs {
-				broken, canonical, err := isBroken(urlStr)
-				if err != nil {
-					return err
-				}
-				if broken {
-					brokenLinks = append(brokenLinks, canonical)
-				}
-			}
-			printBroken(e, "Sidecar", brokenLinks)
 		}
 
 		return nil

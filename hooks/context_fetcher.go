@@ -7,18 +7,16 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
-	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
 )
 
 type ContextFetcher struct {
-	xray  *xray.XRay
-	fs    *fs.FS
-	media *media.Media
+	xray *xray.XRay
+	fs   *fs.FS
 }
 
-func NewContextFetcher(c *eagle.Config, fs *fs.FS, media *media.Media) (*ContextFetcher, error) {
+func NewContextFetcher(c *eagle.Config, fs *fs.FS) (*ContextFetcher, error) {
 	xrayConf := &xray.Config{
 		Endpoint:  c.XRay.Endpoint,
 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", c.ID()),
@@ -26,9 +24,8 @@ func NewContextFetcher(c *eagle.Config, fs *fs.FS, media *media.Media) (*Context
 
 	xray, err := xray.NewXRay(xrayConf, log.S().Named("xray"))
 	return &ContextFetcher{
-		xray:  xray,
-		fs:    fs,
-		media: media,
+		xray: xray,
+		fs:   fs,
 	}, err
 }
 
@@ -60,12 +57,7 @@ func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 		return fmt.Errorf("expected context url to be non-empty for %s", e.ID)
 	}
 
-	sidecar, err := c.fs.GetSidecar(e)
-	if err != nil {
-		return fmt.Errorf("could not fetch sidecar for %s: %w", e.ID, err)
-	}
-
-	if sidecar.Context != nil && !replace {
+	if e.Context != nil && !replace {
 		return nil
 	}
 
@@ -78,24 +70,22 @@ func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 		return fmt.Errorf("could not fetch context xray for %s: %w", e.ID, err)
 	}
 
-	if parsed.Author.Photo != "" && c.media != nil {
-		parsed.Author.Photo = c.media.SafeUploadFromURL("wm", parsed.Author.Photo, true)
-	}
+	_, err = c.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+		e.Context = &eagle.Context{
+			Author:    parsed.Author.Name,
+			Content:   parsed.Content,
+			Published: parsed.Published,
+			URL:       parsed.URL,
+		}
 
-	err = c.fs.UpdateSidecar(e, func(data *eagle.Sidecar) (*eagle.Sidecar, error) {
-		data.Context = parsed
-		return data, nil
+		if parsed.URL != "" && parsed.URL != urlStr {
+			e.Properties[property] = parsed.URL
+		}
+
+		return e, nil
 	})
 
 	if err != nil {
-		return err
-	}
-
-	if parsed.URL != "" && parsed.URL != urlStr {
-		_, err = c.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
-			e.Properties[property] = parsed.URL
-			return e, nil
-		})
 		return err
 	}
 

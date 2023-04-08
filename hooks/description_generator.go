@@ -58,12 +58,6 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 		// Matches Teacup
 		food := mm.Sub(mm.TypeProperty())
 		description = typeToDescription[mm.PostType()] + food.Name()
-	case mf2.TypeCheckin:
-		// Matches OwnYourSwarm
-		checkin := mm.Sub(mm.TypeProperty())
-		description = "At " + checkin.Name()
-	case mf2.TypeRsvp:
-		description, err = d.generateRsvpDescription(e)
 	}
 
 	if err != nil {
@@ -76,38 +70,4 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 
 	e.Description = description
 	return nil
-}
-
-func (d *DescriptionGenerator) generateRsvpDescription(e *eagle.Entry) (string, error) {
-	mm := e.Helper()
-	rsvp := mm.String(mm.TypeProperty())
-
-	var name string
-
-	sidecar, err := d.fs.GetSidecar(e)
-	if err == nil && sidecar.Context != nil && sidecar.Context.Name != "" {
-		name = `"` + sidecar.Context.Name + `"`
-	} else {
-		domain := util.Domain(mm.String("in-reply-to"))
-		if domain != "" {
-			name = "an event on " + domain
-		}
-	}
-
-	if name == "" {
-		return "", nil
-	}
-
-	switch rsvp {
-	case "interested":
-		return "Interested in " + name, nil
-	case "yes":
-		return "Going to " + name, nil
-	case "no":
-		return "Not going to " + name, nil
-	case "maybe":
-		return "Maybe going to " + name, nil
-	}
-
-	return "", nil
 }

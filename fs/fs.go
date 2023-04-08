@@ -33,13 +33,12 @@ type FS struct {
 	sync   Sync
 	parser *eagle.Parser
 
-	// Mutexes to lock the updates to entries and sidecars.
+	// Mutexes to lock the updates to entries.
 	// Only for writes and not for reads. Hope this won't
 	// become a problem with traffic and simultaneous
 	// reads-writes from files. Adding a mutex for all reads
 	// would probably make it much slower though.
-	entriesMu  sync.Mutex
-	sidecarsMu sync.Mutex
+	entriesMu sync.Mutex
 
 	// AfterSaveHook is a hook that is executed after
 	// saving an entry to the file system.

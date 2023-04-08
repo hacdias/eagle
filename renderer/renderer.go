@@ -228,15 +228,7 @@ type RenderData struct {
 	IsLoggedIn bool
 	NoIndex    bool
 
-	fs      *fs.FS
-	sidecar *eagle.Sidecar
-}
-
-func (rd *RenderData) GetSidecar() *eagle.Sidecar {
-	if rd.sidecar == nil {
-		rd.sidecar, _ = rd.fs.GetSidecar(rd.Entry)
-	}
-	return rd.sidecar
+	fs *fs.FS
 }
 
 func (rd *RenderData) GetJSON(path string) interface{} {
