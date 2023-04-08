@@ -1,16 +1,13 @@
 package eagle
 
 import (
-	"errors"
 	"fmt"
 	"html"
 	"strings"
 	"time"
 
-	"github.com/araddon/dateparse"
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/util"
-	"github.com/karlseguin/typed"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/samber/lo"
 	stripMarkdown "github.com/writeas/go-strip-markdown"
@@ -123,87 +120,6 @@ func (e *Entry) EnsureMaps() {
 	}
 }
 
-func (e *Entry) Update(newProps map[string][]interface{}) error {
-	props := typed.New(mf2.Flatten(newProps))
-
-	// Micropublish.net sends the file name that was uploaded through
-	// the media endpoint as a property. This is unnecessary.
-	delete(props, "file")
-
-	e.Properties = props
-
-	if published, ok := props.StringIf("published"); ok {
-		p, err := dateparse.ParseStrict(published)
-		if err != nil {
-			return err
-		}
-		e.Published = p
-		delete(props, "published")
-	}
-
-	if updated, ok := props.StringIf("updated"); ok {
-		p, err := dateparse.ParseStrict(updated)
-		if err != nil {
-			return err
-		}
-		e.Updated = p
-		delete(props, "updated")
-	}
-
-	if content, ok := props.StringIf("content"); ok {
-		e.Content = content
-		delete(props, "content")
-	} else if content, ok := props.ObjectIf("content"); ok {
-		if text, ok := content.StringIf("text"); ok {
-			e.Content = text
-		} else if html, ok := content.StringIf("html"); ok {
-			e.Content = html
-		} else {
-			return errors.New("could not parse content field")
-		}
-	} else if _, ok := props["content"]; ok {
-		return errors.New("could not parse content field")
-	}
-
-	e.Content = strings.TrimSpace(e.Content)
-
-	if name, ok := props.StringIf("name"); ok {
-		e.Title = name
-		delete(props, "name")
-	}
-
-	if summary, ok := props.StringIf("summary"); ok {
-		e.Description = summary
-		delete(props, "summary")
-	}
-
-	if status, ok := props.StringIf("post-status"); ok {
-		if status == "draft" {
-			e.Draft = true
-		}
-		delete(props, "post-status")
-	}
-
-	if category, others := getCategoryStrings(props); len(category)+len(others) > 0 {
-		if len(category) > 0 {
-			// TODO: make 'tags' customizable.
-			e.Taxonomies["tags"] = lo.Uniq(append(e.Taxonomy("tags"), category...))
-		}
-
-		if len(others) > 0 {
-			e.Properties["category"] = others
-		} else {
-			delete(e.Properties, "category")
-		}
-	}
-
-	if e.Published.IsZero() {
-		e.Published = time.Now().Local()
-	}
-
-	return nil
-}
-
 func (e *Entry) FlatMF2() map[string]interface{} {
 	// Shallow copy of the map because we are not changing
 	// the values inside.
@@ -242,10 +158,6 @@ func (e *Entry) FlatMF2() map[string]interface{} {
 	}
 }
 
-func (e *Entry) MF2() map[string]interface{} {
-	return mf2.Deflatten(e.FlatMF2())
-}
-
 var htmlRemover = bluemonday.StrictPolicy()
 
 func makePlainText(text string) string {
@@ -254,42 +166,6 @@ func makePlainText(text string) string {
 	text = html.UnescapeString(text)
 	text = stripMarkdown.Strip(text)
 	return text
-}
-
-func getCategoryStrings(props typed.Typed) ([]string, []interface{}) {
-	if v, ok := props.StringIf("category"); ok {
-		return []string{v}, nil
-	}
-
-	// Slight modification of StringsIf so we capture
-	// all string elements instead of blocking when there is none.
-	// Tags can also be objects, such as tagged people as seen in
-	// here: https://ownyourswarm.p3k.io/docs
-	value, ok := props["category"]
-	if !ok {
-		return nil, nil
-	}
-
-	if tags, ok := value.([]string); ok {
-		return tags, nil
-	}
-
-	if a, ok := value.([]interface{}); ok {
-		tags := []string{}
-		others := []interface{}{}
-
-		for i := 0; i < len(a); i++ {
-			if v, ok := a[i].(string); ok {
-				tags = append(tags, v)
-			} else {
-				others = append(others, a[i])
-			}
-		}
-
-		return tags, others
-	}
-
-	return nil, nil
 }
 
 type Entries []*Entry

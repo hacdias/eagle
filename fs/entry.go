@@ -20,7 +20,7 @@ func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
 		return nil, err
 	}
 
-	e, err := fs.parser.FromRaw(id, string(raw))
+	e, err := fs.parser.Parse(id, string(raw))
 	if err != nil {
 		return nil, err
 	}

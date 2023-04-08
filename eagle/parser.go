@@ -14,23 +14,7 @@ func NewParser(baseURL string) *Parser {
 	return &Parser{baseURL: baseURL}
 }
 
-func (p *Parser) FromMF2(mf2Data map[string][]interface{}, slug string) (*Entry, error) {
-	e := &Entry{}
-	e.EnsureMaps()
-
-	err := e.Update(mf2Data)
-	if err != nil {
-		return nil, err
-	}
-
-	id := NewID(slug, e.Published)
-	e.ID = cleanID(id)
-	e.Permalink, err = p.makePermalink(e.ID)
-
-	return e, err
-}
-
-func (p *Parser) FromRaw(id, raw string) (*Entry, error) {
+func (p *Parser) Parse(id, raw string) (*Entry, error) {
 	id = cleanID(id)
 	splits := strings.SplitN(raw, "\n---", 2)
 	if len(splits) != 2 {

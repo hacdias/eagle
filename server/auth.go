@@ -13,6 +13,7 @@ import (
 	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/samber/lo"
 )
 
 // https://indieauth.spec.indieweb.org
@@ -341,4 +342,14 @@ func (s *Server) getClient(r *http.Request) string {
 	}
 
 	return ""
+}
+
+func (s *Server) checkScope(w http.ResponseWriter, r *http.Request, scope string) bool {
+	scopes := s.getScopes(r)
+	if !lo.Contains(scopes, scope) {
+		s.serveErrorJSON(w, http.StatusForbidden, "insufficient_scope", "Insufficient scope.")
+		return false
+	}
+
+	return true
 }
