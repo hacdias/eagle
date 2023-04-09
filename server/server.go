@@ -74,7 +74,6 @@ type Server struct {
 	media       *media.Media
 	cache       *cache.Cache
 	webmentions *webmentions.Webmentions
-	syndicator  *eagle.Manager
 	renderer    *renderer.Renderer
 	parser      *eagle.Parser
 	maze        *maze.Maze
@@ -153,7 +152,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		media:       m,
 		cache:       cache,
 		webmentions: webmentions.NewWebmentions(fs, notifier, renderer),
-		syndicator:  eagle.NewManager(),
 		renderer:    renderer,
 		parser:      eagle.NewParser(c.Server.BaseURL),
 		maze: maze.NewMaze(&http.Client{

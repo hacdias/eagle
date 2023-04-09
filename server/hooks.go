@@ -21,12 +21,7 @@ func (s *Server) preSaveEntry(old, new *eagle.Entry) error {
 // postSaveEntry runs post saving hooks. These hooks are non-blocking and the error
 // of one does not prevent the execution of others. The implementer should be careful
 // to make sure they save the changes.
-func (s *Server) postSaveEntry(old, new *eagle.Entry, syndicators []string) {
-	err := s.syndicate(new, syndicators)
-	if err != nil {
-		s.n.Error(err)
-	}
-
+func (s *Server) postSaveEntry(old, new *eagle.Entry) {
 	for _, hook := range s.postSaveHooks {
 		err := hook.EntryHook(old, new)
 		if err != nil {
@@ -39,23 +34,4 @@ func (s *Server) postSaveEntry(old, new *eagle.Entry, syndicators []string) {
 	}
 
 	s.cache.Delete(new)
-}
-
-func (s *Server) syndicate(e *eagle.Entry, syndicators []string) error {
-	syndications, err := s.syndicator.Syndicate(e, syndicators)
-	if err != nil {
-		return err
-	}
-
-	if len(syndications) == 0 {
-		return nil
-	}
-
-	_, err = s.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
-		mm := e.Helper()
-		syndications := append(mm.Strings("syndication"), syndications...)
-		e.Properties["syndication"] = syndications
-		return e, nil
-	})
-	return err
 }

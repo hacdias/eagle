@@ -65,10 +65,9 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		Data: map[string]interface{}{
-			"ID":          e.ID,
-			"Content":     str,
-			"Syndicators": s.syndicator.Config(),
-			"Archetypes":  archetypeNames,
+			"ID":         e.ID,
+			"Content":    str,
+			"Archetypes": archetypeNames,
 		},
 		NoIndex: true,
 	}, []string{renderer.TemplateNew})
@@ -117,7 +116,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSaveEntry(nil, e, r.Form["syndication"])
+	go s.postSaveEntry(nil, e)
 	http.Redirect(w, r, e.ID, http.StatusSeeOther)
 }
 
@@ -153,10 +152,9 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		Data: map[string]interface{}{
-			"Title":       ee.Title,
-			"Content":     str,
-			"Entry":       ee,
-			"Syndicators": s.syndicator.Config(),
+			"Title":   ee.Title,
+			"Content": str,
+			"Entry":   ee,
 		},
 		NoIndex: true,
 	}, []string{renderer.TemplateEditor})
@@ -220,7 +218,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSaveEntry(old, e, r.Form["syndication"])
+	go s.postSaveEntry(old, e)
 	http.Redirect(w, r, e.ID, http.StatusSeeOther)
 }
 
