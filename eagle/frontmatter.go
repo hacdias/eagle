@@ -33,7 +33,6 @@ type FrontMatter struct {
 	Sections           []string               `yaml:"section,omitempty"`
 	Template           string                 `yaml:"template,omitempty"`
 	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
-	PhotoClass         string                 `yaml:"photoClass,omitempty"`
 	CoverImage         string                 `yaml:"coverImage,omitempty"`
 	Properties         map[string]interface{} `yaml:"properties,omitempty"` // "Flat" MF2 Properties.
 	NoIndex            bool                   `yaml:"noIndex,omitempty"`

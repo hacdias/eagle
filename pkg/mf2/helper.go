@@ -1,8 +1,6 @@
 package mf2
 
 import (
-	"reflect"
-
 	"github.com/karlseguin/typed"
 )
 
@@ -97,60 +95,6 @@ func (m *FlatHelper) Int(prop string) int {
 	}
 
 	return 0
-}
-
-func (m *FlatHelper) media(prop string) []map[string]interface{} {
-	v, ok := m.Properties[prop]
-	if !ok {
-		return nil
-	}
-
-	if vv, ok := v.(string); ok {
-		return []map[string]interface{}{
-			{
-				"value": vv,
-				"alt":   "",
-			},
-		}
-	}
-
-	value := reflect.ValueOf(v)
-	kind := value.Kind()
-	parsed := []map[string]interface{}{}
-
-	if kind == reflect.Array || kind == reflect.Slice {
-		for i := 0; i < value.Len(); i++ {
-			v = value.Index(i).Interface()
-
-			if vv, ok := v.(string); ok {
-				parsed = append(parsed, map[string]interface{}{
-					"value": vv,
-					"alt":   "",
-				})
-			} else if vv, ok := v.(map[string]interface{}); ok {
-				parsed = append(parsed, vv)
-			}
-		}
-	}
-
-	return parsed
-}
-
-func (m *FlatHelper) Photos() []map[string]interface{} {
-	return m.media("photo")
-}
-
-func (m *FlatHelper) Videos() []map[string]interface{} {
-	return m.media("video")
-}
-
-func (m *FlatHelper) Photo() map[string]interface{} {
-	photos := m.Photos()
-	if len(photos) > 0 {
-		return photos[0]
-	}
-
-	return nil
 }
 
 func (m *FlatHelper) Name() string {
