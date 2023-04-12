@@ -8,9 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/fsnotify/fsnotify"
-	"github.com/hacdias/eagle/log"
 )
 
 const (
@@ -26,61 +23,6 @@ const (
 	TemplateEdit      string = "edit"
 	TemplateDashboard string = "dashboard"
 )
-
-func (s *Server) watch(dir string, exec func() error) {
-	log := log.S().Named("renderer")
-
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	defer watcher.Close()
-
-	go func() {
-		for {
-			select {
-			case evt, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-
-				// Ignore CHMOD only events.
-				if evt.Op != fsnotify.Chmod {
-					log.Infof("%s changed", evt.Name)
-					err := exec()
-					if err != nil {
-						log.Error(err)
-					}
-				}
-
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-				log.Error(err)
-			}
-		}
-	}()
-
-	err = s.fs.Walk(dir, func(filename string, info osfs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() {
-			return nil
-		}
-
-		return watcher.Add(filepath.Join(s.c.Source.Directory, filename))
-	})
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	<-make(chan struct{})
-}
 
 type RenderData struct {
 	Title string

@@ -30,6 +30,8 @@ func (g *NopSync) Sync() ([]string, error) {
 
 type FS struct {
 	*afero.Afero
+	path string
+
 	sync   Sync
 	parser *eagle.Parser
 
@@ -52,6 +54,7 @@ func NewFS(path, baseURL string, sync Sync) *FS {
 
 	return &FS{
 		Afero:  afero,
+		path:   path,
 		sync:   sync,
 		parser: eagle.NewParser(baseURL),
 	}
