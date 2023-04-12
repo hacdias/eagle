@@ -7,7 +7,6 @@ type GuestbookEntry struct {
 	Website string    `json:"website,omitempty"`
 	Content string    `json:"content,omitempty"`
 	Date    time.Time `json:"date,omitempty"`
-	Unseen  bool      `json:"unseen,omitempty"`
 }
 
 type GuestbookEntries []GuestbookEntry

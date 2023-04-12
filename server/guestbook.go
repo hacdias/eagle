@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	guestbookFilename = filepath.Join(fs.ContentDirectory, "guestbook/.entries.json")
+	guestbookFilename = filepath.Join(fs.DataDirectory, "guestbook-unmoderated.json")
 )
 
 func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +56,6 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 		Website: website,
 		Content: content,
 		Date:    time.Now(),
-		Unseen:  true,
 	})
 
 	sort.SliceStable(entries, func(i, j int) bool {
