@@ -96,9 +96,9 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	if c.Development {
 		srcSync = &fs.NopSync{}
 	} else {
-		srcSync = fs.NewGitSync(c.Source.Directory)
+		srcSync = fs.NewGitSync(c.SourceDirectory)
 	}
-	fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, srcSync)
+	fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, srcSync)
 
 	var (
 		m           *media.Media

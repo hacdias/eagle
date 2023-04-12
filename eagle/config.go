@@ -9,6 +9,63 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Config struct {
+	Development     bool
+	SourceDirectory string
+	PublicDirectory string
+
+	Server        Server
+	PostgreSQL    PostgreSQL
+	Site          Site
+	User          User
+	Notifications Notifications
+	Webmentions   Webmentions
+	XRay          *XRay
+	BunnyCDN      *BunnyCDN
+	Miniflux      *Miniflux
+	ImgProxy      *ImgProxy
+}
+
+func (c *Config) validate() error {
+	var err error
+
+	c.SourceDirectory, err = filepath.Abs(c.SourceDirectory)
+	if err != nil {
+		return err
+	}
+
+	c.PublicDirectory, err = filepath.Abs(c.PublicDirectory)
+	if err != nil {
+		return err
+	}
+
+	err = c.Server.validate()
+	if err != nil {
+		return err
+	}
+
+	err = c.PostgreSQL.validate()
+	if err != nil {
+		return err
+	}
+
+	err = c.Site.validate()
+	if err != nil {
+		return err
+	}
+
+	err = c.User.validate()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Config) ID() string {
+	return c.Server.BaseURL + "/"
+}
+
 type Server struct {
 	Port          int
 	BaseURL       string
@@ -60,26 +117,6 @@ func (s *Server) RelativeURL(path string) string {
 	resolved.Host = ""
 	resolved.Scheme = ""
 	return resolved.String()
-}
-
-type Asset struct {
-	Name  string
-	Files []string
-}
-
-type Source struct {
-	Directory string
-	Assets    []Asset
-}
-
-func (s *Source) validate() error {
-	var err error
-	s.Directory, err = filepath.Abs(s.Directory)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type PostgreSQL struct {
@@ -182,54 +219,6 @@ type Miniflux struct {
 type ImgProxy struct {
 	Directory string
 	Endpoint  string
-}
-
-type Config struct {
-	Development   bool
-	Server        Server
-	Source        Source
-	PostgreSQL    PostgreSQL
-	Site          Site
-	User          User
-	Notifications Notifications
-	Webmentions   Webmentions
-	XRay          *XRay
-	BunnyCDN      *BunnyCDN
-	Miniflux      *Miniflux
-	ImgProxy      *ImgProxy
-}
-
-func (c *Config) validate() error {
-	err := c.Server.validate()
-	if err != nil {
-		return err
-	}
-
-	err = c.Source.validate()
-	if err != nil {
-		return err
-	}
-
-	err = c.PostgreSQL.validate()
-	if err != nil {
-		return err
-	}
-
-	err = c.Site.validate()
-	if err != nil {
-		return err
-	}
-
-	err = c.User.validate()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Config) ID() string {
-	return c.Server.BaseURL + "/"
 }
 
 // ParseConfig parses the configuration from the default files and paths.

@@ -20,7 +20,7 @@ var cleanDeletedCmd = &cobra.Command{
 			return err
 		}
 
-		fs := eaglefs.NewFS(c.Source.Directory, c.Server.BaseURL, &eaglefs.NopSync{})
+		fs := eaglefs.NewFS(c.SourceDirectory, c.Server.BaseURL, &eaglefs.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err

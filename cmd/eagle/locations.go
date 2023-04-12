@@ -19,7 +19,7 @@ var locationsCmd = &cobra.Command{
 			return err
 		}
 
-		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, &fs.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err
