@@ -19,11 +19,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
+	"github.com/hacdias/eagle/hugo"
 	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
@@ -69,6 +69,7 @@ type Server struct {
 	servers   []*httpServer
 
 	fs          *fs.FS
+	hugo        *hugo.Hugo
 	media       *media.Media
 	webmentions *webmentions.Webmentions
 	parser      *eagle.Parser
@@ -76,6 +77,9 @@ type Server struct {
 
 	preSaveHooks  []eagle.EntryHook
 	postSaveHooks []eagle.EntryHook
+
+	staticFsLock sync.RWMutex
+	staticFs     *staticFs
 }
 
 func NewServer(c *eagle.Config) (*Server, error) {
@@ -136,6 +140,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		templates:   map[string]*template.Template{},
 		archetypes:  eagle.DefaultArchetypes,
 		fs:          fs,
+		hugo:        hugo.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL),
 		media:       m,
 		webmentions: webmentions.NewWebmentions(fs, notifier),
 		parser:      eagle.NewParser(c.Server.BaseURL),
@@ -146,7 +151,8 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		postSaveHooks: []eagle.EntryHook{},
 	}
 
-	fs.AfterSaveHook = s.afterSaveHook
+	s.fs.AfterSaveHook = s.afterSaveHook
+	s.hugo.BuildHook = s.buildHook
 
 	s.AppendPreSaveHook(
 		hooks.NewDescriptionGenerator(s.fs),
@@ -236,13 +242,26 @@ func (s *Server) Start() error {
 		s.indexAll()
 	}()
 
+	// Make sure we have a built version to serve
+	should, err := s.hugo.ShouldBuild()
+	if err != nil {
+		return err
+	}
+
+	if should {
+		err = s.hugo.Build(false)
+		if err != nil {
+			return err
+		}
+	}
+
 	s.cron.Start()
 
 	errCh := make(chan error)
 	router := s.makeRouter()
 
 	// Start server(s)
-	err := s.startRegularServer(errCh, router)
+	err = s.startRegularServer(errCh, router)
 	if err != nil {
 		return err
 	}
@@ -273,10 +292,10 @@ func (s *Server) Stop() error {
 func (s *Server) initActions() {
 	s.actions = map[string]func() error{
 		"Build Website": func() error {
-			return errors.New("not implemented")
+			return s.hugo.Build(false)
 		},
 		"Build Website (Clean)": func() error {
-			return errors.New("not implemented")
+			return s.hugo.Build(true)
 		},
 		"Sync Storage": func() error {
 			go s.syncStorage()
@@ -355,7 +374,7 @@ func (s *Server) startRegularServer(errCh chan error, h http.Handler) error {
 	return nil
 }
 
-func (s *Server) recoverer(next http.Handler) http.Handler {
+func (s *Server) withRecoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
@@ -369,23 +388,15 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	})
 }
 
-// borrowed from chi + redirection.
-func cleanPath(next http.Handler) http.Handler {
+func withCleanPath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-
-		routePath := rctx.RoutePath
-		if routePath == "" {
-			if r.URL.RawPath != "" {
-				routePath = r.URL.RawPath
-			} else {
-				routePath = r.URL.Path
-			}
-			routePath = path.Clean(routePath)
+		path := path.Clean(r.URL.Path)
+		if path != "/" && strings.HasSuffix(r.URL.Path, "/") {
+			path += "/"
 		}
 
-		if r.URL.Path != routePath {
-			http.Redirect(w, r, routePath, http.StatusTemporaryRedirect)
+		if r.URL.Path != path {
+			http.Redirect(w, r, path, http.StatusTemporaryRedirect)
 			return
 		}
 
@@ -393,7 +404,7 @@ func cleanPath(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) securityHeaders(next http.Handler) http.Handler {
+func (s *Server) withSecurityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
@@ -517,18 +528,24 @@ func (s *Server) syncStorage() {
 }
 
 func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
-	for _, e := range updated {
-		_ = s.i.Add(e)
-		// s.cache.Delete(e)
+	err := s.hugo.Build(len(deleted) != 0)
+	if err != nil {
+		s.n.Error(fmt.Errorf("build failed: %w", err))
 	}
+}
 
-	for _, e := range deleted {
-		s.i.Remove(e.ID)
-		// s.cache.Delete(e)
-	}
+func (s *Server) buildHook(dir string) {
+	s.log.Infof("received new public directory: %s", dir)
 
-	if len(updated) == len(deleted) {
-		// Then it's likely a rename.
-		_ = s.loadRedirects()
+	s.staticFsLock.Lock()
+	oldFs := s.staticFs
+	s.staticFs = newStaticFs(dir)
+	s.staticFsLock.Unlock()
+
+	if oldFs != nil {
+		err := os.RemoveAll(oldFs.dir)
+		if err != nil {
+			s.n.Error(fmt.Errorf("could not delete old directory: %w", err))
+		}
 	}
 }

@@ -4,10 +4,8 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
+	"strconv"
 	"strings"
-
-	"github.com/hacdias/eagle/fs"
 )
 
 func (s *Server) withRedirects(next http.Handler) http.Handler {
@@ -29,37 +27,102 @@ func setCacheDefault(w http.ResponseWriter) {
 	w.Header().Set("Cache-Control", "public, max-age=15552000")
 }
 
-// TODO: right now we do 2 file system checks for each entry: the static file checker
-// and the entry checker. To improve this, we could avoid handling paths that do not
-// have extensions. However, that may exclude static files that have no file extensions.
-func (s *Server) withStaticFiles(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ext := path.Ext(r.URL.Path)
-		if ext == "" {
-			next.ServeHTTP(w, r)
+func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
+	// NOTE: previously we'd do a staticFs read lock here. However, removing
+	// it increased performance dramatically. Hopefully there's no consequences.
+
+	// TODO: somehow improve the detection of whether or not the page is HTML.
+	// We cannot do it on a response writer wrapper because we need to know before
+	// it reaches the http.FileServer.
+	ext := path.Ext(r.URL.Path)
+	isHTML := ext == "" || ext == ".html"
+	// setCacheHeaders(w, isHTML)
+
+	if s.isLoggedIn(r) && isHTML {
+		w = &adminBarResponseWriter{
+			ResponseWriter: w,
+			s:              s,
+			p:              r.URL.Path,
+		}
+	}
+
+	nfw := &notFoundResponseWriter{ResponseWriter: w}
+	s.staticFs.ServeHTTP(nfw, r)
+
+	if nfw.status == http.StatusNotFound {
+		s.notFoundHandler(w, r)
+	}
+}
+
+func (s *Server) notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	bytes, err := s.staticFs.ReadFile("404.html")
+	if err != nil {
+		if os.IsNotExist(err) {
+			bytes = []byte(http.StatusText(http.StatusNotFound))
+		} else {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
 		}
+	}
 
-		filename := filepath.Join(s.c.SourceDirectory, fs.ContentDirectory, r.URL.Path)
-		if stat, err := os.Stat(filename); err == nil && stat.Mode().IsRegular() {
-			// Do not serve .* (dot)files.
-			if strings.HasPrefix(stat.Name(), ".") {
-				s.serveErrorHTML(w, r, http.StatusNotFound, nil)
-				return
-			}
+	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Del("Cache-Control")
 
-			f, err := os.Open(filename)
+	w.WriteHeader(http.StatusNotFound)
+	_, _ = w.Write(bytes)
+}
+
+// notFoundResponseWriter wraps a Response Writer to capture 404 requests.
+// In case it is a 404 request, then we do not write the body.
+type notFoundResponseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *notFoundResponseWriter) WriteHeader(status int) {
+	w.status = status
+	if status != http.StatusNotFound {
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+
+func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
+	if w.status != http.StatusNotFound {
+		return w.ResponseWriter.Write(p)
+	}
+	// Lie that we successfully written it
+	return len(p), nil
+}
+
+type adminBarResponseWriter struct {
+	http.ResponseWriter
+	s *Server
+	p string
+}
+
+func (w *adminBarResponseWriter) WriteHeader(status int) {
+	if status == http.StatusOK && strings.Contains(w.Header().Get("Content-Type"), "text/html") {
+		length, _ := strconv.Atoi(w.Header().Get("Content-Length"))
+		html, err := w.s.renderAdminBar(w.p)
+		if err == nil {
+			length += len(html)
+			w.Header().Set("Content-Length", strconv.Itoa(length))
+			w.ResponseWriter.WriteHeader(status)
+			_, err = w.Write(html)
 			if err != nil {
-				s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-				return
+				w.s.log.Warn("could not write admin bar", err)
 			}
-			defer f.Close()
-
-			setCacheDefault(w)
-			http.ServeContent(w, r, stat.Name(), stat.ModTime(), f)
-			return
+		} else {
+			w.s.log.Warn("could not render admin bar", err)
 		}
 
-		next.ServeHTTP(w, r)
-	})
+		return
+	}
+
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (s *Server) renderAdminBar(path string) ([]byte, error) {
+	return []byte("TODO: ADMIN BAR"), nil
 }

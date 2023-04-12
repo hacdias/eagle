@@ -15,11 +15,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(middleware.Logger)
 	}
 
-	r.Use(middleware.RedirectSlashes)
-	r.Use(cleanPath)
+	r.Use(withCleanPath)
 	r.Use(middleware.GetHead)
-	r.Use(s.recoverer)
-	r.Use(s.securityHeaders)
+	r.Use(s.withRecoverer)
+	r.Use(s.withSecurityHeaders)
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 
@@ -82,9 +81,10 @@ func (s *Server) makeRouter() http.Handler {
 	// Everything that was not matched so far.
 	r.Group(func(r chi.Router) {
 		r.Use(s.withRedirects)
-		r.Use(s.withStaticFiles)
 
-		// r.Get("/*", s.entryGet)
+		r.Get("/*", s.staticHandler)
+		r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
+		r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
 	})
 
 	return r
