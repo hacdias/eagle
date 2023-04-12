@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,14 +22,9 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	s.serveHTMLWithStatus(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Login",
-			},
-		},
-		NoIndex: true,
-	}, []string{renderer.TemplateLogin}, http.StatusOK)
+	s.serveHTMLWithStatus(w, r, &RenderData{
+		Title: "Login",
+	}, TemplateLogin, http.StatusOK)
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {

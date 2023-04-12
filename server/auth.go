@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/samber/lo"
@@ -51,15 +49,10 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Authorization",
-			},
-		},
-		Data:    req,
-		NoIndex: true,
-	}, []string{renderer.TemplateAuth})
+	s.serveHTML(w, r, &RenderData{
+		Title: "Authorization",
+		Data:  req,
+	}, TemplateAuth)
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {

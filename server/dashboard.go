@@ -9,8 +9,6 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 )
@@ -155,13 +153,8 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Dashboard",
-			},
-		},
-		Data:    data,
-		NoIndex: true,
-	}, []string{renderer.TemplateDashboard})
+	s.serveHTML(w, r, &RenderData{
+		Title: "Dashboard",
+		Data:  data,
+	}, TemplateDashboard)
 }

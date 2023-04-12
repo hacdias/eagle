@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/samber/lo"
 )
 
@@ -55,19 +54,14 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	archetypeNames := lo.Keys(s.archetypes)
 	sort.Strings(archetypeNames)
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "New",
-			},
-		},
+	s.serveHTML(w, r, &RenderData{
+		Title: "New",
 		Data: map[string]interface{}{
 			"ID":         e.ID,
 			"Content":    str,
 			"Archetypes": archetypeNames,
 		},
-		NoIndex: true,
-	}, []string{renderer.TemplateNew})
+	}, TemplateNew)
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -142,19 +136,14 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Edit",
-			},
-		},
+	s.serveHTML(w, r, &RenderData{
+		Title: "Edit",
 		Data: map[string]interface{}{
 			"Title":   ee.Title,
 			"Content": str,
 			"Entry":   ee,
 		},
-		NoIndex: true,
-	}, []string{renderer.TemplateEditor})
+	}, TemplateEdit)
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {

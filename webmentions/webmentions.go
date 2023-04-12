@@ -7,7 +7,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
-	"github.com/hacdias/eagle/renderer"
 	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
 )
@@ -17,10 +16,9 @@ type Webmentions struct {
 	client   *webmention.Client
 	fs       *fs.FS
 	notifier eagle.Notifier
-	renderer *renderer.Renderer
 }
 
-func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Renderer) *Webmentions {
+func NewWebmentions(fs *fs.FS, notifier eagle.Notifier) *Webmentions {
 	return &Webmentions{
 		log: log.S().Named("webmentions"),
 		client: webmention.New(&http.Client{
@@ -28,7 +26,6 @@ func NewWebmentions(fs *fs.FS, notifier eagle.Notifier, renderer *renderer.Rende
 		}),
 		fs:       fs,
 		notifier: notifier,
-		renderer: renderer,
 	}
 }
 

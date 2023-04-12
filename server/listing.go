@@ -2,11 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strconv"
-
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/indexer"
-	"github.com/hacdias/eagle/renderer"
 )
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
@@ -24,19 +19,19 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	// e := s.getListingEntryOrEmpty(r.URL.Path, "Search")
 	// if search.Query == "" {
-	// 	s.serveHTML(w, r, &renderer.RenderData{
+	// 	s.serveHTML(w, r, &RenderData{
 	// 		Entry:   e,
 	// 		NoIndex: true,
 	// 		Data: &listingPage{
 	// 			Search: search,
 	// 		},
-	// 	}, []string{renderer.TemplateSearch})
+	// 	}, []string{TemplateSearch})
 	// 	return
 	// }
 
 	// s.listingGet(w, r, &listingSettings{
 	// 	noFeed: true,
-	// 	rd: &renderer.RenderData{
+	// 	rd: &RenderData{
 	// 		Entry:   e,
 	// 		NoIndex: true,
 	// 	},
@@ -52,14 +47,14 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	// 		return s.i.GetSearch(opts, search)
 	// 	},
-	// 	templates: []string{renderer.TemplateSearch},
+	// 	templates: []string{TemplateSearch},
 	// })
 }
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 	// s.listingGet(w, r, &listingSettings{
 	// 	noFeed: true,
-	// 	rd: &renderer.RenderData{
+	// 	rd: &RenderData{
 	// 		Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Drafts"),
 	// 		NoIndex: true,
 	// 	},
@@ -72,7 +67,7 @@ func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 	// s.listingGet(w, r, &listingSettings{
 	// 	noFeed: true,
-	// 	rd: &renderer.RenderData{
+	// 	rd: &RenderData{
 	// 		Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Unlisted"),
 	// 		NoIndex: true,
 	// 	},
@@ -85,7 +80,7 @@ func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 	// s.listingGet(w, r, &listingSettings{
 	// 	noFeed: true,
-	// 	rd: &renderer.RenderData{
+	// 	rd: &RenderData{
 	// 		Entry:   s.getListingEntryOrEmpty(r.URL.Path, "Deleted"),
 	// 		NoIndex: true,
 	// 	},
@@ -114,55 +109,55 @@ func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
-type listingSettings struct {
-	exec      func(*indexer.Query) (eagle.Entries, error)
-	rd        *renderer.RenderData
-	lp        listingPage
-	templates []string
-	noFeed    bool
-}
+// type listingSettings struct {
+// 	exec      func(*indexer.Query) (eagle.Entries, error)
+// 	rd        *renderer.RenderData
+// 	lp        listingPage
+// 	templates []string
+// 	noFeed    bool
+// }
 
-type listingPage struct {
-	Search       *indexer.Search
-	Taxonomy     string
-	Terms        eagle.Terms
-	Entries      eagle.Entries
-	Page         int
-	PreviousPage string
-	NextPage     string
-}
+// type listingPage struct {
+// 	Search       *indexer.Search
+// 	Taxonomy     string
+// 	Terms        eagle.Terms
+// 	Entries      eagle.Entries
+// 	Page         int
+// 	PreviousPage string
+// 	NextPage     string
+// }
 
-func (s *Server) listingQuery(r *http.Request, ls *listingSettings) *indexer.Query {
-	opts := &indexer.Query{
-		OrderByUpdated: ls.rd.Entry.Listing.OrderByUpdated,
-	}
+// func (s *Server) listingQuery(r *http.Request, ls *listingSettings) *indexer.Query {
+// 	opts := &indexer.Query{
+// 		OrderByUpdated: ls.rd.Entry.Listing.OrderByUpdated,
+// 	}
 
-	if ls.rd.Listing.DisablePagination {
-		return opts
-	}
+// 	if ls.rd.Listing.DisablePagination {
+// 		return opts
+// 	}
 
-	opts.Pagination = &indexer.Pagination{}
+// 	opts.Pagination = &indexer.Pagination{}
 
-	if ls.rd.Entry.Listing.ItemsPerPage > 0 {
-		opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
-	} else {
-		opts.Pagination.Limit = s.c.Site.Pagination
-	}
+// 	if ls.rd.Entry.Listing.ItemsPerPage > 0 {
+// 		opts.Pagination.Limit = ls.rd.Entry.Listing.ItemsPerPage
+// 	} else {
+// 		opts.Pagination.Limit = s.c.Site.Pagination
+// 	}
 
-	if v := r.URL.Query().Get("page"); v != "" {
-		p, _ := strconv.Atoi(v)
-		if p >= 0 {
-			opts.Pagination.Page = p
-			ls.lp.Page = p
-		}
-	}
+// 	if v := r.URL.Query().Get("page"); v != "" {
+// 		p, _ := strconv.Atoi(v)
+// 		if p >= 0 {
+// 			opts.Pagination.Page = p
+// 			ls.lp.Page = p
+// 		}
+// 	}
 
-	return opts
-}
+// 	return opts
+// }
 
 // func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingSettings) {
 // 	if ls.rd == nil {
-// 		ls.rd = &renderer.RenderData{}
+// 		ls.rd = &RenderData{}
 // 	}
 
 // 	if ls.rd.Entry == nil {
@@ -201,7 +196,7 @@ func (s *Server) listingQuery(r *http.Request, ls *listingSettings) *indexer.Que
 // 	if ls.rd.Template != "" {
 // 		templates = append(templates, ls.rd.Template)
 // 	}
-// 	templates = append(templates, renderer.TemplateList)
+// 	templates = append(templates, TemplateList)
 // 	path := r.URL.Path
 
 // 	if !ls.noFeed {

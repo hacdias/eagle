@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"net"
 	"net/http"
@@ -31,7 +32,6 @@ import (
 	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/maze"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
 	"github.com/hacdias/eagle/services/miniflux"
@@ -64,6 +64,7 @@ type Server struct {
 	actions    map[string]func() error
 	cron       *cron.Cron
 	redirects  map[string]string
+	templates  map[string]*template.Template
 	archetypes map[string]eagle.Archetype
 	webFinger  *eagle.WebFinger
 
@@ -74,7 +75,6 @@ type Server struct {
 	media       *media.Media
 	cache       *cache.Cache
 	webmentions *webmentions.Webmentions
-	renderer    *renderer.Renderer
 	parser      *eagle.Parser
 	maze        *maze.Maze
 
@@ -122,11 +122,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		m = media.NewMedia(storage, transformer)
 	}
 
-	renderer, err := renderer.NewRenderer(c, fs, m)
-	if err != nil {
-		return nil, err
-	}
-
 	cache, err := cache.NewCache()
 	if err != nil {
 		return nil, err
@@ -147,12 +142,12 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		servers:     []*httpServer{},
 		cron:        cron.New(),
 		redirects:   map[string]string{},
+		templates:   map[string]*template.Template{},
 		archetypes:  eagle.DefaultArchetypes,
 		fs:          fs,
 		media:       m,
 		cache:       cache,
-		webmentions: webmentions.NewWebmentions(fs, notifier, renderer),
-		renderer:    renderer,
+		webmentions: webmentions.NewWebmentions(fs, notifier),
 		parser:      eagle.NewParser(c.Server.BaseURL),
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
@@ -197,6 +192,15 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	s.initWebFinger()
+
+	err = s.loadTemplates()
+	if err != nil {
+		return nil, err
+	}
+
+	if c.Development {
+		go s.watch(TemplatesDirectory, s.loadTemplates)
+	}
 
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
@@ -425,12 +429,12 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 	})
 }
 
-func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *renderer.RenderData, tpls []string, code int) {
-	if data.Entry.ID == "" {
-		data.Entry.ID = r.URL.Path
-	}
+func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *RenderData, tpl string, code int) {
+	// if data.Entry.ID == "" {
+	// 	data.Entry.ID = r.URL.Path
+	// }
 
-	data.IsLoggedIn = s.isLoggedIn(r)
+	// data.IsLoggedIn = s.isLoggedIn(r)
 
 	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
@@ -447,7 +451,7 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		cw = w
 	}
 
-	err := s.renderer.Render(cw, data, tpls, false)
+	err := s.render(cw, data, tpl)
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
 	} else {
@@ -458,8 +462,8 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 	}
 }
 
-func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *renderer.RenderData, tpls []string) {
-	s.serveHTMLWithStatus(w, r, data, tpls, http.StatusOK)
+func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *RenderData, tpl string) {
+	s.serveHTMLWithStatus(w, r, data, tpl, http.StatusOK)
 }
 
 func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, err error) {
@@ -477,17 +481,12 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 		data["Error"] = err.Error()
 	}
 
-	rd := &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
-			},
-		},
-		NoIndex: true,
-		Data:    data,
+	rd := &RenderData{
+		Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
+		Data:  data,
 	}
 
-	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
+	s.serveHTMLWithStatus(w, r, rd, TemplateError, code)
 }
 
 func (s *Server) syncStorage() {
