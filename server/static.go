@@ -19,14 +19,6 @@ func (s *Server) withRedirects(next http.Handler) http.Handler {
 	})
 }
 
-func setCacheHTML(w http.ResponseWriter) {
-	w.Header().Set("Cache-Control", "no-cache, no-store, max-age=0")
-}
-
-func setCacheDefault(w http.ResponseWriter) {
-	w.Header().Set("Cache-Control", "public, max-age=15552000")
-}
-
 func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	// NOTE: previously we'd do a staticFs read lock here. However, removing
 	// it increased performance dramatically. Hopefully there's no consequences.
@@ -36,9 +28,15 @@ func (s *Server) staticHandler(w http.ResponseWriter, r *http.Request) {
 	// it reaches the http.FileServer.
 	ext := path.Ext(r.URL.Path)
 	isHTML := ext == "" || ext == ".html"
-	// setCacheHeaders(w, isHTML)
+	setCacheControl(w, isHTML)
 
 	if s.isLoggedIn(r) && isHTML {
+		if isHTML {
+			// Ensure that authenticated requests to HTML files do not trigger
+			// a Not Modified responnse from http.FileServer.
+			delEtagHeaders(r)
+		}
+
 		w = &adminBarResponseWriter{
 			ResponseWriter: w,
 			s:              s,
@@ -121,8 +119,4 @@ func (w *adminBarResponseWriter) WriteHeader(status int) {
 	}
 
 	w.ResponseWriter.WriteHeader(status)
-}
-
-func (s *Server) renderAdminBar(path string) ([]byte, error) {
-	return []byte("TODO: ADMIN BAR"), nil
 }

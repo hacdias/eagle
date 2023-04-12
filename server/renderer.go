@@ -1,25 +1,27 @@
 package server
 
 import (
+	"bytes"
+	"fmt"
 	"html/template"
 	osfs "io/fs"
-	"path"
 	"path/filepath"
 	"strings"
 )
 
 const (
 	TemplatesExtension string = ".html"
-	TemplatesDirectory string = "templates"
+	TemplatesDirectory string = "eagle/templates"
 
 	// TemplateSearch    string = "search"
-	TemplateBase      string = "base"
 	TemplateError     string = "error"
 	TemplateLogin     string = "login"
 	TemplateAuth      string = "auth"
 	TemplateNew       string = "new"
 	TemplateEdit      string = "edit"
 	TemplateDashboard string = "dashboard"
+
+	TemplateAdminBar string = "admin-bar"
 )
 
 type RenderData struct {
@@ -29,19 +31,9 @@ type RenderData struct {
 }
 
 func (s *Server) loadTemplates() error {
-	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)
-	baseTemplateData, err := s.fs.ReadFile(baseTemplateFilename)
-	if err != nil {
-		return err
-	}
-
-	baseTemplate, err := template.New("base").Parse(string(baseTemplateData))
-	if err != nil {
-		return err
-	}
 	parsed := map[string]*template.Template{}
 
-	err = s.fs.Walk(TemplatesDirectory, func(filename string, info osfs.FileInfo, err error) error {
+	err := s.fs.Walk(TemplatesDirectory, func(filename string, info osfs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -58,7 +50,7 @@ func (s *Server) loadTemplates() error {
 		id = strings.TrimSuffix(id, "/")
 		id = strings.TrimPrefix(id, "/")
 
-		if ext != TemplatesExtension || id == TemplateBase {
+		if ext != TemplatesExtension {
 			return nil
 		}
 
@@ -67,7 +59,7 @@ func (s *Server) loadTemplates() error {
 			return err
 		}
 
-		parsed[id], err = template.Must(baseTemplate.Clone()).New(id).Parse(string(raw))
+		parsed[id], err = template.New(id).Parse(string(raw))
 		return err
 	})
 
@@ -77,4 +69,27 @@ func (s *Server) loadTemplates() error {
 
 	s.templates = parsed
 	return nil
+}
+
+func (s *Server) renderAdminBar(path string) ([]byte, error) {
+	tpl, ok := s.templates[TemplateAdminBar]
+	if !ok {
+		return nil, fmt.Errorf("template %s not found", TemplateAdminBar)
+	}
+
+	var buf bytes.Buffer
+	err := tpl.Execute(&buf, []string{})
+	if err != nil {
+		return nil, err
+	}
+
+	// data := &dashboardData{
+	// 	HasAuth:  s.Config.Auth != nil,
+	// 	BasePath: dashboardPath,
+	// 	Data: map[string]interface{}{
+	// 		"ID": path,
+	// 	},
+	// }
+
+	return buf.Bytes(), nil
 }

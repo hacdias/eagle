@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -432,9 +433,13 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *RenderData, template string, code int) {
 	data.LoggedIn = s.isLoggedIn(r)
 
-	setCacheHTML(w)
-	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
-	w.WriteHeader(code)
+	raw, err := s.staticFs.ReadFile("eagle/index.html")
+	if err != nil {
+		s.n.Error(fmt.Errorf("eagle/index.html not found", r.URL.Path, err))
+		return
+	}
+
+	var buf bytes.Buffer
 
 	tpl, ok := s.templates[template]
 	if !ok {
@@ -442,10 +447,19 @@ func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, dat
 		return
 	}
 
-	err := tpl.Execute(w, data)
+	err = tpl.Execute(&buf, data)
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
 	}
+
+	v := string(raw)
+	v = strings.Replace(v, "#BODY", buf.String(), -1)
+	v = strings.Replace(v, "#TITLE", data.Title, -1)
+
+	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
+	w.WriteHeader(code)
+	w.Write([]byte(v))
+
 }
 
 func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *RenderData, tpl string) {
