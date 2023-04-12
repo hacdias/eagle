@@ -31,7 +31,7 @@ var countCmd = &cobra.Command{
 		count := map[string]int{}
 
 		for _, e := range ee {
-			for _, section := range e.Sections {
+			for _, section := range e.Categories {
 				if _, ok := count[section]; !ok {
 					count[section] = 0
 				}

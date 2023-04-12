@@ -9,7 +9,6 @@ import (
 	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/util"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/samber/lo"
 	stripMarkdown "github.com/writeas/go-strip-markdown"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -93,10 +92,6 @@ func (e *Entry) TextDescription() string {
 	return e.TextExcerpt()
 }
 
-func (e *Entry) InSection(section string) bool {
-	return lo.Contains(e.Sections, section)
-}
-
 func (e *Entry) String() (string, error) {
 	val, err := yaml.Marshal(&e.FrontMatter)
 	if err != nil {
@@ -113,10 +108,6 @@ func (e *Entry) TextContent() string {
 func (e *Entry) EnsureMaps() {
 	if e.Properties == nil {
 		e.Properties = map[string]interface{}{}
-	}
-
-	if e.Taxonomies == nil {
-		e.Taxonomies = map[string][]string{}
 	}
 }
 

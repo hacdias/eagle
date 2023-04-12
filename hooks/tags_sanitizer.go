@@ -9,12 +9,10 @@ import (
 type TagsSanitizer struct{}
 
 func (t TagsSanitizer) EntryHook(_, e *eagle.Entry) error {
-	if tags, ok := e.Taxonomies["tags"]; ok {
-		for i := range tags {
-			tags[i] = util.Slugify(tags[i])
-		}
-		e.Taxonomies["tags"] = lo.Uniq(tags)
+	for i := range e.Tags {
+		e.Tags[i] = util.Slugify(e.Tags[i])
 	}
 
+	e.Tags = lo.Uniq(e.Tags)
 	return nil
 }

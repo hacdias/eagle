@@ -9,13 +9,6 @@ import (
 	"github.com/hacdias/eagle/renderer"
 )
 
-const (
-	feedPath  = ".{feed:rss|atom|json}"
-	yearPath  = `/{year:(x|\d\d\d\d)}`
-	monthPath = yearPath + `/{month:(x|\d\d)}`
-	dayPath   = monthPath + `/{day:(x|\d\d)}`
-)
-
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
@@ -87,37 +80,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/token", s.tokenGet) // Backwards compatible token verification endpoint
 		r.Get("/userinfo", s.userInfoGet)
 	})
-
-	// Listing HTML pages. Cached.
-	r.Group(func(r chi.Router) {
-		r.Use(s.withCache)
-
-		r.Get("/", s.indexGet)
-		r.Get(yearPath, s.dateGet)
-		r.Get(monthPath, s.dateGet)
-		r.Get(dayPath, s.dateGet)
-
-		for _, section := range s.c.Site.Sections {
-			if section != s.c.Site.IndexSection {
-				r.Get("/"+section, s.sectionGet(section))
-			}
-		}
-
-		for id, taxonomy := range s.c.Site.Taxonomies {
-			r.Get("/"+id, s.taxonomyGet(id, taxonomy))
-			r.Get("/"+id+"/{term}", s.taxonomyTermGet(id, taxonomy))
-		}
-	})
-
-	// Listing JSON, XML and ATOM feeds. Not cached. Taxonomies
-	// and date pages do not have feeds.
-	r.Get("/"+feedPath, s.indexGet)
-
-	for _, section := range s.c.Site.Sections {
-		if section != s.c.Site.IndexSection {
-			r.Get("/"+section+feedPath, s.sectionGet(section))
-		}
-	}
 
 	// Everything that was not matched so far.
 	r.Group(func(r chi.Router) {

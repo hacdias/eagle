@@ -42,12 +42,6 @@ type Backend interface {
 	GetDrafts(opts *Pagination) ([]string, error)
 	GetUnlisted(opts *Pagination) ([]string, error)
 	GetDeleted(opts *Pagination) ([]string, error)
-
-	GetBySection(opt *Query, section string) ([]string, error)
-	GetByTaxonomy(opt *Query, taxonomy, term string) ([]string, error)
-	GetByDate(opts *Query, year, month, day int) ([]string, error)
-
-	GetTaxonomyTerms(taxonomy string) (eagle.Terms, error)
 	GetSearch(opt *Query, search *Search) ([]string, error)
 	GetCount() (int, error)
 
@@ -74,10 +68,6 @@ func (e *Indexer) Remove(ids ...string) {
 	e.backend.Remove(ids...)
 }
 
-func (e *Indexer) GetAll(opts *Query) (eagle.Entries, error) {
-	return e.idsToEntries(e.backend.GetAll(opts))
-}
-
 func (e *Indexer) GetDrafts(opts *Pagination) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetDrafts(opts))
 }
@@ -88,22 +78,6 @@ func (e *Indexer) GetUnlisted(opts *Pagination) (eagle.Entries, error) {
 
 func (e *Indexer) GetDeleted(opts *Pagination) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetDeleted(opts))
-}
-
-func (e *Indexer) GetBySection(opts *Query, section string) (eagle.Entries, error) {
-	return e.idsToEntries(e.backend.GetBySection(opts, section))
-}
-
-func (e *Indexer) GetByTaxonomy(opts *Query, taxonomy, term string) (eagle.Entries, error) {
-	return e.idsToEntries(e.backend.GetByTaxonomy(opts, taxonomy, term))
-}
-
-func (e *Indexer) GetByDate(opts *Query, year, month, day int) (eagle.Entries, error) {
-	return e.idsToEntries(e.backend.GetByDate(opts, year, month, day))
-}
-
-func (e *Indexer) GetTaxonomyTerms(taxonomy string) (eagle.Terms, error) {
-	return e.backend.GetTaxonomyTerms(taxonomy)
 }
 
 func (e *Indexer) GetSearch(opts *Query, search *Search) (eagle.Entries, error) {

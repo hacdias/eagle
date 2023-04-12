@@ -146,7 +146,7 @@ func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle
 }
 
 func (f *FS) saveEntry(e *eagle.Entry) error {
-	e.Sections = lo.Uniq(e.Sections)
+	e.Categories = lo.Uniq(e.Categories)
 
 	filename := f.getEntryFilename(e.ID)
 	err := f.MkdirAll(filepath.Dir(filename), 0777)

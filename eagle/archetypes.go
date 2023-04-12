@@ -21,9 +21,7 @@ var DefaultArchetypes = map[string]Archetype{
 			FrontMatter: FrontMatter{
 				Title: "Article Title",
 				Draft: true,
-				Taxonomies: map[string][]string{
-					"tags": {"example"},
-				},
+				Tags:  []string{"example"},
 			},
 			Content: "Code is poetry...",
 			ID:      NewID("my-article", time.Now()),
@@ -35,13 +33,11 @@ var DefaultArchetypes = map[string]Archetype{
 
 		return &Entry{
 			FrontMatter: FrontMatter{
-				Draft:    true,
-				Title:    fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
-				Date:     t,
-				Sections: []string{"home", "articles"},
-				Taxonomies: map[string][]string{
-					"tags": {"now"},
-				},
+				Draft:      true,
+				Title:      fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+				Date:       t,
+				Categories: []string{"articles"},
+				Tags:       []string{"now"},
 			},
 			Content: "How was last month?",
 			ID:      NewID(fmt.Sprintf("%s-%s", strings.ToLower(month), t.Format("06")), time.Now()),
@@ -60,7 +56,7 @@ var DefaultArchetypes = map[string]Archetype{
 			FrontMatter: FrontMatter{
 				Date:        date,
 				Description: fmt.Sprintf("%s by %s (ISBN: %s)", name, author, isbn),
-				Sections:    []string{"books"},
+				Categories:  []string{"readings"},
 				Properties: map[string]interface{}{
 					"read-of": map[string]interface{}{
 						"properties": map[string]interface{}{

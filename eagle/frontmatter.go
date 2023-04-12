@@ -40,7 +40,6 @@ type FrontMatter struct {
 	Date               time.Time              `yaml:"date,omitempty"`
 	LastMod            time.Time              `yaml:"lastmod,omitempty"`
 	ExpiryDate         time.Time              `yaml:"expiryDate,omitempty"`
-	Sections           []string               `yaml:"section,omitempty"`
 	Template           string                 `yaml:"template,omitempty"`
 	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
 	CoverImage         string                 `yaml:"coverImage,omitempty"`
@@ -51,7 +50,6 @@ type FrontMatter struct {
 	Categories         []string               `yaml:"categories,omitempty"`
 	Layout             string                 `yaml:"layout,omitempty"`
 	Listing            *Listing               `yaml:"listing,omitempty"`
-	Taxonomies         map[string][]string    `yaml:"taxonomies,omitempty"`
 	Location           *maze.Location         `yaml:"location,omitempty"`
 	Context            *Context               `yaml:"context,omitempty"`
 	Syndications       []string               `yaml:"syndications,omitempty"`
@@ -59,14 +57,6 @@ type FrontMatter struct {
 	Bookmark           string                 `yaml:"bookmark,omitempty"`
 	Read               *Read                  `yaml:"read,omitempty"`
 	Rating             int                    `yaml:"rating,omitempty"`
-}
-
-func (f *FrontMatter) Taxonomy(name string) []string {
-	if v, ok := f.Taxonomies[name]; ok {
-		return v
-	}
-
-	return []string{}
 }
 
 func unmarshalFrontMatter(data []byte) (*FrontMatter, error) {

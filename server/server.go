@@ -165,7 +165,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	s.AppendPreSaveHook(
 		hooks.NewDescriptionGenerator(s.fs),
-		hooks.NewMicropubValidator(c.Micropub),
 		hooks.TagsSanitizer{},
 	)
 
