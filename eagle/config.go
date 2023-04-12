@@ -6,25 +6,8 @@ import (
 	urlpkg "net/url"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/pkg/mf2"
-	"github.com/samber/lo"
 	"github.com/spf13/viper"
 )
-
-type Tor struct {
-	Directory string
-	Logging   bool
-}
-
-func (t *Tor) validate() error {
-	if t.Directory == "" {
-		return fmt.Errorf("tor.directory must be set")
-	}
-
-	var err error
-	t.Directory, err = filepath.Abs(t.Directory)
-	return err
-}
 
 type Server struct {
 	Port          int
@@ -32,7 +15,6 @@ type Server struct {
 	TokensSecret  string
 	WebhookSecret string
 	Logging       bool
-	Tor           *Tor
 }
 
 func (s *Server) validate() error {
@@ -48,12 +30,6 @@ func (s *Server) validate() error {
 
 	if baseUrl.String() != s.BaseURL {
 		return fmt.Errorf("base url should be %s", baseUrl.String())
-	}
-
-	if s.Tor != nil {
-		if err = s.Tor.validate(); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -138,61 +114,16 @@ func (p *PostgreSQL) validate() error {
 	return nil
 }
 
-type MenuItem struct {
-	Name string
-	Link string
-}
-
 type Site struct {
-	Language     string
-	Title        string
-	Description  string
-	Pagination   int
-	ChromaTheme  string
-	Sections     []string
-	IndexSection string
-	Menus        map[string][]MenuItem
-	Taxonomies   map[string]Taxonomy
+	Language    string
+	Title       string
+	Description string
+	Pagination  int
 }
 
 func (s *Site) validate() error {
 	if s.Pagination < 1 {
 		return errors.New("paginate must be larger than 1")
-	}
-
-	if s.IndexSection == "" {
-		return errors.New("indexSection must be configured")
-	}
-
-	if !lo.Contains(s.Sections, s.IndexSection) {
-		return errors.New("sections must include IndexSection")
-	}
-
-	if len(s.Sections) != len(lo.Uniq(s.Sections)) {
-		return errors.New("sections includes duplicate entries")
-	}
-
-	for _, taxonomy := range s.Taxonomies {
-		if err := taxonomy.validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-type Taxonomy struct {
-	Title    string
-	Singular string
-}
-
-func (t *Taxonomy) validate() error {
-	if t.Title == "" {
-		return errors.New("tag must have title")
-	}
-
-	if t.Singular == "" {
-		return errors.New("tag must have singular version")
 	}
 
 	return nil
@@ -219,8 +150,6 @@ func (u *User) validate() error {
 	return nil
 }
 
-type Syndication struct{}
-
 type Telegram struct {
 	Token  string
 	ChatID int64
@@ -228,34 +157,6 @@ type Telegram struct {
 
 type Notifications struct {
 	Telegram *Telegram
-}
-
-type PostType struct {
-	Type       string   `json:"type"`
-	Name       string   `json:"name"`
-	Properties []string `json:"properties,omitempty"`
-	Required   []string `json:"required-properties,omitempty"`
-}
-
-type Micropub struct {
-	Sections map[mf2.Type][]string
-	Unlisted []mf2.Type
-}
-
-func (m *Micropub) validate() error {
-	for mf2Type := range m.Sections {
-		if !mf2.IsType(mf2Type) {
-			return fmt.Errorf("%s is not a valid micropub type", mf2Type)
-		}
-	}
-
-	for _, mf2Type := range m.Unlisted {
-		if !mf2.IsType(mf2Type) {
-			return fmt.Errorf("%s is not a valid micropub type", mf2Type)
-		}
-	}
-
-	return nil
 }
 
 type Webmentions struct {
@@ -290,9 +191,7 @@ type Config struct {
 	PostgreSQL    PostgreSQL
 	Site          Site
 	User          User
-	Syndications  Syndication
 	Notifications Notifications
-	Micropub      Micropub
 	Webmentions   Webmentions
 	XRay          *XRay
 	BunnyCDN      *BunnyCDN
@@ -324,22 +223,6 @@ func (c *Config) validate() error {
 	err = c.User.validate()
 	if err != nil {
 		return err
-	}
-
-	err = c.Micropub.validate()
-	if err != nil {
-		return err
-	}
-
-	micropubSections := []string{}
-	for _, sections := range c.Micropub.Sections {
-		micropubSections = append(micropubSections, sections...)
-	}
-	micropubSections = lo.Uniq(micropubSections)
-
-	intersect := lo.Intersect(c.Site.Sections, micropubSections)
-	if len(intersect) != len(micropubSections) {
-		return fmt.Errorf("Micropub.Sections can only use sections defined in Sections")
 	}
 
 	return nil

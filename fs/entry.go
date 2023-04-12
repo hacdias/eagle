@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/util"
 	"github.com/samber/lo"
 )
 
@@ -146,7 +147,8 @@ func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle
 }
 
 func (f *FS) saveEntry(e *eagle.Entry) error {
-	e.Categories = lo.Uniq(e.Categories)
+	e.Tags = cleanTaxonomy(e.Tags)
+	e.Categories = cleanTaxonomy(e.Categories)
 
 	filename := f.getEntryFilename(e.ID)
 	err := f.MkdirAll(filepath.Dir(filename), 0777)
@@ -178,4 +180,12 @@ func (f *FS) getEntryFilename(id string) string {
 	}
 
 	return filepath.Join(ContentDirectory, id, "_index.md")
+}
+
+func cleanTaxonomy(els []string) []string {
+	for i := range els {
+		els[i] = util.Slugify(els[i])
+	}
+
+	return lo.Uniq(els)
 }

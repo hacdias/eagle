@@ -3,18 +3,8 @@ package hooks
 import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
-	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/util"
 )
-
-var typeToDescription = map[mf2.Type]string{
-	mf2.TypeReply:    "Replied to ",
-	mf2.TypeLike:     "Liked ",
-	mf2.TypeRepost:   "Reposted ",
-	mf2.TypeBookmark: "Bookmarked ",
-	mf2.TypeAte:      "Just ate: ",
-	mf2.TypeDrank:    "Just drank: ",
-}
 
 type DescriptionGenerator struct {
 	fs *fs.FS
