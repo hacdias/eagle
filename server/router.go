@@ -33,9 +33,9 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	// Random
-	r.Get("/search", s.searchGet)
+	r.Get("/search/", s.searchGet)
 	r.Get("/.well-known/webfinger", s.webFingerGet)
-	r.Post("/guestbook", s.guestbookPost)
+	r.Post("/guestbook/", s.guestbookPost)
 
 	// Login
 	r.Get("/login", s.loginGet)
