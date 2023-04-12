@@ -15,7 +15,7 @@ import (
 type EntryTransformer func(*eagle.Entry) (*eagle.Entry, error)
 
 func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
-	filename := fs.getEntryFilename(id)
+	filename := fs.guessFilename(id)
 	raw, err := fs.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -26,6 +26,7 @@ func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
 		return nil, err
 	}
 
+	e.Path = filename
 	return e, nil
 }
 
@@ -150,8 +151,10 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 	e.Tags = cleanTaxonomy(e.Tags)
 	e.Categories = cleanTaxonomy(e.Categories)
 
-	filename := f.getEntryFilename(e.ID)
-	err := f.MkdirAll(filepath.Dir(filename), 0777)
+	if e.Path == "" {
+		e.Path = f.guessFilename(e.ID)
+	}
+	err := f.MkdirAll(filepath.Dir(e.Path), 0777)
 	if err != nil {
 		return err
 	}
@@ -161,7 +164,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 		return err
 	}
 
-	err = f.WriteFile(filename, []byte(str))
+	err = f.WriteFile(e.Path, []byte(str))
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -173,7 +176,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 	return nil
 }
 
-func (f *FS) getEntryFilename(id string) string {
+func (f *FS) guessFilename(id string) string {
 	path := filepath.Join(ContentDirectory, id, "index.md")
 	if _, err := f.Afero.Stat(path); err == nil {
 		return path

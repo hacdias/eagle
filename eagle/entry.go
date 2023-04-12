@@ -13,14 +13,14 @@ import (
 
 type Entry struct {
 	FrontMatter
+	Path      string // The original path of the file. Might be empty.
 	ID        string
 	Permalink string
 	Content   string
 }
 
 func (e *Entry) IsList() bool {
-	// FIXME: save path and check _index
-	return false
+	return strings.Contains(e.Path, "_index.md")
 }
 
 func (e *Entry) Deleted() bool {
