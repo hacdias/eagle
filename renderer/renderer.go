@@ -30,7 +30,6 @@ type Renderer struct {
 	absoluteMarkdown  goldmark.Markdown
 	templates         map[string]*template.Template
 	absoluteTemplates map[string]*template.Template
-	assets            *Assets
 }
 
 func NewRenderer(c *eagle.Config, fs *fs.FS, m *media.Media) (*Renderer, error) {
@@ -46,19 +45,13 @@ func NewRenderer(c *eagle.Config, fs *fs.FS, m *media.Media) (*Renderer, error) 
 	r.markdown = newMarkdown(r, false)
 	r.absoluteMarkdown = newMarkdown(r, true)
 
-	err := r.LoadAssets()
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.LoadTemplates()
+	err := r.LoadTemplates()
 	if err != nil {
 		return nil, err
 	}
 
 	if c.Development {
 		go r.watch(TemplatesDirectory, r.LoadTemplates)
-		go r.watch(AssetsDirectory, r.LoadAssets)
 	}
 
 	return r, nil
@@ -122,7 +115,6 @@ func (r *Renderer) watch(dir string, exec func() error) {
 func (r *Renderer) Render(w io.Writer, data *RenderData, templates []string, absoluteURLs bool) error {
 	data.Me = r.c.User
 	data.Site = r.c.Site
-	data.Assets = r.assets
 	data.fs = r.fs
 
 	var htmlTemplates map[string]*template.Template
@@ -216,9 +208,8 @@ type RenderData struct {
 	// a page that may be needed.
 	*eagle.Entry
 
-	Assets *Assets
-	Me     eagle.User
-	Site   eagle.Site
+	Me   eagle.User
+	Site eagle.Site
 
 	// For page-specific variables.
 	Data interface{}

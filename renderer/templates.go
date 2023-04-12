@@ -6,37 +6,22 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/hacdias/eagle/eagle"
 )
 
 const (
 	TemplatesExtension string = ".html"
 	TemplatesDirectory string = "templates"
 
-	TemplateBase      string = "base"
-	TemplateSingle    string = "single"
-	TemplateFeed      string = "feed"
-	TemplateList      string = "list"
-	TemplateError     string = "error"
-	TemplateLogin     string = "login"
-	TemplateSearch    string = "search"
+	TemplateBase  string = "base"
+	TemplateError string = "error"
+	TemplateLogin string = "login"
+	// TemplateSearch    string = "search"
 	TemplateEditor    string = "editor"
 	TemplateNew       string = "new"
 	TemplateIndex     string = "index"
-	TemplateTerms     string = "terms"
 	TemplateAuth      string = "auth"
 	TemplateDashboard string = "dashboard"
 )
-
-func EntryTemplates(e *eagle.Entry) []string {
-	t := []string{}
-	if e.Template != "" {
-		t = append(t, e.Template)
-	}
-	t = append(t, TemplateSingle)
-	return t
-}
 
 func (r *Renderer) loadTemplatesWithFunctions(fns template.FuncMap) (map[string]*template.Template, error) {
 	baseTemplateFilename := path.Join(TemplatesDirectory, TemplateBase+TemplatesExtension)

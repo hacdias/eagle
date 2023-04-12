@@ -279,19 +279,15 @@ func (s *Server) Stop() error {
 
 func (s *Server) initActions() {
 	s.actions = map[string]func() error{
-		"Clear Cache": func() error {
-			s.cache.Clear()
-			return nil
+		"Build Website": func() error {
+			return errors.New("not implemented")
+		},
+		"Build Website (Clean)": func() error {
+			return errors.New("not implemented")
 		},
 		"Sync Storage": func() error {
 			go s.syncStorage()
 			return nil
-		},
-		"Reload Templates": func() error {
-			return s.renderer.LoadTemplates()
-		},
-		"Reload Assets": func() error {
-			return s.renderer.LoadAssets()
 		},
 		"Reload Redirects": func() error {
 			return s.loadRedirects()

@@ -9,7 +9,6 @@ import (
 	urlpkg "net/url"
 
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hashicorp/go-multierror"
 	"github.com/samber/lo"
 	"willnorris.com/go/webmention"
@@ -56,12 +55,12 @@ func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 
 func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) {
 	var buf bytes.Buffer
-	err := ws.renderer.Render(&buf, &renderer.RenderData{
-		Entry: entry,
-	}, renderer.EntryTemplates(entry), true)
-	if err != nil {
-		return nil, err
-	}
+	// err := ws.renderer.Render(&buf, &renderer.RenderData{
+	// 	Entry: entry,
+	// }, renderer.EntryTemplates(entry), true)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	targets, err := webmention.DiscoverLinksFromReader(&buf, entry.Permalink, ".h-entry .e-content a, .h-entry .h-cite a")
 	if err != nil {

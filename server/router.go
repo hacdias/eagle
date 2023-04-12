@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/renderer"
 )
 
 func (s *Server) makeRouter() http.Handler {
@@ -36,7 +35,6 @@ func (s *Server) makeRouter() http.Handler {
 
 	// Random
 	r.Get("/search", s.searchGet)
-	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
 	r.Get("/.well-known/webfinger", s.webFingerGet)
 	r.Post("/guestbook", s.guestbookPost)
 
@@ -87,7 +85,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.withStaticFiles)
 		r.Use(s.withCache)
 
-		r.Get("/*", s.entryGet)
+		// r.Get("/*", s.entryGet)
 	})
 
 	return r

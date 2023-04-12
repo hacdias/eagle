@@ -218,36 +218,3 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 	go s.postSaveEntry(old, e)
 	http.Redirect(w, r, e.ID, http.StatusSeeOther)
 }
-
-func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
-	e, err := s.fs.GetEntry(r.URL.Path)
-	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
-		return
-	}
-
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	loggedIn := s.isLoggedIn(r)
-	if e.Deleted() && !loggedIn {
-		s.serveErrorHTML(w, r, http.StatusGone, nil)
-		return
-	}
-
-	if e.Draft && !loggedIn {
-		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
-		return
-	}
-
-	s.serveEntry(w, r, e)
-}
-
-func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.Entry) {
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry:   ee,
-		NoIndex: ee.NoIndex || ee.Unlisted, //|| (postType != mf2.TypeNote && postType != mf2.TypeArticle),
-	}, renderer.EntryTemplates(ee))
-}
