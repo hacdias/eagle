@@ -26,6 +26,14 @@ type Entry struct {
 	textExcerpt string
 }
 
+func (e *Entry) Deleted() bool {
+	if e.FrontMatter.ExpiryDate.IsZero() {
+		return false
+	}
+
+	return e.FrontMatter.ExpiryDate.Before(time.Now())
+}
+
 func (e *Entry) Helper() *mf2.FlatHelper {
 	if e.helper == nil {
 		e.helper = mf2.NewFlatHelper(e.FlatMF2())

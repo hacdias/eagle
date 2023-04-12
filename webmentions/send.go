@@ -104,7 +104,7 @@ func canSendWebmentions(e *eagle.Entry) bool {
 	return e != nil &&
 		!e.NoSendInteractions &&
 		!e.Draft &&
-		!e.Deleted &&
+		!e.Deleted() &&
 		e.Listing == nil
 }
 

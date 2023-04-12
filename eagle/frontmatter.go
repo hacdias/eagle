@@ -36,7 +36,6 @@ type FrontMatter struct {
 	Description        string                 `yaml:"description,omitempty"`
 	Draft              bool                   `yaml:"draft,omitempty"`
 	Unlisted           bool                   `yaml:"unlisted,omitempty"`
-	Deleted            bool                   `yaml:"deleted,omitempty"`
 	Date               time.Time              `yaml:"date,omitempty"`
 	LastMod            time.Time              `yaml:"lastmod,omitempty"`
 	ExpiryDate         time.Time              `yaml:"expiryDate,omitempty"`

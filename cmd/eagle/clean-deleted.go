@@ -27,7 +27,7 @@ var cleanDeletedCmd = &cobra.Command{
 		}
 
 		for _, e := range ee {
-			if e.Deleted {
+			if e.Deleted() {
 				err = fs.RemoveAll(filepath.Join(eaglefs.ContentDirectory, e.ID))
 				if err != nil {
 					return err
