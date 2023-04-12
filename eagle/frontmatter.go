@@ -16,10 +16,19 @@ type Listing struct {
 }
 
 type Context struct {
+	// TODO: rename 'name' to 'author' at some point.
 	Author    string    `yaml:"name,omitempty"`
 	URL       string    `yaml:"url,omitempty"`
 	Content   string    `yaml:"content,omitempty"`
 	Published time.Time `yaml:"published,omitempty"`
+}
+
+type Read struct {
+	Name      string `yaml:"name,omitempty"`
+	Author    string `yaml:"author,omitempty"`
+	Publisher string `yaml:"publisher,omitempty"`
+	Pages     int    `yaml:"pages,omitempty"`
+	UID       string `yaml:"uid,omitempty"`
 }
 
 type FrontMatter struct {
