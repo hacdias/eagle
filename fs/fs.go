@@ -11,6 +11,7 @@ import (
 
 const (
 	ContentDirectory string = "content"
+	DataDirectory    string = "data"
 )
 
 type Sync interface {

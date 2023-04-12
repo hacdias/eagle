@@ -10,23 +10,24 @@ import (
 )
 
 const (
-	DefaultEntryID   = "/blogroll"
-	blogrollFileName = ".feeds.json"
+	DefaultEntryID      = "/blogroll/"
+	DefaultDataFileName = "feeds.json"
 )
 
 type BlogrollUpdater struct {
-	entryID string
-	client  *miniflux.Miniflux
-	fs      *fs.FS
+	entryID      string
+	dataFilename string
+	client       *miniflux.Miniflux
+	fs           *fs.FS
 }
 
 func NewBlogrollUpdater(c *eagle.Miniflux, fs *fs.FS) *BlogrollUpdater {
-	// TODO: make entry ID configurable.
-
+	// TODO: make entryID and dataFilename configurable.
 	return &BlogrollUpdater{
-		entryID: DefaultEntryID,
-		client:  miniflux.NewMiniflux(c.Endpoint, c.Key),
-		fs:      fs,
+		entryID:      DefaultEntryID,
+		dataFilename: DefaultDataFileName,
+		client:       miniflux.NewMiniflux(c.Endpoint, c.Key),
+		fs:           fs,
 	}
 }
 
@@ -36,7 +37,7 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		return err
 	}
 
-	filename := filepath.Join(fs.ContentDirectory, u.entryID, blogrollFileName)
+	filename := filepath.Join(fs.DataDirectory, u.entryID, u.dataFilename)
 	err = u.fs.WriteJSON(filename, feeds)
 	if err != nil {
 		return err
@@ -46,5 +47,6 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		e.LastMod = time.Now()
 		return e, err
 	})
+
 	return err
 }
