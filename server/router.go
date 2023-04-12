@@ -93,7 +93,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.withCache)
 
 		r.Get("/", s.indexGet)
-		r.Get("/all", s.allGet)
 		r.Get(yearPath, s.dateGet)
 		r.Get(monthPath, s.dateGet)
 		r.Get(dayPath, s.dateGet)
@@ -113,7 +112,6 @@ func (s *Server) makeRouter() http.Handler {
 	// Listing JSON, XML and ATOM feeds. Not cached. Taxonomies
 	// and date pages do not have feeds.
 	r.Get("/"+feedPath, s.indexGet)
-	r.Get("/all"+feedPath, s.allGet)
 
 	for _, section := range s.c.Site.Sections {
 		if section != s.c.Site.IndexSection {

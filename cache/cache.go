@@ -39,7 +39,6 @@ func (c *Cache) Save(filename string, data []byte, modtime time.Time) {
 
 func (c *Cache) Delete(ee *eagle.Entry) {
 	c.delete("/")
-	c.delete("/all")
 	c.delete(ee.ID)
 
 	for _, section := range ee.Sections {

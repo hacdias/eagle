@@ -19,14 +19,6 @@ import (
 	"github.com/samber/lo"
 )
 
-func (s *Server) allGet(w http.ResponseWriter, r *http.Request) {
-	s.listingGet(w, r, &listingSettings{
-		exec: func(opts *indexer.Query) (eagle.Entries, error) {
-			return s.i.GetAll(opts)
-		},
-	})
-}
-
 func (s *Server) indexGet(w http.ResponseWriter, r *http.Request) {
 	s.listingGet(w, r, &listingSettings{
 		rd: &renderer.RenderData{
