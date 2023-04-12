@@ -1,9 +1,10 @@
 package hooks
 
 import (
+	"net/url"
+
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
-	"github.com/hacdias/eagle/util"
 )
 
 type DescriptionGenerator struct {
@@ -30,10 +31,19 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 	}
 
 	if e.Bookmark != "" {
-		e.Description = "Bookmarked a post on " + util.Domain(e.Bookmark)
+		e.Description = "Bookmarked a post on " + domain(e.Bookmark)
 	} else if e.Reply != "" {
-		e.Description = "Replied to a post on " + util.Domain(e.Reply)
+		e.Description = "Replied to a post on " + domain(e.Reply)
 	}
 
 	return nil
+}
+
+func domain(text string) string {
+	u, err := url.Parse(text)
+	if err != nil {
+		return text
+	}
+
+	return u.Host
 }

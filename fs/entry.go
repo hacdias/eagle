@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/util"
 	"github.com/samber/lo"
 )
 
@@ -187,7 +186,7 @@ func (f *FS) guessFilename(id string) string {
 
 func cleanTaxonomy(els []string) []string {
 	for i := range els {
-		els[i] = util.Slugify(els[i])
+		els[i] = eagle.Slugify(els[i])
 	}
 
 	return lo.Uniq(els)

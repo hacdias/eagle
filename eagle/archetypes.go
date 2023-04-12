@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/util"
 	"github.com/samber/lo"
 )
 
@@ -54,7 +53,7 @@ var DefaultArchetypes = map[string]Archetype{
 
 		date := time.Now().Local()
 		return &Entry{
-			ID: NewID(util.Slugify(name), time.Now()),
+			ID: NewID(Slugify(name), time.Now()),
 			FrontMatter: FrontMatter{
 				Date:        date,
 				Description: fmt.Sprintf("%s by %s (ISBN: %s)", name, author, isbn),
