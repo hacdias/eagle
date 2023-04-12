@@ -37,18 +37,28 @@ type FrontMatter struct {
 	Draft              bool                   `yaml:"draft,omitempty"`
 	Unlisted           bool                   `yaml:"unlisted,omitempty"`
 	Deleted            bool                   `yaml:"deleted,omitempty"`
-	Published          time.Time              `yaml:"published,omitempty"`
-	Updated            time.Time              `yaml:"updated,omitempty"`
+	Date               time.Time              `yaml:"date,omitempty"`
+	LastMod            time.Time              `yaml:"lastmod,omitempty"`
+	ExpiryDate         time.Time              `yaml:"expiryDate,omitempty"`
 	Sections           []string               `yaml:"section,omitempty"`
 	Template           string                 `yaml:"template,omitempty"`
 	NoSendInteractions bool                   `yaml:"noSendInteractions,omitempty"`
 	CoverImage         string                 `yaml:"coverImage,omitempty"`
 	Properties         map[string]interface{} `yaml:"properties,omitempty"` // "Flat" MF2 Properties.
 	NoIndex            bool                   `yaml:"noIndex,omitempty"`
+	DisablePagination  bool                   `yaml:"disablePagination,omitempty"`
+	Tags               []string               `yaml:"tags,omitempty"`
+	Categories         []string               `yaml:"categories,omitempty"`
+	Layout             string                 `yaml:"layout,omitempty"`
 	Listing            *Listing               `yaml:"listing,omitempty"`
 	Taxonomies         map[string][]string    `yaml:"taxonomies,omitempty"`
 	Location           *maze.Location         `yaml:"location,omitempty"`
 	Context            *Context               `yaml:"context,omitempty"`
+	Syndications       []string               `yaml:"syndications,omitempty"`
+	Reply              string                 `yaml:"reply,omitempty"`
+	Bookmark           string                 `yaml:"bookmark,omitempty"`
+	Read               *Read                  `yaml:"read,omitempty"`
+	Rating             int                    `yaml:"rating,omitempty"`
 }
 
 func (f *FrontMatter) Taxonomy(name string) []string {

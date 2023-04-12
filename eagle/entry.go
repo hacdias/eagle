@@ -128,12 +128,12 @@ func (e *Entry) FlatMF2() map[string]interface{} {
 		properties[k] = v
 	}
 
-	if !e.Published.IsZero() {
-		properties["published"] = e.Published.Format(time.RFC3339)
+	if !e.Date.IsZero() {
+		properties["published"] = e.Date.Format(time.RFC3339)
 	}
 
-	if !e.Updated.IsZero() {
-		properties["updated"] = e.Updated.Format(time.RFC3339)
+	if !e.LastMod.IsZero() {
+		properties["updated"] = e.LastMod.Format(time.RFC3339)
 	}
 
 	properties["content"] = e.Content
@@ -179,7 +179,7 @@ func (ee Entries) AsLogs() Logs {
 
 		l := Log{
 			URL:    e.ID,
-			Date:   e.Published,
+			Date:   e.Date,
 			Rating: mm.Int("rating"),
 		}
 

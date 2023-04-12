@@ -98,7 +98,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.FormValue("published") != "" {
-		e.Published = now
+		e.Date = now
 	}
 
 	if location := r.FormValue("location"); location != "" {
@@ -204,7 +204,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 
 	lastmod := r.FormValue("lastmod") == "on"
 	if lastmod {
-		e.Updated = time.Now().Local()
+		e.LastMod = time.Now().Local()
 	}
 
 	if err := s.preSaveEntry(old, e); err != nil {

@@ -43,7 +43,7 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 	}
 
 	_, err = u.fs.TransformEntry(u.entryID, func(e *eagle.Entry) (*eagle.Entry, error) {
-		e.Updated = time.Now()
+		e.LastMod = time.Now()
 		return e, err
 	})
 	return err

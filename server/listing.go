@@ -404,8 +404,8 @@ func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *list
 				Name:  s.c.User.Name,
 				Email: s.c.User.Email,
 			},
-			Created: entry.Published,
-			Updated: entry.Updated,
+			Created: entry.Date,
+			Updated: entry.LastMod,
 		})
 	}
 

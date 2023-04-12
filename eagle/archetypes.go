@@ -35,10 +35,10 @@ var DefaultArchetypes = map[string]Archetype{
 
 		return &Entry{
 			FrontMatter: FrontMatter{
-				Draft:     true,
-				Title:     fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
-				Published: t,
-				Sections:  []string{"home", "articles"},
+				Draft:    true,
+				Title:    fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+				Date:     t,
+				Sections: []string{"home", "articles"},
 				Taxonomies: map[string][]string{
 					"tags": {"now"},
 				},
@@ -58,7 +58,7 @@ var DefaultArchetypes = map[string]Archetype{
 		return &Entry{
 			ID: NewID(util.Slugify(name), time.Now()),
 			FrontMatter: FrontMatter{
-				Published:   date,
+				Date:        date,
 				Description: fmt.Sprintf("%s by %s (ISBN: %s)", name, author, isbn),
 				Sections:    []string{"books"},
 				Properties: map[string]interface{}{
