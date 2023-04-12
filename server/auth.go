@@ -52,7 +52,7 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 	s.serveHTML(w, r, &RenderData{
 		Title: "Authorization",
 		Data:  req,
-	}, TemplateAuth)
+	}, templateAuth)
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {

@@ -195,7 +195,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	}
 
 	if c.Development {
-		go s.fs.Watch(TemplatesDirectory, s.loadTemplates)
+		go s.fs.Watch(templatesDirectory, s.loadTemplates)
 	}
 
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
@@ -486,7 +486,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 		Data:  data,
 	}
 
-	s.serveHTMLWithStatus(w, r, rd, TemplateError, code)
+	s.serveHTMLWithStatus(w, r, rd, templateError, code)
 }
 
 func (s *Server) syncStorage() {

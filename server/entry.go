@@ -61,7 +61,7 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 			"Content":    str,
 			"Archetypes": archetypeNames,
 		},
-	}, TemplateNew)
+	}, templateNew)
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +143,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 			"Content": str,
 			"Entry":   ee,
 		},
-	}, TemplateEdit)
+	}, templateEdit)
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {

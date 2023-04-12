@@ -24,7 +24,7 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 	}
 	s.serveHTMLWithStatus(w, r, &RenderData{
 		Title: "Login",
-	}, TemplateLogin, http.StatusOK)
+	}, templateLogin, http.StatusOK)
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {

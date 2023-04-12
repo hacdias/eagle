@@ -10,6 +10,7 @@ import (
 
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
+	r.Use(s.withRecoverer)
 
 	if s.c.Server.Logging || s.c.Development {
 		r.Use(middleware.Logger)
@@ -17,10 +18,10 @@ func (s *Server) makeRouter() http.Handler {
 
 	r.Use(withCleanPath)
 	r.Use(middleware.GetHead)
-	r.Use(s.withRecoverer)
 	r.Use(s.withSecurityHeaders)
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
+	r.Use(s.withAdminBar)
 
 	// GitHub WebHook
 	if s.c.Server.WebhookSecret != "" {
@@ -32,9 +33,9 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post("/webmention", s.webmentionPost)
 	}
 
-	// Random
-	r.Get("/search/", s.searchGet)
+	// // Random
 	r.Get("/.well-known/webfinger", s.webFingerGet)
+	r.Get("/search/", s.searchGet)
 	r.Post("/guestbook/", s.guestbookPost)
 
 	// Login
@@ -62,8 +63,8 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/edit*", s.editGet)
 		r.Post("/edit*", s.editPost)
 
-		r.Get("/dashboard", s.dashboardGet)
-		r.Post("/dashboard", s.dashboardPost)
+		r.Get("/eagle", s.dashboardGet)
+		r.Post("/eagle", s.dashboardPost)
 
 		r.Get("/deleted", s.deletedGet)
 		r.Get("/drafts", s.draftsGet)
@@ -78,14 +79,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get("/userinfo", s.userInfoGet)
 	})
 
-	// Everything that was not matched so far.
-	r.Group(func(r chi.Router) {
-		r.Use(s.withRedirects)
-
-		r.Get("/*", s.staticHandler)
-		r.NotFound(s.staticHandler)         // NOTE: maybe repetitive regarding previous line.
-		r.MethodNotAllowed(s.staticHandler) // NOTE: maybe useless.
-	})
-
+	r.Get("/*", s.generalHandler)
 	return r
 }
