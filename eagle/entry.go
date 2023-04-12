@@ -18,6 +18,11 @@ type Entry struct {
 	Content   string
 }
 
+func (e *Entry) IsList() bool {
+	// FIXME: save path and check _index
+	return false
+}
+
 func (e *Entry) Deleted() bool {
 	if e.FrontMatter.ExpiryDate.IsZero() {
 		return false

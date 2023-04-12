@@ -50,7 +50,7 @@ func (fs *FS) GetEntries(includeList bool) (eagle.Entries, error) {
 			return err
 		}
 
-		if e.Listing == nil || includeList {
+		if !e.IsList() || includeList {
 			ee = append(ee, e)
 		}
 
@@ -97,7 +97,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 	}
 
 	updates := []string{oldDir, newDir}
-	if !old.Draft && !old.Unlisted && !old.Deleted() {
+	if !old.Draft && !old.NoIndex && !old.Deleted() {
 		err = f.AppendRedirect(oldID, newID)
 		if err != nil {
 			return nil, err

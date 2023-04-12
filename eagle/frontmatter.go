@@ -6,12 +6,6 @@ import (
 	"github.com/hacdias/eagle/pkg/maze"
 )
 
-type Listing struct {
-	DisablePagination bool `yaml:"disablePagination,omitempty"`
-	OrderByUpdated    bool `yaml:"orderByUpdated,omitempty"`
-	ItemsPerPage      int  `yaml:"itemsPerPage,omitempty"`
-}
-
 type Context struct {
 	// TODO: rename 'name' to 'author' at some point.
 	Author    string    `yaml:"name,omitempty"`
@@ -32,7 +26,6 @@ type FrontMatter struct {
 	Title              string         `yaml:"title,omitempty"`
 	Description        string         `yaml:"description,omitempty"`
 	Draft              bool           `yaml:"draft,omitempty"`
-	Unlisted           bool           `yaml:"unlisted,omitempty"`
 	Date               time.Time      `yaml:"date,omitempty"`
 	LastMod            time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate         time.Time      `yaml:"expiryDate,omitempty"`
@@ -44,7 +37,6 @@ type FrontMatter struct {
 	Tags               []string       `yaml:"tags,omitempty"`
 	Categories         []string       `yaml:"categories,omitempty"`
 	Layout             string         `yaml:"layout,omitempty"`
-	Listing            *Listing       `yaml:"listing,omitempty"`
 	RawLocation        string         `yaml:"rawLocation,omitempty"`
 	Location           *maze.Location `yaml:"location,omitempty"`
 	Context            *Context       `yaml:"context,omitempty"`

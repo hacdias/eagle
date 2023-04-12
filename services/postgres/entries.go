@@ -23,7 +23,7 @@ func (d *Postgres) Add(entries ...*eagle.Entry) error {
 
 		b.Queue("delete from entries where id=$1", entry.ID)
 		b.Queue("insert into entries(id, content, isDraft, isDeleted, isUnlisted, published_at, updated_at) values($1, $2, $3, $4, $5, $6, $7)",
-			entry.ID, content, entry.Draft, entry.Deleted(), entry.Unlisted, entry.Date.UTC(), updated)
+			entry.ID, content, entry.Draft, entry.Deleted(), entry.NoIndex, entry.Date.UTC(), updated)
 
 		// for taxonomy, terms := range entry.Taxonomies {
 		// 	for _, term := range terms {

@@ -104,7 +104,7 @@ func canSendWebmentions(e *eagle.Entry) bool {
 		!e.NoSendInteractions &&
 		!e.Draft &&
 		!e.Deleted() &&
-		e.Listing == nil
+		!e.IsList()
 }
 
 func isPrivate(urlStr string) bool {

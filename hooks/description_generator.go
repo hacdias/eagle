@@ -17,7 +17,7 @@ func NewDescriptionGenerator(fs *fs.FS) *DescriptionGenerator {
 }
 
 func (d *DescriptionGenerator) EntryHook(old, new *eagle.Entry) error {
-	if old == nil && new.Listing == nil {
+	if old == nil {
 		return d.GenerateDescription(new, false)
 	}
 

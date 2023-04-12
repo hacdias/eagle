@@ -27,7 +27,7 @@ func NewLocationFetcher(fs *fs.FS, language string) *LocationFetcher {
 }
 
 func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
-	if e.Listing != nil || e.Location != nil {
+	if e.Location != nil {
 		return nil
 	}
 
