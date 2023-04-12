@@ -1,14 +1,12 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
-	"io"
 	"net"
 	"net/http"
 	"os"
@@ -23,7 +21,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/cache"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
@@ -73,7 +70,6 @@ type Server struct {
 
 	fs          *fs.FS
 	media       *media.Media
-	cache       *cache.Cache
 	webmentions *webmentions.Webmentions
 	parser      *eagle.Parser
 	maze        *maze.Maze
@@ -122,11 +118,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		m = media.NewMedia(storage, transformer)
 	}
 
-	cache, err := cache.NewCache()
-	if err != nil {
-		return nil, err
-	}
-
 	postgres, err := postgres.NewPostgres(&c.PostgreSQL)
 	if err != nil {
 		return nil, err
@@ -146,7 +137,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		archetypes:  eagle.DefaultArchetypes,
 		fs:          fs,
 		media:       m,
-		cache:       cache,
 		webmentions: webmentions.NewWebmentions(fs, notifier),
 		parser:      eagle.NewParser(c.Server.BaseURL),
 		maze: maze.NewMaze(&http.Client{
@@ -334,7 +324,7 @@ func (s *Server) indexAll() {
 	if err != nil {
 		s.n.Error(err)
 	}
-	s.cache.Clear()
+	// s.cache.Clear()
 	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
 }
 
@@ -429,36 +419,22 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 	})
 }
 
-func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *RenderData, tpl string, code int) {
-	// if data.Entry.ID == "" {
-	// 	data.Entry.ID = r.URL.Path
-	// }
-
-	// data.IsLoggedIn = s.isLoggedIn(r)
+func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *RenderData, template string, code int) {
+	data.LoggedIn = s.isLoggedIn(r)
 
 	setCacheHTML(w)
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
 	w.WriteHeader(code)
 
-	var (
-		buf bytes.Buffer
-		cw  io.Writer
-	)
-
-	if code == http.StatusOK && s.isCacheable(r) {
-		cw = io.MultiWriter(w, &buf)
-	} else {
-		cw = w
+	tpl, ok := s.templates[template]
+	if !ok {
+		s.n.Error(fmt.Errorf("serving html for %s: template not found", r.URL.Path))
+		return
 	}
 
-	err := s.render(cw, data, tpl)
+	err := tpl.Execute(w, data)
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	} else {
-		data := buf.Bytes()
-		if len(data) > 0 {
-			s.saveCache(r, data)
-		}
 	}
 }
 
@@ -530,9 +506,9 @@ func (s *Server) syncStorage() {
 		}
 		entries = append(entries, entry)
 
-		if s.cache != nil {
-			s.cache.Delete(entry)
-		}
+		// if s.cache != nil {
+		// 	s.cache.Delete(entry)
+		// }
 	}
 
 	err = s.i.Add(entries...)
@@ -544,12 +520,12 @@ func (s *Server) syncStorage() {
 func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
 	for _, e := range updated {
 		_ = s.i.Add(e)
-		s.cache.Delete(e)
+		// s.cache.Delete(e)
 	}
 
 	for _, e := range deleted {
 		s.i.Remove(e.ID)
-		s.cache.Delete(e)
+		// s.cache.Delete(e)
 	}
 
 	if len(updated) == len(deleted) {

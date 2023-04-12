@@ -5,7 +5,6 @@ go 1.20
 require (
 	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/dgraph-io/ristretto v0.1.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-chi/chi/v5 v5.0.8
@@ -36,11 +35,8 @@ require (
 require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -59,7 +55,6 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

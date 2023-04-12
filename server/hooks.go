@@ -30,8 +30,8 @@ func (s *Server) postSaveEntry(old, new *eagle.Entry) {
 	}
 
 	if old != nil {
-		s.cache.Delete(old)
+		// s.cache.Delete(old)
 	}
 
-	s.cache.Delete(new)
+	// s.cache.Delete(new)
 }

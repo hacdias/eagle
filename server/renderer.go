@@ -1,9 +1,7 @@
 package server
 
 import (
-	"errors"
 	"html/template"
-	"io"
 	osfs "io/fs"
 	"path"
 	"path/filepath"
@@ -25,17 +23,9 @@ const (
 )
 
 type RenderData struct {
-	Title string
-	Data  interface{}
-}
-
-func (s *Server) render(w io.Writer, data *RenderData, template string) error {
-	tpl, ok := s.templates[template]
-	if !ok {
-		return errors.New("unrecognized template")
-	}
-
-	return tpl.Execute(w, data)
+	Title    string
+	LoggedIn bool
+	Data     interface{}
 }
 
 func (s *Server) loadTemplates() error {

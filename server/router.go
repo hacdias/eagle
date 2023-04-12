@@ -83,7 +83,6 @@ func (s *Server) makeRouter() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(s.withRedirects)
 		r.Use(s.withStaticFiles)
-		r.Use(s.withCache)
 
 		// r.Get("/*", s.entryGet)
 	})
