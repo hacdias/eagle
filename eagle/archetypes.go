@@ -3,6 +3,7 @@ package eagle
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -48,7 +49,8 @@ var DefaultArchetypes = map[string]Archetype{
 		author, _ := lo.Coalesce(r.URL.Query().Get("author"), "Author")
 		publisher, _ := lo.Coalesce(r.URL.Query().Get("publisher"), "Publisher")
 		isbn, _ := lo.Coalesce(r.URL.Query().Get("isbn"), "ISBN")
-		pages, _ := lo.Coalesce(r.URL.Query().Get("pages"), "PAGES")
+		pagesStr, _ := lo.Coalesce(r.URL.Query().Get("pages"), "PAGES")
+		pages, _ := strconv.Atoi(pagesStr)
 
 		date := time.Now().Local()
 		return &Entry{
@@ -57,17 +59,12 @@ var DefaultArchetypes = map[string]Archetype{
 				Date:        date,
 				Description: fmt.Sprintf("%s by %s (ISBN: %s)", name, author, isbn),
 				Categories:  []string{"readings"},
-				Properties: map[string]interface{}{
-					"read-of": map[string]interface{}{
-						"properties": map[string]interface{}{
-							"author":    author,
-							"name":      name,
-							"pages":     pages,
-							"publisher": publisher,
-							"uid":       fmt.Sprintf("isbn:%s", isbn),
-						},
-						"type": "h-cite",
-					},
+				Read: &Read{
+					Author:    author,
+					Name:      name,
+					Pages:     pages,
+					Publisher: publisher,
+					UID:       fmt.Sprintf("isbn:%s", isbn),
 				},
 			},
 		}

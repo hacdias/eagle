@@ -35,21 +35,20 @@ func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
 }
 
 func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
-	locationStr := e.Helper().String("location")
-	if locationStr == "" {
+	if e.RawLocation == "" {
 		return nil
 	}
 
-	location, err := l.parseLocation(locationStr)
+	location, err := l.parseLocation(e.RawLocation)
 	if err != nil {
 		return err
 	}
 
 	if location != nil {
-		_, err = l.fs.TransformEntry(e.ID, func(ee *eagle.Entry) (*eagle.Entry, error) {
-			delete(ee.Properties, "location")
-			ee.Location = location
-			return ee, nil
+		_, err = l.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+			e.RawLocation = ""
+			e.Location = location
+			return e, nil
 		})
 	}
 

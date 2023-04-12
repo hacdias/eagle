@@ -4,6 +4,8 @@ import (
 	"errors"
 	urlpkg "net/url"
 	"strings"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Parser struct {
@@ -40,14 +42,13 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 		FrontMatter: FrontMatter{},
 	}
 
-	fr, err := unmarshalFrontMatter([]byte(splits[0]))
+	fr := &FrontMatter{}
+	err = yaml.Unmarshal([]byte(splits[0]), &fr)
 	if err != nil {
 		return nil, err
 	}
 
 	e.FrontMatter = *fr
-	e.EnsureMaps()
-
 	return e, nil
 }
 

@@ -7,7 +7,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
-	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/pkg/xray"
 )
 
@@ -34,34 +33,15 @@ func (c *ContextFetcher) EntryHook(_, e *eagle.Entry) error {
 }
 
 func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
-	mm := e.Helper()
-	typ := mm.PostType()
-
-	switch typ {
-	case mf2.TypeLike,
-		mf2.TypeRepost,
-		mf2.TypeReply,
-		mf2.TypeRsvp:
-		// Keep going
-	default:
-		return nil
-	}
-
-	property := mm.TypeProperty()
-	if typ == mf2.TypeRsvp {
-		property = "in-reply-to"
-	}
-
-	urlStr := mm.String(property)
-	if urlStr == "" {
-		return fmt.Errorf("expected context url to be non-empty for %s", e.ID)
-	}
-
 	if e.Context != nil && !replace {
 		return nil
 	}
 
-	parsed, _, err := c.xray.Fetch(urlStr)
+	if e.Reply == "" {
+		return nil
+	}
+
+	parsed, _, err := c.xray.Fetch(e.Reply)
 	if err != nil {
 		if errors.Is(err, xray.ErrPostNotFound) {
 			return nil
@@ -78,8 +58,8 @@ func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 			URL:       parsed.URL,
 		}
 
-		if parsed.URL != "" && parsed.URL != urlStr {
-			e.Properties[property] = parsed.URL
+		if parsed.URL != "" && parsed.URL != e.Reply {
+			e.Reply = parsed.URL
 		}
 
 		return e, nil

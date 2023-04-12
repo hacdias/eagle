@@ -61,10 +61,14 @@ var brokenLinksCmd = &cobra.Command{
 
 			urls := md.md.urls
 
-			prop := e.Helper().TypeProperty()
-			if prop != "" {
-				ctxUrls := e.Helper().Strings(prop)
-				urls = append(urls, ctxUrls...)
+			if e.Bookmark != "" {
+				urls = append(urls, e.Bookmark)
+			}
+			if e.Reply != "" {
+				urls = append(urls, e.Reply)
+			}
+			if e.Context != nil {
+				urls = append(urls, e.Context.URL)
 			}
 
 			return urls, nil

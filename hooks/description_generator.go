@@ -39,35 +39,11 @@ func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescri
 		return nil
 	}
 
-	var (
-		description string
-		err         error
-	)
-
-	mm := e.Helper()
-
-	switch mm.PostType() {
-	case mf2.TypeReply,
-		mf2.TypeLike,
-		mf2.TypeRepost,
-		mf2.TypeBookmark:
-		url := mm.String(mm.TypeProperty())
-		urlDomain := util.Domain(url)
-		description = typeToDescription[mm.PostType()] + "a post on " + urlDomain
-	case mf2.TypeAte, mf2.TypeDrank:
-		// Matches Teacup
-		food := mm.Sub(mm.TypeProperty())
-		description = typeToDescription[mm.PostType()] + food.Name()
+	if e.Bookmark != "" {
+		e.Description = "Bookmarked a post on " + util.Domain(e.Bookmark)
+	} else if e.Reply != "" {
+		e.Description = "Replied to a post on " + util.Domain(e.Reply)
 	}
 
-	if err != nil {
-		return err
-	}
-
-	if description == "" && e.Description != "" {
-		return nil
-	}
-
-	e.Description = description
 	return nil
 }

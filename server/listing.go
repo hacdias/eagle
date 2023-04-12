@@ -1,21 +1,16 @@
 package server
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
 	urlpkg "net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/renderer"
-	"github.com/jlelse/feeds"
 	"github.com/samber/lo"
 )
 
@@ -179,12 +174,6 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 		ls.rd.Entry = s.getListingEntryOrEmpty(r.URL.Path, "")
 	}
 
-	feedType := chi.URLParam(r, "feed")
-	if !ls.noFeed && feedType != "" {
-		s.listingFeedGet(w, r, ls, feedType)
-		return
-	}
-
 	query := s.listingQuery(r, ls)
 	ee, err := ls.exec(query)
 	if err != nil {
@@ -238,80 +227,4 @@ func (s *Server) listingGet(w http.ResponseWriter, r *http.Request, ls *listingS
 	}
 
 	s.serveHTML(w, r, ls.rd, templates)
-}
-
-func (s *Server) listingFeedGet(w http.ResponseWriter, r *http.Request, ls *listingSettings, feedType string) {
-	opts := &indexer.Query{
-		Pagination: &indexer.Pagination{
-			Limit: s.c.Site.Pagination,
-		},
-	}
-
-	ee, err := ls.exec(opts)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	feed := &feeds.Feed{
-		Title:       fmt.Sprintf("%s - %s", ls.rd.Entry.TextTitle(), s.c.Site.Title),
-		Link:        &feeds.Link{Href: strings.TrimSuffix(s.c.Server.AbsoluteURL(r.URL.Path), "."+feedType)},
-		Description: ls.rd.Entry.TextDescription(),
-		Author: &feeds.Author{
-			Name:  s.c.User.Name,
-			Email: s.c.User.Email,
-		},
-		Created: time.Now(),
-		Items:   []*feeds.Item{},
-	}
-
-	for _, entry := range ee {
-		var buf bytes.Buffer
-		err := s.renderer.Render(&buf, &renderer.RenderData{Entry: entry}, []string{renderer.TemplateFeed}, true)
-		if err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-			return
-		}
-
-		feed.Items = append(feed.Items, &feeds.Item{
-			Title:       entry.TextTitle(),
-			Link:        &feeds.Link{Href: entry.Permalink},
-			Id:          entry.ID,
-			Description: entry.TextDescription(),
-			Content:     buf.String(),
-			Author: &feeds.Author{
-				Name:  s.c.User.Name,
-				Email: s.c.User.Email,
-			},
-			Created: entry.Date,
-			Updated: entry.LastMod,
-		})
-	}
-
-	var (
-		feedString, feedMediaType string
-	)
-
-	switch feedType {
-	case "rss":
-		feedString, err = feed.ToRss()
-		feedMediaType = contenttype.RSS
-	case "atom":
-		feedString, err = feed.ToAtom()
-		feedMediaType = contenttype.ATOM
-	case "json":
-		feedString, err = feed.ToJSON()
-		feedMediaType = contenttype.JSONFeed
-	}
-
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", feedMediaType+contenttype.CharsetUtf8Suffix)
-	_, err = w.Write([]byte(feedString))
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving feed %s to %s: %w", r.URL.Path, r.RemoteAddr, err))
-	}
 }

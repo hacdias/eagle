@@ -6,12 +6,10 @@ import (
 	urlpkg "net/url"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/hacdias/eagle/renderer"
 	"github.com/samber/lo"
 )
@@ -29,7 +27,6 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e := archetype(s.c, r)
-	e.EnsureMaps()
 
 	// Override some properties according to query URL values.
 	if title := r.URL.Query().Get("title"); title != "" {
@@ -41,11 +38,11 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	if id := r.URL.Query().Get("id"); id != "" {
 		e.ID = id
 	}
-	for k, v := range r.URL.Query() {
-		if strings.HasPrefix(k, "properties.") {
-			e.Properties[strings.TrimPrefix(k, "properties.")] = v
-		}
-	}
+	// for k, v := range r.URL.Query() {
+	// 	if strings.HasPrefix(k, "properties.") {
+	// 		e.Properties[strings.TrimPrefix(k, "properties.")] = v
+	// 	}
+	// }
 
 	// Get stringified entry.
 	str, err := e.String()
@@ -102,7 +99,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if location := r.FormValue("location"); location != "" {
-		e.Properties["location"] = location
+		e.RawLocation = location
 	}
 
 	if err := s.preSaveEntry(nil, e); err != nil {
@@ -249,9 +246,8 @@ func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.Entry) {
-	postType := ee.Helper().PostType()
 	s.serveHTML(w, r, &renderer.RenderData{
 		Entry:   ee,
-		NoIndex: ee.NoIndex || ee.Unlisted || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
+		NoIndex: ee.NoIndex || ee.Unlisted, //|| (postType != mf2.TypeNote && postType != mf2.TypeArticle),
 	}, renderer.EntryTemplates(ee))
 }
