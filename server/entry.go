@@ -115,10 +115,10 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.postSaveEntry(e)
 	if e.Draft {
 		http.Redirect(w, r, path.Join(editPath, e.ID), http.StatusSeeOther)
 	} else {
-		s.postSaveEntry(e)
 		http.Redirect(w, r, e.ID, http.StatusSeeOther)
 	}
 }
@@ -227,10 +227,10 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.postSaveEntry(e)
 	if e.Draft {
 		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
 	} else {
-		s.postSaveEntry(e)
 		http.Redirect(w, r, e.ID, http.StatusSeeOther)
 	}
 }
@@ -241,7 +241,12 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 }
 
 func (s *Server) postSaveEntry(e *core.Entry) {
-	err := s.locationFetcher.FetchLocation(e)
+	err := s.i.Add(e)
+	if err != nil {
+		s.n.Error(err)
+	}
+
+	err = s.locationFetcher.FetchLocation(e)
 	if err != nil {
 		s.n.Error(err)
 	}
@@ -251,8 +256,11 @@ func (s *Server) postSaveEntry(e *core.Entry) {
 		s.n.Error(err)
 	}
 
-	s.buildNotify(e.Deleted())
+	if e.Draft {
+		return
+	}
 
+	s.buildNotify(e.Deleted())
 	if !s.c.Webmentions.DisableSending {
 		err := s.webmentions.SendWebmentions(e)
 		if err != nil {
