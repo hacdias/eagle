@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hacdias/eagle/webmentions"
+	"github.com/hacdias/eagle/services/webmentions"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 )
 
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
-	wm := &webmentions.Payload{}
+	wm := &webmentions.Webmention{}
 	err := json.NewDecoder(r.Body).Decode(&wm)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

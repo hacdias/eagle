@@ -6,13 +6,77 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	urlpkg "net/url"
+	"time"
 
 	"github.com/hacdias/eagle/core"
+	"github.com/hacdias/eagle/log"
 	"github.com/hashicorp/go-multierror"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"willnorris.com/go/webmention"
 )
+
+type Webmentions struct {
+	log      *zap.SugaredLogger
+	client   *webmention.Client
+	fs       *core.FS
+	hugo     *core.Hugo
+	notifier core.Notifier
+}
+
+func NewWebmentions(fs *core.FS, hugo *core.Hugo, notifier core.Notifier) *Webmentions {
+	return &Webmentions{
+		log: log.S().Named("webmentions"),
+		client: webmention.New(&http.Client{
+			Timeout: time.Minute,
+		}),
+		fs:       fs,
+		hugo:     hugo,
+		notifier: notifier,
+	}
+}
+
+func (ws *Webmentions) EntryHook(old, new *core.Entry) error {
+	return ws.SendWebmentions(old, new)
+}
+
+type Webmention struct {
+	Source  string                 `json:"source"`
+	Secret  string                 `json:"secret"`
+	Deleted bool                   `json:"deleted"`
+	Target  string                 `json:"target"`
+	Post    map[string]interface{} `json:"post"`
+}
+
+func (ws *Webmentions) ReceiveWebmentions(payload *Webmention) error {
+	ws.log.Infow("received webmention", "webmention", payload)
+
+	target, err := urlpkg.Parse(payload.Target)
+	if err != nil {
+		return fmt.Errorf("invalid target: %s", payload.Target)
+	}
+
+	source, err := urlpkg.Parse(payload.Source)
+	if err != nil {
+		return fmt.Errorf("invalid source: %s", payload.Source)
+	}
+
+	if payload.Deleted || source.Hostname() == target.Hostname() {
+		// Deletions and self-webmentions are ignored.
+		return nil
+	}
+
+	// Make sure entry actually exists to avoid useless notifications.
+	e, err := ws.fs.GetEntry(target.Path)
+	if err != nil {
+		return err
+	}
+
+	ws.notifier.Info(fmt.Sprintf("💬 #webmention on %s, via %s.", e.Permalink, payload.Source))
+	return nil
+}
 
 func (ws *Webmentions) SendWebmentions(old, new *core.Entry) error {
 	var targets []string

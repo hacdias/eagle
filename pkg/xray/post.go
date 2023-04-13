@@ -2,8 +2,6 @@ package xray
 
 import (
 	"time"
-
-	"github.com/hacdias/eagle/pkg/mf2"
 )
 
 type Author struct {
@@ -18,6 +16,5 @@ type Post struct {
 	Name      string    `json:"name,omitempty"`
 	Content   string    `json:"content,omitempty"`
 	URL       string    `json:"url,omitempty"`
-	Type      mf2.Type  `json:"type,omitempty"`
 	Private   bool      `json:"private,omitempty"`
 }

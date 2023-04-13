@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/hacdias/eagle/pkg/contenttype"
 )
 
 const (
@@ -50,7 +49,7 @@ type captureResponseWriter struct {
 func (w *captureResponseWriter) WriteHeader(status int) {
 	contentType := w.Header().Get("Content-Type")
 
-	if strings.Contains(contentType, contenttype.HTML) {
+	if strings.Contains(contentType, "text/html") {
 		// Delete Content-Length header to avoid browser issues. We could've added
 		// the size of the rendered admin bar and then re-set the header. However,
 		// I saw no practical benefit on doing so.
@@ -152,7 +151,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", contenttype.JSONUTF8)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
@@ -188,7 +187,7 @@ func (s *Server) serveDocument(w http.ResponseWriter, r *http.Request, doc *goqu
 		return
 	}
 
-	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(statusCode)
 	_, err = w.Write([]byte(html))
 	if err != nil {
