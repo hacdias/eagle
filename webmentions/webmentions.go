@@ -15,16 +15,18 @@ type Webmentions struct {
 	log      *zap.SugaredLogger
 	client   *webmention.Client
 	fs       *fs.FS
+	hugo     *eagle.Hugo
 	notifier eagle.Notifier
 }
 
-func NewWebmentions(fs *fs.FS, notifier eagle.Notifier) *Webmentions {
+func NewWebmentions(fs *fs.FS, hugo *eagle.Hugo, notifier eagle.Notifier) *Webmentions {
 	return &Webmentions{
 		log: log.S().Named("webmentions"),
 		client: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
 		fs:       fs,
+		hugo:     hugo,
 		notifier: notifier,
 	}
 }

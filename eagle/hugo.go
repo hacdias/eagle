@@ -1,4 +1,4 @@
-package hugo
+package eagle
 
 import (
 	"encoding/hex"
@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
 	"github.com/spf13/afero"
 )
 
@@ -118,7 +117,7 @@ func (h *Hugo) Build(clean bool) error {
 	return nil
 }
 
-func (h *Hugo) GetEntryHTML(entry *eagle.Entry) ([]byte, error) {
+func (h *Hugo) GetEntryHTML(entry *Entry) ([]byte, error) {
 	filename := entry.ID
 	if !strings.HasSuffix(filename, ".html") {
 		filename = path.Join(filename, "index.html")

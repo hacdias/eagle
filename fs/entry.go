@@ -176,12 +176,12 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 }
 
 func (f *FS) guessFilename(id string) string {
-	path := filepath.Join(ContentDirectory, id, "index.md")
+	path := filepath.Join(ContentDirectory, id, "_index.md")
 	if _, err := f.Afero.Stat(path); err == nil {
 		return path
 	}
 
-	return filepath.Join(ContentDirectory, id, "_index.md")
+	return filepath.Join(ContentDirectory, id, "index.md")
 }
 
 func cleanTaxonomy(els []string) []string {

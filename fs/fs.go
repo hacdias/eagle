@@ -6,7 +6,6 @@ import (
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -112,13 +111,4 @@ func (f *FS) ReadJSON(filename string, v interface{}) error {
 	}
 
 	return json.Unmarshal(data, v)
-}
-
-func (f *FS) ReadYAML(filename string, v interface{}) error {
-	data, err := f.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-
-	return yaml.Unmarshal(data, v)
 }

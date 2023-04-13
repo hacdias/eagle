@@ -21,7 +21,6 @@ import (
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
-	"github.com/hacdias/eagle/hugo"
 	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
@@ -65,7 +64,7 @@ type Server struct {
 	servers   []*httpServer
 
 	fs          *fs.FS
-	hugo        *hugo.Hugo
+	hugo        *eagle.Hugo
 	media       *media.Media
 	webmentions *webmentions.Webmentions
 	parser      *eagle.Parser
@@ -99,6 +98,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		srcSync = fs.NewGitSync(c.SourceDirectory)
 	}
 	fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, srcSync)
+	hugo := eagle.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL)
 
 	var (
 		m           *media.Media
@@ -135,9 +135,9 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		redirects:   map[string]string{},
 		archetypes:  eagle.DefaultArchetypes,
 		fs:          fs,
-		hugo:        hugo.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL),
+		hugo:        hugo,
 		media:       m,
-		webmentions: webmentions.NewWebmentions(fs, notifier),
+		webmentions: webmentions.NewWebmentions(fs, hugo, notifier),
 		parser:      eagle.NewParser(c.Server.BaseURL),
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
@@ -421,33 +421,29 @@ func (s *Server) syncStorage() {
 		ids = append(ids, id)
 	}
 
-	// NOTE: we do not reload the templates and assets because
-	// doing so is not concurrent-safe. Alternatively, there is
-	// an action in the dashboard to reload assets and templates
-	// on-demand.
 	ids = lo.Uniq(ids)
 	entries := eagle.Entries{}
+	buildClean := false
 
 	for _, id := range ids {
 		entry, err := s.fs.GetEntry(id)
 		if os.IsNotExist(err) {
 			s.i.Remove(id)
+			buildClean = true
 			continue
 		} else if err != nil {
 			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
 			continue
 		}
 		entries = append(entries, entry)
-
-		// if s.cache != nil {
-		// 	s.cache.Delete(entry)
-		// }
 	}
 
 	err = s.i.Add(entries...)
 	if err != nil {
 		s.n.Error(fmt.Errorf("sync failed: %w", err))
 	}
+
+	s.hugo.Build(buildClean)
 }
 
 func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {

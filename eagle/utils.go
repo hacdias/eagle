@@ -2,26 +2,16 @@ package eagle
 
 import (
 	"fmt"
-	"math/rand"
+	"html"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/microcosm-cc/bluemonday"
+	stripMarkdown "github.com/writeas/go-strip-markdown"
 )
 
-var allowedLetters = []rune("abcdefghijklmnopqrstuvwxyz")
-
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-func NewSlug() string {
-	b := make([]rune, 10)
-	for i := range b {
-		b[i] = allowedLetters[seededRand.Intn(len(allowedLetters))]
-	}
-
-	return string(b)
-}
-
-func NewTimeSlug(t time.Time) string {
+func newTimeSlug(t time.Time) string {
 	ns := t.Nanosecond()
 	for ns > 99 {
 		ns /= 10
@@ -35,7 +25,7 @@ func NewID(slug string, t time.Time) string {
 	}
 
 	if slug == "" {
-		slug = NewTimeSlug(t)
+		slug = newTimeSlug(t)
 	}
 
 	return fmt.Sprintf("/%04d/%02d/%02d/%s", t.Year(), t.Month(), t.Day(), slug)
@@ -65,4 +55,14 @@ func Slugify(str string) string {
 			return -1
 		}
 	}, str)
+}
+
+var htmlRemover = bluemonday.StrictPolicy()
+
+func makePlainText(text string) string {
+	text = htmlRemover.Sanitize(text)
+	// Unescapes html entities.
+	text = html.UnescapeString(text)
+	text = stripMarkdown.Strip(text)
+	return text
 }

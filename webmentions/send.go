@@ -54,15 +54,12 @@ func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 }
 
 func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) {
-	var buf bytes.Buffer
-	// err := ws.renderer.Render(&buf, &renderer.RenderData{
-	// 	Entry: entry,
-	// }, renderer.EntryTemplates(entry), true)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	html, err := ws.hugo.GetEntryHTML(entry)
+	if err != nil {
+		return nil, err
+	}
 
-	targets, err := webmention.DiscoverLinksFromReader(&buf, entry.Permalink, ".h-entry .e-content a, .h-entry .h-cite a")
+	targets, err := webmention.DiscoverLinksFromReader(bytes.NewReader(html), entry.Permalink, ".h-entry .e-content a, .h-entry .h-cite a")
 	if err != nil {
 		return nil, err
 	}
