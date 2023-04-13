@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,6 +15,9 @@ import (
 const (
 	sessionSubject     string     = "Eagle Session 2"
 	loggedInContextKey contextKey = "logged-in"
+
+	loginPath  = "/login/"
+	logoutPath = "/logout/"
 )
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
@@ -24,14 +25,14 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	s.serveHTMLWithStatus(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Login",
-			},
-		},
-		NoIndex: true,
-	}, []string{renderer.TemplateLogin}, http.StatusOK)
+
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +117,7 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.isLoggedIn(r) {
-			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
+			newPath := loginPath + "?redirect=" + url.QueryEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusSeeOther)
 			return
 		}

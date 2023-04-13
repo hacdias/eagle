@@ -2,22 +2,28 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	urlpkg "net/url"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/pkg/mf2"
-	"github.com/hacdias/eagle/renderer"
+	"github.com/hacdias/eagle/core"
+	"github.com/hacdias/eagle/core/helpers"
 	"github.com/samber/lo"
 )
 
+const (
+	newPath  = "/new/"
+	editPath = "/edit/"
+)
+
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
-	archetypeName := r.URL.Query().Get("archetype")
+	query := r.URL.Query()
+
+	archetypeName := query.Get("archetype")
 	if archetypeName == "" {
 		archetypeName = "default"
 	}
@@ -29,23 +35,14 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e := archetype(s.c, r)
-	e.EnsureMaps()
 
 	// Override some properties according to query URL values.
-	if title := r.URL.Query().Get("title"); title != "" {
-		e.Title = title
-	}
-	if content := r.URL.Query().Get("content"); content != "" {
-		e.Content = content
-	}
-	if id := r.URL.Query().Get("id"); id != "" {
-		e.ID = id
-	}
-	for k, v := range r.URL.Query() {
-		if strings.HasPrefix(k, "properties.") {
-			e.Properties[strings.TrimPrefix(k, "properties.")] = v
-		}
-	}
+	e.Title, _ = lo.Coalesce(query.Get("title"), e.Title)
+	e.Description, _ = lo.Coalesce(query.Get("description"), e.Description)
+	e.Reply, _ = lo.Coalesce(query.Get("reply"), e.Reply)
+	e.Bookmark, _ = lo.Coalesce(query.Get("bookmark"), e.Bookmark)
+	e.ID, _ = lo.Coalesce(query.Get("id"), e.ID)
+	e.Content, _ = lo.Coalesce(query.Get("content"), e.Content)
 
 	// Get stringified entry.
 	str, err := e.String()
@@ -54,23 +51,24 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all archetype names.
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
 	archetypeNames := lo.Keys(s.archetypes)
 	sort.Strings(archetypeNames)
+	archetypesNode := doc.Find("eagle-archetype")
+	for _, archetype := range archetypeNames {
+		archetypesNode.Parent().AppendHtml(fmt.Sprintf(" <a href='?archetype=%s'>%s</a>", archetype, archetype))
+	}
+	archetypesNode.Remove()
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "New",
-			},
-		},
-		Data: map[string]interface{}{
-			"ID":         e.ID,
-			"Content":    str,
-			"Archetypes": archetypeNames,
-		},
-		NoIndex: true,
-	}, []string{renderer.TemplateNew})
+	doc.Find(".eagle-editor input[name='id']").SetAttr("value", e.ID)
+	doc.Find(".eagle-editor textarea[name='content']").SetText(str)
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +80,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().Local()
 	id := r.FormValue("id")
 	if id == "" {
-		id = eagle.NewID("", now)
+		id = core.NewID("", now)
 	}
 
 	content := r.FormValue("content")
@@ -98,14 +96,14 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.FormValue("published") != "" {
-		e.Published = now
+		e.Date = now
 	}
 
 	if location := r.FormValue("location"); location != "" {
-		e.Properties["location"] = location
+		e.RawLocation = location
 	}
 
-	if err := s.preSaveEntry(nil, e); err != nil {
+	if err := s.preSaveEntry(e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -116,8 +114,12 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSaveEntry(nil, e)
-	http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	if e.Draft {
+		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+	} else {
+		s.postSaveEntry(e)
+		http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	}
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +132,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	if os.IsNotExist(err) {
 		query := urlpkg.Values{}
 		query.Set("id", id)
-		http.Redirect(w, r, "/new?"+query.Encode(), http.StatusSeeOther)
+		http.Redirect(w, r, newPath+"?"+query.Encode(), http.StatusSeeOther)
 		return
 	}
 
@@ -145,19 +147,21 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Edit",
-			},
-		},
-		Data: map[string]interface{}{
-			"Title":   ee.Title,
-			"Content": str,
-			"Entry":   ee,
-		},
-		NoIndex: true,
-	}, []string{renderer.TemplateEditor})
+	doc, err := s.getTemplateDocument(editPath)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc.Find("main input[name='id']").SetAttr("value", ee.ID)
+	doc.Find("main input[name='rename']").SetAttr("value", ee.ID)
+	doc.Find("main textarea[name='content']").SetText(str)
+
+	if !ee.Date.IsZero() {
+		doc.Find("main input[name='lastmod']").SetAttr("checked", "on")
+	}
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
@@ -180,6 +184,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		s.buildNotify(true)
 		http.Redirect(w, r, ne.ID, http.StatusSeeOther)
 		return
 	}
@@ -202,12 +207,15 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lastmod := r.FormValue("lastmod") == "on"
-	if lastmod {
-		e.Updated = time.Now().Local()
+	if r.FormValue("lastmod") == "on" {
+		e.LastMod = time.Now().Local()
 	}
 
-	if err := s.preSaveEntry(old, e); err != nil {
+	if r.FormValue("expire") == "on" {
+		e.ExpiryDate = time.Now().Local()
+	}
+
+	if err := s.preSaveEntry(e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -218,40 +226,36 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSaveEntry(old, e)
-	http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	if e.Draft {
+		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+	} else {
+		s.postSaveEntry(e)
+		http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	}
 }
 
-func (s *Server) entryGet(w http.ResponseWriter, r *http.Request) {
-	e, err := s.fs.GetEntry(r.URL.Path)
-	if os.IsNotExist(err) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
-		return
-	}
+func (s *Server) preSaveEntry(e *core.Entry) error {
+	helpers.GenerateDescription(e, false)
+	return nil
+}
 
+func (s *Server) postSaveEntry(e *core.Entry) {
+	err := s.locationFetcher.FetchLocation(e)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
+		s.n.Error(err)
 	}
 
-	loggedIn := s.isLoggedIn(r)
-	if e.Deleted && !loggedIn {
-		s.serveErrorHTML(w, r, http.StatusGone, nil)
-		return
+	err = s.contextFetcher.EnsureXRay(e, false)
+	if err != nil {
+		s.n.Error(err)
 	}
 
-	if e.Draft && !loggedIn {
-		s.serveErrorHTML(w, r, http.StatusForbidden, nil)
-		return
+	s.buildNotify(e.Deleted())
+
+	if !s.c.Webmentions.DisableSending {
+		err := s.webmentions.SendWebmentions(e)
+		if err != nil {
+			s.n.Error(err)
+		}
 	}
-
-	s.serveEntry(w, r, e)
-}
-
-func (s *Server) serveEntry(w http.ResponseWriter, r *http.Request, ee *eagle.Entry) {
-	postType := ee.Helper().PostType()
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry:   ee,
-		NoIndex: ee.NoIndex || ee.Unlisted || (postType != mf2.TypeNote && postType != mf2.TypeArticle),
-	}, renderer.EntryTemplates(ee))
 }

@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/core"
 	"github.com/spf13/cobra"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -26,12 +25,12 @@ func init() {
 var brokenLinksCmd = &cobra.Command{
 	Use: "broken-links",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}
 
-		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
 
 		redirects, err := fs.LoadRedirects(false)
 		if err != nil {
@@ -52,7 +51,7 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		getMarkdownURLs := func(e *eagle.Entry) ([]string, error) {
+		getMarkdownURLs := func(e *core.Entry) ([]string, error) {
 			r, md := newMarkdown()
 			err = r.Convert([]byte(e.Content), io.Discard)
 			if err != nil {
@@ -61,17 +60,21 @@ var brokenLinksCmd = &cobra.Command{
 
 			urls := md.md.urls
 
-			prop := e.Helper().TypeProperty()
-			if prop != "" {
-				ctxUrls := e.Helper().Strings(prop)
-				urls = append(urls, ctxUrls...)
+			if e.Bookmark != "" {
+				urls = append(urls, e.Bookmark)
+			}
+			if e.Reply != "" {
+				urls = append(urls, e.Reply)
+			}
+			if e.Context != nil {
+				urls = append(urls, e.Context.URL)
 			}
 
 			return urls, nil
 		}
 
 		isBroken := func(urlStr string) (bool, string, error) {
-			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, c.Server.BaseURL) {
+			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, c.BaseURL) {
 				u, err := url.Parse(urlStr)
 				if err != nil {
 					return false, "", err
@@ -95,7 +98,7 @@ var brokenLinksCmd = &cobra.Command{
 			return false, "", nil
 		}
 
-		printBroken := func(e *eagle.Entry, what string, urls []string) {
+		printBroken := func(e *core.Entry, what string, urls []string) {
 			if len(urls) != 0 {
 				fmt.Println(what, e.ID)
 				for _, l := range urls {

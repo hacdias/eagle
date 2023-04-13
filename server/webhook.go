@@ -8,6 +8,10 @@ import (
 	"net/http"
 )
 
+const (
+	webhookPath = "/webhook"
+)
+
 func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 	signature := r.Header.Get("X-Hub-Signature")
 	if len(signature) == 0 {
@@ -23,7 +27,7 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mac := hmac.New(sha1.New, []byte(s.c.Server.WebhookSecret))
+	mac := hmac.New(sha1.New, []byte(s.c.WebhookSecret))
 	_, err = mac.Write(payload)
 	if err != nil {
 		s.log.Error("webhook: could not write mac", err)

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/core"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
@@ -17,12 +16,12 @@ func init() {
 var countCmd = &cobra.Command{
 	Use: "count",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}
 
-		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err
@@ -31,7 +30,7 @@ var countCmd = &cobra.Command{
 		count := map[string]int{}
 
 		for _, e := range ee {
-			for _, section := range e.Sections {
+			for _, section := range e.Categories {
 				if _, ok := count[section]; !ok {
 					count[section] = 0
 				}

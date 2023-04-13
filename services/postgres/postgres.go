@@ -3,7 +3,7 @@ package postgres
 import (
 	"context"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -11,7 +11,7 @@ type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func NewPostgres(cfg *eagle.PostgreSQL) (*Postgres, error) {
+func NewPostgres(cfg *core.PostgreSQL) (*Postgres, error) {
 	dsn := "user=" + cfg.User
 	dsn += " password=" + cfg.Password
 	dsn += " host=" + cfg.Host

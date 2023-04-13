@@ -6,127 +6,75 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/renderer"
-)
-
-const (
-	feedPath  = ".{feed:rss|atom|json}"
-	yearPath  = `/{year:(x|\d\d\d\d)}`
-	monthPath = yearPath + `/{month:(x|\d\d)}`
-	dayPath   = monthPath + `/{day:(x|\d\d)}`
 )
 
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
+	r.Use(s.withRecoverer)
 
-	if s.c.Server.Logging || s.c.Development {
+	if s.c.Logging || s.c.Development {
 		r.Use(middleware.Logger)
 	}
 
-	r.Use(middleware.RedirectSlashes)
-	r.Use(cleanPath)
+	r.Use(withCleanPath)
 	r.Use(middleware.GetHead)
-	r.Use(s.recoverer)
-	r.Use(s.securityHeaders)
+	r.Use(s.withSecurityHeaders)
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
+	r.Use(s.withAdminBar)
 
 	// GitHub WebHook
-	if s.c.Server.WebhookSecret != "" {
-		r.Post("/webhook", s.webhookPost)
+	if s.c.WebhookSecret != "" {
+		r.Post(webhookPath, s.webhookPost)
 	}
 
 	// Webmentions Handler
 	if s.c.Webmentions.Secret != "" {
-		r.Post("/webmention", s.webmentionPost)
+		r.Post(webmentionPath, s.webmentionPost)
 	}
 
 	// Random
-	r.Get("/search", s.searchGet)
-	r.Get(renderer.AssetsBaseURL+"*", s.serveAssets)
-	r.Get("/.well-known/webfinger", s.webFingerGet)
-	r.Post("/guestbook", s.guestbookPost)
+	r.Get(webFingerPath, s.webFingerGet)
+	r.Get(searchPath, s.searchGet)
+	r.Post(guestbookPath, s.guestbookPost)
 
 	// Login
-	r.Get("/login", s.loginGet)
-	r.Post("/login", s.loginPost)
-	r.Get("/logout", s.logoutGet)
+	r.Get(loginPath, s.loginGet)
+	r.Post(loginPath, s.loginPost)
+	r.Get(logoutPath, s.logoutGet)
 
 	// IndieAuth Server (Part I)
-	r.Get("/.well-known/oauth-authorization-server", s.indieauthGet)
-	r.Post("/auth", s.authPost)
-	r.Post("/token", s.tokenPost)
-	r.Post("/token/verify", s.tokenVerifyPost)
+	r.Get(wellKnownOAuthServer, s.indieauthGet)
+	r.Post(authPath, s.authPost)
+	r.Post(tokenPath, s.tokenPost)
+	r.Post(tokenVerifyPath, s.tokenVerifyPost)
 
 	// Admin only pages.
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustLoggedIn)
 
 		// IndieAuth Server (Part II)
-		r.Get("/auth", s.authGet)
-		r.Post("/auth/accept", s.authAcceptPost)
+		r.Get(authPath, s.authGet)
+		r.Post(authAcceptPath, s.authAcceptPost)
 
-		r.Get("/new", s.newGet)
-		r.Post("/new", s.newPost)
+		r.Get(dashboardPath, s.dashboardGet)
+		r.Post(dashboardPath, s.dashboardPost)
 
-		r.Get("/edit*", s.editGet)
-		r.Post("/edit*", s.editPost)
+		r.Get(newPath, s.newGet)
+		r.Post(newPath, s.newPost)
 
-		r.Get("/dashboard", s.dashboardGet)
-		r.Post("/dashboard", s.dashboardPost)
-
-		r.Get("/deleted", s.deletedGet)
-		r.Get("/drafts", s.draftsGet)
-		r.Get("/unlisted", s.unlistedGet)
+		r.Get(editPath+"*", s.editGet)
+		r.Post(editPath+"*", s.editPost)
 	})
 
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
 
 		// IndieAuth Server
-		r.Get("/token", s.tokenGet) // Backwards compatible token verification endpoint
-		r.Get("/userinfo", s.userInfoGet)
+		r.Get(tokenPath, s.tokenGet) // Backwards compatible token verification endpoint
+		r.Get(userInfoPath, s.userInfoGet)
 	})
 
-	// Listing HTML pages. Cached.
-	r.Group(func(r chi.Router) {
-		r.Use(s.withCache)
-
-		r.Get("/", s.indexGet)
-		r.Get(yearPath, s.dateGet)
-		r.Get(monthPath, s.dateGet)
-		r.Get(dayPath, s.dateGet)
-
-		for _, section := range s.c.Site.Sections {
-			if section != s.c.Site.IndexSection {
-				r.Get("/"+section, s.sectionGet(section))
-			}
-		}
-
-		for id, taxonomy := range s.c.Site.Taxonomies {
-			r.Get("/"+id, s.taxonomyGet(id, taxonomy))
-			r.Get("/"+id+"/{term}", s.taxonomyTermGet(id, taxonomy))
-		}
-	})
-
-	// Listing JSON, XML and ATOM feeds. Not cached. Taxonomies
-	// and date pages do not have feeds.
-	r.Get("/"+feedPath, s.indexGet)
-
-	for _, section := range s.c.Site.Sections {
-		if section != s.c.Site.IndexSection {
-			r.Get("/"+section+feedPath, s.sectionGet(section))
-		}
-	}
-
-	// Everything that was not matched so far.
-	r.Group(func(r chi.Router) {
-		r.Use(s.withRedirects)
-		r.Use(s.withStaticFiles)
-		r.Use(s.withCache)
-
-		r.Get("/*", s.entryGet)
-	})
-
+	r.Get("/*", s.generalHandler)
 	return r
 }

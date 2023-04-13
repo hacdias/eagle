@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/hacdias/eagle/pkg/contenttype"
-	"github.com/hacdias/eagle/pkg/mf2"
 	"github.com/karlseguin/typed"
 	"go.uber.org/zap"
 )
@@ -68,7 +66,7 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 		return nil, nil, err
 	}
 
-	req.Header.Add("Content-Type", contenttype.WWWForm)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	req.Header.Add("User-Agent", x.c.UserAgent)
 
@@ -168,10 +166,6 @@ func Parse(data map[string]interface{}) *Post {
 		parsed.Author.Name = typedAuthor.String("name")
 		parsed.Author.Photo = typedAuthor.String("photo")
 		parsed.Author.URL = typedAuthor.String("url")
-	}
-
-	if wmProperty, ok := raw.StringIf("wm-property"); ok {
-		parsed.Type = mf2.PropertyToType(wmProperty)
 	}
 
 	if wmPrivate, ok := raw.BoolIf("wm-private"); ok {

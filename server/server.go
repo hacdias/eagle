@@ -1,13 +1,10 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"os"
@@ -20,24 +17,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/cache"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/fs"
-	"github.com/hacdias/eagle/hooks"
-	"github.com/hacdias/eagle/indexer"
+	"github.com/hacdias/eagle/core"
+	"github.com/hacdias/eagle/core/helpers"
 	"github.com/hacdias/eagle/log"
-	"github.com/hacdias/eagle/media"
-	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/maze"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
+	"github.com/hacdias/eagle/services/media"
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
-	"github.com/hacdias/eagle/webmentions"
+	"github.com/hacdias/eagle/services/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
@@ -48,15 +39,10 @@ import (
 
 type contextKey string
 
-type httpServer struct {
-	Name string
-	*http.Server
-}
-
 type Server struct {
-	n eagle.Notifier
-	c *eagle.Config
-	i *indexer.Indexer
+	n core.Notifier
+	c *core.Config
+	i *core.Indexer
 
 	log        *zap.SugaredLogger
 	ias        *indieauth.Server
@@ -64,28 +50,29 @@ type Server struct {
 	actions    map[string]func() error
 	cron       *cron.Cron
 	redirects  map[string]string
-	archetypes map[string]eagle.Archetype
-	webFinger  *eagle.WebFinger
+	archetypes map[string]core.Archetype
+	webFinger  *core.WebFinger
 
-	serversMu sync.Mutex
-	servers   []*httpServer
+	server *http.Server
 
-	fs          *fs.FS
+	fs          *core.FS
+	hugo        *core.Hugo
 	media       *media.Media
-	cache       *cache.Cache
 	webmentions *webmentions.Webmentions
-	renderer    *renderer.Renderer
-	parser      *eagle.Parser
+	parser      *core.Parser
 	maze        *maze.Maze
 
-	preSaveHooks  []eagle.EntryHook
-	postSaveHooks []eagle.EntryHook
+	locationFetcher *helpers.LocationFetcher
+	contextFetcher  *helpers.ContextFetcher
+
+	staticFsLock sync.RWMutex
+	staticFs     *staticFs
 }
 
-func NewServer(c *eagle.Config) (*Server, error) {
-	secret := base64.StdEncoding.EncodeToString([]byte(c.Server.TokensSecret))
+func NewServer(c *core.Config) (*Server, error) {
+	secret := base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))
 
-	var notifier eagle.Notifier
+	var notifier core.Notifier
 	if c.Notifications.Telegram != nil {
 		notifications, err := telegram.NewTelegram(c.Notifications.Telegram)
 		if err != nil {
@@ -96,13 +83,14 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		notifier = log.NewLogNotifier()
 	}
 
-	var srcSync fs.Sync
+	var srcSync core.Sync
 	if c.Development {
-		srcSync = &fs.NopSync{}
+		srcSync = &core.NopSync{}
 	} else {
-		srcSync = fs.NewGitSync(c.Source.Directory)
+		srcSync = core.NewGitSync(c.SourceDirectory)
 	}
-	fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, srcSync)
+	fs := core.NewFS(c.SourceDirectory, c.BaseURL, srcSync)
+	hugo := core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL)
 
 	var (
 		m           *media.Media
@@ -122,16 +110,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		m = media.NewMedia(storage, transformer)
 	}
 
-	renderer, err := renderer.NewRenderer(c, fs, m)
-	if err != nil {
-		return nil, err
-	}
-
-	cache, err := cache.NewCache()
-	if err != nil {
-		return nil, err
-	}
-
 	postgres, err := postgres.NewPostgres(&c.PostgreSQL)
 	if err != nil {
 		return nil, err
@@ -140,49 +118,34 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	s := &Server{
 		n:           notifier,
 		c:           c,
-		i:           indexer.NewIndexer(fs, postgres),
+		i:           core.NewIndexer(fs, postgres),
 		log:         log.S().Named("server"),
 		ias:         indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 		jwtAuth:     jwtauth.New("HS256", []byte(secret), nil),
-		servers:     []*httpServer{},
 		cron:        cron.New(),
 		redirects:   map[string]string{},
-		archetypes:  eagle.DefaultArchetypes,
+		archetypes:  core.DefaultArchetypes,
 		fs:          fs,
+		hugo:        hugo,
 		media:       m,
-		cache:       cache,
-		webmentions: webmentions.NewWebmentions(fs, notifier, renderer),
-		renderer:    renderer,
-		parser:      eagle.NewParser(c.Server.BaseURL),
+		webmentions: webmentions.NewWebmentions(fs, hugo, notifier),
+		parser:      core.NewParser(c.BaseURL),
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
-		preSaveHooks:  []eagle.EntryHook{},
-		postSaveHooks: []eagle.EntryHook{},
+
+		locationFetcher: helpers.NewLocationFetcher(fs, c.Language),
 	}
 
-	fs.AfterSaveHook = s.afterSaveHook
-
-	s.AppendPreSaveHook(
-		hooks.NewDescriptionGenerator(s.fs),
-		hooks.NewMicropubValidator(c.Micropub),
-		hooks.TagsSanitizer{},
-	)
-
+	s.hugo.BuildHook = s.buildHook
 	s.initActions()
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
-		xray, err := hooks.NewContextFetcher(c, s.fs)
+		xray, err := helpers.NewContextFetcher(c, s.fs)
 		if err != nil {
 			return nil, err
 		}
-		s.AppendPostSaveHook(xray)
-	}
-
-	s.AppendPostSaveHook(hooks.NewLocationFetcher(s.fs, c.Site.Language))
-
-	if !c.Webmentions.DisableSending {
-		s.AppendPostSaveHook(s.webmentions)
+		s.contextFetcher = xray
 	}
 
 	var errs *multierror.Error
@@ -206,18 +169,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	err = errs.ErrorOrNil()
 	return s, err
-}
-
-func (s *Server) AppendPreSaveHook(hooks ...eagle.EntryHook) {
-	s.preSaveHooks = append(s.preSaveHooks, hooks...)
-}
-
-func (s *Server) AppendPostSaveHook(hooks ...eagle.EntryHook) {
-	s.postSaveHooks = append(s.postSaveHooks, hooks...)
-}
-
-func (s *Server) RegisterArchetype(name string, archetype eagle.Archetype) {
-	s.archetypes[name] = archetype
 }
 
 func (s *Server) RegisterAction(name string, action func() error) error {
@@ -244,55 +195,61 @@ func (s *Server) Start() error {
 		s.indexAll()
 	}()
 
-	s.cron.Start()
-
-	errCh := make(chan error)
-	router := s.makeRouter()
-
-	// Start server(s)
-	err := s.startRegularServer(errCh, router)
+	// Make sure we have a built version to serve
+	should, err := s.hugo.ShouldBuild()
 	if err != nil {
 		return err
 	}
 
-	// Collect errors when the server stops
-	var errs *multierror.Error
-	for i := 0; i < len(s.servers); i++ {
-		errs = multierror.Append(errs, <-errCh)
+	if should {
+		err = s.hugo.Build(false)
+		if err != nil {
+			return err
+		}
 	}
-	return errs.ErrorOrNil()
+
+	s.cron.Start()
+
+	// Start server
+	addr := ":" + strconv.Itoa(s.c.Port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	errCh := make(chan error)
+	s.server = &http.Server{Handler: s.makeRouter()}
+	go func() {
+		s.log.Infof("listening on %s", ln.Addr().String())
+		errCh <- s.server.Serve(ln)
+	}()
+
+	return <-errCh
 }
 
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var errs *multierror.Error
-	for _, srv := range s.servers {
-		s.log.Infof("shutting down %s", srv.Name)
-		errs = multierror.Append(errs, srv.Shutdown(ctx))
-	}
-
 	<-s.cron.Stop().Done()
+
+	var errs *multierror.Error
+	errs = multierror.Append(errs, s.server.Shutdown(ctx))
 	errs = multierror.Append(errs, s.i.Close())
 	return errs.ErrorOrNil()
 }
 
 func (s *Server) initActions() {
 	s.actions = map[string]func() error{
-		"Clear Cache": func() error {
-			s.cache.Clear()
-			return nil
+		"Build Website": func() error {
+			return s.hugo.Build(false)
+		},
+		"Build Website (Clean)": func() error {
+			return s.hugo.Build(true)
 		},
 		"Sync Storage": func() error {
 			go s.syncStorage()
 			return nil
-		},
-		"Reload Templates": func() error {
-			return s.renderer.LoadTemplates()
-		},
-		"Reload Assets": func() error {
-			return s.renderer.LoadAssets()
 		},
 		"Reload Redirects": func() error {
 			return s.loadRedirects()
@@ -335,39 +292,10 @@ func (s *Server) indexAll() {
 	if err != nil {
 		s.n.Error(err)
 	}
-	s.cache.Clear()
 	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
 }
 
-func (s *Server) registerServer(srv *http.Server, name string) {
-	s.serversMu.Lock()
-	defer s.serversMu.Unlock()
-
-	s.servers = append(s.servers, &httpServer{
-		Server: srv,
-		Name:   name,
-	})
-}
-
-func (s *Server) startRegularServer(errCh chan error, h http.Handler) error {
-	addr := ":" + strconv.Itoa(s.c.Server.Port)
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
-
-	srv := &http.Server{Handler: h}
-	s.registerServer(srv, "public")
-
-	go func() {
-		s.log.Infof("listening on %s", ln.Addr().String())
-		errCh <- srv.Serve(ln)
-	}()
-
-	return nil
-}
-
-func (s *Server) recoverer(next http.Handler) http.Handler {
+func (s *Server) withRecoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
@@ -381,23 +309,15 @@ func (s *Server) recoverer(next http.Handler) http.Handler {
 	})
 }
 
-// borrowed from chi + redirection.
-func cleanPath(next http.Handler) http.Handler {
+func withCleanPath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-
-		routePath := rctx.RoutePath
-		if routePath == "" {
-			if r.URL.RawPath != "" {
-				routePath = r.URL.RawPath
-			} else {
-				routePath = r.URL.Path
-			}
-			routePath = path.Clean(routePath)
+		path := path.Clean(r.URL.Path)
+		if path != "/" && strings.HasSuffix(r.URL.Path, "/") {
+			path += "/"
 		}
 
-		if r.URL.Path != routePath {
-			http.Redirect(w, r, routePath, http.StatusTemporaryRedirect)
+		if r.URL.Path != path {
+			http.Redirect(w, r, path, http.StatusTemporaryRedirect)
 			return
 		}
 
@@ -405,94 +325,13 @@ func cleanPath(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) securityHeaders(next http.Handler) http.Handler {
+func (s *Server) withSecurityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		next.ServeHTTP(w, r)
 	})
-}
-
-func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", contenttype.JSONUTF8)
-	w.WriteHeader(code)
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html: %w", err))
-	}
-}
-
-func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescription string) {
-	s.serveJSON(w, code, map[string]string{
-		"error":             err,
-		"error_description": errDescription,
-	})
-}
-
-func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *renderer.RenderData, tpls []string, code int) {
-	if data.Entry.ID == "" {
-		data.Entry.ID = r.URL.Path
-	}
-
-	data.IsLoggedIn = s.isLoggedIn(r)
-
-	setCacheHTML(w)
-	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
-	w.WriteHeader(code)
-
-	var (
-		buf bytes.Buffer
-		cw  io.Writer
-	)
-
-	if code == http.StatusOK && s.isCacheable(r) {
-		cw = io.MultiWriter(w, &buf)
-	} else {
-		cw = w
-	}
-
-	err := s.renderer.Render(cw, data, tpls, false)
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	} else {
-		data := buf.Bytes()
-		if len(data) > 0 {
-			s.saveCache(r, data)
-		}
-	}
-}
-
-func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *renderer.RenderData, tpls []string) {
-	s.serveHTMLWithStatus(w, r, data, tpls, http.StatusOK)
-}
-
-func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, err error) {
-	if err != nil {
-		s.log.Error(err)
-	}
-
-	w.Header().Del("Cache-Control")
-
-	data := map[string]interface{}{
-		"Code": code,
-	}
-
-	if err != nil {
-		data["Error"] = err.Error()
-	}
-
-	rd := &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
-			},
-		},
-		NoIndex: true,
-		Data:    data,
-	}
-
-	s.serveHTMLWithStatus(w, r, rd, []string{renderer.TemplateError}, code)
 }
 
 func (s *Server) syncStorage() {
@@ -509,57 +348,84 @@ func (s *Server) syncStorage() {
 	ids := []string{}
 
 	for _, file := range changedFiles {
-		if !strings.HasPrefix(file, fs.ContentDirectory) {
+		if !strings.HasPrefix(file, core.ContentDirectory) {
 			continue
 		}
 
-		id := strings.TrimPrefix(file, fs.ContentDirectory)
+		id := strings.TrimPrefix(file, core.ContentDirectory)
 		id = filepath.Dir(id)
 		ids = append(ids, id)
 	}
 
-	// NOTE: we do not reload the templates and assets because
-	// doing so is not concurrent-safe. Alternatively, there is
-	// an action in the dashboard to reload assets and templates
-	// on-demand.
 	ids = lo.Uniq(ids)
-	entries := eagle.Entries{}
+	entries := core.Entries{}
+	buildClean := false
 
 	for _, id := range ids {
 		entry, err := s.fs.GetEntry(id)
 		if os.IsNotExist(err) {
 			s.i.Remove(id)
+			buildClean = true
 			continue
 		} else if err != nil {
 			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
 			continue
 		}
 		entries = append(entries, entry)
-
-		if s.cache != nil {
-			s.cache.Delete(entry)
-		}
 	}
 
 	err = s.i.Add(entries...)
 	if err != nil {
 		s.n.Error(fmt.Errorf("sync failed: %w", err))
 	}
+
+	s.buildNotify(buildClean)
 }
 
-func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
-	for _, e := range updated {
-		_ = s.i.Add(e)
-		s.cache.Delete(e)
+func (s *Server) buildNotify(clean bool) {
+	err := s.hugo.Build(clean)
+	if err != nil {
+		s.n.Error(fmt.Errorf("build failed: %w", err))
 	}
+}
 
-	for _, e := range deleted {
-		s.i.Remove(e.ID)
-		s.cache.Delete(e)
+func (s *Server) buildHook(dir string) {
+	s.log.Infof("received new public directory: %s", dir)
+
+	s.staticFsLock.Lock()
+	oldFs := s.staticFs
+	s.staticFs = newStaticFs(dir)
+	s.staticFsLock.Unlock()
+
+	if oldFs != nil {
+		err := os.RemoveAll(oldFs.dir)
+		if err != nil {
+			s.n.Error(fmt.Errorf("could not delete old directory: %w", err))
+		}
 	}
+}
 
-	if len(updated) == len(deleted) {
-		// Then it's likely a rename.
-		_ = s.loadRedirects()
+func setCacheControl(w http.ResponseWriter, isHTML bool) {
+	if isHTML {
+		w.Header().Set("Cache-Control", "no-cache, no-store, max-age=0")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=15552000")
+	}
+}
+
+var etagHeaders = []string{
+	"ETag",
+	"If-Modified-Since",
+	"If-Match",
+	"If-None-Match",
+	"If-Range",
+	"If-Unmodified-Since",
+}
+
+func delEtagHeaders(r *http.Request) {
+	for _, v := range etagHeaders {
+		if r.Header.Get(v) != "" {
+			r.Header.Del(v)
+		}
 	}
 }

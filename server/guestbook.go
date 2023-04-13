@@ -9,14 +9,13 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/fs"
-	"github.com/hacdias/eagle/util"
+	"github.com/hacdias/eagle/core"
 	"github.com/microcosm-cc/bluemonday"
 )
 
 var (
-	guestbookFilename = filepath.Join(fs.ContentDirectory, "guestbook/.entries.json")
+	guestbookPath     = "/guestbook/"
+	guestbookFilename = filepath.Join(core.DataDirectory, "guestbook-unmoderated.json")
 )
 
 func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +42,7 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	s.log.Infow("received guestbook entry", "name", name, "website", website, "content", content)
 
-	entries := eagle.GuestbookEntries{}
+	entries := core.GuestbookEntries{}
 
 	if err := s.fs.ReadJSON(guestbookFilename, &entries); err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
@@ -51,12 +50,11 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries = append(entries, eagle.GuestbookEntry{
+	entries = append(entries, core.GuestbookEntry{
 		Name:    name,
 		Website: website,
 		Content: content,
 		Date:    time.Now(),
-		Unseen:  true,
 	})
 
 	sort.SliceStable(entries, func(i, j int) bool {
@@ -69,6 +67,6 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.n.Info(fmt.Sprintf("💬 #guestbook entry pending approval: %s.", util.TruncateStringWithEllipsis(content, 100)))
+	s.n.Info(fmt.Sprintf("💬 #guestbook entry pending approval: %s", name))
 	http.Redirect(w, r, r.URL.Path+"?youre=awesome", http.StatusFound)
 }

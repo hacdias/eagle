@@ -5,27 +5,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 )
 
+const (
+	dashboardPath = "/dashboard/"
+)
+
 type dashboardData struct {
-	Actions       []string
-	Success       bool
+	ActionSuccess bool
 	Token         string
 	MediaLocation string
 }
 
 func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
-	s.serveDashboard(w, r, &dashboardData{
-		Actions: s.getActions(),
-	})
+	s.serveDashboard(w, r, &dashboardData{})
 }
 
 func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
@@ -44,8 +44,6 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
 		s.dashboardPostUpload(w, r)
 		return
-	} else {
-		fmt.Println(err)
 	}
 
 	s.dashboardGet(w, r)
@@ -53,15 +51,13 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 	actions := r.Form["action"]
-	data := &dashboardData{
-		Actions: s.getActions(),
-	}
+	data := &dashboardData{}
 
 	var errs *multierror.Error
 	for _, actionName := range actions {
 		if fn, ok := s.actions[actionName]; ok {
 			errs = multierror.Append(errs, fn())
-			data.Success = true
+			data.ActionSuccess = true
 		}
 	}
 	if err := errs.ErrorOrNil(); err != nil {
@@ -73,9 +69,7 @@ func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) dashboardPostToken(w http.ResponseWriter, r *http.Request) {
-	data := &dashboardData{
-		Actions: s.getActions(),
-	}
+	data := &dashboardData{}
 
 	clientID := r.Form.Get("client_id")
 	scope := r.Form.Get("scope")
@@ -149,19 +143,68 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveDashboard(w, r, &dashboardData{
-		Actions:       s.getActions(),
 		MediaLocation: location,
 	})
 }
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Dashboard",
-			},
-		},
-		Data:    data,
-		NoIndex: true,
-	}, []string{renderer.TemplateDashboard})
+	ee, err := s.i.GetDrafts(s.getPagination(r))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	draftsNode := doc.Find("eagle-drafts")
+	draftTemplate := doc.Find("eagle-draft")
+	draftsNode.Empty()
+
+	for _, e := range ee {
+		node := draftTemplate.Clone()
+		node.Find("a").SetAttr("href", path.Join(editPath, e.ID))
+		if e.Title != "" {
+			node.Find("a").SetText(e.Title)
+		} else {
+			node.Find("a").SetText(e.ID)
+		}
+		draftsNode.AppendSelection(node.Children())
+	}
+
+	draftsNode.ReplaceWithSelection(draftsNode.Children())
+
+	actionTemplate := doc.Find("eagle-action").First().Children().First()
+	doc.Find("eagle-actions").Empty()
+	for _, action := range s.getActions() {
+		node := actionTemplate.Clone()
+		node.Find("input[name=action]").SetAttr("value", action)
+		node.Find("action-name").ReplaceWithHtml(action)
+		doc.Find("eagle-actions").AppendSelection(node)
+	}
+
+	if !data.ActionSuccess {
+		doc.Find("eagle-action-success").Remove()
+	}
+
+	mediaNode := doc.Find("eagle-media-location")
+	if data.MediaLocation != "" {
+		mediaNode.Find("eagle-media-location-value").ReplaceWithHtml(data.MediaLocation)
+		mediaNode.ReplaceWithSelection(mediaNode.Children())
+	} else {
+		mediaNode.Remove()
+	}
+
+	tokenNode := doc.Find("eagle-token")
+	if data.Token != "" {
+		tokenNode.Find("eagle-token-value").ReplaceWithHtml(data.Token)
+		tokenNode.ReplaceWithSelection(tokenNode.Children())
+	} else {
+		tokenNode.Remove()
+	}
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }

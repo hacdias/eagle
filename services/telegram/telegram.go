@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/log"
 	"go.uber.org/zap"
 	tb "gopkg.in/telebot.v3"
@@ -13,7 +13,7 @@ type Telegram struct {
 	bot    *tb.Bot
 }
 
-func NewTelegram(c *eagle.Telegram) (*Telegram, error) {
+func NewTelegram(c *core.Telegram) (*Telegram, error) {
 	n := &Telegram{
 		chat:   c.ChatID,
 		errLog: log.S().Named("telegram"),

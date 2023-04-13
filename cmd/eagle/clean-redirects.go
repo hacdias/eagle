@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/fs"
+	"github.com/hacdias/eagle/core"
 	"github.com/spf13/cobra"
 )
 
@@ -16,12 +15,12 @@ func init() {
 var cleanRedirectsCmd = &cobra.Command{
 	Use: "clean-redirects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}
 
-		fs := fs.NewFS(c.Source.Directory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
 
 		redirects, err := fs.LoadRedirects(false)
 		if err != nil {

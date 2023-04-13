@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/eagle"
-	"github.com/hacdias/eagle/renderer"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/samber/lo"
@@ -24,15 +22,22 @@ const (
 
 	scopesContextKey contextKey = "scopes"
 	clientContextKey contextKey = "client"
+
+	wellKnownOAuthServer = "/.well-known/oauth-authorization-server"
+	authPath             = "/auth/"
+	authAcceptPath       = authPath + "accept"
+	tokenPath            = "/token"
+	tokenVerifyPath      = tokenPath + "/verify"
+	userInfoPath         = "/userinfo"
 )
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, map[string]interface{}{
 		"issuer":                           s.c.ID(),
-		"authorization_endpoint":           s.c.Server.AbsoluteURL("/auth"),
-		"token_endpoint":                   s.c.Server.AbsoluteURL("/token"),
-		"introspection_endpoint":           s.c.Server.AbsoluteURL("/token/verify"),
-		"userinfo_endpoint":                s.c.Server.AbsoluteURL("/userinfo"),
+		"authorization_endpoint":           s.c.AbsoluteURL(authPath),
+		"token_endpoint":                   s.c.AbsoluteURL(tokenPath),
+		"introspection_endpoint":           s.c.AbsoluteURL(tokenVerifyPath),
+		"userinfo_endpoint":                s.c.AbsoluteURL(userInfoPath),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 		"grant_types_supported":            []string{"authorization_code"},
 		"response_types_supported":         []string{"code"},
@@ -51,15 +56,45 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &renderer.RenderData{
-		Entry: &eagle.Entry{
-			FrontMatter: eagle.FrontMatter{
-				Title: "Authorization",
-			},
-		},
-		Data:    req,
-		NoIndex: true,
-	}, []string{renderer.TemplateAuth})
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc.Find("eagle-client-id").ReplaceWithHtml(req.ClientID)
+	doc.Find("eagle-redirect-uri").ReplaceWithHtml(req.RedirectURI)
+
+	challengeWarningNode := doc.Find("eagle-no-pkce")
+	if req.CodeChallenge == "" {
+		challengeWarningNode.ReplaceWithSelection(challengeWarningNode.Children())
+	} else {
+		challengeWarningNode.Remove()
+	}
+
+	scopesNode := doc.Find("eagle-scopes")
+	if len(req.Scopes) != 0 {
+		scopeTemplate := scopesNode.Find("eagle-scope")
+		scopesList := scopeTemplate.Parent()
+
+		for _, scope := range req.Scopes {
+			node := scopeTemplate.Clone()
+			node.Find("input").SetAttr("value", scope)
+			node.Find("eagle-scope-value").ReplaceWithHtml(scope)
+			scopesList.PrependSelection(node.Children())
+		}
+
+		scopeTemplate.Remove()
+	} else {
+		scopesNode.Remove()
+	}
+
+	doc.Find("input[name='redirect_uri']").SetAttr("value", req.RedirectURI)
+	doc.Find("input[name='client_id']").SetAttr("value", req.ClientID)
+	doc.Find("input[name='state']").SetAttr("value", req.State)
+	doc.Find("input[name='code_challenge']").SetAttr("value", req.CodeChallenge)
+	doc.Find("input[name='code_challenge_method']").SetAttr("value", req.CodeChallengeMethod)
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {

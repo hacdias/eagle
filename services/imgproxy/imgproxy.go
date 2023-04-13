@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/spf13/afero"
 )
 
@@ -19,7 +19,7 @@ type ImgProxy struct {
 	endpoint   string
 }
 
-func NewImgProxy(conf *eagle.ImgProxy) *ImgProxy {
+func NewImgProxy(conf *core.ImgProxy) *ImgProxy {
 	return &ImgProxy{
 		endpoint: conf.Endpoint,
 		httpClient: &http.Client{
