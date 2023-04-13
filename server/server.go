@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"html/template"
 	"net"
 	"net/http"
 	"os"
@@ -59,7 +58,6 @@ type Server struct {
 	actions    map[string]func() error
 	cron       *cron.Cron
 	redirects  map[string]string
-	templates  map[string]*template.Template
 	archetypes map[string]eagle.Archetype
 	webFinger  *eagle.WebFinger
 
@@ -135,7 +133,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		servers:     []*httpServer{},
 		cron:        cron.New(),
 		redirects:   map[string]string{},
-		templates:   map[string]*template.Template{},
 		archetypes:  eagle.DefaultArchetypes,
 		fs:          fs,
 		hugo:        hugo.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL),
