@@ -1,4 +1,4 @@
-package fs
+package core
 
 import (
 	"bytes"
@@ -8,6 +8,21 @@ import (
 	"sync"
 	"time"
 )
+
+type Sync interface {
+	Sync() (updated []string, err error)
+	Persist(filename ...string) error
+}
+
+type NopSync struct{}
+
+func (g *NopSync) Persist(file ...string) error {
+	return nil
+}
+
+func (g *NopSync) Sync() ([]string, error) {
+	return []string{}, nil
+}
 
 var nothingToCommit = []byte("nothing to commit, working tree clean")
 

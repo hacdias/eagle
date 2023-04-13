@@ -6,17 +6,16 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/maze"
 )
 
 type LocationFetcher struct {
 	language string
-	fs       *fs.FS
+	fs       *core.FS
 	maze     *maze.Maze
 }
 
-func NewLocationFetcher(fs *fs.FS, language string) *LocationFetcher {
+func NewLocationFetcher(fs *core.FS, language string) *LocationFetcher {
 	return &LocationFetcher{
 		language: language,
 		fs:       fs,

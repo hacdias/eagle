@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/miniflux"
 )
 
@@ -18,10 +17,10 @@ type BlogrollUpdater struct {
 	entryID      string
 	dataFilename string
 	client       *miniflux.Miniflux
-	fs           *fs.FS
+	fs           *core.FS
 }
 
-func NewBlogrollUpdater(c *core.Miniflux, fs *fs.FS) *BlogrollUpdater {
+func NewBlogrollUpdater(c *core.Miniflux, fs *core.FS) *BlogrollUpdater {
 	// TODO: make entryID and dataFilename configurable.
 	return &BlogrollUpdater{
 		entryID:      DefaultEntryID,
@@ -37,7 +36,7 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		return err
 	}
 
-	filename := filepath.Join(fs.DataDirectory, u.dataFilename)
+	filename := filepath.Join(core.DataDirectory, u.dataFilename)
 	err = u.fs.WriteJSON(filename, feeds)
 	if err != nil {
 		return err

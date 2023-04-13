@@ -5,7 +5,6 @@ import (
 	"sort"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
@@ -22,7 +21,7 @@ var countCmd = &cobra.Command{
 			return err
 		}
 
-		fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err

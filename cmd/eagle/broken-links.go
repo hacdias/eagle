@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/spf13/cobra"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -31,7 +30,7 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
 
 		redirects, err := fs.LoadRedirects(false)
 		if err != nil {

@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +20,7 @@ var cleanRedirectsCmd = &cobra.Command{
 			return err
 		}
 
-		fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
 
 		redirects, err := fs.LoadRedirects(false)
 		if err != nil {

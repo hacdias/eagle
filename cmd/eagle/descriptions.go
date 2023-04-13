@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
 	"github.com/spf13/cobra"
 )
@@ -20,7 +19,7 @@ var descriptionsCmd = &cobra.Command{
 			return err
 		}
 
-		fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, &fs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err

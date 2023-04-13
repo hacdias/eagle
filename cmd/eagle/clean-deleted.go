@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/hacdias/eagle/core"
-	eaglefs "github.com/hacdias/eagle/fs"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +19,7 @@ var cleanDeletedCmd = &cobra.Command{
 			return err
 		}
 
-		fs := eaglefs.NewFS(c.SourceDirectory, c.Server.BaseURL, &eaglefs.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err
@@ -28,7 +27,7 @@ var cleanDeletedCmd = &cobra.Command{
 
 		for _, e := range ee {
 			if e.Deleted() {
-				err = fs.RemoveAll(filepath.Join(eaglefs.ContentDirectory, e.ID))
+				err = fs.RemoveAll(filepath.Join(core.ContentDirectory, e.ID))
 				if err != nil {
 					return err
 				}

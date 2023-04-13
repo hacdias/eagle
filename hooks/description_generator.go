@@ -4,14 +4,13 @@ import (
 	"net/url"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 )
 
 type DescriptionGenerator struct {
-	fs *fs.FS
+	fs *core.FS
 }
 
-func NewDescriptionGenerator(fs *fs.FS) *DescriptionGenerator {
+func NewDescriptionGenerator(fs *core.FS) *DescriptionGenerator {
 	return &DescriptionGenerator{
 		fs: fs,
 	}

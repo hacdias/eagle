@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
 	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/log"
@@ -63,7 +62,7 @@ type Server struct {
 	serversMu sync.Mutex
 	servers   []*httpServer
 
-	fs          *fs.FS
+	fs          *core.FS
 	hugo        *core.Hugo
 	media       *media.Media
 	webmentions *webmentions.Webmentions
@@ -91,13 +90,13 @@ func NewServer(c *core.Config) (*Server, error) {
 		notifier = log.NewLogNotifier()
 	}
 
-	var srcSync fs.Sync
+	var srcSync core.Sync
 	if c.Development {
-		srcSync = &fs.NopSync{}
+		srcSync = &core.NopSync{}
 	} else {
-		srcSync = fs.NewGitSync(c.SourceDirectory)
+		srcSync = core.NewGitSync(c.SourceDirectory)
 	}
-	fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, srcSync)
+	fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, srcSync)
 	hugo := core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL)
 
 	var (
@@ -412,11 +411,11 @@ func (s *Server) syncStorage() {
 	ids := []string{}
 
 	for _, file := range changedFiles {
-		if !strings.HasPrefix(file, fs.ContentDirectory) {
+		if !strings.HasPrefix(file, core.ContentDirectory) {
 			continue
 		}
 
-		id := strings.TrimPrefix(file, fs.ContentDirectory)
+		id := strings.TrimPrefix(file, core.ContentDirectory)
 		id = filepath.Dir(id)
 		ids = append(ids, id)
 	}

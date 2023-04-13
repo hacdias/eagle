@@ -5,17 +5,16 @@ import (
 	"fmt"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/pkg/xray"
 )
 
 type ContextFetcher struct {
 	xray *xray.XRay
-	fs   *fs.FS
+	fs   *core.FS
 }
 
-func NewContextFetcher(c *core.Config, fs *fs.FS) (*ContextFetcher, error) {
+func NewContextFetcher(c *core.Config, fs *core.FS) (*ContextFetcher, error) {
 	xrayConf := &xray.Config{
 		Endpoint:  c.XRay.Endpoint,
 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", c.ID()),

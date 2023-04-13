@@ -10,13 +10,12 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 	"github.com/microcosm-cc/bluemonday"
 )
 
 var (
 	guestbookPath     = "/guestbook/"
-	guestbookFilename = filepath.Join(fs.DataDirectory, "guestbook-unmoderated.json")
+	guestbookFilename = filepath.Join(core.DataDirectory, "guestbook-unmoderated.json")
 )
 
 func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {

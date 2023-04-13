@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/fs"
 )
 
 type Pagination struct {
@@ -38,10 +37,10 @@ type Backend interface {
 
 type Indexer struct {
 	backend Backend
-	fs      *fs.FS
+	fs      *core.FS
 }
 
-func NewIndexer(fs *fs.FS, backend Backend) *Indexer {
+func NewIndexer(fs *core.FS, backend Backend) *Indexer {
 	return &Indexer{
 		fs:      fs,
 		backend: backend,
