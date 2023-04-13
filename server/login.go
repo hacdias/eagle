@@ -26,7 +26,13 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.generalHandler(w, r)
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {

@@ -218,6 +218,10 @@ func (s *Server) getTemplateDocument(path string) (*goquery.Document, error) {
 }
 
 func (s *Server) serveDocument(w http.ResponseWriter, r *http.Request, doc *goquery.Document, statusCode int) {
+	doc.Find("no-eagle-page").Remove()
+	pageNode := doc.Find("eagle-page")
+	pageNode.ReplaceWithSelection(pageNode.Children())
+
 	html, err := doc.Html()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
