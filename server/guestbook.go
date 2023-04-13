@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	guestbookPath     = "/guestbook/"
 	guestbookFilename = filepath.Join(fs.DataDirectory, "guestbook-unmoderated.json")
 )
 

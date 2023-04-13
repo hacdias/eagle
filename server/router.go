@@ -35,8 +35,8 @@ func (s *Server) makeRouter() http.Handler {
 
 	// Random
 	r.Get(webFingerPath, s.webFingerGet)
-	r.Get("/search/", s.searchGet)
-	r.Post("/guestbook/", s.guestbookPost)
+	r.Get(searchPath, s.searchGet)
+	r.Post(guestbookPath, s.guestbookPost)
 
 	// Login
 	r.Get(loginPath, s.loginGet)
@@ -65,10 +65,6 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get(editPath+"*", s.editGet)
 		r.Post(editPath+"*", s.editPost)
-
-		r.Get(deletedPath, s.deletedGet)
-		r.Get(draftsPath, s.draftsGet)
-		r.Get(unlistedPath, s.unlistedGet)
 	})
 
 	r.Group(func(r chi.Router) {

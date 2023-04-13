@@ -147,6 +147,15 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
+	ee, err := s.i.GetDrafts(s.getPagination(r))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	fmt.Println(ee)
+	// TODO: LIST
+
 	doc, err := s.getTemplateDocument(r.URL.Path)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)

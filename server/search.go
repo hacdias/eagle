@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,10 +9,7 @@ import (
 )
 
 const (
-	deletedPath  = "/deleted/"
-	draftsPath   = "/drafts/"
-	unlistedPath = "/unlisted/"
-	searchPath   = "/search/"
+	searchPath = "/search/"
 )
 
 func (s *Server) getPagination(r *http.Request) *indexer.Pagination {
@@ -31,44 +27,8 @@ func (s *Server) getPagination(r *http.Request) *indexer.Pagination {
 	return opts
 }
 
-func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {
-	entries, err := s.i.GetDrafts(s.getPagination(r))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	// TODO
-	fmt.Println(entries)
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-func (s *Server) unlistedGet(w http.ResponseWriter, r *http.Request) {
-	entries, err := s.i.GetUnlisted(s.getPagination(r))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	// TODO
-	fmt.Println(entries)
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-func (s *Server) deletedGet(w http.ResponseWriter, r *http.Request) {
-	entries, err := s.i.GetDeleted(s.getPagination(r))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	// TODO
-	fmt.Println(entries)
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
-	doc, err := s.getTemplateDocument(searchPath)
+	doc, err := s.getTemplateDocument(r.URL.Path)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
