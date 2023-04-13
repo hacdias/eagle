@@ -6,6 +6,7 @@ import (
 	"net/http"
 	urlpkg "net/url"
 	"os"
+	"path"
 	"sort"
 	"time"
 
@@ -115,7 +116,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if e.Draft {
-		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+		http.Redirect(w, r, path.Join(editPath, e.ID), http.StatusSeeOther)
 	} else {
 		s.postSaveEntry(e)
 		http.Redirect(w, r, e.ID, http.StatusSeeOther)
