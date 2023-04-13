@@ -25,16 +25,8 @@ func NewLocationFetcher(fs *core.FS, language string) *LocationFetcher {
 	}
 }
 
-func (l *LocationFetcher) EntryHook(_, e *core.Entry) error {
-	if e.Location != nil {
-		return nil
-	}
-
-	return l.FetchLocation(e)
-}
-
 func (l *LocationFetcher) FetchLocation(e *core.Entry) error {
-	if e.RawLocation == "" {
+	if e.RawLocation == "" || e.Location != nil {
 		return nil
 	}
 

@@ -6,27 +6,9 @@ import (
 	"github.com/hacdias/eagle/core"
 )
 
-type DescriptionGenerator struct {
-	fs *core.FS
-}
-
-func NewDescriptionGenerator(fs *core.FS) *DescriptionGenerator {
-	return &DescriptionGenerator{
-		fs: fs,
-	}
-}
-
-func (d *DescriptionGenerator) EntryHook(old, new *core.Entry) error {
-	if old == nil {
-		return d.GenerateDescription(new, false)
-	}
-
-	return nil
-}
-
-func (d *DescriptionGenerator) GenerateDescription(e *core.Entry, replaceDescription bool) error {
+func GenerateDescription(e *core.Entry, replaceDescription bool) {
 	if e.Description != "" && !replaceDescription {
-		return nil
+		return
 	}
 
 	if e.Bookmark != "" {
@@ -34,8 +16,6 @@ func (d *DescriptionGenerator) GenerateDescription(e *core.Entry, replaceDescrip
 	} else if e.Reply != "" {
 		e.Description = "Replied to a post on " + domain(e.Reply)
 	}
-
-	return nil
 }
 
 func domain(text string) string {

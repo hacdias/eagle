@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -153,14 +154,28 @@ func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *da
 		return
 	}
 
-	fmt.Println(ee)
-	// TODO: LIST
-
 	doc, err := s.getTemplateDocument(r.URL.Path)
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
+
+	draftsNode := doc.Find("eagle-drafts")
+	draftTemplate := doc.Find("eagle-draft")
+	draftsNode.Empty()
+
+	for _, e := range ee {
+		node := draftTemplate.Clone()
+		node.Find("a").SetAttr("href", path.Join(editPath, e.ID))
+		if e.Title != "" {
+			node.Find("a").SetText(e.Title)
+		} else {
+			node.Find("a").SetText(e.ID)
+		}
+		draftsNode.AppendSelection(node.Children())
+	}
+
+	draftsNode.ReplaceWithSelection(draftsNode.Children())
 
 	actionTemplate := doc.Find("eagle-action").First().Children().First()
 	doc.Find("eagle-actions").Empty()

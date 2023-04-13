@@ -62,8 +62,8 @@ type Server struct {
 	parser      *core.Parser
 	maze        *maze.Maze
 
-	preSaveHooks  []core.EntryHook
-	postSaveHooks []core.EntryHook
+	locationFetcher *hooks.LocationFetcher
+	contextFetcher  *hooks.ContextFetcher
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -133,8 +133,8 @@ func NewServer(c *core.Config) (*Server, error) {
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
-		preSaveHooks:  []core.EntryHook{hooks.NewDescriptionGenerator(fs)},
-		postSaveHooks: []core.EntryHook{hooks.NewLocationFetcher(fs, c.Site.Language)},
+
+		locationFetcher: hooks.NewLocationFetcher(fs, c.Site.Language),
 	}
 
 	s.hugo.BuildHook = s.buildHook
@@ -145,11 +145,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		if err != nil {
 			return nil, err
 		}
-		s.postSaveHooks = append(s.postSaveHooks, xray)
-	}
-
-	if !c.Webmentions.DisableSending {
-		s.postSaveHooks = append(s.postSaveHooks, s.webmentions)
+		s.contextFetcher = xray
 	}
 
 	var errs *multierror.Error

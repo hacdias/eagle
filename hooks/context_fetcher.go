@@ -27,10 +27,6 @@ func NewContextFetcher(c *core.Config, fs *core.FS) (*ContextFetcher, error) {
 	}, err
 }
 
-func (c *ContextFetcher) EntryHook(_, e *core.Entry) error {
-	return c.EnsureXRay(e, false)
-}
-
 func (c *ContextFetcher) EnsureXRay(e *core.Entry, replace bool) error {
 	if e.Context != nil && !replace {
 		return nil

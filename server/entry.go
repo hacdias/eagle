@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/core"
+	"github.com/hacdias/eagle/hooks"
 	"github.com/samber/lo"
 )
 
@@ -102,7 +103,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		e.RawLocation = location
 	}
 
-	if err := s.preSaveEntry(nil, e); err != nil {
+	if err := s.preSaveEntry(e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -113,8 +114,12 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSaveEntry(nil, e)
-	http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	if e.Draft {
+		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+	} else {
+		s.postSaveEntry(e)
+		http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	}
 }
 
 func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +184,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		go s.buildNotify(true)
+		s.buildNotify(true)
 		http.Redirect(w, r, ne.ID, http.StatusSeeOther)
 		return
 	}
@@ -210,7 +215,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		e.ExpiryDate = time.Now().Local()
 	}
 
-	if err := s.preSaveEntry(old, e); err != nil {
+	if err := s.preSaveEntry(e); err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
@@ -221,6 +226,36 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.postSaveEntry(old, e)
-	http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	if e.Draft {
+		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+	} else {
+		s.postSaveEntry(e)
+		http.Redirect(w, r, e.ID, http.StatusSeeOther)
+	}
+}
+
+func (s *Server) preSaveEntry(e *core.Entry) error {
+	hooks.GenerateDescription(e, false)
+	return nil
+}
+
+func (s *Server) postSaveEntry(e *core.Entry) {
+	err := s.locationFetcher.FetchLocation(e)
+	if err != nil {
+		s.n.Error(err)
+	}
+
+	err = s.contextFetcher.EnsureXRay(e, false)
+	if err != nil {
+		s.n.Error(err)
+	}
+
+	s.buildNotify(e.Deleted())
+
+	if !s.c.Webmentions.DisableSending {
+		err := s.webmentions.SendWebmentions(e)
+		if err != nil {
+			s.n.Error(err)
+		}
+	}
 }

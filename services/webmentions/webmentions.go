@@ -39,7 +39,7 @@ func NewWebmentions(fs *core.FS, hugo *core.Hugo, notifier core.Notifier) *Webme
 }
 
 func (ws *Webmentions) EntryHook(old, new *core.Entry) error {
-	return ws.SendWebmentions(old, new)
+	return ws.SendWebmentions(new)
 }
 
 type Webmention struct {
@@ -78,40 +78,33 @@ func (ws *Webmentions) ReceiveWebmentions(payload *Webmention) error {
 	return nil
 }
 
-func (ws *Webmentions) SendWebmentions(old, new *core.Entry) error {
-	var targets []string
-
-	if canSendWebmentions(old) {
-		oldTargets, err := ws.getTargetsFromHTML(old)
-		if err != nil {
-			return err
-		}
-		targets = append(targets, oldTargets...)
+// SendWebmentions sends the webmentions from the new entry. Please note that
+// this does NOT send webmentions for removed targets, not complying fully with
+// the specification.
+func (ws *Webmentions) SendWebmentions(e *core.Entry) error {
+	if e.NoSendInteractions || e.Draft || e.Deleted() || e.IsList() {
+		return nil
 	}
 
-	if canSendWebmentions(new) {
-		newTargets, err := ws.getTargetsFromHTML(new)
-		if err != nil {
-			return err
-		}
-		targets = append(targets, newTargets...)
+	targets, err := ws.getTargetsFromHTML(e)
+	if err != nil {
+		return err
 	}
-
 	targets = lo.Uniq(targets)
 
 	var errs *multierror.Error
 
 	for _, target := range targets {
-		err := ws.sendWebmention(new.Permalink, target)
+		err := ws.sendWebmention(e.Permalink, target)
 		if err != nil && !errors.Is(err, webmention.ErrNoEndpointFound) {
 			err = fmt.Errorf("send webmention error %s: %w", target, err)
 			errs = multierror.Append(errs, err)
 		}
 	}
 
-	err := errs.ErrorOrNil()
+	err = errs.ErrorOrNil()
 	if err != nil {
-		return fmt.Errorf("webmention errors for %s: %w", new.ID, err)
+		return fmt.Errorf("webmention errors for %s: %w", e.ID, err)
 	}
 
 	return nil
@@ -158,14 +151,6 @@ func (ws *Webmentions) sendWebmention(source, target string) error {
 	defer res.Body.Close()
 
 	return nil
-}
-
-func canSendWebmentions(e *core.Entry) bool {
-	return e != nil &&
-		!e.NoSendInteractions &&
-		!e.Draft &&
-		!e.Deleted() &&
-		!e.IsList()
 }
 
 func isPrivate(urlStr string) bool {
