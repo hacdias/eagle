@@ -37,7 +37,7 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		return err
 	}
 
-	filename := filepath.Join(fs.DataDirectory, u.entryID, u.dataFilename)
+	filename := filepath.Join(fs.DataDirectory, u.dataFilename)
 	err = u.fs.WriteJSON(filename, feeds)
 	if err != nil {
 		return err
