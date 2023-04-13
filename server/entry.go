@@ -179,6 +179,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		go s.buildNotify(true)
 		http.Redirect(w, r, ne.ID, http.StatusSeeOther)
 		return
 	}
@@ -201,9 +202,12 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lastmod := r.FormValue("lastmod") == "on"
-	if lastmod {
+	if r.FormValue("lastmod") == "on" {
 		e.LastMod = time.Now().Local()
+	}
+
+	if r.FormValue("expire") == "on" {
+		e.ExpiryDate = time.Now().Local()
 	}
 
 	if err := s.preSaveEntry(old, e); err != nil {

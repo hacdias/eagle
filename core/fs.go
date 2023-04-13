@@ -33,10 +33,6 @@ type FS struct {
 	// reads-writes from files. Adding a mutex for all reads
 	// would probably make it much slower though.
 	entriesMu sync.Mutex
-
-	// AfterSaveHook is a hook that is executed after
-	// saving an entry to the file system.
-	AfterSaveHook func(updated, deleted Entries)
 }
 
 func NewFS(path, baseURL string, sync Sync) *FS {
@@ -209,10 +205,6 @@ func (f *FS) RenameEntry(oldID, newID string) (*Entry, error) {
 		return nil, err
 	}
 
-	if f.AfterSaveHook != nil {
-		f.AfterSaveHook(Entries{new}, Entries{old})
-	}
-
 	return new, nil
 }
 
@@ -260,10 +252,6 @@ func (f *FS) saveEntry(e *Entry) error {
 	err = f.WriteFile(e.Path, []byte(str))
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
-	}
-
-	if f.AfterSaveHook != nil {
-		f.AfterSaveHook(Entries{e}, nil)
 	}
 
 	return nil

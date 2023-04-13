@@ -28,4 +28,6 @@ func (s *Server) postSaveEntry(old, new *core.Entry) {
 			s.n.Error(err)
 		}
 	}
+
+	s.buildNotify(new.Deleted() || (old != nil && old.Deleted()))
 }

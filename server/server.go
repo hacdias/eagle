@@ -144,7 +144,6 @@ func NewServer(c *core.Config) (*Server, error) {
 		postSaveHooks: []core.EntryHook{},
 	}
 
-	s.fs.AfterSaveHook = s.afterSaveHook
 	s.hugo.BuildHook = s.buildHook
 
 	s.AppendPreSaveHook(
@@ -441,14 +440,11 @@ func (s *Server) syncStorage() {
 		s.n.Error(fmt.Errorf("sync failed: %w", err))
 	}
 
-	err = s.hugo.Build(buildClean)
-	if err != nil {
-		s.n.Error(fmt.Errorf("build failed: %w", err))
-	}
+	s.buildNotify(buildClean)
 }
 
-func (s *Server) afterSaveHook(updated, deleted core.Entries) {
-	err := s.hugo.Build(len(deleted) != 0)
+func (s *Server) buildNotify(clean bool) {
+	err := s.hugo.Build(clean)
 	if err != nil {
 		s.n.Error(fmt.Errorf("build failed: %w", err))
 	}
