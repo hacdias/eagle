@@ -14,7 +14,11 @@ type Archetype func(c *Config, r *http.Request) *Entry
 
 var DefaultArchetypes = map[string]Archetype{
 	"default": func(c *Config, r *http.Request) *Entry {
-		return &Entry{}
+		return &Entry{
+			FrontMatter: FrontMatter{
+				Categories: []string{"micro"},
+			},
+		}
 	},
 	"article": func(c *Config, r *http.Request) *Entry {
 		return &Entry{
