@@ -7,6 +7,10 @@ import (
 	"github.com/hacdias/eagle/webmentions"
 )
 
+const (
+	webmentionPath = "/webmention"
+)
+
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 	wm := &webmentions.Payload{}
 	err := json.NewDecoder(r.Body).Decode(&wm)

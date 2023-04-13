@@ -25,58 +25,58 @@ func (s *Server) makeRouter() http.Handler {
 
 	// GitHub WebHook
 	if s.c.Server.WebhookSecret != "" {
-		r.Post("/webhook", s.webhookPost)
+		r.Post(webhookPath, s.webhookPost)
 	}
 
 	// Webmentions Handler
 	if s.c.Webmentions.Secret != "" {
-		r.Post("/webmention", s.webmentionPost)
+		r.Post(webmentionPath, s.webmentionPost)
 	}
 
-	// // Random
-	r.Get("/.well-known/webfinger", s.webFingerGet)
+	// Random
+	r.Get(webFingerPath, s.webFingerGet)
 	r.Get("/search/", s.searchGet)
 	r.Post("/guestbook/", s.guestbookPost)
 
 	// Login
-	r.Get("/login", s.loginGet)
-	r.Post("/login", s.loginPost)
-	r.Get("/logout", s.logoutGet)
+	r.Get(loginPath, s.loginGet)
+	r.Post(loginPath, s.loginPost)
+	r.Get(logoutPath, s.logoutGet)
 
 	// IndieAuth Server (Part I)
-	r.Get("/.well-known/oauth-authorization-server", s.indieauthGet)
-	r.Post("/auth", s.authPost)
-	r.Post("/token", s.tokenPost)
-	r.Post("/token/verify", s.tokenVerifyPost)
+	r.Get(wellKnownOAuthServer, s.indieauthGet)
+	r.Post(authPath, s.authPost)
+	r.Post(tokenPath, s.tokenPost)
+	r.Post(tokenVerifyPath, s.tokenVerifyPost)
 
 	// Admin only pages.
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustLoggedIn)
 
 		// IndieAuth Server (Part II)
-		r.Get("/auth", s.authGet)
-		r.Post("/auth/accept", s.authAcceptPost)
+		r.Get(authPath, s.authGet)
+		r.Post(authAcceptPath, s.authAcceptPost)
 
-		r.Get("/new", s.newGet)
-		r.Post("/new", s.newPost)
+		r.Get(eaglePath, s.dashboardGet)
+		r.Post(eaglePath, s.dashboardPost)
 
-		r.Get("/edit*", s.editGet)
-		r.Post("/edit*", s.editPost)
+		r.Get(newPath, s.newGet)
+		r.Post(newPath, s.newPost)
 
-		r.Get("/eagle", s.dashboardGet)
-		r.Post("/eagle", s.dashboardPost)
+		r.Get(editPath+"*", s.editGet)
+		r.Post(editPath+"*", s.editPost)
 
-		r.Get("/deleted", s.deletedGet)
-		r.Get("/drafts", s.draftsGet)
-		r.Get("/unlisted", s.unlistedGet)
+		r.Get(deletedPath, s.deletedGet)
+		r.Get(draftsPath, s.draftsGet)
+		r.Get(unlistedPath, s.unlistedGet)
 	})
 
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
 
 		// IndieAuth Server
-		r.Get("/token", s.tokenGet) // Backwards compatible token verification endpoint
-		r.Get("/userinfo", s.userInfoGet)
+		r.Get(tokenPath, s.tokenGet) // Backwards compatible token verification endpoint
+		r.Get(userInfoPath, s.userInfoGet)
 	})
 
 	r.Get("/*", s.generalHandler)

@@ -8,6 +8,10 @@ import (
 	"github.com/hacdias/eagle/eagle"
 )
 
+const (
+	webFingerPath = "/.well-known/webfinger"
+)
+
 func (s *Server) initWebFinger() {
 	url, _ := urlpkg.Parse(s.c.Server.BaseURL)
 

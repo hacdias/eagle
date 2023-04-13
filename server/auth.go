@@ -22,15 +22,22 @@ const (
 
 	scopesContextKey contextKey = "scopes"
 	clientContextKey contextKey = "client"
+
+	wellKnownOAuthServer = "/.well-known/oauth-authorization-server"
+	authPath             = "/auth"
+	authAcceptPath       = authPath + "/accept"
+	tokenPath            = "/token"
+	tokenVerifyPath      = tokenPath + "/verify"
+	userInfoPath         = "/userinfo"
 )
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, map[string]interface{}{
 		"issuer":                           s.c.ID(),
-		"authorization_endpoint":           s.c.Server.AbsoluteURL("/auth"),
-		"token_endpoint":                   s.c.Server.AbsoluteURL("/token"),
-		"introspection_endpoint":           s.c.Server.AbsoluteURL("/token/verify"),
-		"userinfo_endpoint":                s.c.Server.AbsoluteURL("/userinfo"),
+		"authorization_endpoint":           s.c.Server.AbsoluteURL(authPath),
+		"token_endpoint":                   s.c.Server.AbsoluteURL(tokenPath),
+		"introspection_endpoint":           s.c.Server.AbsoluteURL(tokenVerifyPath),
+		"userinfo_endpoint":                s.c.Server.AbsoluteURL(userInfoPath),
 		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
 		"grant_types_supported":            []string{"authorization_code"},
 		"response_types_supported":         []string{"code"},

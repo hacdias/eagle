@@ -4,6 +4,12 @@ import (
 	"net/http"
 )
 
+const (
+	deletedPath  = eaglePath + "/deleted"
+	draftsPath   = eaglePath + "/drafts"
+	unlistedPath = eaglePath + "/unlisted"
+)
+
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	// search := &indexer.Search{
 	// 	Query:    r.URL.Query().Get("query"),

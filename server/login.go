@@ -15,6 +15,9 @@ import (
 const (
 	sessionSubject     string     = "Eagle Session 2"
 	loggedInContextKey contextKey = "logged-in"
+
+	loginPath  = "/login"
+	logoutPath = "/logout"
 )
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +112,7 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 func (s *Server) mustLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !s.isLoggedIn(r) {
-			newPath := "/login?redirect=" + url.QueryEscape(r.URL.String())
+			newPath := loginPath + "?redirect=" + url.QueryEscape(r.URL.String())
 			http.Redirect(w, r, newPath, http.StatusSeeOther)
 			return
 		}

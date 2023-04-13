@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/go-multierror"
 )
 
+const (
+	eaglePath = "/eagle"
+)
+
 type dashboardData struct {
 	Actions       []string
 	Success       bool

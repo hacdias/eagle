@@ -13,6 +13,11 @@ import (
 	"github.com/samber/lo"
 )
 
+const (
+	newPath  = eaglePath + "/new"
+	editPath = eaglePath + "/edit"
+)
+
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	archetypeName := r.URL.Query().Get("archetype")
 	if archetypeName == "" {
@@ -27,16 +32,16 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 
 	e := archetype(s.c, r)
 
-	// Override some properties according to query URL values.
-	if title := r.URL.Query().Get("title"); title != "" {
-		e.Title = title
-	}
-	if content := r.URL.Query().Get("content"); content != "" {
-		e.Content = content
-	}
-	if id := r.URL.Query().Get("id"); id != "" {
-		e.ID = id
-	}
+	// TODO: Override some properties according to query URL values.
+	// if title := r.URL.Query().Get("title"); title != "" {
+	// 	e.Title = title
+	// }
+	// if content := r.URL.Query().Get("content"); content != "" {
+	// 	e.Content = content
+	// }
+	// if id := r.URL.Query().Get("id"); id != "" {
+	// 	e.ID = id
+	// }
 	// for k, v := range r.URL.Query() {
 	// 	if strings.HasPrefix(k, "properties.") {
 	// 		e.Properties[strings.TrimPrefix(k, "properties.")] = v
@@ -121,7 +126,7 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 	if os.IsNotExist(err) {
 		query := urlpkg.Values{}
 		query.Set("id", id)
-		http.Redirect(w, r, "/new?"+query.Encode(), http.StatusSeeOther)
+		http.Redirect(w, r, newPath+"?"+query.Encode(), http.StatusSeeOther)
 		return
 	}
 

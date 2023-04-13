@@ -8,6 +8,10 @@ import (
 	"net/http"
 )
 
+const (
+	webhookPath = "/webhook"
+)
+
 func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 	signature := r.Header.Get("X-Hub-Signature")
 	if len(signature) == 0 {

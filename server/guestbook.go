@@ -11,7 +11,6 @@ import (
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
-	"github.com/hacdias/eagle/util"
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -68,6 +67,6 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.n.Info(fmt.Sprintf("💬 #guestbook entry pending approval: %s.", util.TruncateStringWithEllipsis(content, 100)))
+	s.n.Info(fmt.Sprintf("💬 #guestbook entry pending approval: %s", name))
 	http.Redirect(w, r, r.URL.Path+"?youre=awesome", http.StatusFound)
 }
