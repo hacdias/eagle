@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/pkg/xray"
@@ -15,7 +15,7 @@ type ContextFetcher struct {
 	fs   *fs.FS
 }
 
-func NewContextFetcher(c *eagle.Config, fs *fs.FS) (*ContextFetcher, error) {
+func NewContextFetcher(c *core.Config, fs *fs.FS) (*ContextFetcher, error) {
 	xrayConf := &xray.Config{
 		Endpoint:  c.XRay.Endpoint,
 		UserAgent: fmt.Sprintf("Eagle/0.0 (%s) XRay", c.ID()),
@@ -28,11 +28,11 @@ func NewContextFetcher(c *eagle.Config, fs *fs.FS) (*ContextFetcher, error) {
 	}, err
 }
 
-func (c *ContextFetcher) EntryHook(_, e *eagle.Entry) error {
+func (c *ContextFetcher) EntryHook(_, e *core.Entry) error {
 	return c.EnsureXRay(e, false)
 }
 
-func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
+func (c *ContextFetcher) EnsureXRay(e *core.Entry, replace bool) error {
 	if e.Context != nil && !replace {
 		return nil
 	}
@@ -50,8 +50,8 @@ func (c *ContextFetcher) EnsureXRay(e *eagle.Entry, replace bool) error {
 		return fmt.Errorf("could not fetch context xray for %s: %w", e.ID, err)
 	}
 
-	_, err = c.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
-		e.Context = &eagle.Context{
+	_, err = c.fs.TransformEntry(e.ID, func(e *core.Entry) (*core.Entry, error) {
+		e.Context = &core.Context{
 			Author:    parsed.Author.Name,
 			Content:   parsed.Content,
 			Published: parsed.Published,

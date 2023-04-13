@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/samber/lo"
 )
 
-type EntryTransformer func(*eagle.Entry) (*eagle.Entry, error)
+type EntryTransformer func(*core.Entry) (*core.Entry, error)
 
-func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
+func (fs *FS) GetEntry(id string) (*core.Entry, error) {
 	filename := fs.guessFilename(id)
 	raw, err := fs.ReadFile(filename)
 	if err != nil {
@@ -29,8 +29,8 @@ func (fs *FS) GetEntry(id string) (*eagle.Entry, error) {
 	return e, nil
 }
 
-func (fs *FS) GetEntries(includeList bool) (eagle.Entries, error) {
-	ee := eagle.Entries{}
+func (fs *FS) GetEntries(includeList bool) (core.Entries, error) {
+	ee := core.Entries{}
 	err := fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -60,14 +60,14 @@ func (fs *FS) GetEntries(includeList bool) (eagle.Entries, error) {
 	return ee, err
 }
 
-func (f *FS) SaveEntry(entry *eagle.Entry) error {
+func (f *FS) SaveEntry(entry *core.Entry) error {
 	f.entriesMu.Lock()
 	defer f.entriesMu.Unlock()
 
 	return f.saveEntry(entry)
 }
 
-func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
+func (f *FS) RenameEntry(oldID, newID string) (*core.Entry, error) {
 	f.entriesMu.Lock()
 	defer f.entriesMu.Unlock()
 
@@ -116,13 +116,13 @@ func (f *FS) RenameEntry(oldID, newID string) (*eagle.Entry, error) {
 	}
 
 	if f.AfterSaveHook != nil {
-		f.AfterSaveHook(eagle.Entries{new}, eagle.Entries{old})
+		f.AfterSaveHook(core.Entries{new}, core.Entries{old})
 	}
 
 	return new, nil
 }
 
-func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle.Entry, error) {
+func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*core.Entry, error) {
 	if len(transformers) == 0 {
 		return nil, errors.New("at least one entry transformer must be provided")
 	}
@@ -146,7 +146,7 @@ func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*eagle
 	return e, err
 }
 
-func (f *FS) saveEntry(e *eagle.Entry) error {
+func (f *FS) saveEntry(e *core.Entry) error {
 	e.Tags = cleanTaxonomy(e.Tags)
 	e.Categories = cleanTaxonomy(e.Categories)
 
@@ -169,7 +169,7 @@ func (f *FS) saveEntry(e *eagle.Entry) error {
 	}
 
 	if f.AfterSaveHook != nil {
-		f.AfterSaveHook(eagle.Entries{e}, nil)
+		f.AfterSaveHook(core.Entries{e}, nil)
 	}
 
 	return nil
@@ -186,7 +186,7 @@ func (f *FS) guessFilename(id string) string {
 
 func cleanTaxonomy(els []string) []string {
 	for i := range els {
-		els[i] = eagle.Slugify(els[i])
+		els[i] = core.Slugify(els[i])
 	}
 
 	return lo.Uniq(els)

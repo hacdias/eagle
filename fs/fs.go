@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/spf13/afero"
 )
 
@@ -33,7 +33,7 @@ type FS struct {
 	path string
 
 	sync   Sync
-	parser *eagle.Parser
+	parser *core.Parser
 
 	// Mutexes to lock the updates to entries.
 	// Only for writes and not for reads. Hope this won't
@@ -44,7 +44,7 @@ type FS struct {
 
 	// AfterSaveHook is a hook that is executed after
 	// saving an entry to the file system.
-	AfterSaveHook func(updated, deleted eagle.Entries)
+	AfterSaveHook func(updated, deleted core.Entries)
 }
 
 func NewFS(path, baseURL string, sync Sync) *FS {
@@ -56,7 +56,7 @@ func NewFS(path, baseURL string, sync Sync) *FS {
 		Afero:  afero,
 		path:   path,
 		sync:   sync,
-		parser: eagle.NewParser(baseURL),
+		parser: core.NewParser(baseURL),
 	}
 }
 

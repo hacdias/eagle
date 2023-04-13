@@ -3,7 +3,7 @@ package hooks
 import (
 	"net/url"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 )
 
@@ -17,7 +17,7 @@ func NewDescriptionGenerator(fs *fs.FS) *DescriptionGenerator {
 	}
 }
 
-func (d *DescriptionGenerator) EntryHook(old, new *eagle.Entry) error {
+func (d *DescriptionGenerator) EntryHook(old, new *core.Entry) error {
 	if old == nil {
 		return d.GenerateDescription(new, false)
 	}
@@ -25,7 +25,7 @@ func (d *DescriptionGenerator) EntryHook(old, new *eagle.Entry) error {
 	return nil
 }
 
-func (d *DescriptionGenerator) GenerateDescription(e *eagle.Entry, replaceDescription bool) error {
+func (d *DescriptionGenerator) GenerateDescription(e *core.Entry, replaceDescription bool) error {
 	if e.Description != "" && !replaceDescription {
 		return nil
 	}

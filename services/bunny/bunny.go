@@ -7,15 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 )
 
 type Bunny struct {
 	httpClient *http.Client
-	conf       *eagle.BunnyCDN
+	conf       *core.BunnyCDN
 }
 
-func NewBunny(conf *eagle.BunnyCDN) *Bunny {
+func NewBunny(conf *core.BunnyCDN) *Bunny {
 	return &Bunny{
 		conf: conf,
 		httpClient: &http.Client{

@@ -1,4 +1,4 @@
-package eagle
+package core
 
 import (
 	"errors"

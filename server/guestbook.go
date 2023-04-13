@@ -9,7 +9,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -43,7 +43,7 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	s.log.Infow("received guestbook entry", "name", name, "website", website, "content", content)
 
-	entries := eagle.GuestbookEntries{}
+	entries := core.GuestbookEntries{}
 
 	if err := s.fs.ReadJSON(guestbookFilename, &entries); err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
@@ -51,7 +51,7 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entries = append(entries, eagle.GuestbookEntry{
+	entries = append(entries, core.GuestbookEntry{
 		Name:    name,
 		Website: website,
 		Content: content,

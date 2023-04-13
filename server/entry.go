@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/samber/lo"
 )
 
@@ -79,7 +79,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().Local()
 	id := r.FormValue("id")
 	if id == "" {
-		id = eagle.NewID("", now)
+		id = core.NewID("", now)
 	}
 
 	content := r.FormValue("content")

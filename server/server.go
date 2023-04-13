@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
 	"github.com/hacdias/eagle/indexer"
@@ -47,8 +47,8 @@ type httpServer struct {
 }
 
 type Server struct {
-	n eagle.Notifier
-	c *eagle.Config
+	n core.Notifier
+	c *core.Config
 	i *indexer.Indexer
 
 	log        *zap.SugaredLogger
@@ -57,30 +57,30 @@ type Server struct {
 	actions    map[string]func() error
 	cron       *cron.Cron
 	redirects  map[string]string
-	archetypes map[string]eagle.Archetype
-	webFinger  *eagle.WebFinger
+	archetypes map[string]core.Archetype
+	webFinger  *core.WebFinger
 
 	serversMu sync.Mutex
 	servers   []*httpServer
 
 	fs          *fs.FS
-	hugo        *eagle.Hugo
+	hugo        *core.Hugo
 	media       *media.Media
 	webmentions *webmentions.Webmentions
-	parser      *eagle.Parser
+	parser      *core.Parser
 	maze        *maze.Maze
 
-	preSaveHooks  []eagle.EntryHook
-	postSaveHooks []eagle.EntryHook
+	preSaveHooks  []core.EntryHook
+	postSaveHooks []core.EntryHook
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
 }
 
-func NewServer(c *eagle.Config) (*Server, error) {
+func NewServer(c *core.Config) (*Server, error) {
 	secret := base64.StdEncoding.EncodeToString([]byte(c.Server.TokensSecret))
 
-	var notifier eagle.Notifier
+	var notifier core.Notifier
 	if c.Notifications.Telegram != nil {
 		notifications, err := telegram.NewTelegram(c.Notifications.Telegram)
 		if err != nil {
@@ -98,7 +98,7 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		srcSync = fs.NewGitSync(c.SourceDirectory)
 	}
 	fs := fs.NewFS(c.SourceDirectory, c.Server.BaseURL, srcSync)
-	hugo := eagle.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL)
+	hugo := core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL)
 
 	var (
 		m           *media.Media
@@ -133,17 +133,17 @@ func NewServer(c *eagle.Config) (*Server, error) {
 		servers:     []*httpServer{},
 		cron:        cron.New(),
 		redirects:   map[string]string{},
-		archetypes:  eagle.DefaultArchetypes,
+		archetypes:  core.DefaultArchetypes,
 		fs:          fs,
 		hugo:        hugo,
 		media:       m,
 		webmentions: webmentions.NewWebmentions(fs, hugo, notifier),
-		parser:      eagle.NewParser(c.Server.BaseURL),
+		parser:      core.NewParser(c.Server.BaseURL),
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
-		preSaveHooks:  []eagle.EntryHook{},
-		postSaveHooks: []eagle.EntryHook{},
+		preSaveHooks:  []core.EntryHook{},
+		postSaveHooks: []core.EntryHook{},
 	}
 
 	s.fs.AfterSaveHook = s.afterSaveHook
@@ -192,15 +192,15 @@ func NewServer(c *eagle.Config) (*Server, error) {
 	return s, err
 }
 
-func (s *Server) AppendPreSaveHook(hooks ...eagle.EntryHook) {
+func (s *Server) AppendPreSaveHook(hooks ...core.EntryHook) {
 	s.preSaveHooks = append(s.preSaveHooks, hooks...)
 }
 
-func (s *Server) AppendPostSaveHook(hooks ...eagle.EntryHook) {
+func (s *Server) AppendPostSaveHook(hooks ...core.EntryHook) {
 	s.postSaveHooks = append(s.postSaveHooks, hooks...)
 }
 
-func (s *Server) RegisterArchetype(name string, archetype eagle.Archetype) {
+func (s *Server) RegisterArchetype(name string, archetype core.Archetype) {
 	s.archetypes[name] = archetype
 }
 
@@ -422,7 +422,7 @@ func (s *Server) syncStorage() {
 	}
 
 	ids = lo.Uniq(ids)
-	entries := eagle.Entries{}
+	entries := core.Entries{}
 	buildClean := false
 
 	for _, id := range ids {
@@ -446,7 +446,7 @@ func (s *Server) syncStorage() {
 	s.hugo.Build(buildClean)
 }
 
-func (s *Server) afterSaveHook(updated, deleted eagle.Entries) {
+func (s *Server) afterSaveHook(updated, deleted core.Entries) {
 	err := s.hugo.Build(len(deleted) != 0)
 	if err != nil {
 		s.n.Error(fmt.Errorf("build failed: %w", err))

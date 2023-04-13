@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 )
 
@@ -24,7 +24,7 @@ type Query struct {
 type Backend interface {
 	io.Closer
 
-	Add(...*eagle.Entry) error
+	Add(...*core.Entry) error
 	Remove(ids ...string)
 
 	GetDrafts(opts *Pagination) ([]string, error)
@@ -48,7 +48,7 @@ func NewIndexer(fs *fs.FS, backend Backend) *Indexer {
 	}
 }
 
-func (e *Indexer) Add(entries ...*eagle.Entry) error {
+func (e *Indexer) Add(entries ...*core.Entry) error {
 	return e.backend.Add(entries...)
 }
 
@@ -56,19 +56,19 @@ func (e *Indexer) Remove(ids ...string) {
 	e.backend.Remove(ids...)
 }
 
-func (e *Indexer) GetDrafts(opts *Pagination) (eagle.Entries, error) {
+func (e *Indexer) GetDrafts(opts *Pagination) (core.Entries, error) {
 	return e.idsToEntries(e.backend.GetDrafts(opts))
 }
 
-func (e *Indexer) GetUnlisted(opts *Pagination) (eagle.Entries, error) {
+func (e *Indexer) GetUnlisted(opts *Pagination) (core.Entries, error) {
 	return e.idsToEntries(e.backend.GetUnlisted(opts))
 }
 
-func (e *Indexer) GetDeleted(opts *Pagination) (eagle.Entries, error) {
+func (e *Indexer) GetDeleted(opts *Pagination) (core.Entries, error) {
 	return e.idsToEntries(e.backend.GetDeleted(opts))
 }
 
-func (e *Indexer) GetSearch(opts *Query, query string) (eagle.Entries, error) {
+func (e *Indexer) GetSearch(opts *Query, query string) (core.Entries, error) {
 	return e.idsToEntries(e.backend.GetSearch(opts, query))
 }
 
@@ -84,12 +84,12 @@ func (e *Indexer) Close() error {
 	return e.backend.Close()
 }
 
-func (e *Indexer) idsToEntries(ids []string, err error) (eagle.Entries, error) {
+func (e *Indexer) idsToEntries(ids []string, err error) (core.Entries, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	entries := eagle.Entries{}
+	entries := core.Entries{}
 
 	for _, id := range ids {
 		entry, err := e.fs.GetEntry(id)

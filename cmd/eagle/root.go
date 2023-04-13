@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/server"
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	Short:             "Eagle is a website CMS",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	urlpkg "net/url"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 )
 
 const (
@@ -15,12 +15,12 @@ const (
 func (s *Server) initWebFinger() {
 	url, _ := urlpkg.Parse(s.c.Server.BaseURL)
 
-	s.webFinger = &eagle.WebFinger{
+	s.webFinger = &core.WebFinger{
 		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
 			s.c.Server.BaseURL,
 		},
-		Links: []eagle.WebFingerLink{
+		Links: []core.WebFingerLink{
 			{
 				Rel:  "http://webfinger.net/rel/profile-page",
 				Type: "text/html",

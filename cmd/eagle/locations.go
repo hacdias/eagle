@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/hooks"
 	"github.com/spf13/cobra"
@@ -14,7 +14,7 @@ func init() {
 var locationsCmd = &cobra.Command{
 	Use: "locations",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}

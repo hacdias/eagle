@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/spf13/cobra"
 	"github.com/yuin/goldmark"
@@ -26,7 +26,7 @@ func init() {
 var brokenLinksCmd = &cobra.Command{
 	Use: "broken-links",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		getMarkdownURLs := func(e *eagle.Entry) ([]string, error) {
+		getMarkdownURLs := func(e *core.Entry) ([]string, error) {
 			r, md := newMarkdown()
 			err = r.Convert([]byte(e.Content), io.Discard)
 			if err != nil {
@@ -99,7 +99,7 @@ var brokenLinksCmd = &cobra.Command{
 			return false, "", nil
 		}
 
-		printBroken := func(e *eagle.Entry, what string, urls []string) {
+		printBroken := func(e *core.Entry, what string, urls []string) {
 			if len(urls) != 0 {
 				fmt.Println(what, e.ID)
 				for _, l := range urls {

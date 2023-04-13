@@ -8,13 +8,13 @@ import (
 	"net"
 	urlpkg "net/url"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hashicorp/go-multierror"
 	"github.com/samber/lo"
 	"willnorris.com/go/webmention"
 )
 
-func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
+func (ws *Webmentions) SendWebmentions(old, new *core.Entry) error {
 	var targets []string
 
 	if canSendWebmentions(old) {
@@ -53,7 +53,7 @@ func (ws *Webmentions) SendWebmentions(old, new *eagle.Entry) error {
 	return nil
 }
 
-func (ws *Webmentions) getTargetsFromHTML(entry *eagle.Entry) ([]string, error) {
+func (ws *Webmentions) getTargetsFromHTML(entry *core.Entry) ([]string, error) {
 	html, err := ws.hugo.GetEntryHTML(entry)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (ws *Webmentions) sendWebmention(source, target string) error {
 	return nil
 }
 
-func canSendWebmentions(e *eagle.Entry) bool {
+func canSendWebmentions(e *core.Entry) bool {
 	return e != nil &&
 		!e.NoSendInteractions &&
 		!e.Draft &&

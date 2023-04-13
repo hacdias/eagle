@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ func init() {
 var countCmd = &cobra.Command{
 	Use: "count",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := eagle.ParseConfig()
+		c, err := core.ParseConfig()
 		if err != nil {
 			return err
 		}

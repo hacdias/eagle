@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/maze"
 )
@@ -26,7 +26,7 @@ func NewLocationFetcher(fs *fs.FS, language string) *LocationFetcher {
 	}
 }
 
-func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
+func (l *LocationFetcher) EntryHook(_, e *core.Entry) error {
 	if e.Location != nil {
 		return nil
 	}
@@ -34,7 +34,7 @@ func (l *LocationFetcher) EntryHook(_, e *eagle.Entry) error {
 	return l.FetchLocation(e)
 }
 
-func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
+func (l *LocationFetcher) FetchLocation(e *core.Entry) error {
 	if e.RawLocation == "" {
 		return nil
 	}
@@ -45,7 +45,7 @@ func (l *LocationFetcher) FetchLocation(e *eagle.Entry) error {
 	}
 
 	if location != nil {
-		_, err = l.fs.TransformEntry(e.ID, func(e *eagle.Entry) (*eagle.Entry, error) {
+		_, err = l.fs.TransformEntry(e.ID, func(e *core.Entry) (*core.Entry, error) {
 			e.RawLocation = ""
 			e.Location = location
 			return e, nil

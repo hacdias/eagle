@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/log"
 	"go.uber.org/zap"
@@ -15,11 +15,11 @@ type Webmentions struct {
 	log      *zap.SugaredLogger
 	client   *webmention.Client
 	fs       *fs.FS
-	hugo     *eagle.Hugo
-	notifier eagle.Notifier
+	hugo     *core.Hugo
+	notifier core.Notifier
 }
 
-func NewWebmentions(fs *fs.FS, hugo *eagle.Hugo, notifier eagle.Notifier) *Webmentions {
+func NewWebmentions(fs *fs.FS, hugo *core.Hugo, notifier core.Notifier) *Webmentions {
 	return &Webmentions{
 		log: log.S().Named("webmentions"),
 		client: webmention.New(&http.Client{
@@ -31,6 +31,6 @@ func NewWebmentions(fs *fs.FS, hugo *eagle.Hugo, notifier eagle.Notifier) *Webme
 	}
 }
 
-func (ws *Webmentions) EntryHook(old, new *eagle.Entry) error {
+func (ws *Webmentions) EntryHook(old, new *core.Entry) error {
 	return ws.SendWebmentions(old, new)
 }

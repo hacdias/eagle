@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/fs"
 	"github.com/hacdias/eagle/pkg/miniflux"
 )
@@ -21,7 +21,7 @@ type BlogrollUpdater struct {
 	fs           *fs.FS
 }
 
-func NewBlogrollUpdater(c *eagle.Miniflux, fs *fs.FS) *BlogrollUpdater {
+func NewBlogrollUpdater(c *core.Miniflux, fs *fs.FS) *BlogrollUpdater {
 	// TODO: make entryID and dataFilename configurable.
 	return &BlogrollUpdater{
 		entryID:      DefaultEntryID,
@@ -43,7 +43,7 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		return err
 	}
 
-	_, err = u.fs.TransformEntry(u.entryID, func(e *eagle.Entry) (*eagle.Entry, error) {
+	_, err = u.fs.TransformEntry(u.entryID, func(e *core.Entry) (*core.Entry, error) {
 		e.LastMod = time.Now()
 		return e, err
 	})

@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hacdias/eagle/eagle"
+	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/indexer"
 	"github.com/jackc/pgx/v5"
 )
 
-func (d *Postgres) Add(entries ...*eagle.Entry) error {
+func (d *Postgres) Add(entries ...*core.Entry) error {
 	b := &pgx.Batch{}
 
 	for _, entry := range entries {
