@@ -19,17 +19,7 @@ const (
 	templatesExtension string = ".html"
 	templatesDirectory string = "eagle/templates"
 
-	// templateSearch    string = "search"
-	templateError     string = "error"
-	templateLogin     string = "login"
-	templateAuth      string = "auth"
-	templateNew       string = "new"
-	templateEdit      string = "edit"
-	templateDashboard string = "dashboard"
-	templateAdminBar  string = "admin-bar"
-
-	eagleTemplatePath     string = "/eagle-template*"
-	eagleTemplateFilePath string = "eagle-template/index.html"
+	templateAdminBar string = "admin-bar"
 )
 
 func (s *Server) loadTemplates() error {
@@ -142,11 +132,12 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 				return
 			}
 
+			e, _ := s.fs.GetEntry(r.URL.Path)
+
 			html, err := s.renderTemplate(templateAdminBar, map[string]interface{}{
-				"ID": r.URL.Path,
+				"Entry": e,
 			})
 			if err == nil {
-				// TODO: use goquery?
 				tag := []byte("<body>")
 				html = append([]byte("<body>"), html...)
 				_, err = w.Write(bytes.Replace(crw.body, tag, html, 1))
@@ -163,72 +154,42 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 	})
 }
 
-type renderData struct {
-	Title    string
-	LoggedIn bool
-	Data     interface{}
-}
-
-func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *renderData, template string, statusCode int) {
-	data.LoggedIn = s.isLoggedIn(r)
-
-	rawDoc, err := s.staticFs.ReadFile(eagleTemplateFilePath)
-	if err != nil {
-		s.n.Error(fmt.Errorf("%s file not found in public directory", eagleTemplateFilePath))
-		return
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(rawDoc))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	body, err := s.renderTemplate(template, data)
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	}
-
-	title := data.Title + " - " + s.c.Site.Title
-	doc.Find("eagle-body").ReplaceWithHtml(string(body))
-	doc.Find("eagle-title").ReplaceWith(title)
-	doc.Find("title").SetText(title)
-
-	html, err := doc.Html()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
-	w.WriteHeader(statusCode)
-	_, err = w.Write([]byte(html))
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	}
-}
-
-func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, err error) {
-	if err != nil {
-		s.log.Error(err)
+func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, reqErr error) {
+	if reqErr != nil {
+		s.log.Error(reqErr)
 	}
 
 	w.Header().Del("Cache-Control")
-
-	data := map[string]interface{}{
-		"Code": code,
-	}
-
+	f, err := s.staticFs.ReadFile("404.html")
 	if err != nil {
-		data["Error"] = err.Error()
+		s.log.Error(err)
+		return
 	}
 
-	rd := &renderData{
-		Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
-		Data:  data,
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(f))
+	if err != nil {
+		s.log.Error(err)
+		return
 	}
 
-	s.serveHTML(w, r, rd, templateError, code)
+	errorTitle := fmt.Sprintf("%d %s", code, http.StatusText(code))
+
+	doc.Find("title").SetText(errorTitle + " - " + s.c.Site.Title)
+	doc.Find("eagle-error-title").ReplaceWithHtml(errorTitle)
+	selector := fmt.Sprintf("eagle-error[error~=\"%d\"]", code)
+	errorNode := doc.Find(selector)
+	errorNode.ReplaceWithSelection(errorNode.Children())
+	doc.Find("eagle-error").Remove()
+
+	detailsNode := doc.Find("eagle-error-details")
+	if reqErr != nil && (s.isLoggedIn(r) || code < 500) {
+		detailsNode.Find("eagle-error-details-value").ReplaceWithHtml(reqErr.Error())
+		detailsNode.ReplaceWithSelection(detailsNode.Children())
+	} else {
+		detailsNode.Remove()
+	}
+
+	s.serveDocument(w, r, doc, code)
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
@@ -245,4 +206,29 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 		"error":             err,
 		"error_description": errDescription,
 	})
+}
+
+func (s *Server) getTemplateDocument(path string) (*goquery.Document, error) {
+	f, err := s.staticFs.ReadFile(filepath.Join(path, "index.html"))
+	if err != nil {
+		return nil, err
+	}
+
+	return goquery.NewDocumentFromReader(bytes.NewReader(f))
+}
+
+func (s *Server) serveDocument(w http.ResponseWriter, r *http.Request, doc *goquery.Document, statusCode int) {
+	html, err := doc.Html()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+		return
+	}
+
+	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
+	w.WriteHeader(statusCode)
+	_, err = w.Write([]byte(html))
+	if err != nil {
+		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+	}
 }

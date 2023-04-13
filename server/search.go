@@ -1,15 +1,12 @@
 package server
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/indexer"
-	"github.com/hacdias/eagle/pkg/contenttype"
 )
 
 func (s *Server) getPagination(r *http.Request) indexer.Pagination {
@@ -55,13 +52,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	// TODO
 	fmt.Println(entries)
 
-	f, err := s.staticFs.ReadFile("/search/index.html")
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(f))
+	doc, err := s.getTemplateDocument(r.URL.Path) // TODO: change when pages
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
@@ -70,16 +61,5 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	doc.Find("#eagle-search-input").SetAttr("value", query)
 	doc.Find("search-results").ReplaceWithHtml("RESULTS HERE")
 
-	html, err := doc.Html()
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(html))
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	}
+	s.serveDocument(w, r, doc, http.StatusOK)
 }

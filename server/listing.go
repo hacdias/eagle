@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	deletedPath  = eaglePath + "/deleted"
-	draftsPath   = eaglePath + "/drafts"
-	unlistedPath = eaglePath + "/unlisted"
+	deletedPath  = "/deleted/"
+	draftsPath   = "/drafts/"
+	unlistedPath = "/unlisted/"
 )
 
 func (s *Server) draftsGet(w http.ResponseWriter, r *http.Request) {

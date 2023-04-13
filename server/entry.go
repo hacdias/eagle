@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	urlpkg "net/url"
 	"os"
@@ -14,12 +15,14 @@ import (
 )
 
 const (
-	newPath  = eaglePath + "/new"
-	editPath = eaglePath + "/edit"
+	newPath  = "/new/"
+	editPath = "/edit/"
 )
 
 func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
-	archetypeName := r.URL.Query().Get("archetype")
+	query := r.URL.Query()
+
+	archetypeName := query.Get("archetype")
 	if archetypeName == "" {
 		archetypeName = "default"
 	}
@@ -32,21 +35,13 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 
 	e := archetype(s.c, r)
 
-	// TODO: Override some properties according to query URL values.
-	// if title := r.URL.Query().Get("title"); title != "" {
-	// 	e.Title = title
-	// }
-	// if content := r.URL.Query().Get("content"); content != "" {
-	// 	e.Content = content
-	// }
-	// if id := r.URL.Query().Get("id"); id != "" {
-	// 	e.ID = id
-	// }
-	// for k, v := range r.URL.Query() {
-	// 	if strings.HasPrefix(k, "properties.") {
-	// 		e.Properties[strings.TrimPrefix(k, "properties.")] = v
-	// 	}
-	// }
+	// Override some properties according to query URL values.
+	e.Title, _ = lo.Coalesce(query.Get("title"), e.Title)
+	e.Description, _ = lo.Coalesce(query.Get("description"), e.Description)
+	e.Reply, _ = lo.Coalesce(query.Get("reply"), e.Reply)
+	e.Bookmark, _ = lo.Coalesce(query.Get("bookmark"), e.Bookmark)
+	e.ID, _ = lo.Coalesce(query.Get("id"), e.ID)
+	e.Content, _ = lo.Coalesce(query.Get("content"), e.Content)
 
 	// Get stringified entry.
 	str, err := e.String()
@@ -55,18 +50,24 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all archetype names.
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
 	archetypeNames := lo.Keys(s.archetypes)
 	sort.Strings(archetypeNames)
+	archetypesNode := doc.Find("eagle-archetype")
+	for _, archetype := range archetypeNames {
+		archetypesNode.Parent().AppendHtml(fmt.Sprintf(" <a href='?archetype=%s'>%s</a>", archetype, archetype))
+	}
+	archetypesNode.Remove()
 
-	s.serveHTML(w, r, &renderData{
-		Title: "New",
-		Data: map[string]interface{}{
-			"ID":         e.ID,
-			"Content":    str,
-			"Archetypes": archetypeNames,
-		},
-	}, templateNew, http.StatusOK)
+	doc.Find(".eagle-editor input[name='id']").SetAttr("value", e.ID)
+	doc.Find(".eagle-editor textarea[name='content']").SetText(str)
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -141,14 +142,21 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &renderData{
-		Title: "Edit",
-		Data: map[string]interface{}{
-			"Title":   ee.Title,
-			"Content": str,
-			"Entry":   ee,
-		},
-	}, templateEdit, http.StatusOK)
+	doc, err := s.getTemplateDocument(editPath)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc.Find("main input[name='id']").SetAttr("value", ee.ID)
+	doc.Find("main input[name='rename']").SetAttr("value", ee.ID)
+	doc.Find("main textarea[name='content']").SetText(str)
+
+	if !ee.Date.IsZero() {
+		doc.Find("main input[name='lastmod']").SetAttr("checked", "on")
+	}
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {

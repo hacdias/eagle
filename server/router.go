@@ -57,8 +57,8 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(authPath, s.authGet)
 		r.Post(authAcceptPath, s.authAcceptPost)
 
-		r.Get(eaglePath, s.dashboardGet)
-		r.Post(eaglePath, s.dashboardPost)
+		r.Get(dashboardPath, s.dashboardGet)
+		r.Post(dashboardPath, s.dashboardPost)
 
 		r.Get(newPath, s.newGet)
 		r.Post(newPath, s.newPost)
@@ -69,10 +69,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(deletedPath, s.deletedGet)
 		r.Get(draftsPath, s.draftsGet)
 		r.Get(unlistedPath, s.unlistedGet)
-	})
-
-	r.Get(eagleTemplatePath, func(w http.ResponseWriter, r *http.Request) {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 	})
 
 	r.Group(func(r chi.Router) {

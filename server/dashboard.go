@@ -14,20 +14,17 @@ import (
 )
 
 const (
-	eaglePath = "/eagle"
+	dashboardPath = "/dashboard/"
 )
 
 type dashboardData struct {
-	Actions       []string
-	Success       bool
+	ActionSuccess bool
 	Token         string
 	MediaLocation string
 }
 
 func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
-	s.serveDashboard(w, r, &dashboardData{
-		Actions: s.getActions(),
-	})
+	s.serveDashboard(w, r, &dashboardData{})
 }
 
 func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
@@ -53,15 +50,13 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 	actions := r.Form["action"]
-	data := &dashboardData{
-		Actions: s.getActions(),
-	}
+	data := &dashboardData{}
 
 	var errs *multierror.Error
 	for _, actionName := range actions {
 		if fn, ok := s.actions[actionName]; ok {
 			errs = multierror.Append(errs, fn())
-			data.Success = true
+			data.ActionSuccess = true
 		}
 	}
 	if err := errs.ErrorOrNil(); err != nil {
@@ -73,9 +68,7 @@ func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) dashboardPostToken(w http.ResponseWriter, r *http.Request) {
-	data := &dashboardData{
-		Actions: s.getActions(),
-	}
+	data := &dashboardData{}
 
 	clientID := r.Form.Get("client_id")
 	scope := r.Form.Get("scope")
@@ -149,14 +142,45 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.serveDashboard(w, r, &dashboardData{
-		Actions:       s.getActions(),
 		MediaLocation: location,
 	})
 }
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
-	s.serveHTML(w, r, &renderData{
-		Title: "Dashboard",
-		Data:  data,
-	}, templateDashboard, http.StatusOK)
+	doc, err := s.getTemplateDocument(r.URL.Path)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	actionTemplate := doc.Find("eagle-action").First().Children().First()
+	doc.Find("eagle-actions").Empty()
+	for _, action := range s.getActions() {
+		node := actionTemplate.Clone()
+		node.Find("input[name=action]").SetAttr("value", action)
+		node.Find("action-name").ReplaceWithHtml(action)
+		doc.Find("eagle-actions").AppendSelection(node)
+	}
+
+	if !data.ActionSuccess {
+		doc.Find("eagle-action-success").Remove()
+	}
+
+	mediaNode := doc.Find("eagle-media-location")
+	if data.MediaLocation != "" {
+		mediaNode.Find("eagle-media-location-value").ReplaceWithHtml(data.MediaLocation)
+		mediaNode.ReplaceWithSelection(mediaNode.Children())
+	} else {
+		mediaNode.Remove()
+	}
+
+	tokenNode := doc.Find("eagle-token")
+	if data.Token != "" {
+		tokenNode.Find("eagle-token-value").ReplaceWithHtml(data.Token)
+		tokenNode.ReplaceWithSelection(tokenNode.Children())
+	} else {
+		tokenNode.Remove()
+	}
+
+	s.serveDocument(w, r, doc, http.StatusOK)
 }

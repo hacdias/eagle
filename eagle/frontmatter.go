@@ -29,7 +29,6 @@ type FrontMatter struct {
 	Date               time.Time      `yaml:"date,omitempty"`
 	LastMod            time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate         time.Time      `yaml:"expiryDate,omitempty"`
-	Template           string         `yaml:"template,omitempty"`
 	NoSendInteractions bool           `yaml:"noSendInteractions,omitempty"`
 	CoverImage         string         `yaml:"coverImage,omitempty"`
 	NoIndex            bool           `yaml:"noIndex,omitempty"`

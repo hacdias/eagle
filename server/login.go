@@ -16,8 +16,8 @@ const (
 	sessionSubject     string     = "Eagle Session 2"
 	loggedInContextKey contextKey = "logged-in"
 
-	loginPath  = "/login"
-	logoutPath = "/logout"
+	loginPath  = "/login/"
+	logoutPath = "/logout/"
 )
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
@@ -25,9 +25,8 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	s.serveHTML(w, r, &renderData{
-		Title: "Login",
-	}, templateLogin, http.StatusOK)
+
+	s.generalHandler(w, r)
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
