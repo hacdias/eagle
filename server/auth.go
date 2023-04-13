@@ -24,8 +24,8 @@ const (
 	clientContextKey contextKey = "client"
 
 	wellKnownOAuthServer = "/.well-known/oauth-authorization-server"
-	authPath             = "/auth/"
-	authAcceptPath       = authPath + "accept"
+	authPath             = "/auth"
+	authAcceptPath       = authPath + "/accept"
 	tokenPath            = "/token"
 	tokenVerifyPath      = tokenPath + "/verify"
 	userInfoPath         = "/userinfo"

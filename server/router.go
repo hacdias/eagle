@@ -46,6 +46,7 @@ func (s *Server) makeRouter() http.Handler {
 	// IndieAuth Server (Part I)
 	r.Get(wellKnownOAuthServer, s.indieauthGet)
 	r.Post(authPath, s.authPost)
+	r.Post(authPath+"/", s.authPost)
 	r.Post(tokenPath, s.tokenPost)
 	r.Post(tokenVerifyPath, s.tokenVerifyPost)
 
@@ -54,7 +55,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.mustLoggedIn)
 
 		// IndieAuth Server (Part II)
-		r.Get(authPath, s.authGet)
+		r.Get(authPath+"/", s.authGet)
 		r.Post(authAcceptPath, s.authAcceptPost)
 
 		r.Get(dashboardPath, s.dashboardGet)
