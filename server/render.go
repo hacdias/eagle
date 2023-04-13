@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/hacdias/eagle/pkg/contenttype"
 )
 
@@ -72,6 +73,22 @@ func (s *Server) loadTemplates() error {
 	return nil
 }
 
+func (s *Server) renderTemplate(template string, data interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+
+	tpl, ok := s.templates[template]
+	if !ok {
+		return nil, fmt.Errorf("template %s not found", template)
+	}
+
+	err := tpl.Execute(&buf, data)
+	if err != nil {
+		return nil, fmt.Errorf("error executing template %s: %w", template, err)
+	}
+
+	return buf.Bytes(), nil
+}
+
 // captureResponseWriter captures the content of an HTML response. If the response
 // is HTML, the Content-Length header will also be removed. All other headers,
 // including status, will be sent.
@@ -125,8 +142,11 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 				return
 			}
 
-			html, err := s.renderAdminBar(r.URL.Path)
+			html, err := s.renderTemplate(templateAdminBar, map[string]interface{}{
+				"ID": r.URL.Path,
+			})
 			if err == nil {
+				// TODO: use goquery?
 				tag := []byte("<body>")
 				html = append([]byte("<body>"), html...)
 				_, err = w.Write(bytes.Replace(crw.body, tag, html, 1))
@@ -143,23 +163,6 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) renderAdminBar(path string) ([]byte, error) {
-	tpl, ok := s.templates[templateAdminBar]
-	if !ok {
-		return nil, fmt.Errorf("template %s not found", templateAdminBar)
-	}
-
-	var buf bytes.Buffer
-	err := tpl.Execute(&buf, map[string]interface{}{
-		"ID": path,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
 type renderData struct {
 	Title    string
 	LoggedIn bool
@@ -169,31 +172,40 @@ type renderData struct {
 func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *renderData, template string, statusCode int) {
 	data.LoggedIn = s.isLoggedIn(r)
 
-	raw, err := s.staticFs.ReadFile(eagleTemplateFilePath)
+	rawDoc, err := s.staticFs.ReadFile(eagleTemplateFilePath)
 	if err != nil {
 		s.n.Error(fmt.Errorf("%s file not found in public directory", eagleTemplateFilePath))
 		return
 	}
 
-	tpl, ok := s.templates[template]
-	if !ok {
-		s.n.Error(fmt.Errorf("serving html for %s: template %s not found", r.URL.Path, template))
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(rawDoc))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	var buf bytes.Buffer
-	err = tpl.Execute(&buf, data)
+	body, err := s.renderTemplate(template, data)
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
 	}
 
-	v := string(raw)
-	v = strings.Replace(v, "#BODY", buf.String(), -1)
-	v = strings.Replace(v, "#TITLE", data.Title, -1)
+	title := data.Title + " - " + s.c.Site.Title
+	doc.Find("eagle-body").ReplaceWithHtml(string(body))
+	doc.Find("eagle-title").ReplaceWith(title)
+	doc.Find("title").SetText(title)
+
+	html, err := doc.Html()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
 
 	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
 	w.WriteHeader(statusCode)
-	w.Write([]byte(v))
+	_, err = w.Write([]byte(html))
+	if err != nil {
+		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+	}
 }
 
 func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, err error) {

@@ -3,7 +3,6 @@ package indexer
 import (
 	"io"
 	"os"
-	"time"
 
 	"github.com/hacdias/eagle/eagle"
 	"github.com/hacdias/eagle/fs"
@@ -15,20 +14,11 @@ type Pagination struct {
 }
 
 type Query struct {
-	Pagination     *Pagination
-	Ascending      bool
-	OrderByUpdated bool
-
-	After  time.Time
-	Before time.Time
+	Pagination
 
 	WithDrafts   bool
 	WithDeleted  bool
 	WithUnlisted bool
-}
-
-type Search struct {
-	Query string
 }
 
 type Backend interface {
@@ -37,11 +27,10 @@ type Backend interface {
 	Add(...*eagle.Entry) error
 	Remove(ids ...string)
 
-	GetAll(opts *Query) ([]string, error)
 	GetDrafts(opts *Pagination) ([]string, error)
 	GetUnlisted(opts *Pagination) ([]string, error)
 	GetDeleted(opts *Pagination) ([]string, error)
-	GetSearch(opt *Query, search *Search) ([]string, error)
+	GetSearch(opt *Query, query string) ([]string, error)
 	GetCount() (int, error)
 
 	ClearEntries()
@@ -79,8 +68,8 @@ func (e *Indexer) GetDeleted(opts *Pagination) (eagle.Entries, error) {
 	return e.idsToEntries(e.backend.GetDeleted(opts))
 }
 
-func (e *Indexer) GetSearch(opts *Query, search *Search) (eagle.Entries, error) {
-	return e.idsToEntries(e.backend.GetSearch(opts, search))
+func (e *Indexer) GetSearch(opts *Query, query string) (eagle.Entries, error) {
+	return e.idsToEntries(e.backend.GetSearch(opts, query))
 }
 
 func (e *Indexer) GetCount() (int, error) {

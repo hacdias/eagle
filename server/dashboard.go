@@ -156,7 +156,7 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
 	s.serveHTML(w, r, &renderData{
-		Title: "Eagle",
+		Title: "Dashboard",
 		Data:  data,
 	}, templateDashboard, http.StatusOK)
 }

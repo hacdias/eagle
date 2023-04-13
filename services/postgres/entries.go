@@ -57,19 +57,6 @@ func (d *Postgres) Remove(ids ...string) {
 	}
 }
 
-func (d *Postgres) GetAll(opts *indexer.Query) ([]string, error) {
-	sql := "select id from entries"
-
-	where, args := d.whereConstraints(opts, 0)
-	if len(where) > 0 {
-		sql += " where " + strings.Join(where, " and ")
-	}
-
-	sql += d.orderBy(opts)
-	sql += d.offset(opts.Pagination)
-	return d.queryEntries(sql, 0, args...)
-}
-
 func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
 	sql := "select id from entries where isDraft=true order by published_at desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
@@ -85,18 +72,13 @@ func (d *Postgres) GetDeleted(opts *indexer.Pagination) ([]string, error) {
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetSearch(opts *indexer.Query, search *indexer.Search) ([]string, error) {
+func (d *Postgres) GetSearch(opts *indexer.Query, query string) ([]string, error) {
 	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isUnlisted"
 	mainFrom := "from entries as e"
 
-	// if len(search.Sections) > 0 {
-	// 	mainSelect += ", section"
-	// 	mainFrom += " inner join sections on e.id = sections.entry_id"
-	// }
-
 	sql := "select distinct (id) id, score from (" + mainSelect + " " + mainFrom + ") s where score > 0"
 
-	args := []interface{}{search.Query}
+	args := []interface{}{query}
 	where, wargs := d.whereConstraints(opts, 1)
 	args = append(args, wargs...)
 
@@ -104,17 +86,7 @@ func (d *Postgres) GetSearch(opts *indexer.Query, search *indexer.Search) ([]str
 		sql += " and " + strings.Join(where, " and ")
 	}
 
-	// if len(search.Sections) > 0 {
-	// 	sectionsSql := []string{}
-	// 	for _, section := range search.Sections {
-	// 		args = append(args, section)
-	// 		sectionsSql = append(sectionsSql, "section=$"+strconv.Itoa(len(args)))
-	// 	}
-
-	// 	sql += " and (" + strings.Join(sectionsSql, " or ") + ")"
-	// }
-
-	sql += ` order by score desc` + d.offset(opts.Pagination)
+	sql += ` order by score desc` + d.offset(&opts.Pagination)
 	return d.queryEntries(sql, 1, args...)
 }
 
@@ -163,35 +135,7 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 		where = append(where, "isDraft=false")
 	}
 
-	if !opts.After.IsZero() {
-		i++
-		where = append(where, "published_at>=$"+strconv.Itoa(i))
-		args = append(args, opts.After)
-	}
-
-	if !opts.Before.IsZero() {
-		i++
-		where = append(where, "published_at<=$"+strconv.Itoa(i))
-		args = append(args, opts.Before)
-	}
-
 	return where, args
-}
-
-func (d *Postgres) orderBy(opts *indexer.Query) string {
-	q := ""
-
-	if opts.OrderByUpdated {
-		q = " order by updated_at "
-	} else {
-		q = " order by published_at "
-	}
-
-	if opts.Ascending {
-		return q + "asc"
-	}
-
-	return q + "desc"
 }
 
 func (d *Postgres) offset(opts *indexer.Pagination) string {
