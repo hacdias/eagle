@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/fs"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -16,64 +15,24 @@ import (
 )
 
 const (
-	templatesExtension string = ".html"
-	templatesDirectory string = "eagle/templates"
-
-	templateAdminBar string = "admin-bar"
+	templateAdminBar string = "admin-bar.html"
 )
 
-func (s *Server) loadTemplates() error {
-	parsed := map[string]*template.Template{}
-
-	err := s.fs.Walk(templatesDirectory, func(filename string, info fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		basename := filepath.Base(info.Name())
-		ext := filepath.Ext(basename)
-
-		id := strings.TrimPrefix(filename, templatesDirectory)
-		id = strings.TrimSuffix(id, ext)
-		id = strings.TrimSuffix(id, "/")
-		id = strings.TrimPrefix(id, "/")
-
-		if ext != templatesExtension {
-			return nil
-		}
-
-		raw, err := s.fs.ReadFile(filename)
-		if err != nil {
-			return err
-		}
-
-		parsed[id], err = template.New(id).Parse(string(raw))
-		return err
-	})
-
+func (s *Server) renderAdminBar(data interface{}) ([]byte, error) {
+	raw, err := s.fs.ReadFile(templateAdminBar)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	s.templates = parsed
-	return nil
-}
+	tpl, err := template.New("admin-bar").Parse(string(raw))
+	if err != nil {
+		return nil, err
+	}
 
-func (s *Server) renderTemplate(template string, data interface{}) ([]byte, error) {
 	var buf bytes.Buffer
-
-	tpl, ok := s.templates[template]
-	if !ok {
-		return nil, fmt.Errorf("template %s not found", template)
-	}
-
-	err := tpl.Execute(&buf, data)
+	err = tpl.Execute(&buf, data)
 	if err != nil {
-		return nil, fmt.Errorf("error executing template %s: %w", template, err)
+		return nil, fmt.Errorf("error executing admin bar template: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -134,7 +93,7 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 
 			e, _ := s.fs.GetEntry(r.URL.Path)
 
-			html, err := s.renderTemplate(templateAdminBar, map[string]interface{}{
+			html, err := s.renderAdminBar(map[string]interface{}{
 				"Entry": e,
 			})
 			if err == nil {

@@ -186,15 +186,6 @@ func NewServer(c *eagle.Config) (*Server, error) {
 
 	s.initWebFinger()
 
-	err = s.loadTemplates()
-	if err != nil {
-		return nil, err
-	}
-
-	if c.Development {
-		go s.fs.Watch(templatesDirectory, s.loadTemplates)
-	}
-
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
 		return nil
