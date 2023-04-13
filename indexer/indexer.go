@@ -28,8 +28,7 @@ type Query struct {
 }
 
 type Search struct {
-	Query    string
-	Sections []string
+	Query string
 }
 
 type Backend interface {

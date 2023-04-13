@@ -89,10 +89,10 @@ func (d *Postgres) GetSearch(opts *indexer.Query, search *indexer.Search) ([]str
 	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isUnlisted"
 	mainFrom := "from entries as e"
 
-	if len(search.Sections) > 0 {
-		mainSelect += ", section"
-		mainFrom += " inner join sections on e.id = sections.entry_id"
-	}
+	// if len(search.Sections) > 0 {
+	// 	mainSelect += ", section"
+	// 	mainFrom += " inner join sections on e.id = sections.entry_id"
+	// }
 
 	sql := "select distinct (id) id, score from (" + mainSelect + " " + mainFrom + ") s where score > 0"
 
@@ -104,15 +104,15 @@ func (d *Postgres) GetSearch(opts *indexer.Query, search *indexer.Search) ([]str
 		sql += " and " + strings.Join(where, " and ")
 	}
 
-	if len(search.Sections) > 0 {
-		sectionsSql := []string{}
-		for _, section := range search.Sections {
-			args = append(args, section)
-			sectionsSql = append(sectionsSql, "section=$"+strconv.Itoa(len(args)))
-		}
+	// if len(search.Sections) > 0 {
+	// 	sectionsSql := []string{}
+	// 	for _, section := range search.Sections {
+	// 		args = append(args, section)
+	// 		sectionsSql = append(sectionsSql, "section=$"+strconv.Itoa(len(args)))
+	// 	}
 
-		sql += " and (" + strings.Join(sectionsSql, " or ") + ")"
-	}
+	// 	sql += " and (" + strings.Join(sectionsSql, " or ") + ")"
+	// }
 
 	sql += ` order by score desc` + d.offset(opts.Pagination)
 	return d.queryEntries(sql, 1, args...)

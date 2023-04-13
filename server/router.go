@@ -71,6 +71,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(unlistedPath, s.unlistedGet)
 	})
 
+	r.Get(eagleTemplatePath, func(w http.ResponseWriter, r *http.Request) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	})
+
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
 

@@ -46,8 +46,6 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
 		s.dashboardPostUpload(w, r)
 		return
-	} else {
-		fmt.Println(err)
 	}
 
 	s.dashboardGet(w, r)
@@ -157,8 +155,8 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
-	s.serveHTML(w, r, &RenderData{
+	s.serveHTML(w, r, &renderData{
 		Title: "Eagle",
 		Data:  data,
-	}, templateDashboard)
+	}, templateDashboard, http.StatusOK)
 }

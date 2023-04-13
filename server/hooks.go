@@ -28,10 +28,4 @@ func (s *Server) postSaveEntry(old, new *eagle.Entry) {
 			s.n.Error(err)
 		}
 	}
-
-	if old != nil {
-		// s.cache.Delete(old)
-	}
-
-	// s.cache.Delete(new)
 }

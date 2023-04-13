@@ -25,7 +25,7 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	s.serveHTMLWithStatus(w, r, &RenderData{
+	s.serveHTML(w, r, &renderData{
 		Title: "Login",
 	}, templateLogin, http.StatusOK)
 }

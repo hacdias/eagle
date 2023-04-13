@@ -59,14 +59,14 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	archetypeNames := lo.Keys(s.archetypes)
 	sort.Strings(archetypeNames)
 
-	s.serveHTML(w, r, &RenderData{
+	s.serveHTML(w, r, &renderData{
 		Title: "New",
 		Data: map[string]interface{}{
 			"ID":         e.ID,
 			"Content":    str,
 			"Archetypes": archetypeNames,
 		},
-	}, templateNew)
+	}, templateNew, http.StatusOK)
 }
 
 func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
@@ -141,14 +141,14 @@ func (s *Server) editGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveHTML(w, r, &RenderData{
+	s.serveHTML(w, r, &renderData{
 		Title: "Edit",
 		Data: map[string]interface{}{
 			"Title":   ee.Title,
 			"Content": str,
 			"Entry":   ee,
 		},
-	}, templateEdit)
+	}, templateEdit, http.StatusOK)
 }
 
 func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {

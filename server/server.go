@@ -1,10 +1,8 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -28,7 +26,6 @@ import (
 	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
-	"github.com/hacdias/eagle/pkg/contenttype"
 	"github.com/hacdias/eagle/pkg/maze"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
@@ -414,81 +411,6 @@ func (s *Server) withSecurityHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", contenttype.JSONUTF8)
-	w.WriteHeader(code)
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html: %w", err))
-	}
-}
-
-func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescription string) {
-	s.serveJSON(w, code, map[string]string{
-		"error":             err,
-		"error_description": errDescription,
-	})
-}
-
-func (s *Server) serveHTMLWithStatus(w http.ResponseWriter, r *http.Request, data *RenderData, template string, code int) {
-	data.LoggedIn = s.isLoggedIn(r)
-
-	raw, err := s.staticFs.ReadFile("eagle/index.html")
-	if err != nil {
-		s.n.Error(fmt.Errorf("eagle/index.html not found", r.URL.Path, err))
-		return
-	}
-
-	var buf bytes.Buffer
-
-	tpl, ok := s.templates[template]
-	if !ok {
-		s.n.Error(fmt.Errorf("serving html for %s: template not found", r.URL.Path))
-		return
-	}
-
-	err = tpl.Execute(&buf, data)
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	}
-
-	v := string(raw)
-	v = strings.Replace(v, "#BODY", buf.String(), -1)
-	v = strings.Replace(v, "#TITLE", data.Title, -1)
-
-	w.Header().Set("Content-Type", contenttype.HTMLUTF8)
-	w.WriteHeader(code)
-	w.Write([]byte(v))
-
-}
-
-func (s *Server) serveHTML(w http.ResponseWriter, r *http.Request, data *RenderData, tpl string) {
-	s.serveHTMLWithStatus(w, r, data, tpl, http.StatusOK)
-}
-
-func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, err error) {
-	if err != nil {
-		s.log.Error(err)
-	}
-
-	w.Header().Del("Cache-Control")
-
-	data := map[string]interface{}{
-		"Code": code,
-	}
-
-	if err != nil {
-		data["Error"] = err.Error()
-	}
-
-	rd := &RenderData{
-		Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
-		Data:  data,
-	}
-
-	s.serveHTMLWithStatus(w, r, rd, templateError, code)
-}
-
 func (s *Server) syncStorage() {
 	changedFiles, err := s.fs.Sync()
 	if err != nil {
@@ -560,6 +482,31 @@ func (s *Server) buildHook(dir string) {
 		err := os.RemoveAll(oldFs.dir)
 		if err != nil {
 			s.n.Error(fmt.Errorf("could not delete old directory: %w", err))
+		}
+	}
+}
+
+func setCacheControl(w http.ResponseWriter, isHTML bool) {
+	if isHTML {
+		w.Header().Set("Cache-Control", "no-cache, no-store, max-age=0")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=15552000")
+	}
+}
+
+var etagHeaders = []string{
+	"ETag",
+	"If-Modified-Since",
+	"If-Match",
+	"If-None-Match",
+	"If-Range",
+	"If-Unmodified-Since",
+}
+
+func delEtagHeaders(r *http.Request) {
+	for _, v := range etagHeaders {
+		if r.Header.Get(v) != "" {
+			r.Header.Del(v)
 		}
 	}
 }
