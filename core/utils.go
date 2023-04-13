@@ -28,14 +28,14 @@ func NewID(slug string, t time.Time) string {
 		slug = newTimeSlug(t)
 	}
 
-	return fmt.Sprintf("/%04d/%02d/%02d/%s", t.Year(), t.Month(), t.Day(), slug)
+	return fmt.Sprintf("/%04d/%02d/%02d/%s/", t.Year(), t.Month(), t.Day(), slug)
 }
 
 func cleanID(id string) string {
 	id = path.Clean(id)
 	id = strings.TrimSuffix(id, "/")
 	id = strings.TrimPrefix(id, "/")
-	return "/" + id
+	return "/" + id + "/"
 }
 
 // Borrowed from https://github.com/jlelse/GoBlog/blob/master/utils.go
