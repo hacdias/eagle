@@ -39,11 +39,6 @@ import (
 
 type contextKey string
 
-type httpServer struct {
-	Name string
-	*http.Server
-}
-
 type Server struct {
 	n core.Notifier
 	c *core.Config
@@ -58,8 +53,7 @@ type Server struct {
 	archetypes map[string]core.Archetype
 	webFinger  *core.WebFinger
 
-	serversMu sync.Mutex
-	servers   []*httpServer
+	server *http.Server
 
 	fs          *core.FS
 	hugo        *core.Hugo
@@ -128,7 +122,6 @@ func NewServer(c *core.Config) (*Server, error) {
 		log:         log.S().Named("server"),
 		ias:         indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 		jwtAuth:     jwtauth.New("HS256", []byte(secret), nil),
-		servers:     []*httpServer{},
 		cron:        cron.New(),
 		redirects:   map[string]string{},
 		archetypes:  core.DefaultArchetypes,
@@ -140,16 +133,11 @@ func NewServer(c *core.Config) (*Server, error) {
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
-		preSaveHooks:  []core.EntryHook{},
-		postSaveHooks: []core.EntryHook{},
+		preSaveHooks:  []core.EntryHook{hooks.NewDescriptionGenerator(fs)},
+		postSaveHooks: []core.EntryHook{hooks.NewLocationFetcher(fs, c.Site.Language)},
 	}
 
 	s.hugo.BuildHook = s.buildHook
-
-	s.AppendPreSaveHook(
-		hooks.NewDescriptionGenerator(s.fs),
-	)
-
 	s.initActions()
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
@@ -157,13 +145,11 @@ func NewServer(c *core.Config) (*Server, error) {
 		if err != nil {
 			return nil, err
 		}
-		s.AppendPostSaveHook(xray)
+		s.postSaveHooks = append(s.postSaveHooks, xray)
 	}
 
-	s.AppendPostSaveHook(hooks.NewLocationFetcher(s.fs, c.Site.Language))
-
 	if !c.Webmentions.DisableSending {
-		s.AppendPostSaveHook(s.webmentions)
+		s.postSaveHooks = append(s.postSaveHooks, s.webmentions)
 	}
 
 	var errs *multierror.Error
@@ -187,18 +173,6 @@ func NewServer(c *core.Config) (*Server, error) {
 
 	err = errs.ErrorOrNil()
 	return s, err
-}
-
-func (s *Server) AppendPreSaveHook(hooks ...core.EntryHook) {
-	s.preSaveHooks = append(s.preSaveHooks, hooks...)
-}
-
-func (s *Server) AppendPostSaveHook(hooks ...core.EntryHook) {
-	s.postSaveHooks = append(s.postSaveHooks, hooks...)
-}
-
-func (s *Server) RegisterArchetype(name string, archetype core.Archetype) {
-	s.archetypes[name] = archetype
 }
 
 func (s *Server) RegisterAction(name string, action func() error) error {
@@ -240,34 +214,31 @@ func (s *Server) Start() error {
 
 	s.cron.Start()
 
-	errCh := make(chan error)
-	router := s.makeRouter()
-
-	// Start server(s)
-	err = s.startRegularServer(errCh, router)
+	// Start server
+	addr := ":" + strconv.Itoa(s.c.Server.Port)
+	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
-	// Collect errors when the server stops
-	var errs *multierror.Error
-	for i := 0; i < len(s.servers); i++ {
-		errs = multierror.Append(errs, <-errCh)
-	}
-	return errs.ErrorOrNil()
+	errCh := make(chan error)
+	s.server = &http.Server{Handler: s.makeRouter()}
+	go func() {
+		s.log.Infof("listening on %s", ln.Addr().String())
+		errCh <- s.server.Serve(ln)
+	}()
+
+	return <-errCh
 }
 
 func (s *Server) Stop() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var errs *multierror.Error
-	for _, srv := range s.servers {
-		s.log.Infof("shutting down %s", srv.Name)
-		errs = multierror.Append(errs, srv.Shutdown(ctx))
-	}
-
 	<-s.cron.Stop().Done()
+
+	var errs *multierror.Error
+	errs = multierror.Append(errs, s.server.Shutdown(ctx))
 	errs = multierror.Append(errs, s.i.Close())
 	return errs.ErrorOrNil()
 }
@@ -326,34 +297,6 @@ func (s *Server) indexAll() {
 		s.n.Error(err)
 	}
 	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
-}
-
-func (s *Server) registerServer(srv *http.Server, name string) {
-	s.serversMu.Lock()
-	defer s.serversMu.Unlock()
-
-	s.servers = append(s.servers, &httpServer{
-		Server: srv,
-		Name:   name,
-	})
-}
-
-func (s *Server) startRegularServer(errCh chan error, h http.Handler) error {
-	addr := ":" + strconv.Itoa(s.c.Server.Port)
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return err
-	}
-
-	srv := &http.Server{Handler: h}
-	s.registerServer(srv, "public")
-
-	go func() {
-		s.log.Infof("listening on %s", ln.Addr().String())
-		errCh <- srv.Serve(ln)
-	}()
-
-	return nil
 }
 
 func (s *Server) withRecoverer(next http.Handler) http.Handler {
