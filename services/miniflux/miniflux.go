@@ -21,7 +21,6 @@ type BlogrollUpdater struct {
 }
 
 func NewBlogrollUpdater(c *core.Miniflux, fs *core.FS) *BlogrollUpdater {
-	// TODO: make entryID and dataFilename configurable.
 	return &BlogrollUpdater{
 		entryID:      DefaultEntryID,
 		dataFilename: DefaultDataFileName,

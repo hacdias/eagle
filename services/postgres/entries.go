@@ -23,18 +23,6 @@ func (d *Postgres) Add(entries ...*core.Entry) error {
 		b.Queue("delete from entries where id=$1", entry.ID)
 		b.Queue("insert into entries(id, content, isDraft, isDeleted, isUnlisted, published_at, updated_at) values($1, $2, $3, $4, $5, $6, $7)",
 			entry.ID, content, entry.Draft, entry.Deleted(), entry.NoIndex, entry.Date.UTC(), updated)
-
-		// for taxonomy, terms := range entry.Taxonomies {
-		// 	for _, term := range terms {
-		// 		b.Queue("insert into taxonomies(entry_id, taxonomy, term) values ($1, $2, $3)", entry.ID, taxonomy, term)
-		// 	}
-		// }
-
-		// if len(entry.Sections) > 0 {
-		// 	for _, section := range entry.Sections {
-		// 		b.Queue("insert into sections(entry_id, section) values ($1, $2)", entry.ID, section)
-		// 	}
-		// }
 	}
 
 	batch := d.pool.SendBatch(context.Background(), b)
