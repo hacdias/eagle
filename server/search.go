@@ -5,15 +5,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hacdias/eagle/indexer"
+	"github.com/hacdias/eagle/core"
 )
 
 const (
 	searchPath = "/search/"
 )
 
-func (s *Server) getPagination(r *http.Request) *indexer.Pagination {
-	opts := &indexer.Pagination{
+func (s *Server) getPagination(r *http.Request) *core.Pagination {
+	opts := &core.Pagination{
 		Limit: s.c.Site.Pagination,
 	}
 
@@ -37,7 +37,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 	if query != "" {
 		loggedIn := s.isLoggedIn(r)
-		options := &indexer.Query{
+		options := &core.Query{
 			Pagination:   *s.getPagination(r),
 			WithDrafts:   loggedIn,
 			WithDeleted:  loggedIn,

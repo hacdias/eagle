@@ -20,7 +20,6 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/hooks"
-	"github.com/hacdias/eagle/indexer"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/media"
 	"github.com/hacdias/eagle/pkg/maze"
@@ -48,7 +47,7 @@ type httpServer struct {
 type Server struct {
 	n core.Notifier
 	c *core.Config
-	i *indexer.Indexer
+	i *core.Indexer
 
 	log        *zap.SugaredLogger
 	ias        *indieauth.Server
@@ -125,7 +124,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	s := &Server{
 		n:           notifier,
 		c:           c,
-		i:           indexer.NewIndexer(fs, postgres),
+		i:           core.NewIndexer(fs, postgres),
 		log:         log.S().Named("server"),
 		ias:         indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 		jwtAuth:     jwtauth.New("HS256", []byte(secret), nil),

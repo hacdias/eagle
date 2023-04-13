@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/indexer"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -57,22 +56,22 @@ func (d *Postgres) Remove(ids ...string) {
 	}
 }
 
-func (d *Postgres) GetDrafts(opts *indexer.Pagination) ([]string, error) {
+func (d *Postgres) GetDrafts(opts *core.Pagination) ([]string, error) {
 	sql := "select id from entries where isDraft=true order by published_at desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetUnlisted(opts *indexer.Pagination) ([]string, error) {
+func (d *Postgres) GetUnlisted(opts *core.Pagination) ([]string, error) {
 	sql := "select id from entries where isUnlisted=true order by published_at desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetDeleted(opts *indexer.Pagination) ([]string, error) {
+func (d *Postgres) GetDeleted(opts *core.Pagination) ([]string, error) {
 	sql := "select id from entries where isDeleted=true order by published_at desc" + d.offset(opts)
 	return d.queryEntries(sql, 0)
 }
 
-func (d *Postgres) GetSearch(opts *indexer.Query, query string) ([]string, error) {
+func (d *Postgres) GetSearch(opts *core.Query, query string) ([]string, error) {
 	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isUnlisted"
 	mainFrom := "from entries as e"
 
@@ -119,7 +118,7 @@ func (d *Postgres) ClearEntries() {
 	_, _ = d.pool.Exec(context.Background(), "truncate table entries cascade")
 }
 
-func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []interface{}) {
+func (d *Postgres) whereConstraints(opts *core.Query, i int) ([]string, []interface{}) {
 	var where []string
 	var args []interface{}
 
@@ -138,7 +137,7 @@ func (d *Postgres) whereConstraints(opts *indexer.Query, i int) ([]string, []int
 	return where, args
 }
 
-func (d *Postgres) offset(opts *indexer.Pagination) string {
+func (d *Postgres) offset(opts *core.Pagination) string {
 	if opts == nil {
 		return ""
 	}

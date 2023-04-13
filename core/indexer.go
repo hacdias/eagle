@@ -1,10 +1,8 @@
-package indexer
+package core
 
 import (
 	"io"
 	"os"
-
-	"github.com/hacdias/eagle/core"
 )
 
 type Pagination struct {
@@ -20,10 +18,10 @@ type Query struct {
 	WithUnlisted bool
 }
 
-type Backend interface {
+type IndexerBackend interface {
 	io.Closer
 
-	Add(...*core.Entry) error
+	Add(...*Entry) error
 	Remove(ids ...string)
 
 	GetDrafts(opts *Pagination) ([]string, error)
@@ -36,18 +34,18 @@ type Backend interface {
 }
 
 type Indexer struct {
-	backend Backend
-	fs      *core.FS
+	backend IndexerBackend
+	fs      *FS
 }
 
-func NewIndexer(fs *core.FS, backend Backend) *Indexer {
+func NewIndexer(fs *FS, backend IndexerBackend) *Indexer {
 	return &Indexer{
 		fs:      fs,
 		backend: backend,
 	}
 }
 
-func (e *Indexer) Add(entries ...*core.Entry) error {
+func (e *Indexer) Add(entries ...*Entry) error {
 	return e.backend.Add(entries...)
 }
 
@@ -55,19 +53,19 @@ func (e *Indexer) Remove(ids ...string) {
 	e.backend.Remove(ids...)
 }
 
-func (e *Indexer) GetDrafts(opts *Pagination) (core.Entries, error) {
+func (e *Indexer) GetDrafts(opts *Pagination) (Entries, error) {
 	return e.idsToEntries(e.backend.GetDrafts(opts))
 }
 
-func (e *Indexer) GetUnlisted(opts *Pagination) (core.Entries, error) {
+func (e *Indexer) GetUnlisted(opts *Pagination) (Entries, error) {
 	return e.idsToEntries(e.backend.GetUnlisted(opts))
 }
 
-func (e *Indexer) GetDeleted(opts *Pagination) (core.Entries, error) {
+func (e *Indexer) GetDeleted(opts *Pagination) (Entries, error) {
 	return e.idsToEntries(e.backend.GetDeleted(opts))
 }
 
-func (e *Indexer) GetSearch(opts *Query, query string) (core.Entries, error) {
+func (e *Indexer) GetSearch(opts *Query, query string) (Entries, error) {
 	return e.idsToEntries(e.backend.GetSearch(opts, query))
 }
 
@@ -83,12 +81,12 @@ func (e *Indexer) Close() error {
 	return e.backend.Close()
 }
 
-func (e *Indexer) idsToEntries(ids []string, err error) (core.Entries, error) {
+func (e *Indexer) idsToEntries(ids []string, err error) (Entries, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	entries := core.Entries{}
+	entries := Entries{}
 
 	for _, id := range ids {
 		entry, err := e.fs.GetEntry(id)
