@@ -441,7 +441,10 @@ func (s *Server) syncStorage() {
 		s.n.Error(fmt.Errorf("sync failed: %w", err))
 	}
 
-	s.hugo.Build(buildClean)
+	err = s.hugo.Build(buildClean)
+	if err != nil {
+		s.n.Error(fmt.Errorf("build failed: %w", err))
+	}
 }
 
 func (s *Server) afterSaveHook(updated, deleted core.Entries) {
