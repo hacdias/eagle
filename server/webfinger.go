@@ -13,18 +13,18 @@ const (
 )
 
 func (s *Server) initWebFinger() {
-	url, _ := urlpkg.Parse(s.c.Server.BaseURL)
+	url, _ := urlpkg.Parse(s.c.BaseURL)
 
 	s.webFinger = &core.WebFinger{
 		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
-			s.c.Server.BaseURL,
+			s.c.BaseURL,
 		},
 		Links: []core.WebFingerLink{
 			{
 				Rel:  "http://webfinger.net/rel/profile-page",
 				Type: "text/html",
-				Href: s.c.Server.BaseURL,
+				Href: s.c.BaseURL,
 			},
 		},
 	}

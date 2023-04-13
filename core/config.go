@@ -13,10 +13,16 @@ type Config struct {
 	Development     bool
 	SourceDirectory string
 	PublicDirectory string
+	Port            int
+	BaseURL         string
+	TokensSecret    string
+	WebhookSecret   string
+	Logging         bool
+	Language        string
+	Title           string
+	Pagination      int
 
-	Server        Server
 	PostgreSQL    PostgreSQL
-	Site          Site
 	User          User
 	Notifications Notifications
 	Webmentions   Webmentions
@@ -39,17 +45,25 @@ func (c *Config) validate() error {
 		return err
 	}
 
-	err = c.Server.validate()
+	if c.Port < 0 {
+		return fmt.Errorf("port should be above zero")
+	}
+
+	baseUrl, err := urlpkg.Parse(c.BaseURL)
 	if err != nil {
 		return err
+	}
+	baseUrl.Path = ""
+
+	if baseUrl.String() != c.BaseURL {
+		return fmt.Errorf("base url should be %s", baseUrl.String())
+	}
+
+	if c.Pagination < 1 {
+		return errors.New("paginate must be larger than 1")
 	}
 
 	err = c.PostgreSQL.validate()
-	if err != nil {
-		return err
-	}
-
-	err = c.Site.validate()
 	if err != nil {
 		return err
 	}
@@ -63,51 +77,25 @@ func (c *Config) validate() error {
 }
 
 func (c *Config) ID() string {
-	return c.Server.BaseURL + "/"
+	return c.BaseURL + "/"
 }
 
-type Server struct {
-	Port          int
-	BaseURL       string
-	TokensSecret  string
-	WebhookSecret string
-	Logging       bool
-}
-
-func (s *Server) validate() error {
-	if s.Port < 0 {
-		return fmt.Errorf("port should be above zero")
-	}
-
-	baseUrl, err := urlpkg.Parse(s.BaseURL)
-	if err != nil {
-		return err
-	}
-	baseUrl.Path = ""
-
-	if baseUrl.String() != s.BaseURL {
-		return fmt.Errorf("base url should be %s", baseUrl.String())
-	}
-
-	return nil
-}
-
-func (s *Server) resolvedURL(path string) *urlpkg.URL {
+func (c *Config) resolvedURL(path string) *urlpkg.URL {
 	url, _ := urlpkg.Parse(path)
-	base, _ := urlpkg.Parse(s.BaseURL)
+	base, _ := urlpkg.Parse(c.BaseURL)
 	return base.ResolveReference(url)
 }
 
-func (s *Server) AbsoluteURL(path string) string {
-	resolved := s.resolvedURL(path)
+func (c *Config) AbsoluteURL(path string) string {
+	resolved := c.resolvedURL(path)
 	if resolved == nil {
 		return ""
 	}
 	return resolved.String()
 }
 
-func (s *Server) RelativeURL(path string) string {
-	resolved := s.resolvedURL(path)
+func (c *Config) RelativeURL(path string) string {
+	resolved := c.resolvedURL(path)
 	if resolved == nil {
 		return path
 	}
@@ -151,28 +139,12 @@ func (p *PostgreSQL) validate() error {
 	return nil
 }
 
-type Site struct {
-	Language    string
-	Title       string
-	Description string
-	Pagination  int
-}
-
-func (s *Site) validate() error {
-	if s.Pagination < 1 {
-		return errors.New("paginate must be larger than 1")
-	}
-
-	return nil
-}
-
 type User struct {
-	Name       string
-	Username   string
-	Password   string
-	Email      string
-	Photo      string
-	Identities []string
+	Name     string
+	Username string
+	Password string
+	Email    string
+	Photo    string
 }
 
 func (u *User) validate() error {

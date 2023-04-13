@@ -14,7 +14,7 @@ const (
 
 func (s *Server) getPagination(r *http.Request) *core.Pagination {
 	opts := &core.Pagination{
-		Limit: s.c.Site.Pagination,
+		Limit: s.c.Pagination,
 	}
 
 	if v := r.URL.Query().Get("page"); v != "" {

@@ -30,7 +30,7 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
 
 		redirects, err := fs.LoadRedirects(false)
 		if err != nil {
@@ -74,7 +74,7 @@ var brokenLinksCmd = &cobra.Command{
 		}
 
 		isBroken := func(urlStr string) (bool, string, error) {
-			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, c.Server.BaseURL) {
+			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, c.BaseURL) {
 				u, err := url.Parse(urlStr)
 				if err != nil {
 					return false, "", err

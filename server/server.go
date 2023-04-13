@@ -70,7 +70,7 @@ type Server struct {
 }
 
 func NewServer(c *core.Config) (*Server, error) {
-	secret := base64.StdEncoding.EncodeToString([]byte(c.Server.TokensSecret))
+	secret := base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))
 
 	var notifier core.Notifier
 	if c.Notifications.Telegram != nil {
@@ -89,8 +89,8 @@ func NewServer(c *core.Config) (*Server, error) {
 	} else {
 		srcSync = core.NewGitSync(c.SourceDirectory)
 	}
-	fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, srcSync)
-	hugo := core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.Server.BaseURL)
+	fs := core.NewFS(c.SourceDirectory, c.BaseURL, srcSync)
+	hugo := core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL)
 
 	var (
 		m           *media.Media
@@ -129,12 +129,12 @@ func NewServer(c *core.Config) (*Server, error) {
 		hugo:        hugo,
 		media:       m,
 		webmentions: webmentions.NewWebmentions(fs, hugo, notifier),
-		parser:      core.NewParser(c.Server.BaseURL),
+		parser:      core.NewParser(c.BaseURL),
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
 
-		locationFetcher: helpers.NewLocationFetcher(fs, c.Site.Language),
+		locationFetcher: helpers.NewLocationFetcher(fs, c.Language),
 	}
 
 	s.hugo.BuildHook = s.buildHook
@@ -211,7 +211,7 @@ func (s *Server) Start() error {
 	s.cron.Start()
 
 	// Start server
-	addr := ":" + strconv.Itoa(s.c.Server.Port)
+	addr := ":" + strconv.Itoa(s.c.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err

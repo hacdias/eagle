@@ -20,7 +20,7 @@ var cleanRedirectsCmd = &cobra.Command{
 			return err
 		}
 
-		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
 
 		redirects, err := fs.LoadRedirects(false)
 		if err != nil {

@@ -132,7 +132,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 
 	errorTitle := fmt.Sprintf("%d %s", code, http.StatusText(code))
 
-	doc.Find("title").SetText(errorTitle + " - " + s.c.Site.Title)
+	doc.Find("title").SetText(errorTitle + " - " + s.c.Title)
 	doc.Find("eagle-error-title").ReplaceWithHtml(errorTitle)
 	selector := fmt.Sprintf("eagle-error[error~=\"%d\"]", code)
 	errorNode := doc.Find(selector)

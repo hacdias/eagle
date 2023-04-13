@@ -21,7 +21,7 @@ var countCmd = &cobra.Command{
 			return err
 		}
 
-		fs := core.NewFS(c.SourceDirectory, c.Server.BaseURL, &core.NopSync{})
+		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
 		ee, err := fs.GetEntries(false)
 		if err != nil {
 			return err

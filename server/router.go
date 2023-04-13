@@ -12,7 +12,7 @@ func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 	r.Use(s.withRecoverer)
 
-	if s.c.Server.Logging || s.c.Development {
+	if s.c.Logging || s.c.Development {
 		r.Use(middleware.Logger)
 	}
 
@@ -24,7 +24,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(s.withAdminBar)
 
 	// GitHub WebHook
-	if s.c.Server.WebhookSecret != "" {
+	if s.c.WebhookSecret != "" {
 		r.Post(webhookPath, s.webhookPost)
 	}
 
