@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/hooks"
+	"github.com/hacdias/eagle/core/helpers"
 	"github.com/samber/lo"
 )
 
@@ -235,7 +235,7 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) preSaveEntry(e *core.Entry) error {
-	hooks.GenerateDescription(e, false)
+	helpers.GenerateDescription(e, false)
 	return nil
 }
 

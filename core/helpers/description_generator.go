@@ -1,4 +1,4 @@
-package hooks
+package helpers
 
 import (
 	"net/url"

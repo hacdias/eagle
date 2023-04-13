@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/hooks"
+	"github.com/hacdias/eagle/core/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ var locationsCmd = &cobra.Command{
 			return err
 		}
 
-		locationsFetcher := hooks.NewLocationFetcher(fs, c.Site.Language)
+		locationsFetcher := helpers.NewLocationFetcher(fs, c.Site.Language)
 		for _, e := range ee {
 			err = locationsFetcher.FetchLocation(e)
 			if err != nil {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/hooks"
+	"github.com/hacdias/eagle/core/helpers"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ var descriptionsCmd = &cobra.Command{
 		force, _ := cmd.Flags().GetBool("force")
 
 		for _, e := range ee {
-			hooks.GenerateDescription(e, force)
+			helpers.GenerateDescription(e, force)
 			err = fs.SaveEntry(e)
 			if err != nil {
 				return err

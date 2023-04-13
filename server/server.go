@@ -19,7 +19,7 @@ import (
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/hooks"
+	"github.com/hacdias/eagle/core/helpers"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/pkg/maze"
 	"github.com/hacdias/eagle/services/bunny"
@@ -62,8 +62,8 @@ type Server struct {
 	parser      *core.Parser
 	maze        *maze.Maze
 
-	locationFetcher *hooks.LocationFetcher
-	contextFetcher  *hooks.ContextFetcher
+	locationFetcher *helpers.LocationFetcher
+	contextFetcher  *helpers.ContextFetcher
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -134,14 +134,14 @@ func NewServer(c *core.Config) (*Server, error) {
 			Timeout: time.Minute,
 		}),
 
-		locationFetcher: hooks.NewLocationFetcher(fs, c.Site.Language),
+		locationFetcher: helpers.NewLocationFetcher(fs, c.Site.Language),
 	}
 
 	s.hugo.BuildHook = s.buildHook
 	s.initActions()
 
 	if c.XRay != nil && c.XRay.Endpoint != "" {
-		xray, err := hooks.NewContextFetcher(c, s.fs)
+		xray, err := helpers.NewContextFetcher(c, s.fs)
 		if err != nil {
 			return nil, err
 		}
