@@ -30,8 +30,8 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 	content := r.Form.Get("content")
 	content = bluemonday.StrictPolicy().Sanitize(content)
 
-	if content == "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content must not be missing"))
+	if len(content) == 0 || len(content) > 500 || len(name) > 100 || len(website) > 100 {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content, name, or website outside of limits"))
 		return
 	}
 
