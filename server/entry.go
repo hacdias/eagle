@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -44,6 +45,12 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	e.Bookmark, _ = lo.Coalesce(query.Get("bookmark"), e.Bookmark)
 	e.ID, _ = lo.Coalesce(query.Get("id"), e.ID)
 	e.Content, _ = lo.Coalesce(query.Get("content"), e.Content)
+	if v := query.Get("categories"); v != "" {
+		e.Categories = strings.Split(v, ",")
+	}
+	if v := query.Get("tags"); v != "" {
+		e.Tags = strings.Split(v, ",")
+	}
 
 	// Get stringified entry.
 	str, err := e.String()
