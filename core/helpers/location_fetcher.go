@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/pkg/maze"
+	"github.com/hacdias/maze"
 )
 
 type LocationFetcher struct {

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/eagle/pkg/maze"
+	"github.com/hacdias/maze"
 	yaml "gopkg.in/yaml.v2"
 )
 

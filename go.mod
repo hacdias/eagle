@@ -3,20 +3,19 @@ module github.com/hacdias/eagle
 go 1.20
 
 require (
-	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/jwtauth/v5 v5.1.0
 	github.com/hacdias/indieauth/v3 v3.1.0
+	github.com/hacdias/maze v0.1.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.0.9
 	github.com/lopezator/migrator v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.23
-	github.com/paulmach/go.geojson v1.4.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.38.1
 	github.com/spf13/afero v1.9.5
@@ -33,6 +32,7 @@ require (
 )
 
 require (
+	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
@@ -55,6 +55,7 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/paulmach/go.geojson v1.4.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect

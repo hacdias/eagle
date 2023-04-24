@@ -252,6 +252,8 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
 github.com/hacdias/indieauth/v3 v3.1.0 h1:aVj9hp9cNCYrlUnSybrG7vNSgJ1/4JIsSa0jsQ3zpHk=
 github.com/hacdias/indieauth/v3 v3.1.0/go.mod h1:EmGEAbqGNhCnJR6Uk00t83x7ASQeo0EBNf/5XiFvS9w=
+github.com/hacdias/maze v0.1.0 h1:2znCg44tlzKX7zK612BfNO9Z6S4I92x+5HnLb5620fw=
+github.com/hacdias/maze v0.1.0/go.mod h1:+kxC8RMxRyMrk3UaSIKkZQoBI2tCwrRbySYadHjIoJ8=
 github.com/hashicorp/consul/api v1.12.0/go.mod h1:6pVBMo0ebnYdt2S3H87XhekM/HHrUoTD2XXb/VrZVy0=
 github.com/hashicorp/consul/sdk v0.8.0/go.mod h1:GBvyrGALthsZObzUGsfgHZQDXjg4lOjagTIwIR1vPms=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
