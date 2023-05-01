@@ -61,6 +61,7 @@ type Server struct {
 	webmentions *webmentions.Webmentions
 	parser      *core.Parser
 	maze        *maze.Maze
+	guestbook   guestbookStorage
 
 	locationFetcher *helpers.LocationFetcher
 	contextFetcher  *helpers.ContextFetcher
@@ -133,6 +134,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
+		guestbook: postgres,
 
 		locationFetcher: helpers.NewLocationFetcher(fs, c.Language),
 	}
