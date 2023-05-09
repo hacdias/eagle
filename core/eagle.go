@@ -54,7 +54,7 @@ type FrontMatter struct {
 	NoSendInteractions bool           `yaml:"noSendInteractions,omitempty"`
 	CoverImage         string         `yaml:"coverImage,omitempty"`
 	NoIndex            bool           `yaml:"noIndex,omitempty"`
-	DisablePagination  bool           `yaml:"disablePagination,omitempty"`
+	NoPagination       bool           `yaml:"noPagination,omitempty"`
 	Tags               []string       `yaml:"tags,omitempty"`
 	Categories         []string       `yaml:"categories,omitempty"`
 	Layout             string         `yaml:"layout,omitempty"`
