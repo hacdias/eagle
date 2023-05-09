@@ -65,9 +65,7 @@ webmentions:
 xray:
   endpoint: https://xray.p3k.app
 
-# Optional BunnyCDN (https://bunny.net) credentials used for the micropub
-# media endpoint, for media such as 'photos', for webmentions author photos,
-# and for xray author photos.
+# Optional BunnyCDN (https://bunny.net) credentials used for the media upload.
 bunnycdn:
   zone: someBunnyZone
   key: someBunnySecret
