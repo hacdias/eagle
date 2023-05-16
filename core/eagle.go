@@ -66,6 +66,7 @@ type FrontMatter struct {
 	Bookmark           string         `yaml:"bookmark,omitempty"`
 	Read               *Read          `yaml:"read,omitempty"`
 	Rating             int            `yaml:"rating,omitempty"`
+	FavoritePosts      []string       `yaml:"favoritePosts,omitempty"`
 }
 
 type Context struct {
