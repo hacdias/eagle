@@ -59,9 +59,9 @@ var DefaultArchetypes = map[string]Archetype{
 		return &Entry{
 			ID: NewID(Slugify(name), time.Now()),
 			FrontMatter: FrontMatter{
-				Date:        date,
-				Description: fmt.Sprintf("%s by %s (ISBN: %s)", name, author, isbn),
-				Categories:  []string{"readings"},
+				Title:      fmt.Sprintf("Read \"%s\" by %s", name, author),
+				Date:       date,
+				Categories: []string{"readings"},
 				Read: &Read{
 					Author:    author,
 					Name:      name,
