@@ -45,7 +45,7 @@ func (c *ContextFetcher) EnsureXRay(e *core.Entry, replace bool) error {
 		return fmt.Errorf("could not fetch context xray for %s: %w", e.ID, err)
 	}
 
-	_, err = c.fs.TransformEntry(e.ID, func(e *core.Entry) (*core.Entry, error) {
+	_, err = c.fs.TransformEntry(e.ID, "entry: add context to "+e.ID, func(e *core.Entry) (*core.Entry, error) {
 		e.Context = &core.Context{
 			Author:    parsed.Author.Name,
 			Content:   parsed.Content,

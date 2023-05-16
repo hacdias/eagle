@@ -132,7 +132,11 @@ func (s *Server) guestbookAdminPost(w http.ResponseWriter, r *http.Request) {
 		sort.SliceStable(entries, func(i, j int) bool {
 			return entries[i].Date.After(entries[j].Date)
 		})
-		if err := s.fs.WriteJSON(guestbookFilename, entries); err != nil {
+		message := "guestbook: new entry"
+		if e.Name != "" {
+			message += " from " + e.Name
+		}
+		if err := s.fs.WriteJSON(guestbookFilename, entries, message); err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error writing guestbook file: %w", err))
 			return
 		}

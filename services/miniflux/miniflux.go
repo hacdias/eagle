@@ -2,6 +2,7 @@ package miniflux
 
 import (
 	"path/filepath"
+	"reflect"
 	"time"
 
 	"github.com/hacdias/eagle/core"
@@ -30,18 +31,29 @@ func NewBlogrollUpdater(c *core.Miniflux, fs *core.FS) *BlogrollUpdater {
 }
 
 func (u *BlogrollUpdater) UpdateBlogroll() error {
-	feeds, err := u.client.Fetch()
+	newFeeds, err := u.client.Fetch()
 	if err != nil {
 		return err
 	}
 
 	filename := filepath.Join(core.DataDirectory, u.dataFilename)
-	err = u.fs.WriteJSON(filename, feeds)
+
+	var oldFeeds miniflux.Feeds
+	err = u.fs.ReadJSON(filename, &oldFeeds)
 	if err != nil {
 		return err
 	}
 
-	_, err = u.fs.TransformEntry(u.entryID, func(e *core.Entry) (*core.Entry, error) {
+	if reflect.DeepEqual(oldFeeds, newFeeds) {
+		return nil
+	}
+
+	err = u.fs.WriteJSON(filename, newFeeds, "blogroll: synchronize with miniflux")
+	if err != nil {
+		return err
+	}
+
+	_, err = u.fs.TransformEntry(u.entryID, "blogroll: update entry modified date", func(e *core.Entry) (*core.Entry, error) {
 		e.LastMod = time.Now()
 		return e, err
 	})

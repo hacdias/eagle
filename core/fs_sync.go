@@ -6,17 +6,16 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Sync interface {
 	Sync() (updated []string, err error)
-	Persist(filename ...string) error
+	Persist(message string, filename ...string) error
 }
 
 type NopSync struct{}
 
-func (g *NopSync) Persist(file ...string) error {
+func (g *NopSync) Persist(message string, file ...string) error {
 	return nil
 }
 
@@ -35,7 +34,7 @@ func NewGitSync(path string) Sync {
 	return &GitSync{dir: path}
 }
 
-func (g *GitSync) Persist(file ...string) error {
+func (g *GitSync) Persist(message string, file ...string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -44,7 +43,7 @@ func (g *GitSync) Persist(file ...string) error {
 		return err
 	}
 
-	return g.commit(file...)
+	return g.commit(message, file...)
 }
 
 func (g *GitSync) add(file ...string) error {
@@ -58,8 +57,8 @@ func (g *GitSync) add(file ...string) error {
 	return nil
 }
 
-func (g *GitSync) commit(file ...string) error {
-	args := []string{"commit", "-m", time.Now().Format(time.RFC3339), "--"}
+func (g *GitSync) commit(message string, file ...string) error {
+	args := []string{"commit", "-m", message, "--"}
 	args = append(args, file...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir

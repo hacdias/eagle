@@ -36,7 +36,7 @@ func (l *LocationFetcher) FetchLocation(e *core.Entry) error {
 	}
 
 	if location != nil {
-		_, err = l.fs.TransformEntry(e.ID, func(e *core.Entry) (*core.Entry, error) {
+		_, err = l.fs.TransformEntry(e.ID, "entry: add location info to "+e.ID, func(e *core.Entry) (*core.Entry, error) {
 			e.RawLocation = ""
 			e.Location = location
 			return e, nil

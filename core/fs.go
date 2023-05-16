@@ -21,8 +21,8 @@ const (
 )
 
 type FS struct {
-	*afero.Afero
-	path string
+	afero *afero.Afero
+	path  string
 
 	sync   Sync
 	parser *Parser
@@ -41,7 +41,7 @@ func NewFS(path, baseURL string, sync Sync) *FS {
 	}
 
 	return &FS{
-		Afero:  afero,
+		afero:  afero,
 		path:   path,
 		sync:   sync,
 		parser: NewParser(baseURL),
@@ -52,13 +52,13 @@ func (f *FS) Sync() ([]string, error) {
 	return f.sync.Sync()
 }
 
-func (f *FS) WriteFile(filename string, data []byte) error {
-	err := f.Afero.WriteFile(filename, data, 0644)
+func (f *FS) WriteFile(filename string, data []byte, message string) error {
+	err := f.afero.WriteFile(filename, data, 0644)
 	if err != nil {
 		return err
 	}
 
-	err = f.sync.Persist(filename)
+	err = f.sync.Persist(message, filename)
 	if err != nil {
 		return err
 	}
@@ -66,34 +66,21 @@ func (f *FS) WriteFile(filename string, data []byte) error {
 	return nil
 }
 
-func (f *FS) RemoveFile(filename string) error {
-	if _, err := f.Stat(filename); err == nil {
-		err := f.Afero.Remove(filename)
-		if err != nil {
-			return err
-		}
-
-		err = f.sync.Persist(filename)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
+func (f *FS) ReadFile(filename string) ([]byte, error) {
+	return f.afero.ReadFile(filename)
 }
 
-func (f *FS) WriteJSON(filename string, data interface{}) error {
+func (f *FS) WriteJSON(filename string, data interface{}, message string) error {
 	json, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	return f.WriteFile(filename, json)
+	return f.WriteFile(filename, json, message)
 }
 
 func (f *FS) ReadJSON(filename string, v interface{}) error {
-	data, err := f.ReadFile(filename)
+	data, err := f.afero.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -101,11 +88,15 @@ func (f *FS) ReadJSON(filename string, v interface{}) error {
 	return json.Unmarshal(data, v)
 }
 
+func (f *FS) RemoveAll(path string) error {
+	return f.afero.RemoveAll(path)
+}
+
 type EntryTransformer func(*Entry) (*Entry, error)
 
 func (fs *FS) GetEntry(id string) (*Entry, error) {
 	filename := fs.guessFilename(id)
-	raw, err := fs.ReadFile(filename)
+	raw, err := fs.afero.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +112,7 @@ func (fs *FS) GetEntry(id string) (*Entry, error) {
 
 func (fs *FS) GetEntries(includeList bool) (Entries, error) {
 	ee := Entries{}
-	err := fs.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
+	err := fs.afero.Walk(ContentDirectory, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -154,7 +145,7 @@ func (f *FS) SaveEntry(entry *Entry) error {
 	f.entriesMu.Lock()
 	defer f.entriesMu.Unlock()
 
-	return f.saveEntry(entry)
+	return f.saveEntry(entry, "")
 }
 
 func (f *FS) RenameEntry(oldID, newID string) (*Entry, error) {
@@ -169,19 +160,19 @@ func (f *FS) RenameEntry(oldID, newID string) (*Entry, error) {
 	oldDir := filepath.Join(ContentDirectory, oldID)
 	newDir := filepath.Join(ContentDirectory, newID)
 
-	exists, err := f.Exists(newDir)
+	exists, err := f.afero.Exists(newDir)
 	if err != nil {
 		return nil, err
 	} else if exists {
 		return nil, errors.New("target directory already exists")
 	}
 
-	err = f.MkdirAll(filepath.Dir(newDir), 0777)
+	err = f.afero.MkdirAll(filepath.Dir(newDir), 0777)
 	if err != nil {
 		return nil, err
 	}
 
-	err = f.Rename(oldDir, newDir)
+	err = f.afero.Rename(oldDir, newDir)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +186,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*Entry, error) {
 		updates = append(updates, RedirectsFile)
 	}
 
-	err = f.sync.Persist(updates...)
+	err = f.sync.Persist(fmt.Sprintf("entry: rename from %s to %s", oldID, newID), updates...)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +199,7 @@ func (f *FS) RenameEntry(oldID, newID string) (*Entry, error) {
 	return new, nil
 }
 
-func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*Entry, error) {
+func (f *FS) TransformEntry(id, message string, transformers ...EntryTransformer) (*Entry, error) {
 	if len(transformers) == 0 {
 		return nil, errors.New("at least one entry transformer must be provided")
 	}
@@ -228,18 +219,18 @@ func (f *FS) TransformEntry(id string, transformers ...EntryTransformer) (*Entry
 		}
 	}
 
-	err = f.saveEntry(e)
+	err = f.saveEntry(e, message)
 	return e, err
 }
 
-func (f *FS) saveEntry(e *Entry) error {
+func (f *FS) saveEntry(e *Entry, message string) error {
 	e.Tags = cleanTaxonomy(e.Tags)
 	e.Categories = cleanTaxonomy(e.Categories)
 
 	if e.Path == "" {
 		e.Path = f.guessFilename(e.ID)
 	}
-	err := f.MkdirAll(filepath.Dir(e.Path), 0777)
+	err := f.afero.MkdirAll(filepath.Dir(e.Path), 0777)
 	if err != nil {
 		return err
 	}
@@ -249,7 +240,11 @@ func (f *FS) saveEntry(e *Entry) error {
 		return err
 	}
 
-	err = f.WriteFile(e.Path, []byte(str))
+	if message == "" {
+		message = "entry: update " + e.ID
+	}
+
+	err = f.WriteFile(e.Path, []byte(str), message)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -259,7 +254,7 @@ func (f *FS) saveEntry(e *Entry) error {
 
 func (f *FS) guessFilename(id string) string {
 	path := filepath.Join(ContentDirectory, id, "_index.md")
-	if _, err := f.Afero.Stat(path); err == nil {
+	if _, err := f.afero.Stat(path); err == nil {
 		return path
 	}
 
@@ -275,7 +270,7 @@ func cleanTaxonomy(els []string) []string {
 }
 
 func (fs *FS) AppendRedirect(old, new string) error {
-	f, err := fs.OpenFile(RedirectsFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := fs.afero.OpenFile(RedirectsFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -288,7 +283,7 @@ func (fs *FS) AppendRedirect(old, new string) error {
 func (fs *FS) LoadRedirects(ignoreMalformed bool) (map[string]string, error) {
 	redirects := map[string]string{}
 
-	data, err := fs.ReadFile(RedirectsFile)
+	data, err := fs.afero.ReadFile(RedirectsFile)
 	if err != nil {
 		return nil, err
 	}
