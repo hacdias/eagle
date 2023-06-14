@@ -27,7 +27,9 @@ var countCmd = &cobra.Command{
 			return err
 		}
 
-		count := map[string]int{}
+		count := map[string]int{
+			"unknown": 0,
+		}
 
 		for _, e := range ee {
 			for _, section := range e.Categories {
@@ -36,6 +38,10 @@ var countCmd = &cobra.Command{
 				}
 
 				count[section]++
+			}
+
+			if len(e.Categories) == 0 {
+				count["unknown"]++
 			}
 		}
 
