@@ -28,11 +28,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post(webhookPath, s.webhookPost)
 	}
 
-	// Webmentions Handler
-	if s.c.Webmentions.Secret != "" {
-		r.Post(webmentionPath, s.webmentionPost)
-	}
-
 	// Random
 	r.Get(webFingerPath, s.webFingerGet)
 	r.Get(searchPath, s.searchGet)

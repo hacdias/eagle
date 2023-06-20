@@ -25,7 +25,6 @@ type Config struct {
 	PostgreSQL    PostgreSQL
 	User          User
 	Notifications Notifications
-	Webmentions   Webmentions
 	XRay          *XRay
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
@@ -167,11 +166,6 @@ type Telegram struct {
 
 type Notifications struct {
 	Telegram *Telegram
-}
-
-type Webmentions struct {
-	Secret         string
-	DisableSending bool
 }
 
 type XRay struct {

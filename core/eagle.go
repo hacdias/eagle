@@ -45,27 +45,26 @@ func (e *Entry) TextContent() string {
 type Entries []*Entry
 
 type FrontMatter struct {
-	Title              string         `yaml:"title,omitempty"`
-	Description        string         `yaml:"description,omitempty"`
-	URL                string         `yaml:"url,omitempty"`
-	Draft              bool           `yaml:"draft,omitempty"`
-	Date               time.Time      `yaml:"date,omitempty"`
-	LastMod            time.Time      `yaml:"lastmod,omitempty"`
-	ExpiryDate         time.Time      `yaml:"expiryDate,omitempty"`
-	NoSendInteractions bool           `yaml:"noSendInteractions,omitempty"`
-	CoverImage         string         `yaml:"coverImage,omitempty"`
-	NoIndex            bool           `yaml:"noIndex,omitempty"`
-	Tags               []string       `yaml:"tags,omitempty"`
-	Categories         []string       `yaml:"categories,omitempty"`
-	Layout             string         `yaml:"layout,omitempty"`
-	RawLocation        string         `yaml:"rawLocation,omitempty"`
-	Location           *maze.Location `yaml:"location,omitempty"`
-	Context            *Context       `yaml:"context,omitempty"`
-	Syndications       []string       `yaml:"syndications,omitempty"`
-	Reply              string         `yaml:"reply,omitempty"`
-	Read               *Read          `yaml:"read,omitempty"`
-	Rating             int            `yaml:"rating,omitempty"`
-	FavoritePosts      []string       `yaml:"favoritePosts,omitempty"`
+	Title         string         `yaml:"title,omitempty"`
+	Description   string         `yaml:"description,omitempty"`
+	URL           string         `yaml:"url,omitempty"`
+	Draft         bool           `yaml:"draft,omitempty"`
+	Date          time.Time      `yaml:"date,omitempty"`
+	LastMod       time.Time      `yaml:"lastmod,omitempty"`
+	ExpiryDate    time.Time      `yaml:"expiryDate,omitempty"`
+	CoverImage    string         `yaml:"coverImage,omitempty"`
+	NoIndex       bool           `yaml:"noIndex,omitempty"`
+	Tags          []string       `yaml:"tags,omitempty"`
+	Categories    []string       `yaml:"categories,omitempty"`
+	Layout        string         `yaml:"layout,omitempty"`
+	RawLocation   string         `yaml:"rawLocation,omitempty"`
+	Location      *maze.Location `yaml:"location,omitempty"`
+	Context       *Context       `yaml:"context,omitempty"`
+	Syndications  []string       `yaml:"syndications,omitempty"`
+	Reply         string         `yaml:"reply,omitempty"`
+	Read          *Read          `yaml:"read,omitempty"`
+	Rating        int            `yaml:"rating,omitempty"`
+	FavoritePosts []string       `yaml:"favoritePosts,omitempty"`
 }
 
 type Context struct {

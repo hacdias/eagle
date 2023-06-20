@@ -28,7 +28,6 @@ import (
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
-	"github.com/hacdias/eagle/services/webmentions"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hacdias/maze"
 	"github.com/hashicorp/go-multierror"
@@ -56,13 +55,12 @@ type Server struct {
 
 	server *http.Server
 
-	fs          *core.FS
-	hugo        *core.Hugo
-	media       *media.Media
-	webmentions *webmentions.Webmentions
-	parser      *core.Parser
-	maze        *maze.Maze
-	guestbook   guestbookStorage
+	fs        *core.FS
+	hugo      *core.Hugo
+	media     *media.Media
+	parser    *core.Parser
+	maze      *maze.Maze
+	guestbook guestbookStorage
 
 	locationFetcher *helpers.LocationFetcher
 	contextFetcher  *helpers.ContextFetcher
@@ -118,20 +116,19 @@ func NewServer(c *core.Config) (*Server, error) {
 	}
 
 	s := &Server{
-		n:           notifier,
-		c:           c,
-		i:           core.NewIndexer(fs, postgres),
-		log:         log.S().Named("server"),
-		ias:         indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth:     jwtauth.New("HS256", []byte(secret), nil),
-		cron:        cron.New(),
-		redirects:   map[string]string{},
-		archetypes:  core.DefaultArchetypes,
-		fs:          fs,
-		hugo:        hugo,
-		media:       m,
-		webmentions: webmentions.NewWebmentions(fs, hugo, notifier),
-		parser:      core.NewParser(c.BaseURL),
+		n:          notifier,
+		c:          c,
+		i:          core.NewIndexer(fs, postgres),
+		log:        log.S().Named("server"),
+		ias:        indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		jwtAuth:    jwtauth.New("HS256", []byte(secret), nil),
+		cron:       cron.New(),
+		redirects:  map[string]string{},
+		archetypes: core.DefaultArchetypes,
+		fs:         fs,
+		hugo:       hugo,
+		media:      m,
+		parser:     core.NewParser(c.BaseURL),
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),

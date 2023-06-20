@@ -267,10 +267,4 @@ func (s *Server) postSaveEntry(e *core.Entry) {
 	}
 
 	s.buildNotify(e.Deleted())
-	if !s.c.Webmentions.DisableSending {
-		err := s.webmentions.SendWebmentions(e)
-		if err != nil {
-			s.n.Error(err)
-		}
-	}
 }

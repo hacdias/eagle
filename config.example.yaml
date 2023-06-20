@@ -52,15 +52,6 @@ notifications:
     token: TelegramToken
     chatId: TelegramChat
 
-# Webmentions configurations.
-webmentions:
-  # Webmention.io (https://webmention.io) is used for incoming webmentions.
-  # Not setting secret disables receiving webmentions.
-  secret:
-
-  # Disables sending webmentions.
-  disableSending: true
-
 # Optional XRay configuration.
 xray:
   endpoint: https://xray.p3k.app
