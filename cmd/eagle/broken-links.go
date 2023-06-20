@@ -51,25 +51,6 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		getMarkdownURLs := func(e *core.Entry) ([]string, error) {
-			r, md := newMarkdown()
-			err = r.Convert([]byte(e.Content), io.Discard)
-			if err != nil {
-				return nil, err
-			}
-
-			urls := md.md.urls
-
-			if e.Reply != "" {
-				urls = append(urls, e.Reply)
-			}
-			if e.Context != nil {
-				urls = append(urls, e.Context.URL)
-			}
-
-			return urls, nil
-		}
-
 		isBroken := func(urlStr string) (bool, string, error) {
 			if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.BaseURL) {
 				return false, "", nil
@@ -147,6 +128,29 @@ var brokenLinksCmd = &cobra.Command{
 	},
 }
 
+func getMarkdownURLs(e *core.Entry) ([]string, error) {
+	r, md := newMarkdown()
+	err := r.Convert([]byte(e.Content), io.Discard)
+	if err != nil {
+		return nil, err
+	}
+
+	urls := md.md.urls
+
+	if e.Reply != "" {
+		urls = append(urls, e.Reply)
+	}
+	if e.Context != nil {
+		urls = append(urls, e.Context.URL)
+	}
+
+	return urls, nil
+}
+
+type markdown struct {
+	md *markdownRenderer
+}
+
 func newMarkdown() (goldmark.Markdown, *markdown) {
 	exts := []goldmark.Extender{}
 	md := &markdown{newMarkdownRenderer()}
@@ -168,10 +172,6 @@ func newMarkdown() (goldmark.Markdown, *markdown) {
 			extension.TaskList,
 		),
 	}, goldmark.WithExtensions(exts...))...), md
-}
-
-type markdown struct {
-	md *markdownRenderer
 }
 
 func (md *markdown) Extend(m goldmark.Markdown) {
