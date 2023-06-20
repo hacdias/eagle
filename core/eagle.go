@@ -47,6 +47,7 @@ type Entries []*Entry
 type FrontMatter struct {
 	Title              string         `yaml:"title,omitempty"`
 	Description        string         `yaml:"description,omitempty"`
+	URL                string         `yaml:"url,omitempty"`
 	Draft              bool           `yaml:"draft,omitempty"`
 	Date               time.Time      `yaml:"date,omitempty"`
 	LastMod            time.Time      `yaml:"lastmod,omitempty"`
