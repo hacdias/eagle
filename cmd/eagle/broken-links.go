@@ -71,28 +71,42 @@ var brokenLinksCmd = &cobra.Command{
 		}
 
 		isBroken := func(urlStr string) (bool, string, error) {
-			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, c.BaseURL) {
-				u, err := url.Parse(urlStr)
-				if err != nil {
-					return false, "", err
-				}
-
-				if strings.HasPrefix(u.Path, "/tags") {
-					return false, "", nil
-				}
-
-				u.Path = strings.TrimSuffix(u.Path, "/")
-
-				_, err = fs.GetEntry(u.Path)
-				if err != nil {
-					_, err := fs.ReadFile(filepath.Join("content", u.Path))
-					if err != nil {
-						return true, u.Path, nil
-					}
-				}
+			if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.BaseURL) {
+				return false, "", nil
 			}
 
-			return false, "", nil
+			u, err := url.Parse(urlStr)
+			if err != nil {
+				return false, "", err
+			}
+
+			if strings.HasPrefix(u.Path, "/tags") {
+				return false, "", nil
+			}
+
+			u.Path = strings.TrimSuffix(u.Path, "/")
+
+			_, err = fs.GetEntry(u.Path)
+			if err == nil {
+				return false, "", nil
+			}
+
+			_, err = fs.GetEntry("/categories" + u.Path)
+			if err == nil {
+				return false, "", nil
+			}
+
+			_, err = fs.ReadFile(filepath.Join("content", u.Path))
+			if err == nil {
+				return false, "", nil
+			}
+
+			_, err = fs.ReadFile(filepath.Join("static", u.Path))
+			if err == nil {
+				return false, "", nil
+			}
+
+			return true, u.Path, nil
 		}
 
 		printBroken := func(e *core.Entry, what string, urls []string) {
