@@ -17,10 +17,20 @@ func NewParser(baseURL string) *Parser {
 }
 
 func (p *Parser) Parse(id, raw string) (*Entry, error) {
-	id = cleanID(id)
 	splits := strings.SplitN(raw, "\n---", 2)
 	if len(splits) != 2 {
 		return nil, errors.New("could not parse file: splits !== 2")
+	}
+
+	fr := &FrontMatter{}
+	err := yaml.Unmarshal([]byte(splits[0]), &fr)
+	if err != nil {
+		return nil, err
+	}
+
+	id = cleanID(id)
+	if fr.URL != "" {
+		id = fr.URL
 	}
 
 	permalink, err := p.makePermalink(id)
@@ -39,16 +49,9 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 		ID:          id,
 		Permalink:   permalink,
 		Content:     content,
-		FrontMatter: FrontMatter{},
+		FrontMatter: *fr,
 	}
 
-	fr := &FrontMatter{}
-	err = yaml.Unmarshal([]byte(splits[0]), &fr)
-	if err != nil {
-		return nil, err
-	}
-
-	e.FrontMatter = *fr
 	return e, nil
 }
 
