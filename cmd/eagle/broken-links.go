@@ -60,9 +60,6 @@ var brokenLinksCmd = &cobra.Command{
 
 			urls := md.md.urls
 
-			if e.Bookmark != "" {
-				urls = append(urls, e.Bookmark)
-			}
 			if e.Reply != "" {
 				urls = append(urls, e.Reply)
 			}

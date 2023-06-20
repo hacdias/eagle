@@ -29,6 +29,7 @@ type Config struct {
 	XRay          *XRay
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
+	Linkding      *Linkding
 	ImgProxy      *ImgProxy
 }
 
@@ -184,6 +185,11 @@ type BunnyCDN struct {
 }
 
 type Miniflux struct {
+	Endpoint string
+	Key      string
+}
+
+type Linkding struct {
 	Endpoint string
 	Key      string
 }

@@ -42,7 +42,6 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	e.Title, _ = lo.Coalesce(query.Get("title"), e.Title)
 	e.Description, _ = lo.Coalesce(query.Get("description"), e.Description)
 	e.Reply, _ = lo.Coalesce(query.Get("reply"), e.Reply)
-	e.Bookmark, _ = lo.Coalesce(query.Get("bookmark"), e.Bookmark)
 	e.ID, _ = lo.Coalesce(query.Get("id"), e.ID)
 	e.Content, _ = lo.Coalesce(query.Get("content"), e.Content)
 	if v := query.Get("categories"); v != "" {

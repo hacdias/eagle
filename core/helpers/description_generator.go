@@ -11,9 +11,7 @@ func GenerateDescription(e *core.Entry, replaceDescription bool) {
 		return
 	}
 
-	if e.Bookmark != "" {
-		e.Description = "Bookmarked a post on " + domain(e.Bookmark)
-	} else if e.Reply != "" {
+	if e.Reply != "" {
 		e.Description = "Replied to a post on " + domain(e.Reply)
 	}
 }

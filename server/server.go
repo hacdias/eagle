@@ -23,6 +23,7 @@ import (
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
+	"github.com/hacdias/eagle/services/linkding"
 	"github.com/hacdias/eagle/services/media"
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
@@ -159,6 +160,16 @@ func NewServer(c *core.Config) (*Server, error) {
 			errs,
 			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateBlogroll),
 			s.RegisterAction("Update Miniflux Blogroll", mf.UpdateBlogroll),
+		)
+	}
+
+	if c.Linkding != nil {
+		ld := linkding.NewBookmarksUpdater(c.Linkding, s.fs)
+
+		errs = multierror.Append(
+			errs,
+			s.RegisterCron("00 00 * * *", "Linkding Bookmarks", ld.UpdateBookmarks),
+			s.RegisterAction("Update Linkding Bookmarks", ld.UpdateBookmarks),
 		)
 	}
 

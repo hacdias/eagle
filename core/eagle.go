@@ -54,7 +54,6 @@ type FrontMatter struct {
 	NoSendInteractions bool           `yaml:"noSendInteractions,omitempty"`
 	CoverImage         string         `yaml:"coverImage,omitempty"`
 	NoIndex            bool           `yaml:"noIndex,omitempty"`
-	NoPagination       bool           `yaml:"noPagination,omitempty"`
 	Tags               []string       `yaml:"tags,omitempty"`
 	Categories         []string       `yaml:"categories,omitempty"`
 	Layout             string         `yaml:"layout,omitempty"`
@@ -63,7 +62,6 @@ type FrontMatter struct {
 	Context            *Context       `yaml:"context,omitempty"`
 	Syndications       []string       `yaml:"syndications,omitempty"`
 	Reply              string         `yaml:"reply,omitempty"`
-	Bookmark           string         `yaml:"bookmark,omitempty"`
 	Read               *Read          `yaml:"read,omitempty"`
 	Rating             int            `yaml:"rating,omitempty"`
 	FavoritePosts      []string       `yaml:"favoritePosts,omitempty"`
