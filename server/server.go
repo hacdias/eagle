@@ -160,10 +160,18 @@ func NewServer(c *core.Config) (*Server, error) {
 
 	s.initWebFinger()
 
-	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
-		s.syncStorage()
-		return nil
-	}), s.loadRedirects(), s.loadGone(), s.loadLinks())
+	errs = multierror.Append(errs,
+		s.RegisterCron("00 00 * * *", "Update External Links", func() error {
+			return s.fs.UpdateExternalLinks()
+		}),
+		s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
+			s.syncStorage()
+			return nil
+		}),
+		s.loadRedirects(),
+		s.loadGone(),
+		s.loadLinks(),
+	)
 
 	err = errs.ErrorOrNil()
 	return s, err
@@ -249,17 +257,11 @@ func (s *Server) initActions() {
 			go s.syncStorage()
 			return nil
 		},
-		"Reload Redirects": func() error {
-			return s.loadRedirects()
-		},
-		"Reload Gone": func() error {
-			return s.loadGone()
-		},
-		"Reload External Links": func() error {
-			return s.loadLinks()
-		},
+		"Reload Redirects":      s.loadRedirects,
+		"Reload Gone":           s.loadGone,
+		"Reload External Links": s.loadLinks,
 		"Update External Links": func() error {
-			err := s.fs.WriteExternalLinks()
+			err := s.fs.UpdateExternalLinks()
 			if err != nil {
 				return err
 			}

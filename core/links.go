@@ -44,7 +44,7 @@ func (f *FS) LoadExternalLinks() ([]Links, error) {
 	return links, nil
 }
 
-func (f *FS) WriteExternalLinks() error {
+func (f *FS) UpdateExternalLinks() error {
 	ee, err := f.GetEntries(false)
 	if err != nil {
 		return err

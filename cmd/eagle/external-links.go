@@ -18,6 +18,6 @@ var externalLinksCmd = &cobra.Command{
 		}
 
 		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
-		return fs.WriteExternalLinks()
+		return fs.UpdateExternalLinks()
 	},
 }
