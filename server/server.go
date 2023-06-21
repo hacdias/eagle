@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/core/helpers"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
@@ -29,7 +28,6 @@ import (
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
 	"github.com/hacdias/indieauth/v3"
-	"github.com/hacdias/maze"
 	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
@@ -44,27 +42,21 @@ type Server struct {
 	c *core.Config
 	i *core.Indexer
 
-	log        *zap.SugaredLogger
-	ias        *indieauth.Server
-	jwtAuth    *jwtauth.JWTAuth
-	actions    map[string]func() error
-	cron       *cron.Cron
-	redirects  map[string]string
-	gone       map[string]bool
-	archetypes map[string]core.Archetype
-	webFinger  *core.WebFinger
+	log       *zap.SugaredLogger
+	ias       *indieauth.Server
+	jwtAuth   *jwtauth.JWTAuth
+	actions   map[string]func() error
+	cron      *cron.Cron
+	redirects map[string]string
+	gone      map[string]bool
+	webFinger *core.WebFinger
 
 	server *http.Server
 
 	fs        *core.FS
 	hugo      *core.Hugo
 	media     *media.Media
-	parser    *core.Parser
-	maze      *maze.Maze
 	guestbook guestbookStorage
-
-	locationFetcher *helpers.LocationFetcher
-	contextFetcher  *helpers.ContextFetcher
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -117,37 +109,22 @@ func NewServer(c *core.Config) (*Server, error) {
 	}
 
 	s := &Server{
-		n:          notifier,
-		c:          c,
-		i:          core.NewIndexer(fs, postgres),
-		log:        log.S().Named("server"),
-		ias:        indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth:    jwtauth.New("HS256", []byte(secret), nil),
-		cron:       cron.New(),
-		redirects:  map[string]string{},
-		archetypes: core.DefaultArchetypes,
-		fs:         fs,
-		hugo:       hugo,
-		media:      m,
-		parser:     core.NewParser(c.BaseURL),
-		maze: maze.NewMaze(&http.Client{
-			Timeout: time.Minute,
-		}),
+		n:         notifier,
+		c:         c,
+		i:         core.NewIndexer(fs, postgres),
+		log:       log.S().Named("server"),
+		ias:       indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		jwtAuth:   jwtauth.New("HS256", []byte(secret), nil),
+		cron:      cron.New(),
+		redirects: map[string]string{},
+		fs:        fs,
+		hugo:      hugo,
+		media:     m,
 		guestbook: postgres,
-
-		locationFetcher: helpers.NewLocationFetcher(fs, c.Language),
 	}
 
 	s.hugo.BuildHook = s.buildHook
 	s.initActions()
-
-	if c.XRay != nil && c.XRay.Endpoint != "" {
-		xray, err := helpers.NewContextFetcher(c, s.fs)
-		if err != nil {
-			return nil, err
-		}
-		s.contextFetcher = xray
-	}
 
 	var errs *multierror.Error
 

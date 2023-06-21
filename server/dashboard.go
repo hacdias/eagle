@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -36,6 +37,9 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 
 	if r.Form.Get("action") != "" {
 		s.dashboardPostAction(w, r)
+		return
+	} else if r.Form.Get("guestbook-action") != "" {
+		s.dashboardPostGuestbook(w, r)
 		return
 	} else if r.Form.Get("token") == "true" {
 		s.dashboardPostToken(w, r)
@@ -106,8 +110,6 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
 	}
-
-	fmt.Println(header.Filename)
 
 	ext := filepath.Ext(header.Filename)
 	if ext == "" {
@@ -180,6 +182,29 @@ func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *da
 		tokenNode.ReplaceWithSelection(tokenNode.Children())
 	} else {
 		tokenNode.Remove()
+	}
+
+	guestbookEntries, err := s.guestbook.GetGuestbookEntries(r.Context())
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting guestbook entries: %w", err))
+		return
+	}
+	guestbookNode := doc.Find("eagle-guestbook-entries")
+	if len(guestbookEntries) != 0 {
+		guestbookEntryTemplate := doc.Find("eagle-guestbook-entry")
+		guestbookNode.Empty()
+		for _, e := range guestbookEntries {
+			node := guestbookEntryTemplate.Clone()
+			node.Find("eagle-guestbook-name").ReplaceWithHtml(e.Name)
+			node.Find("eagle-guestbook-website").ReplaceWithHtml(e.Website)
+			node.Find("eagle-guestbook-date").ReplaceWithHtml(e.Date.String())
+			node.Find("eagle-guestbook-content").ReplaceWithHtml(e.Content)
+			node.Find("input[name='guestbook-id']").SetAttr("value", strconv.Itoa(e.ID))
+			guestbookNode.AppendSelection(node.Children())
+		}
+		guestbookNode.ReplaceWithSelection(guestbookNode.Children())
+	} else {
+		guestbookNode.Remove()
 	}
 
 	s.serveDocument(w, r, doc, http.StatusOK)

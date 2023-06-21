@@ -5,20 +5,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hacdias/maze"
 	yaml "gopkg.in/yaml.v2"
 )
 
 type Entry struct {
 	FrontMatter
-	Path      string // The original path of the file. Might be empty.
 	ID        string
+	IsList    bool
 	Permalink string
 	Content   string
-}
-
-func (e *Entry) IsList() bool {
-	return strings.Contains(e.Path, "_index.md")
 }
 
 func (e *Entry) Deleted() bool {
@@ -45,33 +40,21 @@ func (e *Entry) TextContent() string {
 type Entries []*Entry
 
 type FrontMatter struct {
-	Title         string         `yaml:"title,omitempty"`
-	Description   string         `yaml:"description,omitempty"`
-	URL           string         `yaml:"url,omitempty"`
-	Draft         bool           `yaml:"draft,omitempty"`
-	Date          time.Time      `yaml:"date,omitempty"`
-	LastMod       time.Time      `yaml:"lastmod,omitempty"`
-	ExpiryDate    time.Time      `yaml:"expiryDate,omitempty"`
-	CoverImage    string         `yaml:"coverImage,omitempty"`
-	NoIndex       bool           `yaml:"noIndex,omitempty"`
-	Tags          []string       `yaml:"tags,omitempty"`
-	Categories    []string       `yaml:"categories,omitempty"`
-	Layout        string         `yaml:"layout,omitempty"`
-	RawLocation   string         `yaml:"rawLocation,omitempty"`
-	Location      *maze.Location `yaml:"location,omitempty"`
-	Context       *Context       `yaml:"context,omitempty"`
-	Syndications  []string       `yaml:"syndications,omitempty"`
-	Reply         string         `yaml:"reply,omitempty"`
-	Read          *Read          `yaml:"read,omitempty"`
-	Rating        int            `yaml:"rating,omitempty"`
-	FavoritePosts []string       `yaml:"favoritePosts,omitempty"`
-}
-
-type Context struct {
-	Author    string    `yaml:"name,omitempty"` // TODO: rename 'name' to 'author' at some point.
-	URL       string    `yaml:"url,omitempty"`
-	Content   string    `yaml:"content,omitempty"`
-	Published time.Time `yaml:"published,omitempty"`
+	Title         string    `yaml:"title,omitempty"`
+	Description   string    `yaml:"description,omitempty"`
+	URL           string    `yaml:"url,omitempty"`
+	Draft         bool      `yaml:"draft,omitempty"`
+	Date          time.Time `yaml:"date,omitempty"`
+	LastMod       time.Time `yaml:"lastmod,omitempty"`
+	ExpiryDate    time.Time `yaml:"expiryDate,omitempty"`
+	CoverImage    string    `yaml:"coverImage,omitempty"`
+	NoIndex       bool      `yaml:"noIndex,omitempty"`
+	Tags          []string  `yaml:"tags,omitempty"`
+	Layout        string    `yaml:"layout,omitempty"`
+	Syndications  []string  `yaml:"syndications,omitempty"`
+	Read          *Read     `yaml:"read,omitempty"`
+	Rating        int       `yaml:"rating,omitempty"`
+	FavoritePosts []string  `yaml:"favoritePosts,omitempty"`
 }
 
 type Read struct {

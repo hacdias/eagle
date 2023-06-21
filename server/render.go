@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -16,26 +15,6 @@ import (
 const (
 	templateAdminBar string = "admin-bar.html"
 )
-
-func (s *Server) renderAdminBar(data interface{}) ([]byte, error) {
-	raw, err := s.fs.ReadFile(templateAdminBar)
-	if err != nil {
-		return nil, err
-	}
-
-	tpl, err := template.New("admin-bar").Parse(string(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	var buf bytes.Buffer
-	err = tpl.Execute(&buf, data)
-	if err != nil {
-		return nil, fmt.Errorf("error executing admin bar template: %w", err)
-	}
-
-	return buf.Bytes(), nil
-}
 
 // captureResponseWriter captures the content of an HTML response. If the response
 // is HTML, the Content-Length header will also be removed. All other headers,
@@ -90,18 +69,27 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 				return
 			}
 
-			e, _ := s.fs.GetEntry(r.URL.Path)
-
-			html, err := s.renderAdminBar(map[string]interface{}{
-				"Entry": e,
-			})
-			if err == nil {
-				tag := []byte("<body>")
-				html = append([]byte("<body>"), html...)
-				_, err = w.Write(bytes.Replace(crw.body, tag, html, 1))
+			doc, err := goquery.NewDocumentFromReader(bytes.NewReader(crw.body))
+			if err != nil {
+				s.log.Warn("could not parse document", err)
+				return
 			}
 
-			if err != nil {
+			adminBarHTML, err := s.fs.ReadFile(templateAdminBar)
+			if err == nil {
+				doc.Find("body").PrependHtml(string(adminBarHTML))
+				raw, err := doc.Html()
+				if err != nil {
+					s.log.Warn("could not convert document", err)
+					return
+				}
+
+				_, err = w.Write([]byte(raw))
+				if err != nil {
+					s.log.Warn("could not write document", err)
+					return
+				}
+			} else {
 				s.log.Warn("could not inject admin bar", err)
 			}
 
