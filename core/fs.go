@@ -286,6 +286,9 @@ func (fs *FS) LoadRedirects(ignoreMalformed bool) (map[string]string, error) {
 
 	data, err := fs.afero.ReadFile(RedirectsFile)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return redirects, nil
+		}
 		return nil, err
 	}
 
@@ -312,6 +315,9 @@ func (fs *FS) LoadGone() (map[string]bool, error) {
 
 	data, err := fs.afero.ReadFile(GoneFile)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return gone, nil
+		}
 		return nil, err
 	}
 
