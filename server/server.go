@@ -21,12 +21,12 @@ import (
 	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/services/bunny"
+	"github.com/hacdias/eagle/services/database"
 	"github.com/hacdias/eagle/services/imgproxy"
 	"github.com/hacdias/eagle/services/linkding"
 	"github.com/hacdias/eagle/services/media"
 	"github.com/hacdias/eagle/services/meilisearch"
 	"github.com/hacdias/eagle/services/miniflux"
-	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
 	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
@@ -55,10 +55,10 @@ type Server struct {
 
 	meilisearch *meilisearch.MeiliSearch
 
-	fs        *core.FS
-	hugo      *core.Hugo
-	media     *media.Media
-	guestbook guestbookStorage
+	fs     *core.FS
+	hugo   *core.Hugo
+	media  *media.Media
+	badger *database.Database
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -105,7 +105,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		m = media.NewMedia(storage, transformer)
 	}
 
-	postgres, err := postgres.NewPostgres(&c.PostgreSQL)
+	badger, err := database.NewDatabase(filepath.Join(c.DataDirectory, "bolt.db"))
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		fs:        fs,
 		hugo:      hugo,
 		media:     m,
-		guestbook: postgres,
+		badger:    badger,
 	}
 
 	if c.MeiliSearch != nil {
@@ -231,6 +231,7 @@ func (s *Server) Stop() error {
 
 	var errs *multierror.Error
 	errs = multierror.Append(errs, s.server.Shutdown(ctx))
+	errs = multierror.Append(errs, s.badger.Close())
 	return errs.ErrorOrNil()
 }
 

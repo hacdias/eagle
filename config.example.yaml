@@ -6,7 +6,9 @@ development: false
 # The location of the Hugo's source.
 sourceDirectory: /app/source
 # The directory where the public files will be stored.
-publicDirectory: /app/source
+publicDirectory: /app/public
+# The directory where Eagle will store some data.
+dataDirectory: /app/data
 # The port to listen on.
 port: 8080
 # The base URL from which the website is served.
@@ -23,19 +25,6 @@ language: en
 title: "The Website Title"
 # Number of items in lists.
 pagination: 10
-
-# Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
-meilisearch:
-  endpoint: myUrl
-  key: myKey
-
-# Database for indexing.
-postgresql:
-  user: postgres
-  password: password
-  host: 127.0.0.1
-  port: 5432
-  database: some-database
 
 # User configuration.
 user:
@@ -62,6 +51,11 @@ bunnycdn:
   zone: someBunnyZone
   key: someBunnySecret
   base: someBunnyBase
+
+# Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
+meilisearch:
+  endpoint: myUrl
+  key: myKey
 
 # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
 miniflux:

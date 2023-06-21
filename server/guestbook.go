@@ -1,26 +1,17 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/hacdias/eagle/core"
 	"github.com/microcosm-cc/bluemonday"
 )
-
-type guestbookStorage interface {
-	AddGuestbookEntry(ctx context.Context, entry *core.GuestbookEntry) error
-	GetGuestbookEntry(ctx context.Context, id int) (core.GuestbookEntry, error)
-	GetGuestbookEntries(ctx context.Context) (core.GuestbookEntries, error)
-	DeleteGuestbookEntry(ctx context.Context, id int) error
-}
 
 var (
 	guestbookPath     = "/guestbook/"
@@ -55,7 +46,7 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	s.log.Infow("received guestbook entry", "name", name, "website", website, "content", content)
 
-	err := s.guestbook.AddGuestbookEntry(r.Context(), &core.GuestbookEntry{
+	err := s.badger.AddGuestbookEntry(r.Context(), &core.GuestbookEntry{
 		Name:    name,
 		Website: website,
 		Content: content,
@@ -72,15 +63,11 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) dashboardPostGuestbook(w http.ResponseWriter, r *http.Request) {
 	action := r.Form.Get("guestbook-action")
-	id, err := strconv.Atoi(r.Form.Get("guestbook-id"))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
-		return
-	}
+	id := r.Form.Get("guestbook-id")
 
 	switch action {
 	case "approve":
-		e, err := s.guestbook.GetGuestbookEntry(r.Context(), id)
+		e, err := s.badger.GetGuestbookEntry(r.Context(), id)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
@@ -110,7 +97,7 @@ func (s *Server) dashboardPostGuestbook(w http.ResponseWriter, r *http.Request) 
 
 		fallthrough
 	case "delete":
-		err = s.guestbook.DeleteGuestbookEntry(r.Context(), id)
+		err := s.badger.DeleteGuestbookEntry(r.Context(), id)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return

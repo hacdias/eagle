@@ -1,15 +1,7 @@
-.PHONY: build pgadmin postgres ngrok imgproxy
+.PHONY: build pgadmin meilisearch ngrok imgproxy
 
 build:
 	go build -o main ./cmd/eagle
-
-postgres:
-	docker run \
-		-p 5432:5432 \
-		-e POSTGRES_USER=postgres \
-		-e POSTGRES_PASSWORD=pgpassword \
-		-e POSTGRES_DB=eagle \
-		postgres
 
 meilisearch:
 	docker run -it --rm \

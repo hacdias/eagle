@@ -8,3 +8,4 @@ main
 node_modules
 source
 cmd/eagle/tmp.go
+data
