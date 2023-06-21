@@ -135,7 +135,7 @@ func (ms *MeiliSearch) Search(page, limit int64, query string) (core.Entries, er
 		entry, err := ms.fs.GetEntry(id)
 		if err != nil {
 			if os.IsNotExist(err) {
-				ms.Remove(id)
+				_ = ms.Remove(id)
 			} else {
 				return nil, err
 			}
