@@ -44,21 +44,6 @@ func (d *Postgres) Remove(ids ...string) {
 	}
 }
 
-func (d *Postgres) GetDrafts(opts *core.Pagination) ([]string, error) {
-	sql := "select id from entries where isDraft=true order by published_at desc" + d.offset(opts)
-	return d.queryEntries(sql, 0)
-}
-
-func (d *Postgres) GetUnlisted(opts *core.Pagination) ([]string, error) {
-	sql := "select id from entries where isUnlisted=true order by published_at desc" + d.offset(opts)
-	return d.queryEntries(sql, 0)
-}
-
-func (d *Postgres) GetDeleted(opts *core.Pagination) ([]string, error) {
-	sql := "select id from entries where isDeleted=true order by published_at desc" + d.offset(opts)
-	return d.queryEntries(sql, 0)
-}
-
 func (d *Postgres) GetSearch(opts *core.Query, query string) ([]string, error) {
 	mainSelect := "select ts_rank_cd(ts, plainto_tsquery('english', $1)) as score, id, isDraft, isDeleted, isUnlisted"
 	mainFrom := "from entries as e"
@@ -75,31 +60,6 @@ func (d *Postgres) GetSearch(opts *core.Query, query string) ([]string, error) {
 
 	sql += ` order by score desc` + d.offset(&opts.Pagination)
 	return d.queryEntries(sql, 1, args...)
-}
-
-func (d *Postgres) GetCount() (int, error) {
-	sql := `select count(*) from entries;`
-
-	rows, err := d.pool.Query(context.Background(), sql)
-	if err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var n int
-
-	_ = rows.Next()
-
-	err = rows.Scan(&n)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := rows.Err(); err != nil {
-		return 0, err
-	}
-
-	return n, nil
 }
 
 func (d *Postgres) ClearEntries() {

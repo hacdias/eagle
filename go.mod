@@ -25,6 +25,7 @@ require (
 	github.com/yuin/goldmark v1.5.4
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.10.0
+	golang.org/x/net v0.11.0
 	gopkg.in/telebot.v3 v3.1.3
 	gopkg.in/yaml.v2 v2.4.0
 	miniflux.app v0.0.0-20230619225740-d00803617e04
@@ -64,7 +65,6 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
-	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.9.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
