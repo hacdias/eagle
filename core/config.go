@@ -25,7 +25,6 @@ type Config struct {
 	PostgreSQL    PostgreSQL
 	User          User
 	Notifications Notifications
-	XRay          *XRay
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
 	Linkding      *Linkding
@@ -166,10 +165,6 @@ type Telegram struct {
 
 type Notifications struct {
 	Telegram *Telegram
-}
-
-type XRay struct {
-	Endpoint string
 }
 
 type BunnyCDN struct {

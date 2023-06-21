@@ -6,9 +6,7 @@ import (
 	"hash/fnv"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -115,17 +113,4 @@ func (h *Hugo) Build(clean bool) error {
 	}
 
 	return nil
-}
-
-func (h *Hugo) GetEntryHTML(entry *Entry) ([]byte, error) {
-	filename := entry.ID
-	if !strings.HasSuffix(filename, ".html") {
-		filename = path.Join(filename, "index.html")
-	}
-
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	filename = filepath.Join(h.current, filename)
-	return h.fs.ReadFile(filename)
 }

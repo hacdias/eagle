@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hacdias/eagle/core"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -135,16 +136,7 @@ func getMarkdownURLs(e *core.Entry) ([]string, error) {
 		return nil, err
 	}
 
-	urls := md.md.urls
-
-	if e.Reply != "" {
-		urls = append(urls, e.Reply)
-	}
-	if e.Context != nil {
-		urls = append(urls, e.Context.URL)
-	}
-
-	return urls, nil
+	return lo.Uniq(md.md.urls), nil
 }
 
 type markdown struct {

@@ -16,19 +16,12 @@ var DefaultArchetypes = map[string]Archetype{
 	"default": func(c *Config, r *http.Request) *Entry {
 		return &Entry{
 			FrontMatter: FrontMatter{
-				Categories: []string{"micro"},
-			},
-		}
-	},
-	"article": func(c *Config, r *http.Request) *Entry {
-		return &Entry{
-			FrontMatter: FrontMatter{
 				Title: "Article Title",
 				Draft: true,
 				Tags:  []string{"example"},
 			},
 			Content: "Code is poetry...",
-			ID:      NewID("my-article", time.Now()),
+			ID:      newID("articles", "my-article"),
 		}
 	},
 	"now": func(c *Config, r *http.Request) *Entry {
@@ -37,14 +30,13 @@ var DefaultArchetypes = map[string]Archetype{
 
 		return &Entry{
 			FrontMatter: FrontMatter{
-				Draft:      true,
-				Title:      fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
-				Date:       t,
-				Categories: []string{"articles"},
-				Tags:       []string{"now"},
+				Draft: true,
+				Title: fmt.Sprintf("Recently in %s '%s", month, t.Format("06")),
+				Date:  t,
+				Tags:  []string{"now"},
 			},
 			Content: "How was last month?",
-			ID:      NewID(fmt.Sprintf("%s-%s", strings.ToLower(month), t.Format("06")), time.Now()),
+			ID:      newID("articles", fmt.Sprintf("%s-%s", strings.ToLower(month), t.Format("06"))),
 		}
 	},
 	"book": func(c *Config, r *http.Request) *Entry {
@@ -57,11 +49,10 @@ var DefaultArchetypes = map[string]Archetype{
 
 		date := time.Now().Local()
 		return &Entry{
-			ID: NewID(Slugify(name), time.Now()),
+			ID: newID("readings", slugify(name)),
 			FrontMatter: FrontMatter{
-				Title:      fmt.Sprintf("Read \"%s\" by %s", name, author),
-				Date:       date,
-				Categories: []string{"readings"},
+				Title: fmt.Sprintf("Read \"%s\" by %s", name, author),
+				Date:  date,
 				Read: &Read{
 					Author:    author,
 					Name:      name,

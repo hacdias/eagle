@@ -107,7 +107,7 @@ func (fs *FS) GetEntry(id string) (*Entry, error) {
 		return nil, err
 	}
 
-	e.Path = filename
+	e.IsList = strings.Contains(filename, "_index.md")
 	return e, nil
 }
 
@@ -132,7 +132,7 @@ func (fs *FS) GetEntries(includeList bool) (Entries, error) {
 			return err
 		}
 
-		if !e.IsList() || includeList {
+		if !e.IsList || includeList {
 			ee = append(ee, e)
 		}
 
@@ -226,12 +226,9 @@ func (f *FS) TransformEntry(id, message string, transformers ...EntryTransformer
 
 func (f *FS) saveEntry(e *Entry, message string) error {
 	e.Tags = cleanTaxonomy(e.Tags)
-	e.Categories = cleanTaxonomy(e.Categories)
 
-	if e.Path == "" {
-		e.Path = f.guessFilename(e.ID)
-	}
-	err := f.afero.MkdirAll(filepath.Dir(e.Path), 0777)
+	filename := f.guessFilename(e.ID)
+	err := f.afero.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
 		return err
 	}
@@ -245,7 +242,7 @@ func (f *FS) saveEntry(e *Entry, message string) error {
 		message = "entry: update " + e.ID
 	}
 
-	err = f.WriteFile(e.Path, []byte(str), message)
+	err = f.WriteFile(filename, []byte(str), message)
 	if err != nil {
 		return fmt.Errorf("could not save entry: %w", err)
 	}
@@ -264,7 +261,7 @@ func (f *FS) guessFilename(id string) string {
 
 func cleanTaxonomy(els []string) []string {
 	for i := range els {
-		els[i] = Slugify(els[i])
+		els[i] = slugify(els[i])
 	}
 
 	return lo.Uniq(els)

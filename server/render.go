@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/hacdias/eagle/core"
 )
 
 const (
@@ -90,18 +91,35 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 				return
 			}
 
-			e, _ := s.fs.GetEntry(r.URL.Path)
+			doc, err := goquery.NewDocumentFromReader(bytes.NewReader(crw.body))
+			if err != nil {
+				s.log.Warn("could not parse document", err)
+				return
+			}
+
+			var e *core.Entry
+			path, ok := doc.Find("meta[name='hugo-path']").Attr("content")
+			if ok {
+				e, _ = s.fs.GetEntry(filepath.Dir(path))
+			}
 
 			html, err := s.renderAdminBar(map[string]interface{}{
 				"Entry": e,
 			})
 			if err == nil {
-				tag := []byte("<body>")
-				html = append([]byte("<body>"), html...)
-				_, err = w.Write(bytes.Replace(crw.body, tag, html, 1))
-			}
+				doc.Find("body").PrependHtml(string(html))
+				raw, err := doc.Html()
+				if err != nil {
+					s.log.Warn("could not convert document", err)
+					return
+				}
 
-			if err != nil {
+				_, err = w.Write([]byte(raw))
+				if err != nil {
+					s.log.Warn("could not write document", err)
+					return
+				}
+			} else {
 				s.log.Warn("could not inject admin bar", err)
 			}
 

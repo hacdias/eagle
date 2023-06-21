@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/core/helpers"
 	"github.com/samber/lo"
 )
 
@@ -41,12 +40,8 @@ func (s *Server) newGet(w http.ResponseWriter, r *http.Request) {
 	// Override some properties according to query URL values.
 	e.Title, _ = lo.Coalesce(query.Get("title"), e.Title)
 	e.Description, _ = lo.Coalesce(query.Get("description"), e.Description)
-	e.Reply, _ = lo.Coalesce(query.Get("reply"), e.Reply)
 	e.ID, _ = lo.Coalesce(query.Get("id"), e.ID)
 	e.Content, _ = lo.Coalesce(query.Get("content"), e.Content)
-	if v := query.Get("categories"); v != "" {
-		e.Categories = strings.Split(v, ",")
-	}
 	if v := query.Get("tags"); v != "" {
 		e.Tags = strings.Split(v, ",")
 	}
@@ -87,7 +82,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().Local()
 	id := r.FormValue("id")
 	if id == "" {
-		id = core.NewID("", now)
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("id cannot be empty"))
 	}
 
 	content := r.FormValue("content")
@@ -125,7 +120,7 @@ func (s *Server) newPost(w http.ResponseWriter, r *http.Request) {
 	if e.Draft {
 		http.Redirect(w, r, path.Join(editPath, e.ID), http.StatusSeeOther)
 	} else {
-		http.Redirect(w, r, e.ID, http.StatusSeeOther)
+		http.Redirect(w, r, e.Permalink, http.StatusSeeOther)
 	}
 }
 
@@ -237,12 +232,11 @@ func (s *Server) editPost(w http.ResponseWriter, r *http.Request) {
 	if e.Draft {
 		http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
 	} else {
-		http.Redirect(w, r, e.ID, http.StatusSeeOther)
+		http.Redirect(w, r, e.Permalink, http.StatusSeeOther)
 	}
 }
 
 func (s *Server) preSaveEntry(e *core.Entry) error {
-	helpers.GenerateDescription(e, false)
 	return nil
 }
 
@@ -253,11 +247,6 @@ func (s *Server) postSaveEntry(e *core.Entry) {
 	}
 
 	err = s.locationFetcher.FetchLocation(e)
-	if err != nil {
-		s.n.Error(err)
-	}
-
-	err = s.contextFetcher.EnsureXRay(e, false)
 	if err != nil {
 		s.n.Error(err)
 	}

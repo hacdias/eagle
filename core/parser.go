@@ -2,11 +2,16 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	urlpkg "net/url"
 	"strings"
 
+	"github.com/samber/lo"
 	yaml "gopkg.in/yaml.v2"
 )
+
+// TODO: do not hardcode these.
+var sections = []string{"articles", "photos", "readings", "photos"}
 
 type Parser struct {
 	baseURL string
@@ -29,11 +34,8 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 	}
 
 	id = cleanID(id)
-	if fr.URL != "" {
-		id = fr.URL
-	}
 
-	permalink, err := p.makePermalink(id)
+	permalink, err := p.makePermalink(id, fr)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +57,23 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 	return e, nil
 }
 
-func (p *Parser) makePermalink(id string) (string, error) {
+func (p *Parser) makePermalink(id string, fr *FrontMatter) (string, error) {
 	url, err := urlpkg.Parse(p.baseURL)
 	if err != nil {
 		return "", err
 	}
-	url.Path = id
+
+	if fr.URL != "" {
+		url.Path = cleanID(fr.URL)
+		return url.String(), nil
+	}
+
+	parts := strings.Split(id, "/")
+	if lo.Contains(sections, parts[1]) && !fr.Date.IsZero() {
+		url.Path = fmt.Sprintf("/%04d/%02d/%02d/%s/", fr.Date.Year(), fr.Date.Month(), fr.Date.Day(), parts[len(parts)-2])
+	} else {
+		url.Path = id
+	}
+
 	return url.String(), nil
 }

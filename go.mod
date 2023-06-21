@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
-	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/jwtauth/v5 v5.1.0
@@ -12,7 +11,6 @@ require (
 	github.com/hacdias/maze v0.1.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.4.1
-	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.0.11
 	github.com/lopezator/migrator v0.3.1
 	github.com/microcosm-cc/bluemonday v1.0.24

@@ -54,9 +54,6 @@ func (l *LocationFetcher) parseLocation(str string) (*maze.Location, error) {
 
 	if strings.HasPrefix(str, "geo:") {
 		location, err = l.maze.ReverseGeoURI(l.language, str)
-	} else if strings.HasPrefix(str, "/") {
-		_, err = l.fs.GetEntry(str)
-		return nil, err
 	} else {
 		location, err = l.maze.Search(l.language, str)
 	}

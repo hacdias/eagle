@@ -11,14 +11,10 @@ import (
 
 type Entry struct {
 	FrontMatter
-	Path      string // The original path of the file. Might be empty.
 	ID        string
+	IsList    bool
 	Permalink string
 	Content   string
-}
-
-func (e *Entry) IsList() bool {
-	return strings.Contains(e.Path, "_index.md")
 }
 
 func (e *Entry) Deleted() bool {
@@ -55,13 +51,10 @@ type FrontMatter struct {
 	CoverImage    string         `yaml:"coverImage,omitempty"`
 	NoIndex       bool           `yaml:"noIndex,omitempty"`
 	Tags          []string       `yaml:"tags,omitempty"`
-	Categories    []string       `yaml:"categories,omitempty"`
 	Layout        string         `yaml:"layout,omitempty"`
 	RawLocation   string         `yaml:"rawLocation,omitempty"`
 	Location      *maze.Location `yaml:"location,omitempty"`
-	Context       *Context       `yaml:"context,omitempty"`
 	Syndications  []string       `yaml:"syndications,omitempty"`
-	Reply         string         `yaml:"reply,omitempty"`
 	Read          *Read          `yaml:"read,omitempty"`
 	Rating        int            `yaml:"rating,omitempty"`
 	FavoritePosts []string       `yaml:"favoritePosts,omitempty"`

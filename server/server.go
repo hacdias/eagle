@@ -64,7 +64,6 @@ type Server struct {
 	guestbook guestbookStorage
 
 	locationFetcher *helpers.LocationFetcher
-	contextFetcher  *helpers.ContextFetcher
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -140,14 +139,6 @@ func NewServer(c *core.Config) (*Server, error) {
 
 	s.hugo.BuildHook = s.buildHook
 	s.initActions()
-
-	if c.XRay != nil && c.XRay.Endpoint != "" {
-		xray, err := helpers.NewContextFetcher(c, s.fs)
-		if err != nil {
-			return nil, err
-		}
-		s.contextFetcher = xray
-	}
 
 	var errs *multierror.Error
 

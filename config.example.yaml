@@ -52,10 +52,6 @@ notifications:
     token: TelegramToken
     chatId: TelegramChat
 
-# Optional XRay configuration.
-xray:
-  endpoint: https://xray.p3k.app
-
 # Optional BunnyCDN (https://bunny.net) credentials used for the media upload.
 bunnycdn:
   zone: someBunnyZone
