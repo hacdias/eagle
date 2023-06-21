@@ -57,13 +57,6 @@ type FrontMatter struct {
 	FavoritePosts []string  `yaml:"favoritePosts,omitempty"`
 }
 
-type Context struct {
-	Author    string    `yaml:"name,omitempty"` // TODO: rename 'name' to 'author' at some point.
-	URL       string    `yaml:"url,omitempty"`
-	Content   string    `yaml:"content,omitempty"`
-	Published time.Time `yaml:"published,omitempty"`
-}
-
 type Read struct {
 	Name      string `yaml:"name,omitempty"`
 	Author    string `yaml:"author,omitempty"`
