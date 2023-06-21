@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -184,7 +183,7 @@ func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *da
 		tokenNode.Remove()
 	}
 
-	guestbookEntries, err := s.guestbook.GetGuestbookEntries(r.Context())
+	guestbookEntries, err := s.badger.GetGuestbookEntries(r.Context())
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting guestbook entries: %w", err))
 		return
@@ -199,7 +198,7 @@ func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *da
 			node.Find("eagle-guestbook-website").ReplaceWithHtml(e.Website)
 			node.Find("eagle-guestbook-date").ReplaceWithHtml(e.Date.String())
 			node.Find("eagle-guestbook-content").ReplaceWithHtml(e.Content)
-			node.Find("input[name='guestbook-id']").SetAttr("value", strconv.Itoa(e.ID))
+			node.Find("input[name='guestbook-id']").SetAttr("value", e.ID)
 			guestbookNode.AppendSelection(node.Children())
 		}
 		guestbookNode.ReplaceWithSelection(guestbookNode.Children())

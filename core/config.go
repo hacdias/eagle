@@ -13,6 +13,7 @@ type Config struct {
 	Development     bool
 	SourceDirectory string
 	PublicDirectory string
+	DataDirectory   string
 	Port            int
 	BaseURL         string
 	TokensSecret    string
@@ -23,7 +24,6 @@ type Config struct {
 	Pagination      int
 
 	MeiliSearch   *EndpointWithKey
-	PostgreSQL    PostgreSQL
 	User          User
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN
@@ -45,6 +45,11 @@ func (c *Config) validate() error {
 		return err
 	}
 
+	c.DataDirectory, err = filepath.Abs(c.DataDirectory)
+	if err != nil {
+		return err
+	}
+
 	if c.Port < 0 {
 		return fmt.Errorf("port should be above zero")
 	}
@@ -61,11 +66,6 @@ func (c *Config) validate() error {
 
 	if c.Pagination < 1 {
 		return errors.New("paginate must be larger than 1")
-	}
-
-	err = c.PostgreSQL.validate()
-	if err != nil {
-		return err
 	}
 
 	err = c.User.validate()
@@ -105,38 +105,6 @@ func (c *Config) RelativeURL(path string) string {
 	resolved.Host = ""
 	resolved.Scheme = ""
 	return resolved.String()
-}
-
-type PostgreSQL struct {
-	User     string
-	Password string
-	Host     string
-	Port     string
-	Database string
-}
-
-func (p *PostgreSQL) validate() error {
-	if p.User == "" {
-		return errors.New("postgresql.user is missing")
-	}
-
-	if p.Password == "" {
-		return errors.New("postgresql.password is missing")
-	}
-
-	if p.Host == "" {
-		return errors.New("postgresql.host is missing")
-	}
-
-	if p.Database == "" {
-		return errors.New("postgresql.database is missing")
-	}
-
-	if p.Port == "" {
-		return errors.New("postgresql.port is missing")
-	}
-
-	return nil
 }
 
 type User struct {

@@ -33,7 +33,7 @@ RUN apk update && \
   apk add --no-cache git ca-certificates openssh tzdata mailcap && \
   addgroup -g $UID eagle && \
   adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
-  mkdir /app /app/source /app/public /imgproxy && \
+  mkdir /app /app/source /app/public /app/data /imgproxy && \
   chown -R eagle:eagle /app /imgproxy
 
 USER eagle
@@ -44,6 +44,7 @@ RUN git config --global user.name "Eagle" && \
 WORKDIR /app
 VOLUME /app/source
 VOLUME /app/public
+VOLUME /app/data
 VOLUME /imgproxy
 
 EXPOSE 8080

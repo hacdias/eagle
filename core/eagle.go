@@ -88,7 +88,7 @@ type WebFingerLink struct {
 }
 
 type GuestbookEntry struct {
-	ID      int       `json:"-"`
+	ID      string    `json:"-"`
 	Name    string    `json:"name,omitempty"`
 	Website string    `json:"website,omitempty"`
 	Content string    `json:"content,omitempty"`
