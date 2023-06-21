@@ -63,6 +63,11 @@ miniflux:
   endpoint: minifluxEndpoint
   key: minifluxKey
 
+# Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
+linkding:
+  endpoint: minifluxEndpoint
+  key: minifluxKey
+
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
 imgproxy:
