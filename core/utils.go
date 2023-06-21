@@ -1,19 +1,13 @@
 package core
 
 import (
-	"fmt"
 	"html"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/microcosm-cc/bluemonday"
 	stripMarkdown "github.com/writeas/go-strip-markdown"
 )
-
-func newID(section, slug string) string {
-	return fmt.Sprintf("/%s/%04d/%s/", section, time.Now().Year(), slug)
-}
 
 func cleanID(id string) string {
 	id = path.Clean(id)
