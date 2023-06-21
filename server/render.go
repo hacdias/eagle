@@ -4,39 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/hacdias/eagle/core"
 )
 
 const (
 	templateAdminBar string = "admin-bar.html"
 )
-
-func (s *Server) renderAdminBar(data interface{}) ([]byte, error) {
-	raw, err := s.fs.ReadFile(templateAdminBar)
-	if err != nil {
-		return nil, err
-	}
-
-	tpl, err := template.New("admin-bar").Parse(string(raw))
-	if err != nil {
-		return nil, err
-	}
-
-	var buf bytes.Buffer
-	err = tpl.Execute(&buf, data)
-	if err != nil {
-		return nil, fmt.Errorf("error executing admin bar template: %w", err)
-	}
-
-	return buf.Bytes(), nil
-}
 
 // captureResponseWriter captures the content of an HTML response. If the response
 // is HTML, the Content-Length header will also be removed. All other headers,
@@ -97,17 +75,9 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 				return
 			}
 
-			var e *core.Entry
-			path, ok := doc.Find("meta[name='hugo-path']").Attr("content")
-			if ok {
-				e, _ = s.fs.GetEntry(filepath.Dir(path))
-			}
-
-			html, err := s.renderAdminBar(map[string]interface{}{
-				"Entry": e,
-			})
+			adminBarHTML, err := s.fs.ReadFile(templateAdminBar)
 			if err == nil {
-				doc.Find("body").PrependHtml(string(html))
+				doc.Find("body").PrependHtml(string(adminBarHTML))
 				raw, err := doc.Html()
 				if err != nil {
 					s.log.Warn("could not convert document", err)
