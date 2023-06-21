@@ -381,7 +381,7 @@ func (s *Server) syncStorage() {
 		entry, err := s.fs.GetEntry(id)
 		if os.IsNotExist(err) {
 			if s.meilisearch != nil {
-				s.meilisearch.Remove(id)
+				_ = s.meilisearch.Remove(id)
 			}
 			buildClean = true
 			continue
