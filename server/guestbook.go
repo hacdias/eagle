@@ -23,9 +23,8 @@ type guestbookStorage interface {
 }
 
 var (
-	guestbookPath      = "/guestbook/"
-	guestbookAdminPath = guestbookPath + "admin/"
-	guestbookFilename  = filepath.Join(core.DataDirectory, "guestbook.json")
+	guestbookPath     = "/guestbook/"
+	guestbookFilename = filepath.Join(core.DataDirectory, "guestbook.json")
 )
 
 func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
@@ -71,45 +70,9 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, r.URL.Path+"?youre=awesome", http.StatusFound)
 }
 
-func (s *Server) guestbookAdminGet(w http.ResponseWriter, r *http.Request) {
-	doc, err := s.getTemplateDocument(r.URL.Path)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	ee, err := s.guestbook.GetGuestbookEntries(r.Context())
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting guestbook entries: %w", err))
-		return
-	}
-
-	entriesNode := doc.Find("eagle-guestbook-entries")
-	entryTemplate := doc.Find("eagle-guestbook-entry")
-	entriesNode.Empty()
-
-	for _, e := range ee {
-		node := entryTemplate.Clone()
-		node.Find("eagle-guestbook-name").ReplaceWithHtml(e.Name)
-		node.Find("eagle-guestbook-website").ReplaceWithHtml(e.Website)
-		node.Find("eagle-guestbook-date").ReplaceWithHtml(e.Date.String())
-		node.Find("eagle-guestbook-content").ReplaceWithHtml(e.Content)
-		node.Find("input[name='id']").SetAttr("value", strconv.Itoa(e.ID))
-		entriesNode.AppendSelection(node.Children())
-	}
-
-	entriesNode.ReplaceWithSelection(entriesNode.Children())
-	s.serveDocument(w, r, doc, http.StatusOK)
-}
-
-func (s *Server) guestbookAdminPost(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("error parsing guestbook admin post: %w", err))
-		return
-	}
-
-	action := r.Form.Get("action")
-	id, err := strconv.Atoi(r.Form.Get("id"))
+func (s *Server) dashboardPostGuestbook(w http.ResponseWriter, r *http.Request) {
+	action := r.Form.Get("guestbook-action")
+	id, err := strconv.Atoi(r.Form.Get("guestbook-id"))
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
 		return
