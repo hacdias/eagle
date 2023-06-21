@@ -8,7 +8,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/jwtauth/v5 v5.1.0
 	github.com/hacdias/indieauth/v3 v3.1.0
-	github.com/hacdias/maze v0.1.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jackc/pgx/v5 v5.4.1
 	github.com/lestrrat-go/jwx/v2 v2.0.11
@@ -30,7 +29,6 @@ require (
 )
 
 require (
-	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
@@ -53,7 +51,6 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/paulmach/go.geojson v1.4.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect

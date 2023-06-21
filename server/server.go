@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/core/helpers"
 	"github.com/hacdias/eagle/log"
 	"github.com/hacdias/eagle/services/bunny"
 	"github.com/hacdias/eagle/services/imgproxy"
@@ -29,7 +28,6 @@ import (
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
 	"github.com/hacdias/indieauth/v3"
-	"github.com/hacdias/maze"
 	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
@@ -59,11 +57,7 @@ type Server struct {
 	fs        *core.FS
 	hugo      *core.Hugo
 	media     *media.Media
-	parser    *core.Parser
-	maze      *maze.Maze
 	guestbook guestbookStorage
-
-	locationFetcher *helpers.LocationFetcher
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -128,13 +122,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		fs:         fs,
 		hugo:       hugo,
 		media:      m,
-		parser:     core.NewParser(c.BaseURL),
-		maze: maze.NewMaze(&http.Client{
-			Timeout: time.Minute,
-		}),
-		guestbook: postgres,
-
-		locationFetcher: helpers.NewLocationFetcher(fs, c.Language),
+		guestbook:  postgres,
 	}
 
 	s.hugo.BuildHook = s.buildHook
