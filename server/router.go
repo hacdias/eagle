@@ -56,12 +56,6 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(dashboardPath, s.dashboardGet)
 		r.Post(dashboardPath, s.dashboardPost)
 
-		r.Get(newPath, s.newGet)
-		r.Post(newPath, s.newPost)
-
-		r.Get(editPath+"*", s.editGet)
-		r.Post(editPath+"*", s.editPost)
-
 		r.Get(guestbookAdminPath, s.guestbookAdminGet)
 		r.Post(guestbookAdminPath, s.guestbookAdminPost)
 	})
