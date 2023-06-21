@@ -50,6 +50,7 @@ type Server struct {
 	actions    map[string]func() error
 	cron       *cron.Cron
 	redirects  map[string]string
+	gone       map[string]bool
 	archetypes map[string]core.Archetype
 	webFinger  *core.WebFinger
 
@@ -175,7 +176,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
 		return nil
-	}), s.loadRedirects())
+	}), s.loadRedirects(), s.loadGone())
 
 	err = errs.ErrorOrNil()
 	return s, err
@@ -287,6 +288,15 @@ func (s *Server) loadRedirects() error {
 		return err
 	}
 	s.redirects = redirects
+	return nil
+}
+
+func (s *Server) loadGone() error {
+	gone, err := s.fs.LoadGone()
+	if err != nil {
+		return err
+	}
+	s.gone = gone
 	return nil
 }
 

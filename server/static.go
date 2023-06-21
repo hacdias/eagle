@@ -10,6 +10,11 @@ func (s *Server) generalHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, ok := s.gone[r.URL.Path]; ok {
+		s.serveErrorHTML(w, r, http.StatusGone, nil)
+		return
+	}
+
 	nfw := &notFoundResponseWriter{ResponseWriter: w}
 	s.staticFs.ServeHTTP(nfw, r)
 

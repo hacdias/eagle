@@ -18,6 +18,7 @@ const (
 	DataDirectory    string = "data"
 
 	RedirectsFile = "redirects"
+	GoneFile      = "gone"
 )
 
 type FS struct {
@@ -304,4 +305,25 @@ func (fs *FS) LoadRedirects(ignoreMalformed bool) (map[string]string, error) {
 	}
 
 	return redirects, nil
+}
+
+func (fs *FS) LoadGone() (map[string]bool, error) {
+	gone := map[string]bool{}
+
+	data, err := fs.afero.ReadFile(GoneFile)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(data), "\n")
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		gone[line] = true
+	}
+
+	return gone, nil
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/hacdias/eagle/core"
@@ -31,6 +32,7 @@ var cleanDeletedCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
+				fmt.Println(e.ID)
 			}
 		}
 
