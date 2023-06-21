@@ -24,6 +24,11 @@ title: "The Website Title"
 # Number of items in lists.
 pagination: 10
 
+# Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
+meilisearch:
+  endpoint: myUrl
+  key: myKey
+
 # Database for indexing.
 postgresql:
   user: postgres
@@ -60,13 +65,13 @@ bunnycdn:
 
 # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
 miniflux:
-  endpoint: minifluxEndpoint
-  key: minifluxKey
+  endpoint: myUrl
+  key: myKey
 
 # Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
 linkding:
-  endpoint: minifluxEndpoint
-  key: minifluxKey
+  endpoint: myUrl
+  key: myKey
 
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.

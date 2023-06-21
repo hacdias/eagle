@@ -24,6 +24,7 @@ import (
 	"github.com/hacdias/eagle/services/imgproxy"
 	"github.com/hacdias/eagle/services/linkding"
 	"github.com/hacdias/eagle/services/media"
+	"github.com/hacdias/eagle/services/meilisearch"
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/postgres"
 	"github.com/hacdias/eagle/services/telegram"
@@ -40,7 +41,6 @@ type contextKey string
 type Server struct {
 	n core.Notifier
 	c *core.Config
-	i *core.Indexer
 
 	log       *zap.SugaredLogger
 	ias       *indieauth.Server
@@ -52,6 +52,8 @@ type Server struct {
 	webFinger *core.WebFinger
 
 	server *http.Server
+
+	meilisearch *meilisearch.MeiliSearch
 
 	fs        *core.FS
 	hugo      *core.Hugo
@@ -111,7 +113,6 @@ func NewServer(c *core.Config) (*Server, error) {
 	s := &Server{
 		n:         notifier,
 		c:         c,
-		i:         core.NewIndexer(fs, postgres),
 		log:       log.S().Named("server"),
 		ias:       indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 		jwtAuth:   jwtauth.New("HS256", []byte(secret), nil),
@@ -121,6 +122,13 @@ func NewServer(c *core.Config) (*Server, error) {
 		hugo:      hugo,
 		media:     m,
 		guestbook: postgres,
+	}
+
+	if c.MeiliSearch != nil {
+		s.meilisearch, err = meilisearch.NewMeiliSearch(c.MeiliSearch.Endpoint, c.MeiliSearch.Key, fs)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	s.hugo.BuildHook = s.buildHook
@@ -223,7 +231,6 @@ func (s *Server) Stop() error {
 
 	var errs *multierror.Error
 	errs = multierror.Append(errs, s.server.Shutdown(ctx))
-	errs = multierror.Append(errs, s.i.Close())
 	return errs.ErrorOrNil()
 }
 
@@ -246,7 +253,6 @@ func (s *Server) initActions() {
 			return s.loadGone()
 		},
 		"Reset Index": func() error {
-			s.i.ClearEntries()
 			s.indexAll()
 			return nil
 		},
@@ -281,6 +287,15 @@ func (s *Server) loadGone() error {
 }
 
 func (s *Server) indexAll() {
+	if s.meilisearch == nil {
+		return
+	}
+
+	err := s.meilisearch.ResetIndex()
+	if err != nil {
+		s.n.Error(err)
+	}
+
 	entries, err := s.fs.GetEntries(false)
 	if err != nil {
 		s.n.Error(err)
@@ -288,7 +303,7 @@ func (s *Server) indexAll() {
 	}
 
 	start := time.Now()
-	err = s.i.Add(entries...)
+	err = s.meilisearch.Add(entries...)
 	if err != nil {
 		s.n.Error(err)
 	}
@@ -364,7 +379,9 @@ func (s *Server) syncStorage() {
 	for _, id := range ids {
 		entry, err := s.fs.GetEntry(id)
 		if os.IsNotExist(err) {
-			s.i.Remove(id)
+			if s.meilisearch != nil {
+				s.meilisearch.Remove(id)
+			}
 			buildClean = true
 			continue
 		} else if err != nil {
@@ -374,9 +391,11 @@ func (s *Server) syncStorage() {
 		entries = append(entries, entry)
 	}
 
-	err = s.i.Add(entries...)
-	if err != nil {
-		s.n.Error(fmt.Errorf("sync failed: %w", err))
+	if s.meilisearch != nil {
+		err = s.meilisearch.Add(entries...)
+		if err != nil {
+			s.n.Error(fmt.Errorf("sync failed: %w", err))
+		}
 	}
 
 	s.buildNotify(buildClean)

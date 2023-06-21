@@ -4,28 +4,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
-	"github.com/hacdias/eagle/core"
 )
 
 const (
 	searchPath = "/search/"
 )
-
-func (s *Server) getPagination(r *http.Request) *core.Pagination {
-	opts := &core.Pagination{
-		Limit: s.c.Pagination,
-	}
-
-	if v := r.URL.Query().Get("page"); v != "" {
-		p, _ := strconv.Atoi(v)
-		if p >= 0 {
-			opts.Page = p
-		}
-	}
-
-	return opts
-}
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	doc, err := s.getTemplateDocument(r.URL.Path)
@@ -34,17 +17,17 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	page := 0
+	if v := r.URL.Query().Get("page"); v != "" {
+		p, _ := strconv.Atoi(v)
+		if p >= 0 {
+			page = p
+		}
+	}
+
 	query := r.URL.Query().Get("query")
 	if query != "" {
-		loggedIn := s.isLoggedIn(r)
-		options := &core.Query{
-			Pagination:   *s.getPagination(r),
-			WithDrafts:   loggedIn,
-			WithDeleted:  loggedIn,
-			WithUnlisted: loggedIn,
-		}
-
-		entries, err := s.i.GetSearch(options, query)
+		entries, err := s.meilisearch.Search(int64(page), int64(s.c.Pagination), query)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
@@ -93,14 +76,14 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		if len(entries) == 0 {
 			paginationNode.Find(".eagle-next").Remove()
 		} else {
-			rq.Set("page", strconv.Itoa(options.Page+1))
+			rq.Set("page", strconv.Itoa(page+1))
 			paginationNode.Find(".eagle-next").SetAttr("href", "?"+rq.Encode())
 		}
 
-		if options.Page == 0 {
+		if page == 0 {
 			paginationNode.Find(".eagle-prev").Remove()
 		} else {
-			rq.Set("page", strconv.Itoa(options.Page-1))
+			rq.Set("page", strconv.Itoa(page-1))
 			paginationNode.Find(".eagle-prev").SetAttr("href", "?"+rq.Encode())
 		}
 

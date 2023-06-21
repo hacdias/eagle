@@ -22,6 +22,7 @@ type Config struct {
 	Title           string
 	Pagination      int
 
+	MeiliSearch   *EndpointWithKey
 	PostgreSQL    PostgreSQL
 	User          User
 	Notifications Notifications
@@ -173,15 +174,14 @@ type BunnyCDN struct {
 	Base string
 }
 
-type Miniflux struct {
+type EndpointWithKey struct {
 	Endpoint string
 	Key      string
 }
 
-type Linkding struct {
-	Endpoint string
-	Key      string
-}
+type Miniflux = EndpointWithKey
+
+type Linkding = EndpointWithKey
 
 type ImgProxy struct {
 	Directory string
