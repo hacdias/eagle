@@ -82,7 +82,6 @@ func (ld *Linkding) fetch(page int) ([]Bookmark, error) {
 			URL:         b.URL,
 			Title:       title,
 			Description: description,
-			Notes:       b.Notes,
 			Tags:        b.TagNames,
 			Date:        b.DateAdded,
 		})
@@ -95,7 +94,6 @@ type Bookmark struct {
 	URL         string    `json:"url,omitempty"`
 	Title       string    `json:"title,omitempty"`
 	Description string    `json:"description,omitempty"`
-	Notes       string    `json:"notes,omitempty"`
 	Tags        []string  `json:"tags,omitempty"`
 	Date        time.Time `json:"date,omitempty"`
 }
