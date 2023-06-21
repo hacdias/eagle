@@ -103,7 +103,7 @@ func (f *FS) UpdateExternalLinks() error {
 
 	sort.Slice(newLinks, func(i, j int) bool {
 		if newLinks[i].Count == newLinks[j].Count {
-			return newLinks[i].Domain > newLinks[j].Domain
+			return newLinks[i].Domain < newLinks[j].Domain
 		}
 
 		return newLinks[i].Count > newLinks[j].Count
