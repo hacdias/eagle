@@ -42,15 +42,14 @@ type Server struct {
 	c *core.Config
 	i *core.Indexer
 
-	log        *zap.SugaredLogger
-	ias        *indieauth.Server
-	jwtAuth    *jwtauth.JWTAuth
-	actions    map[string]func() error
-	cron       *cron.Cron
-	redirects  map[string]string
-	gone       map[string]bool
-	archetypes map[string]core.Archetype
-	webFinger  *core.WebFinger
+	log       *zap.SugaredLogger
+	ias       *indieauth.Server
+	jwtAuth   *jwtauth.JWTAuth
+	actions   map[string]func() error
+	cron      *cron.Cron
+	redirects map[string]string
+	gone      map[string]bool
+	webFinger *core.WebFinger
 
 	server *http.Server
 
@@ -110,19 +109,18 @@ func NewServer(c *core.Config) (*Server, error) {
 	}
 
 	s := &Server{
-		n:          notifier,
-		c:          c,
-		i:          core.NewIndexer(fs, postgres),
-		log:        log.S().Named("server"),
-		ias:        indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth:    jwtauth.New("HS256", []byte(secret), nil),
-		cron:       cron.New(),
-		redirects:  map[string]string{},
-		archetypes: core.DefaultArchetypes,
-		fs:         fs,
-		hugo:       hugo,
-		media:      m,
-		guestbook:  postgres,
+		n:         notifier,
+		c:         c,
+		i:         core.NewIndexer(fs, postgres),
+		log:       log.S().Named("server"),
+		ias:       indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		jwtAuth:   jwtauth.New("HS256", []byte(secret), nil),
+		cron:      cron.New(),
+		redirects: map[string]string{},
+		fs:        fs,
+		hugo:      hugo,
+		media:     m,
+		guestbook: postgres,
 	}
 
 	s.hugo.BuildHook = s.buildHook
