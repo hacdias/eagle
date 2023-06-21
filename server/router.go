@@ -29,7 +29,8 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	// Random
-	r.Get(webFingerPath, s.webFingerGet)
+	r.Get(wellKnownWebFingerPath, s.wellKnownWebFingerGet)
+	r.Get(wellKnownLinksPath+"*", s.wellKnownLinksGet)
 	r.Post(guestbookPath, s.guestbookPost)
 	if s.meilisearch != nil {
 		r.Get(searchPath, s.searchGet)

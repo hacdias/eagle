@@ -49,6 +49,8 @@ type Server struct {
 	cron      *cron.Cron
 	redirects map[string]string
 	gone      map[string]bool
+	links     []core.Links
+	linksMap  map[string]core.Links
 	webFinger *core.WebFinger
 
 	server *http.Server
@@ -161,7 +163,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	errs = multierror.Append(errs, s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 		s.syncStorage()
 		return nil
-	}), s.loadRedirects(), s.loadGone())
+	}), s.loadRedirects(), s.loadGone(), s.loadLinks())
 
 	err = errs.ErrorOrNil()
 	return s, err
@@ -253,6 +255,16 @@ func (s *Server) initActions() {
 		"Reload Gone": func() error {
 			return s.loadGone()
 		},
+		"Reload External Links": func() error {
+			return s.loadLinks()
+		},
+		"Update External Links": func() error {
+			err := s.fs.WriteExternalLinks()
+			if err != nil {
+				return err
+			}
+			return s.loadLinks()
+		},
 		"Reset Index": func() error {
 			s.indexAll()
 			return nil
@@ -284,6 +296,21 @@ func (s *Server) loadGone() error {
 		return err
 	}
 	s.gone = gone
+	return nil
+}
+
+func (s *Server) loadLinks() error {
+	links, err := s.fs.LoadExternalLinks()
+	if err != nil {
+		return err
+	}
+	linksMap := map[string]core.Links{}
+	for _, l := range links {
+		linksMap[l.Domain] = l
+	}
+
+	s.links = links
+	s.linksMap = linksMap
 	return nil
 }
 
