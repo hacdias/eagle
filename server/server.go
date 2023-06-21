@@ -265,6 +265,9 @@ func (s *Server) initActions() {
 		"Reload Redirects": func() error {
 			return s.loadRedirects()
 		},
+		"Reload Gone": func() error {
+			return s.loadGone()
+		},
 		"Reset Index": func() error {
 			s.i.ClearEntries()
 			s.indexAll()
