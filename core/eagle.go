@@ -25,12 +25,14 @@ func (e *Entry) Deleted() bool {
 }
 
 func (e *Entry) String() (string, error) {
-	val, err := yaml.Marshal(&e.FrontMatter)
+	fr, err := yaml.Marshal(&e.FrontMatter)
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("---\n%s---\n\n%s\n", string(val), strings.TrimSpace(e.Content)), nil
+	text := fmt.Sprintf("---\n%s---\n\n%s\n", string(fr), strings.TrimSpace(e.Content))
+	text = strings.TrimSpace(text) + "\n"
+	return normalizeNewlines(text), nil
 }
 
 func (e *Entry) TextContent() string {
