@@ -64,9 +64,14 @@ var brokenLinksCmd = &cobra.Command{
 				return false, "", nil
 			}
 
-			_, err = fs.GetEntry("/categories" + u.Path)
-			if err == nil {
-				return false, "", nil
+			parts := strings.Split(u.Path, "/")
+			if len(parts) == 5 {
+				for _, section := range core.Sections {
+					_, err = fs.GetEntry("/" + section + "/" + parts[1] + "/" + parts[4])
+					if err == nil {
+						return false, "", nil
+					}
+				}
 			}
 
 			_, err = fs.ReadFile(filepath.Join("content", u.Path))

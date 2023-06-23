@@ -11,7 +11,7 @@ import (
 )
 
 // TODO: do not hardcode these.
-var sections = []string{"articles", "photos", "readings", "photos"}
+var Sections = []string{"articles", "photos", "readings", "photos"}
 
 type Parser struct {
 	baseURL string
@@ -69,7 +69,7 @@ func (p *Parser) makePermalink(id string, fr *FrontMatter) (string, error) {
 	}
 
 	parts := strings.Split(id, "/")
-	if lo.Contains(sections, parts[1]) && !fr.Date.IsZero() {
+	if lo.Contains(Sections, parts[1]) && !fr.Date.IsZero() {
 		url.Path = fmt.Sprintf("/%04d/%02d/%02d/%s/", fr.Date.Year(), fr.Date.Month(), fr.Date.Day(), parts[len(parts)-2])
 	} else {
 		url.Path = id
