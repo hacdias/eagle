@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
-	stripMarkdown "github.com/writeas/go-strip-markdown"
+	stripMarkdown "github.com/writeas/go-strip-markdown/v2"
 )
 
 func cleanID(id string) string {
