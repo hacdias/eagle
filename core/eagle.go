@@ -57,6 +57,7 @@ type FrontMatter struct {
 	Read          *Read     `yaml:"read,omitempty"`
 	Rating        int       `yaml:"rating,omitempty"`
 	FavoritePosts []string  `yaml:"favoritePosts,omitempty"`
+	Aliases       []string  `yaml:"aliases,omitempty"`
 }
 
 type Read struct {
