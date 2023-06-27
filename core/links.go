@@ -77,6 +77,10 @@ func (f *FS) UpdateExternalLinks() error {
 				return err
 			}
 
+			if strings.HasSuffix(f.parser.baseURL, hostname) {
+				continue
+			}
+
 			if _, ok := linksMap[hostname]; !ok {
 				linksMap[hostname] = []Link{}
 			}
