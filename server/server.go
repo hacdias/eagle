@@ -53,22 +53,18 @@ type Server struct {
 	linksMap  map[string]core.Links
 	webFinger *core.WebFinger
 
-	server *http.Server
-
+	server      *http.Server
 	meilisearch *meilisearch.MeiliSearch
-
-	fs     *core.FS
-	hugo   *core.Hugo
-	media  *media.Media
-	badger *database.Database
+	fs          *core.FS
+	hugo        *core.Hugo
+	media       *media.Media
+	badger      *database.Database
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
 }
 
 func NewServer(c *core.Config) (*Server, error) {
-	secret := base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))
-
 	var notifier core.Notifier
 	if c.Notifications.Telegram != nil {
 		notifications, err := telegram.NewTelegram(c.Notifications.Telegram)
@@ -80,36 +76,31 @@ func NewServer(c *core.Config) (*Server, error) {
 		notifier = log.NewLogNotifier()
 	}
 
+	badger, err := database.NewDatabase(filepath.Join(c.DataDirectory, "bolt.db"))
+	if err != nil {
+		return nil, err
+	}
+
 	var srcSync core.Sync
 	if c.Development {
 		srcSync = &core.NopSync{}
 	} else {
 		srcSync = core.NewGitSync(c.SourceDirectory)
 	}
-	fs := core.NewFS(c.SourceDirectory, c.BaseURL, srcSync)
-	hugo := core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL)
 
 	var (
 		m           *media.Media
 		storage     media.Storage
 		transformer media.Transformer
 	)
-
 	if c.BunnyCDN != nil {
 		storage = bunny.NewBunny(c.BunnyCDN)
 	}
-
 	if c.ImgProxy != nil {
 		transformer = imgproxy.NewImgProxy(c.ImgProxy)
 	}
-
 	if storage != nil {
 		m = media.NewMedia(storage, transformer)
-	}
-
-	badger, err := database.NewDatabase(filepath.Join(c.DataDirectory, "bolt.db"))
-	if err != nil {
-		return nil, err
 	}
 
 	s := &Server{
@@ -117,17 +108,17 @@ func NewServer(c *core.Config) (*Server, error) {
 		c:         c,
 		log:       log.S().Named("server"),
 		ias:       indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth:   jwtauth.New("HS256", []byte(secret), nil),
+		jwtAuth:   jwtauth.New("HS256", []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))), nil),
 		cron:      cron.New(),
 		redirects: map[string]string{},
-		fs:        fs,
-		hugo:      hugo,
+		fs:        core.NewFS(c.SourceDirectory, c.BaseURL, srcSync),
+		hugo:      core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
 		media:     m,
 		badger:    badger,
 	}
 
 	if c.MeiliSearch != nil {
-		s.meilisearch, err = meilisearch.NewMeiliSearch(c.MeiliSearch.Endpoint, c.MeiliSearch.Key, fs)
+		s.meilisearch, err = meilisearch.NewMeiliSearch(c.MeiliSearch.Endpoint, c.MeiliSearch.Key, s.fs)
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +151,8 @@ func NewServer(c *core.Config) (*Server, error) {
 
 	s.initWebFinger()
 
-	errs = multierror.Append(errs,
+	errs = multierror.Append(
+		errs,
 		s.RegisterCron("00 00 * * *", "Update External Links", func() error {
 			return s.fs.UpdateExternalLinks()
 		}),
