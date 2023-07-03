@@ -1,14 +1,113 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/analysis/analyzer/custom"
+	"github.com/blevesearch/bleve/v2/analysis/lang/en"
+	"github.com/blevesearch/bleve/v2/analysis/token/lowercase"
+	"github.com/blevesearch/bleve/v2/analysis/token/porter"
+	"github.com/blevesearch/bleve/v2/analysis/tokenizer/unicode"
+	"github.com/hacdias/eagle/core"
 )
 
 const (
 	searchPath = "/search/"
 )
+
+func (s *Server) initIndex() error {
+	mapping := bleve.NewIndexMapping()
+	err := mapping.AddCustomAnalyzer(
+		"eagle",
+		map[string]interface{}{
+			"type":      custom.Name,
+			"tokenizer": unicode.Name,
+			"token_filters": []string{
+				en.PossessiveName,
+				lowercase.Name,
+				porter.Name,
+			},
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	mapping.DefaultAnalyzer = "eagle"
+
+	fmt.Println(mapping.DefaultSearchField())
+
+	index, err := bleve.NewMemOnly(mapping)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(index.Fields())
+
+	s.index = index
+	return nil
+}
+
+func (s *Server) indexAdd(ee ...*core.Entry) error {
+	ss := time.Now()
+	b := s.index.NewBatch()
+	for _, e := range ee {
+		err := b.Index(e.ID, map[string]interface{}{
+			"title":   e.Title,
+			"tags":    e.Tags,
+			"content": e.TextContent(),
+		})
+		if err != nil {
+			return err
+		}
+	}
+	err := s.index.Batch(b)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(s.index.Fields())
+	s.log.Infof("bleve update took %dms", time.Since(ss).Milliseconds())
+	return nil
+}
+
+func (s *Server) indexSearch(page int, query string) (core.Entries, error) {
+	from := 0
+	if page != -1 {
+		from = page * s.c.Pagination
+	}
+
+	request := bleve.NewSearchRequestOptions(
+		bleve.NewQueryStringQuery(query),
+		s.c.Pagination, from, false,
+	)
+
+	res, err := s.index.Search(request)
+	if err != nil {
+		return nil, err
+	}
+
+	entries := core.Entries{}
+	for _, hit := range res.Hits {
+		entry, err := s.fs.GetEntry(hit.ID)
+		if err != nil {
+			if os.IsNotExist(err) {
+				_ = s.index.Delete(hit.ID)
+			} else {
+				return nil, err
+			}
+		} else {
+			entries = append(entries, entry)
+		}
+	}
+	return entries, nil
+}
 
 func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	doc, err := s.getTemplateDocument(r.URL.Path)
@@ -27,7 +126,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query().Get("query")
 	if query != "" {
-		entries, err := s.meilisearch.Search(int64(page), int64(s.c.Pagination), query)
+		entries, err := s.indexSearch(page, query)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return

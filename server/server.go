@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/blevesearch/bleve/v2"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/hacdias/eagle/core"
 	"github.com/hacdias/eagle/log"
@@ -25,7 +26,6 @@ import (
 	"github.com/hacdias/eagle/services/imgproxy"
 	"github.com/hacdias/eagle/services/linkding"
 	"github.com/hacdias/eagle/services/media"
-	"github.com/hacdias/eagle/services/meilisearch"
 	"github.com/hacdias/eagle/services/miniflux"
 	"github.com/hacdias/eagle/services/telegram"
 	"github.com/hacdias/indieauth/v3"
@@ -53,12 +53,12 @@ type Server struct {
 	linksMap  map[string]core.Links
 	webFinger *core.WebFinger
 
-	server      *http.Server
-	meilisearch *meilisearch.MeiliSearch
-	fs          *core.FS
-	hugo        *core.Hugo
-	media       *media.Media
-	badger      *database.Database
+	server *http.Server
+	fs     *core.FS
+	hugo   *core.Hugo
+	media  *media.Media
+	badger *database.Database
+	index  bleve.Index
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -117,13 +117,6 @@ func NewServer(c *core.Config) (*Server, error) {
 		badger:    badger,
 	}
 
-	if c.MeiliSearch != nil {
-		s.meilisearch, err = meilisearch.NewMeiliSearch(c.MeiliSearch.Endpoint, c.MeiliSearch.Key, s.fs)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	s.hugo.BuildHook = s.buildHook
 	s.initActions()
 
@@ -152,6 +145,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	s.initWebFinger()
 
 	errs = multierror.Append(
+		s.initIndex(),
 		errs,
 		s.RegisterCron("00 00 * * *", "Update External Links", func() error {
 			return s.fs.UpdateExternalLinks()
@@ -309,14 +303,11 @@ func (s *Server) loadLinks() error {
 }
 
 func (s *Server) indexAll() {
-	if s.meilisearch == nil {
-		return
-	}
-
-	err := s.meilisearch.ResetIndex()
-	if err != nil {
-		s.n.Error(err)
-	}
+	// s.index.Delete()
+	// err := s.meilisearch.ResetIndex()
+	// if err != nil {
+	// 	s.n.Error(err)
+	// }
 
 	entries, err := s.fs.GetEntries(false)
 	if err != nil {
@@ -324,12 +315,10 @@ func (s *Server) indexAll() {
 		return
 	}
 
-	start := time.Now()
-	err = s.meilisearch.Add(entries...)
+	err = s.indexAdd(entries...)
 	if err != nil {
 		s.n.Error(err)
 	}
-	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
 }
 
 func (s *Server) withRecoverer(next http.Handler) http.Handler {
@@ -395,15 +384,13 @@ func (s *Server) syncStorage() {
 	}
 
 	ids = lo.Uniq(ids)
-	entries := core.Entries{}
+	entries := []*core.Entry{}
 	buildClean := false
 
 	for _, id := range ids {
 		entry, err := s.fs.GetEntry(id)
 		if os.IsNotExist(err) {
-			if s.meilisearch != nil {
-				_ = s.meilisearch.Remove(id)
-			}
+			_ = s.index.Delete(id)
 			buildClean = true
 			continue
 		} else if err != nil {
@@ -413,11 +400,9 @@ func (s *Server) syncStorage() {
 		entries = append(entries, entry)
 	}
 
-	if s.meilisearch != nil {
-		err = s.meilisearch.Add(entries...)
-		if err != nil {
-			s.n.Error(fmt.Errorf("sync failed: %w", err))
-		}
+	err = s.indexAdd(entries...)
+	if err != nil {
+		s.n.Error(fmt.Errorf("sync failed: %w", err))
 	}
 
 	s.buildNotify(buildClean)

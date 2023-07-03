@@ -1,13 +1,7 @@
-.PHONY: build pgadmin meilisearch ngrok imgproxy
+.PHONY: build pgadmin ngrok imgproxy
 
 build:
 	go build -o main ./cmd/eagle
-
-meilisearch:
-	docker run -it --rm \
-		-p 7700:7700 \
-		-e MEILI_ENV='development' \
-		getmeili/meilisearch:v1.2
 
 ngrok:
 	ngrok http --region eu 8080

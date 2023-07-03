@@ -52,11 +52,6 @@ bunnycdn:
   key: someBunnySecret
   base: someBunnyBase
 
-# Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
-meilisearch:
-  endpoint: myUrl
-  key: myKey
-
 # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
 miniflux:
   endpoint: myUrl

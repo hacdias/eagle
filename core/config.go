@@ -23,7 +23,6 @@ type Config struct {
 	Title           string
 	Pagination      int
 
-	MeiliSearch   *EndpointWithKey
 	User          User
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN

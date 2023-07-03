@@ -33,9 +33,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get(wellKnownLinksPath, s.wellKnownLinksGet)
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
 	r.Post(guestbookPath, s.guestbookPost)
-	if s.meilisearch != nil {
-		r.Get(searchPath, s.searchGet)
-	}
+	r.Get(searchPath, s.searchGet)
 
 	// Login
 	r.Get(loginPath, s.loginGet)
