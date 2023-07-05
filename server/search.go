@@ -23,32 +23,36 @@ const (
 
 func (s *Server) initIndex() error {
 	mapping := bleve.NewIndexMapping()
-	err := mapping.AddCustomAnalyzer(
-		"eagle",
-		map[string]interface{}{
-			"type":      custom.Name,
-			"tokenizer": unicode.Name,
-			"token_filters": []string{
-				en.PossessiveName,
-				lowercase.Name,
-				porter.Name,
-			},
+	err := mapping.AddCustomAnalyzer("en-with-stop-words", map[string]interface{}{
+		"type":      custom.Name,
+		"tokenizer": unicode.Name,
+		"token_filters": []string{
+			en.PossessiveName,
+			lowercase.Name,
+			porter.Name,
 		},
-	)
+	})
 	if err != nil {
 		return err
 	}
 
-	mapping.DefaultAnalyzer = "eagle"
+	titleField := bleve.NewTextFieldMapping()
+	titleField.Analyzer = "en-with-stop-words"
 
-	fmt.Println(mapping.DefaultSearchField())
+	contentField := bleve.NewTextFieldMapping()
+	contentField.Analyzer = "en"
+
+	page := bleve.NewDocumentStaticMapping()
+	page.DefaultAnalyzer = "en-with-stop-words" // https://github.com/blevesearch/bleve/issues/1835
+	page.AddFieldMappingsAt("title", titleField)
+	page.AddFieldMappingsAt("content", contentField)
+
+	mapping.DefaultMapping = page
 
 	index, err := bleve.NewMemOnly(mapping)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create index: %w", err)
 	}
-
-	fmt.Println(index.Fields())
 
 	s.index = index
 	return nil
@@ -64,12 +68,12 @@ func (s *Server) indexAdd(ee ...*core.Entry) error {
 			"content": e.TextContent(),
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("could not add: %w", err)
 		}
 	}
 	err := s.index.Batch(b)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not batch: %w", err)
 	}
 
 	fmt.Println(s.index.Fields())
