@@ -74,7 +74,6 @@ func (s *Server) indexAdd(ee ...*core.Entry) error {
 		return fmt.Errorf("could not batch: %w", err)
 	}
 
-	fmt.Println(s.index.Fields())
 	s.log.Infof("bleve update took %dms", time.Since(ss).Milliseconds())
 	return nil
 }
