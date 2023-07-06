@@ -254,6 +254,7 @@ func (s *Server) initActions() {
 			return s.loadLinks()
 		},
 		"Reset Index": func() error {
+			// TODO: actually reset.
 			s.indexAll()
 			return nil
 		},
@@ -303,12 +304,6 @@ func (s *Server) loadLinks() error {
 }
 
 func (s *Server) indexAll() {
-	// s.index.Delete()
-	// err := s.meilisearch.ResetIndex()
-	// if err != nil {
-	// 	s.n.Error(err)
-	// }
-
 	entries, err := s.fs.GetEntries(false)
 	if err != nil {
 		s.n.Error(err)
