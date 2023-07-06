@@ -43,7 +43,6 @@ func (s *Server) initIndex() error {
 	contentField.Analyzer = "en"
 
 	page := bleve.NewDocumentStaticMapping()
-	page.DefaultAnalyzer = "en-with-stop-words" // https://github.com/blevesearch/bleve/issues/1835
 	page.AddFieldMappingsAt("title", titleField)
 	page.AddFieldMappingsAt("content", contentField)
 
@@ -64,7 +63,6 @@ func (s *Server) indexAdd(ee ...*core.Entry) error {
 	for _, e := range ee {
 		err := b.Index(e.ID, map[string]interface{}{
 			"title":   e.Title,
-			"tags":    e.Tags,
 			"content": e.TextContent(),
 		})
 		if err != nil {
@@ -87,8 +85,15 @@ func (s *Server) indexSearch(page int, query string) (core.Entries, error) {
 		from = page * s.c.Pagination
 	}
 
+	titleQuery := bleve.NewMatchQuery(query)
+	titleQuery.SetField("title")
+	titleQuery.SetBoost(2)
+
+	contentQuery := bleve.NewMatchQuery(query)
+	contentQuery.SetField("content")
+
 	request := bleve.NewSearchRequestOptions(
-		bleve.NewQueryStringQuery(query),
+		bleve.NewDisjunctionQuery(titleQuery, contentQuery),
 		s.c.Pagination, from, false,
 	)
 
