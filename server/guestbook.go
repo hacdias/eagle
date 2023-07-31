@@ -24,6 +24,12 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Bot control honeypot field. If it's non-empty, just fake it was successful.
+	if r.Form.Get("url") != "" {
+		http.Redirect(w, r, r.URL.Path+"?youre=awesome", http.StatusFound)
+		return
+	}
+
 	name := r.Form.Get("name")
 	website := r.Form.Get("website")
 	content := r.Form.Get("content")
