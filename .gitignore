@@ -1,0 +1,11 @@
+*config.yml
+*config.yaml
+*.pem
+public
+docker-compose.yml
+testing
+main
+node_modules
+source
+cmd/eagle/tmp.go
+data
