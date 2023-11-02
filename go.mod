@@ -8,7 +8,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/jwtauth/v5 v5.1.1
 	github.com/google/uuid v1.4.0
-	github.com/hacdias/indieauth/v3 v3.2.0
+	github.com/hacdias/indieauth/v3 v3.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.0.16
