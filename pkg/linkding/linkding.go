@@ -42,7 +42,7 @@ func (ld *Linkding) Fetch() ([]Bookmark, error) {
 		}
 	}
 
-	sort.Slice(bookmarks, func(i, j int) bool {
+	sort.SliceStable(bookmarks, func(i, j int) bool {
 		return bookmarks[i].Date.After(bookmarks[j].Date)
 	})
 

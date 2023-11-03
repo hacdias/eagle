@@ -94,7 +94,7 @@ func (f *FS) UpdateExternalLinks() error {
 
 	newLinks := []Links{}
 	for domain, domainLinks := range linksMap {
-		sort.Slice(domainLinks, func(i, j int) bool {
+		sort.SliceStable(domainLinks, func(i, j int) bool {
 			return domainLinks[i].SourceURL < domainLinks[j].SourceURL
 		})
 
@@ -105,7 +105,7 @@ func (f *FS) UpdateExternalLinks() error {
 		})
 	}
 
-	sort.Slice(newLinks, func(i, j int) bool {
+	sort.SliceStable(newLinks, func(i, j int) bool {
 		if newLinks[i].Count == newLinks[j].Count {
 			return newLinks[i].Domain < newLinks[j].Domain
 		}

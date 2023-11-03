@@ -35,7 +35,7 @@ func (m *Miniflux) Fetch() (Feeds, error) {
 		return nil, err
 	}
 
-	sort.Slice(rawFeeds, func(i, j int) bool {
+	sort.SliceStable(rawFeeds, func(i, j int) bool {
 		return rawFeeds[i].Title < rawFeeds[j].Title
 	})
 
