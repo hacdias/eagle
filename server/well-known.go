@@ -6,7 +6,7 @@ import (
 	urlpkg "net/url"
 	"strconv"
 
-	"github.com/hacdias/eagle/core"
+	"go.hacdias.com/eagle/core"
 )
 
 // TODO: consider moving this to simple rewrites in Caddy, if possible, of course.

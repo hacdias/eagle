@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/hacdias/eagle/core"
 	"github.com/spf13/cobra"
+	"go.hacdias.com/eagle/core"
 )
 
 func init() {

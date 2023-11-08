@@ -7,8 +7,8 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/hacdias/eagle/core"
 	bolt "go.etcd.io/bbolt"
+	"go.hacdias.com/eagle/core"
 )
 
 type Database struct {

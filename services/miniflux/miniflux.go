@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/pkg/miniflux"
+	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/pkg/miniflux"
 )
 
 const (
