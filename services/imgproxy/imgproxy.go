@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hacdias/eagle/core"
 	"github.com/spf13/afero"
+	"go.hacdias.com/eagle/core"
 )
 
 type ImgProxy struct {

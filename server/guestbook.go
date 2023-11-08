@@ -9,8 +9,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/hacdias/eagle/core"
 	"github.com/microcosm-cc/bluemonday"
+	"go.hacdias.com/eagle/core"
 )
 
 var (

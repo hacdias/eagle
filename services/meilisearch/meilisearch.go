@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hacdias/eagle/core"
 	"github.com/karlseguin/typed"
 	"github.com/meilisearch/meilisearch-go"
+	"go.hacdias.com/eagle/core"
 )
 
 const (

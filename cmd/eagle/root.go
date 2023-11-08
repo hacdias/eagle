@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/hacdias/eagle/core"
-	"github.com/hacdias/eagle/log"
-	"github.com/hacdias/eagle/server"
 	"github.com/spf13/cobra"
+	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/log"
+	"go.hacdias.com/eagle/server"
 )
 
 var rootCmd = &cobra.Command{
