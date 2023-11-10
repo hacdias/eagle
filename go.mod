@@ -8,7 +8,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/jwtauth/v5 v5.1.1
 	github.com/google/uuid v1.4.0
-	github.com/hacdias/indieauth/v3 v3.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.0.16
@@ -22,6 +21,7 @@ require (
 	github.com/writeas/go-strip-markdown/v2 v2.1.1
 	github.com/yuin/goldmark v1.6.0
 	go.etcd.io/bbolt v1.3.8
+	go.hacdias.com/indieauth v0.6.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/net v0.17.0

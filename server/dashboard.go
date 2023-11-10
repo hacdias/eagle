@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
+	"go.hacdias.com/indieauth"
 )
 
 const (

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/indieauth/v3"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/samber/lo"
+	"go.hacdias.com/indieauth"
 )
 
 // https://indieauth.spec.indieweb.org

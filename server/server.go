@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hacdias/indieauth/v3"
 	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
@@ -32,6 +31,7 @@ import (
 	"go.hacdias.com/eagle/services/meilisearch"
 	"go.hacdias.com/eagle/services/miniflux"
 	"go.hacdias.com/eagle/services/telegram"
+	"go.hacdias.com/indieauth"
 
 	"go.uber.org/zap"
 )
