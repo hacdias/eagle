@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type Entry struct {
@@ -42,30 +42,15 @@ func (e *Entry) TextContent() string {
 type Entries []*Entry
 
 type FrontMatter struct {
-	Title         string    `yaml:"title,omitempty"`
-	Description   string    `yaml:"description,omitempty"`
-	URL           string    `yaml:"url,omitempty"`
-	Draft         bool      `yaml:"draft,omitempty"`
-	Date          time.Time `yaml:"date,omitempty"`
-	LastMod       time.Time `yaml:"lastmod,omitempty"`
-	ExpiryDate    time.Time `yaml:"expiryDate,omitempty"`
-	CoverImage    string    `yaml:"coverImage,omitempty"`
-	NoIndex       bool      `yaml:"noIndex,omitempty"`
-	Tags          []string  `yaml:"tags,omitempty"`
-	Layout        string    `yaml:"layout,omitempty"`
-	Syndications  []string  `yaml:"syndications,omitempty"`
-	Read          *Read     `yaml:"read,omitempty"`
-	Rating        int       `yaml:"rating,omitempty"`
-	FavoritePosts []string  `yaml:"favoritePosts,omitempty"`
-	Aliases       []string  `yaml:"aliases,omitempty"`
-}
-
-type Read struct {
-	Name      string `yaml:"name,omitempty"`
-	Author    string `yaml:"author,omitempty"`
-	Publisher string `yaml:"publisher,omitempty"`
-	Pages     int    `yaml:"pages,omitempty"`
-	UID       string `yaml:"uid,omitempty"`
+	Title       string         `yaml:"title,omitempty"`
+	Description string         `yaml:"description,omitempty"`
+	URL         string         `yaml:"url,omitempty"`
+	Draft       bool           `yaml:"draft,omitempty"`
+	Date        time.Time      `yaml:"date,omitempty"`
+	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
+	NoIndex     bool           `yaml:"noIndex,omitempty"`
+	Tags        []string       `yaml:"tags,omitempty"`
+	Other       map[string]any `yaml:",inline"`
 }
 
 type EntryHook interface {
