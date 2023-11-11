@@ -21,7 +21,7 @@ require (
 	github.com/writeas/go-strip-markdown/v2 v2.1.1
 	github.com/yuin/goldmark v1.6.0
 	go.etcd.io/bbolt v1.3.8
-	go.hacdias.com/indieauth v0.6.0
+	go.hacdias.com/indielib v0.1.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/net v0.17.0

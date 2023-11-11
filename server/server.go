@@ -31,7 +31,7 @@ import (
 	"go.hacdias.com/eagle/services/meilisearch"
 	"go.hacdias.com/eagle/services/miniflux"
 	"go.hacdias.com/eagle/services/telegram"
-	"go.hacdias.com/indieauth"
+	"go.hacdias.com/indielib/indieauth"
 
 	"go.uber.org/zap"
 )

@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/samber/lo"
-	"go.hacdias.com/indieauth"
+	"go.hacdias.com/indielib/indieauth"
 )
 
 // https://indieauth.spec.indieweb.org

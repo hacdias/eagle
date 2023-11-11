@@ -10,7 +10,7 @@ import (
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/hashicorp/go-multierror"
-	"go.hacdias.com/indieauth"
+	"go.hacdias.com/indielib/indieauth"
 )
 
 const (
