@@ -98,5 +98,5 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 		files[u.opmlFilename] = opmlData
 	}
 
-	return u.fs.WriteFiles(files, "miniflux: synchronize feeds")
+	return u.fs.WriteFiles(files, "blogroll: synchronize with miniflux")
 }
