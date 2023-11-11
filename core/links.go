@@ -122,7 +122,7 @@ func (f *FS) UpdateExternalLinks() error {
 		return nil
 	}
 
-	return f.WriteJSON(filepath.Join(DataDirectory, ExternalLinksFile), newLinks, "update external links file")
+	return f.WriteJSON(filepath.Join(DataDirectory, ExternalLinksFile), newLinks, "meta: update external links file")
 }
 
 func GetMarkdownURLs(e *Entry) ([]string, error) {
