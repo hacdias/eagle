@@ -1027,8 +1027,8 @@ honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
 honnef.co/go/tools v0.0.1-2020.1.3/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
 honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
-miniflux.app v1.0.46 h1:2/xrbXiEoQlj/bAZ8MT+fPN1+gmYDYuXVCOhvSskns4=
-miniflux.app v1.0.46/go.mod h1:YtEJIO1vMCvZgyzDbds7II0W/H7sGpo3auFCQscuMrE=
+miniflux.app/v2 v2.0.49 h1:ksZkEr4JiV08Ec49QD0xD6kKa+lhUPDnRXLLm2knJBY=
+miniflux.app/v2 v2.0.49/go.mod h1:yrm5j2uy4EwzA7ZoTx2vP//q4/DSvAUPJQXvao7HwxM=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=

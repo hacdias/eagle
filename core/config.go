@@ -147,7 +147,12 @@ type EndpointWithKey struct {
 	Key      string
 }
 
-type Miniflux = EndpointWithKey
+type Miniflux struct {
+	Endpoint string
+	Key      string
+	JSON     string
+	OPML     string
+}
 
 type Linkding = EndpointWithKey
 

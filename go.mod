@@ -27,7 +27,7 @@ require (
 	golang.org/x/net v0.17.0
 	gopkg.in/telebot.v3 v3.1.3
 	gopkg.in/yaml.v3 v3.0.1
-	miniflux.app v1.0.46
+	miniflux.app/v2 v2.0.49
 )
 
 require (

@@ -61,6 +61,8 @@ meilisearch:
 miniflux:
   endpoint: myUrl
   key: myKey
+  json: data/feeds.json
+  opml: data/feeds.opml
 
 # Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
 linkding:

@@ -24,6 +24,7 @@ func (g *NopSync) Sync() ([]string, error) {
 }
 
 var nothingToCommit = []byte("nothing to commit, working tree clean")
+var noChangedAdded = []byte("no changes added to commit")
 
 type GitSync struct {
 	dir string
@@ -63,7 +64,7 @@ func (g *GitSync) commit(message string, file ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
-	if err != nil && !bytes.Contains(out, nothingToCommit) {
+	if err != nil && !bytes.Contains(out, nothingToCommit) && !bytes.Contains(out, noChangedAdded) {
 		return fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 	return nil

@@ -59,12 +59,21 @@ func (f *FS) WriteFile(filename string, data []byte, message string) error {
 		return err
 	}
 
-	err = f.sync.Persist(message, filename)
-	if err != nil {
-		return err
+	return f.sync.Persist(message, filename)
+}
+
+func (f *FS) WriteFiles(filesAndData map[string][]byte, message string) error {
+	var filenames []string
+
+	for filename, data := range filesAndData {
+		err := f.afero.WriteFile(filename, data, 0644)
+		if err != nil {
+			return err
+		}
+		filenames = append(filenames, filename)
 	}
 
-	return nil
+	return f.sync.Persist(message, filenames...)
 }
 
 func (f *FS) ReadFile(filename string) ([]byte, error) {
