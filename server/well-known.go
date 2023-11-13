@@ -5,8 +5,6 @@ import (
 	"net/http"
 	urlpkg "net/url"
 	"strconv"
-
-	"go.hacdias.com/eagle/core"
 )
 
 const (
@@ -15,15 +13,28 @@ const (
 	wellKnownAvatarPath    = "/.well-known/avatar"
 )
 
+type webFinger struct {
+	Subject string          `json:"subject"`
+	Aliases []string        `json:"aliases,omitempty"`
+	Links   []webFingerLink `json:"links,omitempty"`
+}
+
+type webFingerLink struct {
+	Href     string `json:"href"`
+	Rel      string `json:"rel,omitempty"`
+	Type     string `json:"type,omitempty"`
+	Template string `json:"template,omitempty"`
+}
+
 func (s *Server) makeWellKnownWebFingerGet() http.HandlerFunc {
 	url, _ := urlpkg.Parse(s.c.BaseURL)
 
-	webFinger := &core.WebFinger{
+	webFinger := &webFinger{
 		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
 			s.c.BaseURL,
 		},
-		Links: []core.WebFingerLink{
+		Links: []webFingerLink{
 			{
 				Rel:  "http://webfinger.net/rel/profile-page",
 				Type: "text/html",
