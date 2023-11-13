@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/hashicorp/go-multierror"
 	"go.hacdias.com/indielib/indieauth"
 )
 
@@ -55,14 +55,14 @@ func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 	actions := r.Form["action"]
 	data := &dashboardData{}
 
-	var errs *multierror.Error
+	var err error
 	for _, actionName := range actions {
 		if fn, ok := s.actions[actionName]; ok {
-			errs = multierror.Append(errs, fn())
+			err = errors.Join(err, fn())
 			data.ActionSuccess = true
 		}
 	}
-	if err := errs.ErrorOrNil(); err != nil {
+	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}

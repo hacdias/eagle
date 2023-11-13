@@ -18,19 +18,13 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/hashicorp/go-multierror"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
-	"go.hacdias.com/eagle/services/bunny"
 	"go.hacdias.com/eagle/services/database"
-	"go.hacdias.com/eagle/services/imgproxy"
-	"go.hacdias.com/eagle/services/linkding"
 	"go.hacdias.com/eagle/services/media"
 	"go.hacdias.com/eagle/services/meilisearch"
-	"go.hacdias.com/eagle/services/miniflux"
-	"go.hacdias.com/eagle/services/telegram"
 	"go.hacdias.com/indielib/indieauth"
 
 	"go.uber.org/zap"
@@ -42,11 +36,14 @@ type Server struct {
 	n core.Notifier
 	c *core.Config
 
-	log       *zap.SugaredLogger
-	ias       *indieauth.Server
-	jwtAuth   *jwtauth.JWTAuth
-	actions   map[string]func() error
-	cron      *cron.Cron
+	log     *zap.SugaredLogger
+	ias     *indieauth.Server
+	jwtAuth *jwtauth.JWTAuth
+	actions map[string]func() error
+
+	cron     *cron.Cron
+	cronJobs []func() error
+
 	redirects map[string]string
 	gone      map[string]bool
 	links     []core.Links
@@ -64,131 +61,43 @@ type Server struct {
 }
 
 func NewServer(c *core.Config) (*Server, error) {
-	var notifier core.Notifier
-	if c.Notifications.Telegram != nil {
-		notifications, err := telegram.NewTelegram(c.Notifications.Telegram)
-		if err != nil {
-			return nil, err
-		}
-		notifier = notifications
-	} else {
-		notifier = log.NewLogNotifier()
-	}
-
-	badger, err := database.NewDatabase(filepath.Join(c.DataDirectory, "bolt.db"))
-	if err != nil {
-		return nil, err
-	}
-
-	var srcSync core.Sync
-	if c.Development {
-		srcSync = &core.NopSync{}
-	} else {
-		srcSync = core.NewGitSync(c.SourceDirectory)
-	}
-
-	var (
-		m           *media.Media
-		storage     media.Storage
-		transformer media.Transformer
-	)
-	if c.BunnyCDN != nil {
-		storage = bunny.NewBunny(c.BunnyCDN)
-	}
-	if c.ImgProxy != nil {
-		transformer = imgproxy.NewImgProxy(c.ImgProxy)
-	}
-	if storage != nil {
-		m = media.NewMedia(storage, transformer)
-	}
-
 	s := &Server{
-		n:         notifier,
-		c:         c,
-		log:       log.S().Named("server"),
-		ias:       indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth:   jwtauth.New("HS256", []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))), nil),
-		cron:      cron.New(),
+		c: c,
+
+		log:     log.S().Named("server"),
+		ias:     indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		jwtAuth: jwtauth.New("HS256", []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))), nil),
+		actions: map[string]func() error{},
+
+		cron:     cron.New(),
+		cronJobs: []func() error{},
+
 		redirects: map[string]string{},
-		fs:        core.NewFS(c.SourceDirectory, c.BaseURL, srcSync),
-		hugo:      core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
-		media:     m,
-		badger:    badger,
-	}
+		gone:      map[string]bool{},
+		links:     []core.Links{},
+		linksMap:  map[string]core.Links{},
 
-	if c.MeiliSearch != nil {
-		s.meilisearch, err = meilisearch.NewMeiliSearch(c.MeiliSearch.Endpoint, c.MeiliSearch.Key, s.fs)
-		if err != nil {
-			return nil, err
-		}
+		fs:    initFS(c),
+		hugo:  core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
+		media: initMedia(c),
 	}
-
 	s.hugo.BuildHook = s.buildHook
-	s.initActions()
 
-	var errs *multierror.Error
-
-	if c.Miniflux != nil {
-		mf := miniflux.NewMiniflux(c.Miniflux, s.fs)
-
-		// TODO: rebuild after action happens.
-		errs = multierror.Append(
-			errs,
-			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.Synchronize),
-			s.RegisterAction("Update Miniflux Blogroll", mf.Synchronize),
-		)
-	}
-
-	if c.Linkding != nil {
-		ld := linkding.NewLinkding(c.Linkding, s.fs)
-
-		// TODO: rebuild after action happens.
-		errs = multierror.Append(
-			errs,
-			s.RegisterCron("00 00 * * *", "Linkding Bookmarks", ld.Synchronize),
-			s.RegisterAction("Update Linkding Bookmarks", ld.Synchronize),
-		)
-	}
-
-	errs = multierror.Append(
-		errs,
-		s.RegisterCron("00 00 * * *", "Update External Links", func() error {
-			err := s.fs.UpdateExternalLinks()
-			if err != nil {
-				return err
-			}
-			return s.loadLinks()
-		}),
-		s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
-			s.syncStorage()
-			return nil
-		}),
+	err := errors.Join(
+		s.initNotifier(),
+		s.initBadger(),
+		s.initMeiliSearch(),
+		s.initActions(),
+		s.initMiniflux(),
+		s.initLinkding(),
+		s.initExternalLinks(),
 		s.loadRedirects(),
 		s.loadGone(),
 		s.loadLinks(),
+		s.initCron(),
 	)
 
-	err = errs.ErrorOrNil()
 	return s, err
-}
-
-func (s *Server) RegisterAction(name string, action func() error) error {
-	if _, ok := s.actions[name]; ok {
-		return errors.New("action already registered")
-	}
-
-	s.actions[name] = action
-	return nil
-}
-
-func (s *Server) RegisterCron(schedule, name string, job func() error) error {
-	_, err := s.cron.AddFunc(schedule, func() {
-		err := job()
-		if err != nil {
-			s.n.Error(fmt.Errorf("%s cron job: %w", name, err))
-		}
-	})
-	return err
 }
 
 func (s *Server) Start() error {
@@ -234,39 +143,10 @@ func (s *Server) Stop() error {
 
 	<-s.cron.Stop().Done()
 
-	var errs *multierror.Error
-	errs = multierror.Append(errs, s.server.Shutdown(ctx))
-	errs = multierror.Append(errs, s.badger.Close())
-	return errs.ErrorOrNil()
-}
-
-func (s *Server) initActions() {
-	s.actions = map[string]func() error{
-		"Build Website": func() error {
-			return s.hugo.Build(false)
-		},
-		"Build Website (Clean)": func() error {
-			return s.hugo.Build(true)
-		},
-		"Sync Storage": func() error {
-			go s.syncStorage()
-			return nil
-		},
-		"Reload Redirects":      s.loadRedirects,
-		"Reload Gone":           s.loadGone,
-		"Reload External Links": s.loadLinks,
-		"Update External Links": func() error {
-			err := s.fs.UpdateExternalLinks()
-			if err != nil {
-				return err
-			}
-			return s.loadLinks()
-		},
-		"Reset Index": func() error {
-			s.indexAll()
-			return nil
-		},
-	}
+	return errors.Join(
+		s.server.Shutdown(ctx),
+		s.badger.Close(),
+	)
 }
 
 func (s *Server) getActions() []string {
@@ -276,6 +156,26 @@ func (s *Server) getActions() []string {
 	}
 	sort.Strings(actions)
 	return actions
+}
+
+func (s *Server) registerAction(name string, action func() error) error {
+	if _, ok := s.actions[name]; ok {
+		return errors.New("action already registered")
+	}
+
+	s.actions[name] = action
+	return nil
+}
+
+func (s *Server) registerActionWithRebuild(name string, action func() error) error {
+	return s.registerAction(name, func() error {
+		err := action()
+		if err != nil {
+			return err
+		}
+		s.hugo.Build(false)
+		return nil
+	})
 }
 
 func (s *Server) loadRedirects() error {
@@ -386,6 +286,7 @@ func (s *Server) syncStorage() {
 	}
 
 	ids := []string{}
+	// TODO: detect if redirects/gone changes, reload.
 
 	for _, file := range changedFiles {
 		if !strings.HasPrefix(file, core.ContentDirectory) {
