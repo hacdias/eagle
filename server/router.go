@@ -29,7 +29,7 @@ func (s *Server) makeRouter() http.Handler {
 	}
 
 	// Random
-	r.Get(wellKnownWebFingerPath, s.wellKnownWebFingerGet)
+	r.Get(wellKnownWebFingerPath, s.makeWellKnownWebFingerGet())
 	r.Get(wellKnownLinksPath, s.wellKnownLinksGet)
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
 	r.Post(guestbookPath, s.guestbookPost)

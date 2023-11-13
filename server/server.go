@@ -51,7 +51,6 @@ type Server struct {
 	gone      map[string]bool
 	links     []core.Links
 	linksMap  map[string]core.Links
-	webFinger *core.WebFinger
 
 	server      *http.Server
 	meilisearch *meilisearch.MeiliSearch
@@ -149,12 +148,14 @@ func NewServer(c *core.Config) (*Server, error) {
 		)
 	}
 
-	s.initWebFinger()
-
 	errs = multierror.Append(
 		errs,
 		s.RegisterCron("00 00 * * *", "Update External Links", func() error {
-			return s.fs.UpdateExternalLinks()
+			err := s.fs.UpdateExternalLinks()
+			if err != nil {
+				return err
+			}
+			return s.loadLinks()
 		}),
 		s.RegisterCron("00 02 * * *", "Sync Storage", func() error {
 			s.syncStorage()

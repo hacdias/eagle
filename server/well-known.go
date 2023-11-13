@@ -9,23 +9,16 @@ import (
 	"go.hacdias.com/eagle/core"
 )
 
-// TODO: consider moving this to simple rewrites in Caddy, if possible, of course.
-// That would be nice as I could easily ensure that the static files on disk would
-// correspond with the response for the requests we want.
-//
-// In addition, I wouldn't need to have the "overhead" for the /.well-known/links
-// of maintaining it in memory and refreshing the values once in a while.
-
 const (
 	wellKnownWebFingerPath = "/.well-known/webfinger"
 	wellKnownLinksPath     = "/.well-known/links"
 	wellKnownAvatarPath    = "/.well-known/avatar"
 )
 
-func (s *Server) initWebFinger() {
+func (s *Server) makeWellKnownWebFingerGet() http.HandlerFunc {
 	url, _ := urlpkg.Parse(s.c.BaseURL)
 
-	s.webFinger = &core.WebFinger{
+	webFinger := &core.WebFinger{
 		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
 		Aliases: []string{
 			s.c.BaseURL,
@@ -38,13 +31,13 @@ func (s *Server) initWebFinger() {
 			},
 		},
 	}
-}
 
-func (s *Server) wellKnownWebFingerGet(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Query().Get("resource") == s.webFinger.Subject {
-		s.serveJSON(w, http.StatusOK, s.webFinger)
-	} else {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("resource") == webFinger.Subject {
+			s.serveJSON(w, http.StatusOK, webFinger)
+		} else {
+			s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		}
 	}
 }
 
