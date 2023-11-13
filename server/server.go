@@ -131,6 +131,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	if c.Miniflux != nil {
 		mf := miniflux.NewMiniflux(c.Miniflux, s.fs)
 
+		// TODO: rebuild after action happens.
 		errs = multierror.Append(
 			errs,
 			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.Synchronize),
@@ -141,6 +142,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	if c.Linkding != nil {
 		ld := linkding.NewLinkding(c.Linkding, s.fs)
 
+		// TODO: rebuild after action happens.
 		errs = multierror.Append(
 			errs,
 			s.RegisterCron("00 00 * * *", "Linkding Bookmarks", ld.Synchronize),
