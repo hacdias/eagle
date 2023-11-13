@@ -3,6 +3,7 @@ package miniflux
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -11,15 +12,15 @@ import (
 	miniflux "miniflux.app/v2/client"
 )
 
-type BlogrollUpdater struct {
+type Miniflux struct {
 	fs           *core.FS
 	client       *miniflux.Client
 	jsonFilename string
 	opmlFilename string
 }
 
-func NewBlogrollUpdater(c *core.Miniflux, fs *core.FS) *BlogrollUpdater {
-	return &BlogrollUpdater{
+func NewMiniflux(c *core.Miniflux, fs *core.FS) *Miniflux {
+	return &Miniflux{
 		fs:           fs,
 		client:       miniflux.New(c.Endpoint, c.Key),
 		jsonFilename: c.JSON,
@@ -27,40 +28,7 @@ func NewBlogrollUpdater(c *core.Miniflux, fs *core.FS) *BlogrollUpdater {
 	}
 }
 
-type feed struct {
-	Title string `json:"title"`
-	Site  string `json:"site"`
-	Feed  string `json:"feed"`
-}
-
-func (u *BlogrollUpdater) fetch() (map[string][]feed, error) {
-	rawFeeds, err := u.client.Feeds()
-	if err != nil {
-		return nil, err
-	}
-
-	sort.SliceStable(rawFeeds, func(i, j int) bool {
-		return rawFeeds[i].Title < rawFeeds[j].Title
-	})
-
-	feedsByCategory := map[string][]feed{}
-	for _, f := range rawFeeds {
-		category := strings.ToLower(f.Category.Title)
-		if _, ok := feedsByCategory[category]; !ok {
-			feedsByCategory[category] = []feed{}
-		}
-
-		feedsByCategory[category] = append(feedsByCategory[category], feed{
-			Title: f.Title,
-			Feed:  f.FeedURL,
-			Site:  f.SiteURL,
-		})
-	}
-
-	return feedsByCategory, nil
-}
-
-func (u *BlogrollUpdater) UpdateBlogroll() error {
+func (u *Miniflux) Synchronize() error {
 	if u.jsonFilename == "" {
 		return errors.New("miniflux: blogroll updater must have JSON filename set")
 	}
@@ -72,7 +40,7 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 
 	var oldFeeds map[string][]feed
 	err = u.fs.ReadJSON(u.jsonFilename, &oldFeeds)
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
@@ -99,4 +67,37 @@ func (u *BlogrollUpdater) UpdateBlogroll() error {
 	}
 
 	return u.fs.WriteFiles(files, "blogroll: synchronize with miniflux")
+}
+
+type feed struct {
+	Title string `json:"title"`
+	Site  string `json:"site"`
+	Feed  string `json:"feed"`
+}
+
+func (u *Miniflux) fetch() (map[string][]feed, error) {
+	rawFeeds, err := u.client.Feeds()
+	if err != nil {
+		return nil, err
+	}
+
+	sort.SliceStable(rawFeeds, func(i, j int) bool {
+		return rawFeeds[i].Title < rawFeeds[j].Title
+	})
+
+	feedsByCategory := map[string][]feed{}
+	for _, f := range rawFeeds {
+		category := strings.ToLower(f.Category.Title)
+		if _, ok := feedsByCategory[category]; !ok {
+			feedsByCategory[category] = []feed{}
+		}
+
+		feedsByCategory[category] = append(feedsByCategory[category], feed{
+			Title: f.Title,
+			Feed:  f.FeedURL,
+			Site:  f.SiteURL,
+		})
+	}
+
+	return feedsByCategory, nil
 }
