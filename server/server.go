@@ -173,8 +173,7 @@ func (s *Server) registerActionWithRebuild(name string, action func() error) err
 		if err != nil {
 			return err
 		}
-		s.hugo.Build(false)
-		return nil
+		return s.hugo.Build(false)
 	})
 }
 
