@@ -26,8 +26,7 @@ func newStaticFs(dir string) *staticFs {
 }
 
 // neuteredFs is a file system that returns 404 when a directory contains
-//
-//	no index.html to prevent http.FileServer to render a listing of the directory.
+// no index.html to prevent http.FileServer to render a listing of the directory.
 type neuteredFs struct {
 	http.FileSystem
 }
