@@ -130,22 +130,22 @@ func NewServer(c *core.Config) (*Server, error) {
 	var errs *multierror.Error
 
 	if c.Miniflux != nil {
-		mf := miniflux.NewBlogrollUpdater(c.Miniflux, s.fs)
+		mf := miniflux.NewMiniflux(c.Miniflux, s.fs)
 
 		errs = multierror.Append(
 			errs,
-			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.UpdateBlogroll),
-			s.RegisterAction("Update Miniflux Blogroll", mf.UpdateBlogroll),
+			s.RegisterCron("00 00 * * *", "Miniflux Blogroll", mf.Synchronize),
+			s.RegisterAction("Update Miniflux Blogroll", mf.Synchronize),
 		)
 	}
 
 	if c.Linkding != nil {
-		ld := linkding.NewBookmarksUpdater(c.Linkding, s.fs)
+		ld := linkding.NewLinkding(c.Linkding, s.fs)
 
 		errs = multierror.Append(
 			errs,
-			s.RegisterCron("00 00 * * *", "Linkding Bookmarks", ld.UpdateBookmarks),
-			s.RegisterAction("Update Linkding Bookmarks", ld.UpdateBookmarks),
+			s.RegisterCron("00 00 * * *", "Linkding Bookmarks", ld.Synchronize),
+			s.RegisterAction("Update Linkding Bookmarks", ld.Synchronize),
 		)
 	}
 

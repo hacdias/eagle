@@ -15,7 +15,7 @@ import (
 	"go.hacdias.com/eagle/core"
 )
 
-type BookmarksUpdater struct {
+type Linkding struct {
 	fs           *core.FS
 	httpClient   *http.Client
 	endpoint     string
@@ -23,8 +23,8 @@ type BookmarksUpdater struct {
 	jsonFilename string
 }
 
-func NewBookmarksUpdater(c *core.Linkding, fs *core.FS) *BookmarksUpdater {
-	return &BookmarksUpdater{
+func NewLinkding(c *core.Linkding, fs *core.FS) *Linkding {
+	return &Linkding{
 		fs: fs,
 		httpClient: &http.Client{
 			Timeout: 2 * time.Minute,
@@ -35,7 +35,7 @@ func NewBookmarksUpdater(c *core.Linkding, fs *core.FS) *BookmarksUpdater {
 	}
 }
 
-func (u *BookmarksUpdater) UpdateBookmarks() error {
+func (u *Linkding) Synchronize() error {
 	newBookmarks, err := u.fetch()
 	if err != nil {
 		return err
@@ -54,7 +54,38 @@ func (u *BookmarksUpdater) UpdateBookmarks() error {
 	return u.fs.WriteJSON(u.jsonFilename, newBookmarks, "bookmarks: synchronize with linkding")
 }
 
-func (ld *BookmarksUpdater) fetch() ([]bookmark, error) {
+type bookmark struct {
+	URL         string    `json:"url,omitempty"`
+	Title       string    `json:"title,omitempty"`
+	Description string    `json:"description,omitempty"`
+	Tags        []string  `json:"tags,omitempty"`
+	Date        time.Time `json:"date,omitempty"`
+}
+
+type result struct {
+	ID                 int       `json:"id,omitempty"`
+	URL                string    `json:"url,omitempty"`
+	Title              string    `json:"title,omitempty"`
+	Description        string    `json:"description,omitempty"`
+	Notes              string    `json:"notes,omitempty"`
+	WebsiteTitle       string    `json:"website_title,omitempty"`
+	WebsiteDescription string    `json:"website_description,omitempty"`
+	IsArchived         bool      `json:"is_archived,omitempty"`
+	Unread             bool      `json:"unread,omitempty"`
+	Shared             bool      `json:"shared,omitempty"`
+	TagNames           []string  `json:"tag_names,omitempty"`
+	DateAdded          time.Time `json:"date_added,omitempty"`
+	DateModified       time.Time `json:"date_modified,omitempty"`
+}
+
+type results struct {
+	Count    int    `json:"count"`
+	Next     string `json:"next"`
+	Previous any    `json:"previous"`
+	Results  []result
+}
+
+func (ld *Linkding) fetch() ([]bookmark, error) {
 	var bookmarks []bookmark
 	for p := 1; ; p++ {
 		newBookmarks, err := ld.fetchPage(p)
@@ -75,7 +106,7 @@ func (ld *BookmarksUpdater) fetch() ([]bookmark, error) {
 	return bookmarks, nil
 }
 
-func (ld *BookmarksUpdater) fetchPage(page int) ([]bookmark, error) {
+func (ld *Linkding) fetchPage(page int) ([]bookmark, error) {
 	q := url.Values{}
 	q.Set("limit", "100")
 	q.Set("offset", strconv.Itoa((page-1)*100))
@@ -113,35 +144,4 @@ func (ld *BookmarksUpdater) fetchPage(page int) ([]bookmark, error) {
 	}
 
 	return bookmarks, nil
-}
-
-type bookmark struct {
-	URL         string    `json:"url,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Tags        []string  `json:"tags,omitempty"`
-	Date        time.Time `json:"date,omitempty"`
-}
-
-type result struct {
-	ID                 int       `json:"id,omitempty"`
-	URL                string    `json:"url,omitempty"`
-	Title              string    `json:"title,omitempty"`
-	Description        string    `json:"description,omitempty"`
-	Notes              string    `json:"notes,omitempty"`
-	WebsiteTitle       string    `json:"website_title,omitempty"`
-	WebsiteDescription string    `json:"website_description,omitempty"`
-	IsArchived         bool      `json:"is_archived,omitempty"`
-	Unread             bool      `json:"unread,omitempty"`
-	Shared             bool      `json:"shared,omitempty"`
-	TagNames           []string  `json:"tag_names,omitempty"`
-	DateAdded          time.Time `json:"date_added,omitempty"`
-	DateModified       time.Time `json:"date_modified,omitempty"`
-}
-
-type results struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous any    `json:"previous"`
-	Results  []result
 }
