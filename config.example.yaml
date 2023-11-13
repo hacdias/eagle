@@ -68,6 +68,7 @@ miniflux:
 linkding:
   endpoint: myUrl
   key: myKey
+  json: data/bookmarks.json
 
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.

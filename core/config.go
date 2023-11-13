@@ -154,7 +154,11 @@ type Miniflux struct {
 	OPML     string
 }
 
-type Linkding = EndpointWithKey
+type Linkding struct {
+	Endpoint string
+	Key      string
+	JSON     string
+}
 
 type ImgProxy struct {
 	Directory string
