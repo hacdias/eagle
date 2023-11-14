@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"go.hacdias.com/eagle/config"
+	"go.hacdias.com/eagle/fs"
 	"go.hacdias.com/eagle/log"
+	"go.hacdias.com/eagle/render"
 
 	"go.uber.org/zap"
 )
@@ -20,15 +22,19 @@ import (
 type contextKey string
 
 type Server struct {
-	cfg    *config.Config
-	log    *zap.SugaredLogger
-	server *http.Server
+	cfg      *config.Config
+	log      *zap.SugaredLogger
+	server   *http.Server
+	fs       *fs.FS
+	renderer *render.Renderer
 }
 
 func NewServer(cfg *config.Config) (*Server, error) {
 	s := &Server{
-		cfg: cfg,
-		log: log.S().Named("server"),
+		cfg:      cfg,
+		log:      log.S().Named("server"),
+		fs:       fs.NewFS(cfg.Server.Source, cfg.Website.BaseURL),
+		renderer: render.NewRenderer(),
 	}
 
 	return s, nil

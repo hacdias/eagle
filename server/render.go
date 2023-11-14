@@ -7,6 +7,8 @@ import (
 
 func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, reqErr error) {
 	// TODO
+	w.WriteHeader(code)
+	w.Write([]byte(reqErr.Error()))
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {

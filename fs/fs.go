@@ -16,6 +16,8 @@ const (
 )
 
 type FS struct {
+	ContentFS *afero.Afero
+
 	afero  *afero.Afero
 	parser *entry.Parser
 }
@@ -25,8 +27,16 @@ func NewFS(path, baseURL string) *FS {
 		afero: &afero.Afero{
 			Fs: afero.NewBasePathFs(afero.NewOsFs(), path),
 		},
+
+		ContentFS: &afero.Afero{
+			Fs: afero.NewBasePathFs(afero.NewOsFs(), filepath.Join(path, contentDirectory)),
+		},
 		parser: entry.NewParser(baseURL),
 	}
+}
+
+func (f *FS) Stat(name string) (os.FileInfo, error) {
+	return f.afero.Stat(name)
 }
 
 func (f *FS) WriteFile(filename string, data []byte, message string) error {
