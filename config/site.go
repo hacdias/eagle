@@ -8,14 +8,20 @@ import (
 	"github.com/spf13/viper"
 )
 
-type WebsiteConfig struct {
+type SiteConfig struct {
 	Title      string
 	BaseURL    string
 	Language   string
 	Pagination int
+	Assets     []Asset
 }
 
-func (c WebsiteConfig) Validate() error {
+type Asset struct {
+	Name  string
+	Files []string
+}
+
+func (c SiteConfig) Validate() error {
 	baseUrl, err := url.Parse(c.BaseURL)
 	if err != nil {
 		return err
@@ -33,20 +39,20 @@ func (c WebsiteConfig) Validate() error {
 	return nil
 }
 
-func ReadWebsiteConfig(dir string) (WebsiteConfig, error) {
+func ReadWebsiteConfig(dir string) (SiteConfig, error) {
 	v := viper.New()
 	v.SetConfigName("config")
 	v.AddConfigPath(dir)
 
 	err := v.ReadInConfig()
 	if err != nil {
-		return WebsiteConfig{}, err
+		return SiteConfig{}, err
 	}
 
-	conf := WebsiteConfig{}
+	conf := SiteConfig{}
 	err = v.Unmarshal(&conf)
 	if err != nil {
-		return WebsiteConfig{}, err
+		return SiteConfig{}, err
 	}
 
 	return conf, conf.Validate()

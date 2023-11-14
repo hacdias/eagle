@@ -15,6 +15,8 @@ const (
 	contentDirectory string = "content"
 )
 
+// TODO: maybe make Git only make commit on Sync and Sync once a dag.
+
 type FS struct {
 	ContentFS *afero.Afero
 
@@ -33,10 +35,6 @@ func NewFS(path, baseURL string) *FS {
 		},
 		parser: entry.NewParser(baseURL),
 	}
-}
-
-func (f *FS) Stat(name string) (os.FileInfo, error) {
-	return f.afero.Stat(name)
 }
 
 func (f *FS) WriteFile(filename string, data []byte, message string) error {

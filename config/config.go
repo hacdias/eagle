@@ -1,8 +1,8 @@
 package config
 
 type Config struct {
-	Server  ServerConfig
-	Website WebsiteConfig
+	Server ServerConfig
+	Site   SiteConfig
 }
 
 func ReadConfig(dir string) (*Config, error) {
@@ -17,7 +17,7 @@ func ReadConfig(dir string) (*Config, error) {
 	}
 
 	return &Config{
-		Server:  server,
-		Website: website,
+		Server: server,
+		Site:   website,
 	}, nil
 }

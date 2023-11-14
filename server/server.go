@@ -30,11 +30,16 @@ type Server struct {
 }
 
 func NewServer(cfg *config.Config) (*Server, error) {
+	renderer, err := render.NewRenderer(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &Server{
 		cfg:      cfg,
 		log:      log.S().Named("server"),
-		fs:       fs.NewFS(cfg.Server.Source, cfg.Website.BaseURL),
-		renderer: render.NewRenderer(),
+		fs:       fs.NewFS(cfg.Server.Source, cfg.Site.BaseURL),
+		renderer: renderer,
 	}
 
 	return s, nil
