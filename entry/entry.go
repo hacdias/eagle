@@ -1,6 +1,7 @@
 package entry
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -11,18 +12,21 @@ import (
 type Entry struct {
 	FrontMatter
 	ID        string
-	IsList    bool
 	Permalink string
 	Content   string
 }
 
 func (e *Entry) String() (string, error) {
-	fr, err := yaml.Marshal(&e.FrontMatter)
+	fr := bytes.Buffer{}
+	enc := yaml.NewEncoder(&fr)
+	enc.SetIndent(2)
+
+	err := enc.Encode(&e.FrontMatter)
 	if err != nil {
 		return "", err
 	}
 
-	text := fmt.Sprintf("---\n%s---\n\n%s\n", string(fr), strings.TrimSpace(e.Content))
+	text := fmt.Sprintf("---\n%s---\n\n%s\n", fr.String(), strings.TrimSpace(e.Content))
 	text = strings.TrimSpace(text) + "\n"
 	return normalizeNewlines(text), nil
 }

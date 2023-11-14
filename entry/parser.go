@@ -2,7 +2,6 @@ package entry
 
 import (
 	"errors"
-	"net/url"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -30,11 +29,6 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 
 	id = cleanID(id)
 
-	permalink, err := p.makePermalink(id, fr)
-	if err != nil {
-		return nil, err
-	}
-
 	content := strings.TrimSpace(splits[1])
 	if content != "" {
 		// Fixes issue where goldmark is adding a <blockquote>
@@ -44,20 +38,10 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 
 	e := &Entry{
 		ID:          id,
-		Permalink:   permalink,
+		Permalink:   p.baseURL + id,
 		Content:     content,
 		FrontMatter: *fr,
 	}
 
 	return e, nil
-}
-
-func (p *Parser) makePermalink(id string, fr *FrontMatter) (string, error) {
-	url, err := url.Parse(p.baseURL)
-	if err != nil {
-		return "", err
-	}
-
-	url.Path = id
-	return url.String(), nil
 }
