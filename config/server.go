@@ -1,6 +1,11 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/viper"
+)
 
 type ServerConfig struct {
 	Port   int
@@ -8,6 +13,14 @@ type ServerConfig struct {
 }
 
 func (c ServerConfig) Validate() error {
+	if _, err := os.Stat(c.Source); err != nil {
+		return fmt.Errorf("server config: Source %q does not exist: %w", c.Source, err)
+	}
+
+	if c.Port < 0 {
+		return fmt.Errorf("server config: Port must be above 0")
+	}
+
 	return nil
 }
 

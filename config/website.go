@@ -1,6 +1,12 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"errors"
+	"fmt"
+	"net/url"
+
+	"github.com/spf13/viper"
+)
 
 type WebsiteConfig struct {
 	Title      string
@@ -10,6 +16,20 @@ type WebsiteConfig struct {
 }
 
 func (c WebsiteConfig) Validate() error {
+	baseUrl, err := url.Parse(c.BaseURL)
+	if err != nil {
+		return err
+	}
+	baseUrl.Path = ""
+
+	if baseUrl.String() != c.BaseURL {
+		return fmt.Errorf("website config: BaseURL should be %s", baseUrl.String())
+	}
+
+	if c.Pagination < 1 {
+		return errors.New("website config: Pagination must be larger than 1")
+	}
+
 	return nil
 }
 
