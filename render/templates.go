@@ -29,12 +29,7 @@ const (
 
 type templatesBuilder struct {
 	dir string
-
-	fs *afero.Afero
-
-	layouts    map[string]*template.Template
-	partials   *template.Template
-	shortcodes *template.Template
+	fs  *afero.Afero
 }
 
 func newTemplatesBuilder(source string) *templatesBuilder {
@@ -45,7 +40,7 @@ func newTemplatesBuilder(source string) *templatesBuilder {
 }
 
 func (b *templatesBuilder) loadPartials(fns template.FuncMap) (*template.Template, error) {
-	partials := template.New("")
+	partials := template.New("").Funcs(fns)
 
 	err := b.fs.Walk("partials", func(filepath string, info fs.FileInfo, err error) error {
 		if err != nil {
@@ -132,13 +127,7 @@ func (b *templatesBuilder) loadLayouts(fns template.FuncMap) (map[string]*templa
 	return layouts, err
 }
 
-func (b *templatesBuilder) load(fns template.FuncMap) error {
-	layouts, err := b.loadLayouts(fns)
-	if err != nil {
-		return err
-	}
-
-	b.layouts = layouts
+func (b *templatesBuilder) load(fns template.FuncMap) (map[string]*template.Template, error) {
 	// TODO: shortcodes
-	return nil
+	return b.loadLayouts(fns)
 }

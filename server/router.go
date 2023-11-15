@@ -58,7 +58,7 @@ func (s *Server) everythingBagel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.renderer.Render(w, render.Data{
+	err = s.renderer.Render(w, render.Pagina{
 		Entry: e,
 	}, []string{render.LayoutSingle})
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *Server) withStaticFiles(next http.Handler) http.Handler {
 }
 
 func (s *Server) serveAssets(w http.ResponseWriter, r *http.Request) {
-	if asset := s.renderer.AssetByPath(r.URL.Path); asset != nil {
+	if asset := s.renderer.Assets().ByPath(r.URL.Path); asset != nil {
 		w.Header().Set("Cache-Control", "public, max-age=604800, immutable")
 		w.Header().Set("Content-Type", asset.Type)
 		_, _ = w.Write(asset.Body)

@@ -26,53 +26,53 @@ type Asset struct {
 	Body      []byte
 }
 
-func (r *Renderer) AssetByPath(path string) *Asset {
-	return r.assets.byPath[path]
-}
-
-func (r *Renderer) AssetByName(name string) *Asset {
-	return r.assets.byName[name]
-}
-
-type assetsBuilder struct {
-	log    *zap.SugaredLogger
-	fs     afero.Fs
-	assets []config.Asset
+type Assets struct {
 	byName map[string]*Asset
 	byPath map[string]*Asset
 }
 
-func newAssetsBuilder(source string, assets []config.Asset) *assetsBuilder {
+func (a Assets) ByPath(path string) *Asset {
+	return a.byPath[path]
+}
+
+func (a Assets) ByName(name string) *Asset {
+	return a.byName[name]
+}
+
+type assetsBuilder struct {
+	log *zap.SugaredLogger
+	fs  afero.Fs
+}
+
+func newAssetsBuilder(source string) *assetsBuilder {
 	dir := filepath.Join(source, "assets")
 	fs := afero.NewBasePathFs(afero.NewOsFs(), dir)
 
 	return &assetsBuilder{
-		log:    log.S().Named("assets"),
-		fs:     fs,
-		assets: assets,
-		byName: map[string]*Asset{},
-		byPath: map[string]*Asset{},
+		log: log.S().Named("assets"),
+		fs:  fs,
 	}
 }
 
-func (b *assetsBuilder) build() error {
-	paths := map[string]*Asset{}
-	builds := map[string]*Asset{}
+func (b *assetsBuilder) build(assets []config.Asset) (Assets, error) {
+	byNames := map[string]*Asset{}
+	byPaths := map[string]*Asset{}
 
-	for _, asset := range b.assets {
+	for _, asset := range assets {
 		parsedAsset, err := b.buildOne(&asset)
 		if err != nil {
-			return err
+			return Assets{}, err
 		}
 
-		paths[asset.Name] = parsedAsset
-		builds[parsedAsset.Path] = parsedAsset
+		byNames[asset.Name] = parsedAsset
+		byPaths[parsedAsset.Path] = parsedAsset
 		b.log.Debugw("asset built", "path", parsedAsset.Path, "integrity", parsedAsset.Integrity, "type", parsedAsset.Type)
 	}
 
-	b.byName = paths
-	b.byPath = builds
-	return nil
+	return Assets{
+		byName: byNames,
+		byPath: byPaths,
+	}, nil
 }
 
 func (b *assetsBuilder) buildOne(asset *config.Asset) (*Asset, error) {

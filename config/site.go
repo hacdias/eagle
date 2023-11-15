@@ -14,11 +14,17 @@ type SiteConfig struct {
 	Language   string
 	Pagination int
 	Assets     []Asset
+	Menus      map[string][]MenuItem
 }
 
 type Asset struct {
 	Name  string
 	Files []string
+}
+
+type MenuItem struct {
+	Name string
+	Link string
 }
 
 func (c SiteConfig) Validate() error {

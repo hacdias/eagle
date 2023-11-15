@@ -1,35 +1,39 @@
 package render
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"html/template"
 	"io"
 
+	"github.com/yuin/goldmark"
 	"go.hacdias.com/eagle/config"
-	"go.hacdias.com/eagle/entry"
-	"go.hacdias.com/eagle/render/templates"
 )
 
 type Renderer struct {
 	cfg       *config.Config
-	assets    *assetsBuilder
-	templates *templatesBuilder
+	assets    Assets
+	templates map[string]*template.Template
+	markdown  goldmark.Markdown
 }
 
 func NewRenderer(cfg *config.Config) (*Renderer, error) {
 	r := &Renderer{
-		cfg:       cfg,
-		assets:    newAssetsBuilder(cfg.Server.Source, cfg.Site.Assets),
-		templates: newTemplatesBuilder(cfg.Server.Source),
+		cfg:      cfg,
+		markdown: newMarkdown(),
 	}
 
-	err := r.assets.build()
+	var err error
+
+	assetsBuilder := newAssetsBuilder(cfg.Server.Source)
+	r.assets, err = assetsBuilder.build(cfg.Site.Assets)
 	if err != nil {
 		return nil, err
 	}
 
-	err = r.templates.load(nil)
+	funcMap := r.getTemplateFuncMap(true)
+	templatesBuilder := newTemplatesBuilder(cfg.Server.Source)
+	r.templates, err = templatesBuilder.load(funcMap)
 	if err != nil {
 		return nil, err
 	}
@@ -37,13 +41,10 @@ func NewRenderer(cfg *config.Config) (*Renderer, error) {
 	return r, nil
 }
 
-func (r *Renderer) Render(w io.Writer, data Data, tpls []string) error {
-	err := templates.Single(&r.cfg.Site, data.Entry).Render(context.Background(), w)
-	return err
-
+func (r *Renderer) Render(w io.Writer, data Pagina, tpls []string) error {
 	var layout *template.Template
 	for _, layoutName := range tpls {
-		if tpl, ok := r.templates.layouts[layoutName]; ok {
+		if tpl, ok := r.templates[layoutName]; ok {
 			layout = tpl
 			break
 		}
@@ -52,47 +53,19 @@ func (r *Renderer) Render(w io.Writer, data Data, tpls []string) error {
 		return fmt.Errorf("template %v not found", tpls)
 	}
 
-	data.r = r
+	var b bytes.Buffer
+	err := r.markdown.Convert([]byte(data.Entry.Content), &b)
+	if err != nil {
+		return err
+	}
+
 	data.Site = r.cfg.Site
-
-	// layout.Execute(w, e)
-
-	// md := newMarkdown()
-
-	// return md.Convert([]byte(e.Content), w)
+	data.Assets = r.assets
+	data.Content = template.HTML(b.String())
 
 	return layout.Execute(w, data)
 }
 
-// type Alternate struct {
-// 	Type string
-// 	Href string
-// }
-
-type Data struct {
-	r *Renderer
-
-	// All pages must have some sort of Entry embedded.
-	// This allows us to set generic information about
-	// a page that may be needed.
-	*entry.Entry
-
-	Site config.SiteConfig
-
-	// Assets *Assets
-	// Me     eagle.User
-
-	// // For page-specific variables.
-	// Data interface{}
-
-	// Alternates []Alternate
-	// IsHome     bool
-	// IsLoggedIn bool
-	// NoIndex    bool
-
-	// fs *fs.FS
-}
-
-func (d Data) AssetByName(name string) *Asset {
-	return d.r.AssetByName(name)
+func (r *Renderer) Assets() Assets {
+	return r.assets
 }
