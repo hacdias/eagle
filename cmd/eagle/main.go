@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	mainCmd.PersistentFlags().StringP("configDir", "c", ".", "directory with eagle configuration")
+	mainCmd.Flags().StringP("configDir", "c", ".", "directory with eagle configuration")
 }
 
 func main() {

@@ -39,6 +39,7 @@ type FrontMatter struct {
 	URL         string         `yaml:"url,omitempty"` // TODO: remove.
 	Draft       bool           `yaml:"draft,omitempty"`
 	Date        time.Time      `yaml:"date,omitempty"`
+	Lastmod     time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
 	NoIndex     bool           `yaml:"noIndex,omitempty"`
 	Tags        []string       `yaml:"tags,omitempty"` // TODO: remove.

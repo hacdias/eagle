@@ -3,6 +3,7 @@ module go.hacdias.com/eagle
 go 1.21
 
 require (
+	github.com/a-h/templ v0.2.432
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/spf13/afero v1.10.0
 	github.com/spf13/cobra v1.7.0

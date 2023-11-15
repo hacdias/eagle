@@ -1,2 +1,3 @@
 testing/
 cmd/eagle/tmp.go
+*_templ.go

@@ -58,7 +58,12 @@ func (s *Server) everythingBagel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = s.renderer.Render(w, e)
+	err = s.renderer.Render(w, render.Data{
+		Entry: e,
+	}, []string{render.LayoutSingle})
+	if err != nil {
+		s.log.Error(err)
+	}
 }
 
 func (s *Server) withStaticFiles(next http.Handler) http.Handler {

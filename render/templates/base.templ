@@ -1,0 +1,41 @@
+package templates
+
+import "go.hacdias.com/eagle/config"
+import "go.hacdias.com/eagle/entry"
+
+templ head() {
+	<div>Head</div>
+}
+
+templ header() {
+	<div>Header</div>
+}
+
+templ footer() {
+	<div>Footer</div>
+}
+
+templ base() {
+	<!DOCTYPE html>
+	<html lang=''>
+	<head>
+		@head()
+	</head>
+	<body>
+		<a href="#main" id='skip-to-content'>Skip to content</a>
+		<div class='container'>
+			@header()
+			<main id='main'>
+				{ children... }
+			</main>
+			@footer()
+		</div>
+	</body>
+	</html>
+}
+
+templ Single(s *config.SiteConfig, e *entry.Entry) {
+	@base() {
+		<div>{ e.Title }</div>
+	}
+}
