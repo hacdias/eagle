@@ -19,7 +19,6 @@ type Config struct {
 	TokensSecret    string
 	WebhookSecret   string
 	Logging         bool
-	Language        string
 	Title           string
 	Pagination      int
 
