@@ -287,9 +287,9 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 
 	if strings.Contains(scope, "profile") {
 		profile = &tokenUser{
-			Name:  s.c.User.Name,
+			Name:  s.c.Site.Params.Author.Name,
 			URL:   s.c.ID(),
-			Photo: s.c.User.Photo,
+			Photo: s.c.Site.Params.Author.Photo,
 		}
 	}
 
@@ -297,7 +297,7 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 		if profile == nil {
 			profile = &tokenUser{}
 		}
-		profile.Email = s.c.User.Email
+		profile.Email = s.c.Site.Params.Author.Email
 	}
 
 	return profile

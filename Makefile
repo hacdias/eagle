@@ -14,7 +14,7 @@ ngrok:
 
 imgproxy:
 	docker run -p 8085:8080 -it \
-		-v $(PWD)/imgproxy/:/data/ \
+		-v $(PWD)/testing/imgproxy/:/data/ \
 		--env IMGPROXY_LOCAL_FILESYSTEM_ROOT=/data/ \
 		--env IMGPROXY_JPEG_PROGRESSIVE=true \
 		--env IMGPROXY_AUTO_ROTATE=true \

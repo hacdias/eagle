@@ -30,7 +30,7 @@ func (s *Server) makeWellKnownWebFingerGet() http.HandlerFunc {
 	url, _ := urlpkg.Parse(s.c.BaseURL)
 
 	webFinger := &webFinger{
-		Subject: fmt.Sprintf("acct:%s@%s", s.c.User.Username, url.Host),
+		Subject: fmt.Sprintf("acct:%s@%s", s.c.Site.Params.Author.Handle, url.Host),
 		Aliases: []string{
 			s.c.BaseURL,
 		},
