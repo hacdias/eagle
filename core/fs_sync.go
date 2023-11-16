@@ -27,28 +27,25 @@ var nothingToCommit = []byte("nothing to commit, working tree clean")
 var noChangedAdded = []byte("no changes added to commit")
 
 type GitSync struct {
-	dir string
-	mu  sync.Mutex
+	dir      string
+	mu       sync.Mutex
+	messages []string
 }
 
 func NewGitSync(path string) Sync {
 	return &GitSync{dir: path}
 }
 
-func (g *GitSync) Persist(message string, file ...string) error {
+func (g *GitSync) Persist(message string, filenames ...string) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	err := g.add(file...)
-	if err != nil {
-		return err
-	}
-
-	return g.commit(message, file...)
+	g.messages = append(g.messages, message)
+	return g.add(filenames...)
 }
 
-func (g *GitSync) add(file ...string) error {
-	args := append([]string{"add"}, file...)
+func (g *GitSync) add(filenames ...string) error {
+	args := append([]string{"add"}, filenames...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -58,9 +55,8 @@ func (g *GitSync) add(file ...string) error {
 	return nil
 }
 
-func (g *GitSync) commit(message string, file ...string) error {
+func (g *GitSync) commit(message string) error {
 	args := []string{"commit", "-m", message, "--"}
-	args = append(args, file...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -70,9 +66,33 @@ func (g *GitSync) commit(message string, file ...string) error {
 	return nil
 }
 
+func (g *GitSync) hasStaged() bool {
+	cmd := exec.Command("git", "diff-index", "--quiet", "--cached", "HEAD", "--")
+	cmd.Dir = g.dir
+	err := cmd.Run()
+	// NOTE: not totally correct. Other errors might have happened here.
+	return err != nil
+}
+
 func (g *GitSync) Sync() ([]string, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+
+	if g.hasStaged() {
+		var message string
+		if len(g.messages) == 1 {
+			message = g.messages[0]
+		} else {
+			message = strings.Join(g.messages, "\n")
+			message = "eagle: add staged changes \n\n" + message
+		}
+
+		err := g.commit(message)
+		if err != nil {
+			return nil, err
+		}
+		g.messages = nil
+	}
 
 	oldCommit, err := g.currentCommit()
 	if err != nil {
