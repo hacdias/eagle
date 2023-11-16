@@ -3,14 +3,21 @@ package miniflux
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"reflect"
 	"sort"
 	"strings"
 
+	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/server"
 	miniflux "miniflux.app/v2/client"
 )
+
+func init() {
+	server.RegisterPlugin("miniflux", NewMiniflux)
+}
 
 type Miniflux struct {
 	fs           *core.FS
@@ -19,20 +26,43 @@ type Miniflux struct {
 	opmlFilename string
 }
 
-func NewMiniflux(c *core.Miniflux, fs *core.FS) *Miniflux {
+func NewMiniflux(fs *core.FS, config map[string]interface{}) (server.Plugin, error) {
+	endpoint := typed.New(config).String("endpoint")
+	if endpoint == "" {
+		return nil, errors.New("miniflux endpoint missing")
+	}
+
+	key := typed.New(config).String("key")
+	if key == "" {
+		return nil, errors.New("miniflux key missing")
+	}
+
+	filename := typed.New(config).String("filename")
+	if filename == "" {
+		return nil, errors.New("miniflux filename missing")
+	}
+
 	return &Miniflux{
 		fs:           fs,
-		client:       miniflux.New(c.Endpoint, c.Key),
-		jsonFilename: c.JSON,
-		opmlFilename: c.OPML,
-	}
+		client:       miniflux.New(endpoint, key),
+		jsonFilename: filename,
+		opmlFilename: typed.New(config).String("opml"),
+	}, nil
 }
 
-func (u *Miniflux) Synchronize() error {
-	if u.jsonFilename == "" {
-		return errors.New("miniflux: blogroll updater must have JSON filename set")
-	}
+func (mf *Miniflux) GetAction() (string, func() error) {
+	return "Update Miniflux Blogroll", mf.Execute
+}
 
+func (mf *Miniflux) GetDailyCron() func() error {
+	return mf.Execute
+}
+
+func (mf *Miniflux) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
+	return "", nil
+}
+
+func (u *Miniflux) Execute() error {
 	newFeeds, err := u.fetch()
 	if err != nil {
 		return err

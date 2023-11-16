@@ -67,6 +67,7 @@ func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	go s.buildNotify(false)
 	s.serveDashboard(w, r, data)
 }
 

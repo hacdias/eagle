@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -10,10 +9,8 @@ import (
 	"go.hacdias.com/eagle/services/bunny"
 	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/eagle/services/imgproxy"
-	"go.hacdias.com/eagle/services/linkding"
 	"go.hacdias.com/eagle/services/media"
 	"go.hacdias.com/eagle/services/meilisearch"
-	"go.hacdias.com/eagle/services/miniflux"
 	"go.hacdias.com/eagle/services/telegram"
 )
 
@@ -69,61 +66,74 @@ func (s *Server) initMeiliSearch() error {
 	return err
 }
 
-func (s *Server) initMiniflux() error {
-	if s.c.Miniflux != nil {
-		mf := miniflux.NewMiniflux(s.c.Miniflux, s.fs)
-
-		s.cronJobs = append(s.cronJobs, mf.Synchronize)
-		return s.registerActionWithRebuild("Update Miniflux Blogroll", mf.Synchronize)
+func (s *Server) initPlugins() error {
+	s.plugins = map[string]Plugin{}
+	for pluginName, pluginInitializer := range pluginRegistry {
+		cfg, ok := s.c.Plugins[pluginName]
+		if ok {
+			plugin, err := pluginInitializer(s.fs, cfg)
+			if err != nil {
+				return err
+			}
+			s.plugins[pluginName] = plugin
+		}
 	}
 	return nil
 }
 
 func (s *Server) initActions() error {
-	return errors.Join(
-		s.registerAction("Build Website", func() error {
+	actions := map[string]func() error{
+		"Build Website": func() error {
 			return s.hugo.Build(false)
-		}),
-		s.registerAction("Build Website (Clean)", func() error {
+		},
+		"Build Website (Clean)": func() error {
 			return s.hugo.Build(true)
-		}),
-		s.registerAction("Sync Storage", func() error {
+		},
+		"Sync Storage": func() error {
 			go s.syncStorage()
 			return nil
-		}),
-		s.registerAction("Reset Index", func() error {
+		},
+		"Reset Index": func() error {
 			s.indexAll()
 			return nil
-		}),
-		s.registerAction("Reload Redirects", s.loadRedirects),
-		s.registerAction("Reload Gone", s.loadGone),
-	)
-}
-
-func (s *Server) initLinkding() error {
-	if s.c.Linkding != nil {
-		ld := linkding.NewLinkding(s.c.Linkding, s.fs)
-
-		s.cronJobs = append(s.cronJobs, ld.Synchronize)
-		return s.registerActionWithRebuild("Update Linkding Bookmarks", ld.Synchronize)
+		},
+		"Reload Redirects": s.loadRedirects,
+		"Reload Gone":      s.loadGone,
 	}
-	return nil
-}
 
-func (s *Server) initExternalLinks() error {
-	// TODO: only if user set in config.
-	s.cronJobs = append(s.cronJobs, s.fs.UpdateExternalLinks)
-	return s.registerActionWithRebuild("Update External Links", func() error {
-		err := s.fs.UpdateExternalLinks()
-		if err != nil {
-			return err
+	for _, plugin := range s.plugins {
+		name, action := plugin.GetAction()
+		if name == "" || action == nil {
+			continue
 		}
-		return s.loadLinks()
-	})
+
+		if _, ok := actions[name]; ok {
+			return fmt.Errorf("action %s already registered", name)
+		}
+
+		actions[name] = func() error {
+			err := action()
+			if err != nil {
+				return err
+			}
+			return s.hugo.Build(false)
+		}
+	}
+
+	s.actions = actions
+	return nil
 }
 
 func (s *Server) initCron() error {
 	_, err := s.cron.AddFunc("00 05 * * *", func() {
+		for name, plugin := range s.plugins {
+			if job := plugin.GetDailyCron(); job != nil {
+				if err := job(); err != nil {
+					s.n.Error(fmt.Errorf("cron job (plugin %s): %w", name, err))
+				}
+			}
+		}
+
 		for _, job := range s.cronJobs {
 			if err := job(); err != nil {
 				s.n.Error(fmt.Errorf("cron job: %w", err))

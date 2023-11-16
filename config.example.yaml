@@ -47,19 +47,6 @@ meilisearch:
   endpoint: myUrl
   key: myKey
 
-# Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
-miniflux:
-  endpoint: myUrl
-  key: myKey
-  json: data/feeds.json
-  opml: data/feeds.opml
-
-# Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
-linkding:
-  endpoint: myUrl
-  key: myKey
-  json: data/bookmarks.json
-
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
 imgproxy:
@@ -67,3 +54,25 @@ imgproxy:
   directory:
   # ImgProxy endpoint
   endpoint:
+
+plugins:
+  # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
+  # Runs every day automatically, can be triggered through dashboard.
+  miniflux:
+    endpoint: myUrl
+    key: myKey
+    filename: data/feeds.json
+    opml: data/feeds.opml # optional
+
+  # Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
+  # Runs every day automatically, can be triggered through dashboard.
+  linkding:
+    endpoint: myUrl
+    key: myKey
+    filename: data/bookmarks.json
+
+  # Optional plugin to serve /.well-known/links, as well as save a data file with them.
+  # Runs every day automatically, can be triggered through dashboard.
+  external-links:
+    filename: "data/external-links.json"
+    ignored: ['domain.com', 'example.com']
