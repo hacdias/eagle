@@ -29,16 +29,18 @@ func (s *Server) makeRouter() http.Handler {
 	if s.c.Site.Params.Author.Handle != "" {
 		r.Get(wellKnownWebFingerPath, s.makeWellKnownWebFingerGet())
 	}
-	r.Get(wellKnownLinksPath, s.wellKnownLinksGet)
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
 	r.Post(guestbookPath, s.guestbookPost)
 	if s.meilisearch != nil {
 		r.Get(searchPath, s.searchGet)
 	}
 
+	utilities := &PluginWebUtilities{s: s}
 	for _, plugin := range s.plugins {
-		route, handler := plugin.GetWebHandler()
-		r.HandleFunc(route, handler)
+		route, handler := plugin.GetWebHandler(utilities)
+		if route != "" {
+			r.HandleFunc(route, handler)
+		}
 	}
 
 	// Login

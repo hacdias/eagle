@@ -38,12 +38,12 @@ func NewLinkding(fs *core.FS, config map[string]interface{}) (server.Plugin, err
 
 	key := typed.New(config).String("key")
 	if key == "" {
-		return nil, errors.New("key endpoint missing")
+		return nil, errors.New("linkding key missing")
 	}
 
 	filename := typed.New(config).String("filename")
 	if filename == "" {
-		return nil, errors.New("filename endpoint missing")
+		return nil, errors.New("linkding filename missing")
 	}
 
 	return &Linkding{
@@ -65,7 +65,7 @@ func (ld *Linkding) GetDailyCron() func() error {
 	return ld.Execute
 }
 
-func (ld *Linkding) GetWebHandler() (string, http.HandlerFunc) {
+func (ld *Linkding) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
 	return "", nil
 }
 

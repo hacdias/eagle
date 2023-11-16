@@ -58,15 +58,11 @@ func (mf *Miniflux) GetDailyCron() func() error {
 	return mf.Execute
 }
 
-func (mf *Miniflux) GetWebHandler() (string, http.HandlerFunc) {
+func (mf *Miniflux) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
 	return "", nil
 }
 
 func (u *Miniflux) Execute() error {
-	if u.jsonFilename == "" {
-		return errors.New("miniflux: blogroll updater must have JSON filename set")
-	}
-
 	newFeeds, err := u.fetch()
 	if err != nil {
 		return err

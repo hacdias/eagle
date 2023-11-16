@@ -36,19 +36,16 @@ type Server struct {
 	n core.Notifier
 	c *core.Config
 
-	log     *zap.SugaredLogger
-	ias     *indieauth.Server
-	jwtAuth *jwtauth.JWTAuth
-	actions map[string]func() error
-	plugins map[string]Plugin
-
+	log      *zap.SugaredLogger
+	ias      *indieauth.Server
+	jwtAuth  *jwtauth.JWTAuth
+	actions  map[string]func() error
+	plugins  map[string]Plugin
 	cron     *cron.Cron
 	cronJobs []func() error
 
 	redirects map[string]string
 	gone      map[string]bool
-	links     []core.Links
-	linksMap  map[string]core.Links
 
 	server      *http.Server
 	meilisearch *meilisearch.MeiliSearch
@@ -75,8 +72,6 @@ func NewServer(c *core.Config) (*Server, error) {
 
 		redirects: map[string]string{},
 		gone:      map[string]bool{},
-		links:     []core.Links{},
-		linksMap:  map[string]core.Links{},
 
 		fs:    initFS(c),
 		hugo:  core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
@@ -90,10 +85,8 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initMeiliSearch(),
 		s.initPlugins(),
 		s.initActions(),
-		s.initExternalLinks(),
 		s.loadRedirects(),
 		s.loadGone(),
-		s.loadLinks(),
 		s.initCron(),
 	)
 
@@ -158,25 +151,6 @@ func (s *Server) getActions() []string {
 	return actions
 }
 
-func (s *Server) registerAction(name string, action func() error) error {
-	if _, ok := s.actions[name]; ok {
-		return errors.New("action already registered")
-	}
-
-	s.actions[name] = action
-	return nil
-}
-
-func (s *Server) registerActionWithRebuild(name string, action func() error) error {
-	return s.registerAction(name, func() error {
-		err := action()
-		if err != nil {
-			return err
-		}
-		return s.hugo.Build(false)
-	})
-}
-
 func (s *Server) loadRedirects() error {
 	redirects, err := s.fs.LoadRedirects(true)
 	if err != nil {
@@ -192,21 +166,6 @@ func (s *Server) loadGone() error {
 		return err
 	}
 	s.gone = gone
-	return nil
-}
-
-func (s *Server) loadLinks() error {
-	links, err := s.fs.LoadExternalLinks()
-	if err != nil {
-		return err
-	}
-	linksMap := map[string]core.Links{}
-	for _, l := range links {
-		linksMap[l.Domain] = l
-	}
-
-	s.links = links
-	s.linksMap = linksMap
 	return nil
 }
 

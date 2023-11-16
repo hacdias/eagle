@@ -9,7 +9,6 @@ import (
 
 const (
 	wellKnownWebFingerPath = "/.well-known/webfinger"
-	wellKnownLinksPath     = "/.well-known/links"
 	wellKnownAvatarPath    = "/.well-known/avatar"
 )
 
@@ -49,17 +48,6 @@ func (s *Server) makeWellKnownWebFingerGet() http.HandlerFunc {
 		} else {
 			s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 		}
-	}
-}
-
-func (s *Server) wellKnownLinksGet(w http.ResponseWriter, r *http.Request) {
-	domain := r.URL.Query().Get("domain")
-	if domain == "" {
-		s.serveJSON(w, http.StatusOK, s.links)
-	} else if v, ok := s.linksMap[domain]; ok {
-		s.serveJSON(w, http.StatusOK, v)
-	} else {
-		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
 	}
 }
 

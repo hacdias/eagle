@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -83,45 +82,46 @@ func (s *Server) initPlugins() error {
 }
 
 func (s *Server) initActions() error {
-	err := errors.Join(
-		s.registerAction("Build Website", func() error {
+	actions := map[string]func() error{
+		"Build Website": func() error {
 			return s.hugo.Build(false)
-		}),
-		s.registerAction("Build Website (Clean)", func() error {
+		},
+		"Build Website (Clean)": func() error {
 			return s.hugo.Build(true)
-		}),
-		s.registerAction("Sync Storage", func() error {
+		},
+		"Sync Storage": func() error {
 			go s.syncStorage()
 			return nil
-		}),
-		s.registerAction("Reset Index", func() error {
+		},
+		"Reset Index": func() error {
 			s.indexAll()
 			return nil
-		}),
-		s.registerAction("Reload Redirects", s.loadRedirects),
-		s.registerAction("Reload Gone", s.loadGone),
-	)
+		},
+		"Reload Redirects": s.loadRedirects,
+		"Reload Gone":      s.loadGone,
+	}
 
 	for _, plugin := range s.plugins {
 		name, action := plugin.GetAction()
-		if name != "" && action != nil {
-			err = errors.Join(err, s.registerAction(name, action))
+		if name == "" || action == nil {
+			continue
+		}
+
+		if _, ok := actions[name]; ok {
+			return fmt.Errorf("action %s already registered", name)
+		}
+
+		actions[name] = func() error {
+			err := action()
+			if err != nil {
+				return err
+			}
+			return s.hugo.Build(false)
 		}
 	}
 
-	return err
-}
-
-func (s *Server) initExternalLinks() error {
-	// TODO: make this a plugin. Allow plugins to have their own HTTP handler.
-	s.cronJobs = append(s.cronJobs, s.fs.UpdateExternalLinks)
-	return s.registerActionWithRebuild("Update External Links", func() error {
-		err := s.fs.UpdateExternalLinks()
-		if err != nil {
-			return err
-		}
-		return s.loadLinks()
-	})
+	s.actions = actions
+	return nil
 }
 
 func (s *Server) initCron() error {

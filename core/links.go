@@ -2,12 +2,6 @@ package core
 
 import (
 	"io"
-	"net/url"
-	"os"
-	"path/filepath"
-	"reflect"
-	"sort"
-	"strings"
 
 	"github.com/samber/lo"
 	"github.com/yuin/goldmark"
@@ -17,113 +11,7 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/util"
-	"golang.org/x/net/publicsuffix"
 )
-
-const (
-	ExternalLinksFile = "external-links.json"
-)
-
-type Link struct {
-	SourceURL string `json:"sourceUrl"`
-	TargetURL string `json:"targetUrl"`
-}
-
-type Links struct {
-	Domain string `json:"domain"`
-	Count  int    `json:"count"`
-	Links  []Link `json:"links"`
-}
-
-func (f *FS) LoadExternalLinks() ([]Links, error) {
-	var links []Links
-	err := f.ReadJSON(filepath.Join(DataDirectory, ExternalLinksFile), &links)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-	return links, nil
-}
-
-func (f *FS) UpdateExternalLinks() error {
-	ee, err := f.GetEntries(false)
-	if err != nil {
-		return err
-	}
-
-	linksMap := map[string][]Link{}
-	for _, e := range ee {
-		urls, err := GetMarkdownURLs(e)
-		if err != nil {
-			return err
-		}
-
-		for _, urlStr := range urls {
-			if strings.HasPrefix(urlStr, "/") || strings.HasPrefix(urlStr, f.parser.baseURL) {
-				continue
-			}
-
-			u, err := url.Parse(urlStr)
-			if err != nil {
-				return err
-			}
-
-			hostname := u.Hostname()
-			if hostname == "" {
-				continue
-			}
-
-			hostname, err = publicsuffix.EffectiveTLDPlusOne(hostname)
-			if err != nil {
-				return err
-			}
-
-			if strings.HasSuffix(f.parser.baseURL, hostname) {
-				continue
-			}
-
-			if _, ok := linksMap[hostname]; !ok {
-				linksMap[hostname] = []Link{}
-			}
-
-			linksMap[hostname] = append(linksMap[hostname], Link{
-				SourceURL: e.Permalink,
-				TargetURL: u.String(),
-			})
-		}
-	}
-
-	newLinks := []Links{}
-	for domain, domainLinks := range linksMap {
-		sort.SliceStable(domainLinks, func(i, j int) bool {
-			return domainLinks[i].SourceURL < domainLinks[j].SourceURL
-		})
-
-		newLinks = append(newLinks, Links{
-			Domain: domain,
-			Count:  len(domainLinks),
-			Links:  domainLinks,
-		})
-	}
-
-	sort.SliceStable(newLinks, func(i, j int) bool {
-		if newLinks[i].Count == newLinks[j].Count {
-			return newLinks[i].Domain < newLinks[j].Domain
-		}
-
-		return newLinks[i].Count > newLinks[j].Count
-	})
-
-	oldLinks, err := f.LoadExternalLinks()
-	if err != nil {
-		return err
-	}
-
-	if reflect.DeepEqual(oldLinks, newLinks) {
-		return nil
-	}
-
-	return f.WriteJSON(filepath.Join(DataDirectory, ExternalLinksFile), newLinks, "meta: update external links file")
-}
 
 func GetMarkdownURLs(e *Entry) ([]string, error) {
 	r, md := newMarkdown()
