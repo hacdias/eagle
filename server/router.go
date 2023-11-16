@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -25,23 +26,19 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post(webhookPath, s.webhookPost)
 	}
 
-	// Random
+	// WebFinger if handle is defined
 	if s.c.Site.Params.Author.Handle != "" {
 		r.Get(wellKnownWebFingerPath, s.makeWellKnownWebFingerGet())
 	}
-	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
-	r.Post(guestbookPath, s.guestbookPost)
-	if s.meilisearch != nil {
-		// TODO: ensure /search /search/
-		r.Get(searchPath, s.searchGet)
-	}
 
-	utilities := &PluginWebUtilities{s: s}
-	for _, plugin := range s.plugins {
-		route, handler := plugin.GetWebHandler(utilities)
-		if route != "" {
-			r.HandleFunc(route, handler)
-		}
+	// TODO: make this customizable. Plugin?
+	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
+
+	// Guestbook submit. TODO: eventually replace by general comment handler.
+	r.Post(guestbookPath, s.guestbookPost)
+
+	if s.meilisearch != nil {
+		r.Get(searchPath, s.searchGet)
 	}
 
 	// Login
@@ -52,7 +49,6 @@ func (s *Server) makeRouter() http.Handler {
 	// IndieAuth Server (Part I)
 	r.Get(wellKnownOAuthServer, s.indieauthGet)
 	r.Post(authPath, s.authPost)
-	r.Post(authPath+"/", s.authPost)
 	r.Post(tokenPath, s.tokenPost)
 	r.Post(tokenVerifyPath, s.tokenVerifyPost)
 
@@ -61,9 +57,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.mustLoggedIn)
 
 		// IndieAuth Server (Part II)
-		r.Get(authPath+"/", s.authGet)
+		r.Get(authPath, s.authGet)
 		r.Post(authAcceptPath, s.authAcceptPost)
 
+		// Panel
 		r.Get(panelPath, s.panelGet)
 		r.Post(panelPath, s.panelPost)
 
@@ -77,10 +74,29 @@ func (s *Server) makeRouter() http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(s.mustIndieAuth)
 
-		// IndieAuth Server
+		// IndieAuth Server (Part III)
 		r.Get(tokenPath, s.tokenGet) // Backwards compatible token verification endpoint
 		r.Get(userInfoPath, s.userInfoGet)
 	})
+
+	// Ensure this routes are redirected to the slash to avoid 404.
+	for _, route := range []string{
+		searchPath, authPath, loginPath, logoutPath,
+		panelPath, panelGuestbookPath, panelTokensPath,
+	} {
+		r.Get(strings.TrimSuffix(route, "/"), func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, r.URL.Path+"/", http.StatusPermanentRedirect)
+		})
+	}
+
+	// Plugins that mount routes.
+	utilities := &PluginWebUtilities{s: s}
+	for _, plugin := range s.plugins {
+		route, handler := plugin.GetWebHandler(utilities)
+		if route != "" {
+			r.HandleFunc(route, handler)
+		}
+	}
 
 	r.Get("/*", s.generalHandler)
 	return r
