@@ -18,6 +18,7 @@ import (
 const (
 	panelPath          = "/panel/"
 	panelGuestbookPath = panelPath + "guestbook/"
+	panelTokensPath    = panelPath + "tokens/"
 )
 
 type panelPage struct {
@@ -28,7 +29,7 @@ type panelPage struct {
 }
 
 func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
-	s.serveDashboard(w, r, &panelPage{})
+	s.servePanel(w, r, &panelPage{})
 }
 
 func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
@@ -39,20 +40,17 @@ func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Form.Get("action") != "" {
-		s.dashboardPostAction(w, r)
-		return
-	} else if r.Form.Get("token") == "true" {
-		s.dashboardPostToken(w, r)
+		s.panelPostAction(w, r)
 		return
 	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
-		s.dashboardPostUpload(w, r)
+		s.panelPostUpload(w, r)
 		return
 	}
 
 	s.panelGet(w, r)
 }
 
-func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
+func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 	actions := r.Form["action"]
 	data := &panelPage{}
 
@@ -69,36 +67,10 @@ func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go s.buildNotify(false)
-	s.serveDashboard(w, r, data)
+	s.servePanel(w, r, data)
 }
 
-func (s *Server) dashboardPostToken(w http.ResponseWriter, r *http.Request) {
-	data := &panelPage{}
-
-	clientID := r.Form.Get("client_id")
-	scope := r.Form.Get("scope")
-	expiry, err := handleExpiry(r.Form.Get("expiry"))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
-	}
-
-	if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
-		return
-	}
-
-	signed, err := s.generateToken(clientID, scope, expiry)
-	if err == nil {
-		data.Token = signed
-	} else {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	s.serveDashboard(w, r, data)
-}
-
-func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
+func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
@@ -144,12 +116,12 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveDashboard(w, r, &panelPage{
+	s.servePanel(w, r, &panelPage{
 		MediaLocation: location,
 	})
 }
 
-func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *panelPage) {
+func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
 	data.Actions = s.getActions()
 	s.renderTemplateWithContent(w, r, "Panel", "panel.html", data)
 }
@@ -217,4 +189,45 @@ func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, r.URL.Path, http.StatusFound)
+}
+
+type tokenPage struct {
+	Token string
+}
+
+func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
+	s.renderTemplateWithContent(w, r, "Tokens", "panel-tokens.html", &tokenPage{})
+}
+
+func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	data := &tokenPage{}
+
+	clientID := r.Form.Get("client_id")
+	scope := r.Form.Get("scope")
+	expiry, err := handleExpiry(r.Form.Get("expiry"))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
+		return
+	}
+
+	if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
+		return
+	}
+
+	signed, err := s.generateToken(clientID, scope, expiry)
+	if err == nil {
+		data.Token = signed
+	} else {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.renderTemplateWithContent(w, r, "Tokens", "panel-tokens.html", data)
 }

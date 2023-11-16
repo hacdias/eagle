@@ -69,6 +69,9 @@ func (s *Server) makeRouter() http.Handler {
 
 		r.Get(panelGuestbookPath, s.panelGuestbookGet)
 		r.Post(panelGuestbookPath, s.panelGuestbookPost)
+
+		r.Get(panelTokensPath, s.panelTokensGet)
+		r.Post(panelTokensPath, s.panelTokensPost)
 	})
 
 	r.Group(func(r chi.Router) {

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -65,53 +64,4 @@ func (s *Server) guestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	s.n.Info(fmt.Sprintf("💬 #guestbook entry pending approval: %q", name))
 	http.Redirect(w, r, r.URL.Path+"?youre=awesome", http.StatusFound)
-}
-
-func (s *Server) dashboardPostGuestbook(w http.ResponseWriter, r *http.Request) {
-	action := r.Form.Get("guestbook-action")
-	id := r.Form.Get("guestbook-id")
-
-	switch action {
-	case "approve":
-		e, err := s.badger.GetGuestbookEntry(r.Context(), id)
-		if err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-			return
-		}
-
-		entries := core.GuestbookEntries{}
-		if err := s.fs.ReadJSON(guestbookFilename, &entries); err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error reading guestbook file: %w", err))
-			return
-		}
-		entries = append(entries, e)
-		sort.SliceStable(entries, func(i, j int) bool {
-			return entries[i].Date.After(entries[j].Date)
-		})
-		message := "guestbook: new entry"
-		if e.Name != "" {
-			message += " from " + e.Name
-		}
-		if err := s.fs.WriteJSON(guestbookFilename, entries, message); err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error writing guestbook file: %w", err))
-			return
-		}
-
-		go func() {
-			_ = s.hugo.Build(false)
-		}()
-
-		fallthrough
-	case "delete":
-		err := s.badger.DeleteGuestbookEntry(r.Context(), id)
-		if err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-			return
-		}
-	default:
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid action: %s", action))
-		return
-	}
-
-	http.Redirect(w, r, r.URL.Path, http.StatusFound)
 }
