@@ -123,7 +123,7 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
 	data.Actions = s.getActions()
-	s.renderTemplateWithContent(w, r, "panel.html", &pageData{
+	s.renderTemplate(w, r, panelTemplate, &pageData{
 		Title: "Panel",
 		Data:  data,
 	})
@@ -136,7 +136,7 @@ func (s *Server) panelGuestbookGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplateWithContent(w, r, "panel-guestbook.html", &pageData{
+	s.renderTemplate(w, r, panelGuestbookTemplate, &pageData{
 		Title: "Panel Guestbook",
 		Data:  guestbookEntries,
 	})
@@ -202,7 +202,7 @@ type tokenPage struct {
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
-	s.renderTemplateWithContent(w, r, "panel-tokens.html", &pageData{
+	s.renderTemplate(w, r, panelTokensTemplate, &pageData{
 		Title: "Panel Tokens",
 		Data:  &tokenPage{},
 	})
@@ -238,7 +238,7 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplateWithContent(w, r, "panel-tokens.html", &pageData{
+	s.renderTemplate(w, r, panelTokensTemplate, &pageData{
 		Title: "Panel Tokens",
 		Data:  data,
 	})

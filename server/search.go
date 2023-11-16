@@ -52,7 +52,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		data.Entries = ee
 	}
 
-	s.renderTemplateWithContent(w, r, "search.html", &pageData{
+	s.renderTemplate(w, r, searchTemplate, &pageData{
 		Title: "Search",
 		Data:  data,
 	})

@@ -13,8 +13,20 @@ import (
 )
 
 const (
-	templateAdminBar string = "admin-bar.html"
+	adminBarTemplate       string = "admin-bar.html"
+	authTemplate           string = "authorization.html"
+	loginTemplate          string = "login.html"
+	errorTemplate          string = "error.html"
+	searchTemplate         string = "search.html"
+	panelTemplate          string = "panel.html"
+	panelGuestbookTemplate string = "panel-guestbook.html"
+	panelTokensTemplate    string = "panel-tokens.html"
 )
+
+var templates = []string{
+	adminBarTemplate, authTemplate, loginTemplate, errorTemplate, searchTemplate,
+	panelTemplate, panelGuestbookTemplate, panelTokensTemplate,
+}
 
 // captureResponseWriter captures the content of an HTML response. If the response
 // is HTML, the Content-Length header will also be removed. All other headers,
@@ -76,7 +88,7 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 			}
 
 			var buf bytes.Buffer
-			err = s.templates.ExecuteTemplate(&buf, templateAdminBar, nil)
+			err = s.templates.ExecuteTemplate(&buf, adminBarTemplate, nil)
 			if err == nil {
 				doc.Find("body").PrependHtml(buf.String())
 				raw, err := doc.Html()
@@ -121,7 +133,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 		data.Message = reqErr.Error()
 	}
 
-	s.renderTemplateWithContent(w, r, "error.html", &pageData{
+	s.renderTemplate(w, r, errorTemplate, &pageData{
 		Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
 		Data:  data,
 	})
@@ -148,7 +160,7 @@ type pageData struct {
 	Data  interface{}
 }
 
-func (s *Server) renderTemplateWithContent(w http.ResponseWriter, r *http.Request, template string, p *pageData) {
+func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, template string, p *pageData) {
 	fd, err := s.staticFs.ReadFile(filepath.Join("/eagle/", "index.html"))
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)

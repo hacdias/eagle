@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -79,18 +79,11 @@ func NewServer(c *core.Config) (*Server, error) {
 		hugo:  core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
 		media: initMedia(c),
 	}
-
-	// TODO: make this init function, add check to ensure all necessary templates exist.
-	templates, err := template.ParseGlob(filepath.Join(c.SourceDirectory, "eagle", "*.html"))
-	if err != nil {
-		return nil, err
-	}
-
-	s.templates = templates
 	s.hugo.BuildHook = s.buildHook
 
-	err = errors.Join(
+	err := errors.Join(
 		s.initNotifier(),
+		s.initTemplates(),
 		s.initBadger(),
 		s.initMeiliSearch(),
 		s.initPlugins(),
