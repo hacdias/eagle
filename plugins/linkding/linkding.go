@@ -2,6 +2,7 @@ package linkding
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,38 +12,71 @@ import (
 	"strings"
 	"time"
 
+	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/server"
 )
 
-type Linkding struct {
-	fs           *core.FS
-	httpClient   *http.Client
-	endpoint     string
-	key          string
-	jsonFilename string
+func init() {
+	server.RegisterPlugin("linkding", NewLinkding)
 }
 
-func NewLinkding(c *core.Linkding, fs *core.FS) *Linkding {
+type Linkding struct {
+	fs         *core.FS
+	httpClient *http.Client
+	endpoint   string
+	key        string
+	filename   string
+}
+
+func NewLinkding(fs *core.FS, config map[string]interface{}) (server.Plugin, error) {
+	endpoint := typed.New(config).String("endpoint")
+	if endpoint == "" {
+		return nil, errors.New("linkding endpoint missing")
+	}
+
+	key := typed.New(config).String("key")
+	if key == "" {
+		return nil, errors.New("key endpoint missing")
+	}
+
+	filename := typed.New(config).String("filename")
+	if filename == "" {
+		return nil, errors.New("filename endpoint missing")
+	}
+
 	return &Linkding{
 		fs: fs,
 		httpClient: &http.Client{
 			Timeout: 2 * time.Minute,
 		},
-		endpoint:     strings.TrimSuffix(c.Endpoint, "/"),
-		key:          c.Key,
-		jsonFilename: c.JSON,
-	}
+		endpoint: strings.TrimSuffix(endpoint, "/"),
+		key:      key,
+		filename: filename,
+	}, nil
 }
 
-func (u *Linkding) Synchronize() error {
-	newBookmarks, err := u.fetch()
+func (ld *Linkding) GetAction() (string, func() error) {
+	return "Update Linkding Bookmarks", ld.Execute
+}
+
+func (ld *Linkding) GetDailyCron() func() error {
+	return ld.Execute
+}
+
+func (ld *Linkding) GetWebHandler() (string, http.HandlerFunc) {
+	return "", nil
+}
+
+func (ld *Linkding) Execute() error {
+	newBookmarks, err := ld.fetch()
 	if err != nil {
 		return err
 	}
 
 	var oldBookmarks []bookmark
-	err = u.fs.ReadJSON(u.jsonFilename, &oldBookmarks)
+	err = ld.fs.ReadJSON(ld.filename, &oldBookmarks)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -51,7 +85,7 @@ func (u *Linkding) Synchronize() error {
 		return nil
 	}
 
-	return u.fs.WriteJSON(u.jsonFilename, newBookmarks, "bookmarks: synchronize with linkding")
+	return ld.fs.WriteJSON(ld.filename, newBookmarks, "bookmarks: synchronize with linkding")
 }
 
 type bookmark struct {

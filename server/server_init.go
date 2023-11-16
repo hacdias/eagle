@@ -10,10 +10,8 @@ import (
 	"go.hacdias.com/eagle/services/bunny"
 	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/eagle/services/imgproxy"
-	"go.hacdias.com/eagle/services/linkding"
 	"go.hacdias.com/eagle/services/media"
 	"go.hacdias.com/eagle/services/meilisearch"
-	"go.hacdias.com/eagle/services/miniflux"
 	"go.hacdias.com/eagle/services/telegram"
 )
 
@@ -69,18 +67,23 @@ func (s *Server) initMeiliSearch() error {
 	return err
 }
 
-func (s *Server) initMiniflux() error {
-	if s.c.Miniflux != nil {
-		mf := miniflux.NewMiniflux(s.c.Miniflux, s.fs)
-
-		s.cronJobs = append(s.cronJobs, mf.Synchronize)
-		return s.registerActionWithRebuild("Update Miniflux Blogroll", mf.Synchronize)
+func (s *Server) initPlugins() error {
+	s.plugins = map[string]Plugin{}
+	for pluginName, pluginInitializer := range pluginRegistry {
+		cfg, ok := s.c.Plugins[pluginName]
+		if ok {
+			plugin, err := pluginInitializer(s.fs, cfg)
+			if err != nil {
+				return err
+			}
+			s.plugins[pluginName] = plugin
+		}
 	}
 	return nil
 }
 
 func (s *Server) initActions() error {
-	return errors.Join(
+	err := errors.Join(
 		s.registerAction("Build Website", func() error {
 			return s.hugo.Build(false)
 		}),
@@ -98,20 +101,19 @@ func (s *Server) initActions() error {
 		s.registerAction("Reload Redirects", s.loadRedirects),
 		s.registerAction("Reload Gone", s.loadGone),
 	)
-}
 
-func (s *Server) initLinkding() error {
-	if s.c.Linkding != nil {
-		ld := linkding.NewLinkding(s.c.Linkding, s.fs)
-
-		s.cronJobs = append(s.cronJobs, ld.Synchronize)
-		return s.registerActionWithRebuild("Update Linkding Bookmarks", ld.Synchronize)
+	for _, plugin := range s.plugins {
+		name, action := plugin.GetAction()
+		if name != "" && action != nil {
+			err = errors.Join(err, s.registerAction(name, action))
+		}
 	}
-	return nil
+
+	return err
 }
 
 func (s *Server) initExternalLinks() error {
-	// TODO: only if user set in config.
+	// TODO: make this a plugin. Allow plugins to have their own HTTP handler.
 	s.cronJobs = append(s.cronJobs, s.fs.UpdateExternalLinks)
 	return s.registerActionWithRebuild("Update External Links", func() error {
 		err := s.fs.UpdateExternalLinks()
@@ -124,6 +126,14 @@ func (s *Server) initExternalLinks() error {
 
 func (s *Server) initCron() error {
 	_, err := s.cron.AddFunc("00 05 * * *", func() {
+		for name, plugin := range s.plugins {
+			if job := plugin.GetDailyCron(); job != nil {
+				if err := job(); err != nil {
+					s.n.Error(fmt.Errorf("cron job (plugin %s): %w", name, err))
+				}
+			}
+		}
+
 		for _, job := range s.cronJobs {
 			if err := job(); err != nil {
 				s.n.Error(fmt.Errorf("cron job: %w", err))

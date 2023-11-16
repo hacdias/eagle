@@ -43,11 +43,10 @@ type ServerConfig struct {
 	WebhookSecret   string
 
 	Login         Login
+	Plugins       map[string]map[string]interface{}
 	MeiliSearch   *EndpointWithKey
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN
-	Miniflux      *Miniflux
-	Linkding      *Linkding
 	ImgProxy      *ImgProxy
 }
 
@@ -168,19 +167,6 @@ type BunnyCDN struct {
 type EndpointWithKey struct {
 	Endpoint string
 	Key      string
-}
-
-type Miniflux struct {
-	Endpoint string
-	Key      string
-	JSON     string
-	OPML     string
-}
-
-type Linkding struct {
-	Endpoint string
-	Key      string
-	JSON     string
 }
 
 type ImgProxy struct {

@@ -36,6 +36,11 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(searchPath, s.searchGet)
 	}
 
+	for _, plugin := range s.plugins {
+		route, handler := plugin.GetWebHandler()
+		r.HandleFunc(route, handler)
+	}
+
 	// Login
 	r.Get(loginPath, s.loginGet)
 	r.Post(loginPath, s.loginPost)

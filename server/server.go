@@ -40,6 +40,7 @@ type Server struct {
 	ias     *indieauth.Server
 	jwtAuth *jwtauth.JWTAuth
 	actions map[string]func() error
+	plugins map[string]Plugin
 
 	cron     *cron.Cron
 	cronJobs []func() error
@@ -87,9 +88,8 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initNotifier(),
 		s.initBadger(),
 		s.initMeiliSearch(),
+		s.initPlugins(),
 		s.initActions(),
-		s.initMiniflux(),
-		s.initLinkding(),
 		s.initExternalLinks(),
 		s.loadRedirects(),
 		s.loadGone(),
