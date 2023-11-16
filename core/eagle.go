@@ -53,10 +53,6 @@ type FrontMatter struct {
 	Other       map[string]any `yaml:",inline"`
 }
 
-type EntryHook interface {
-	EntryHook(old, new *Entry) error
-}
-
 type Notifier interface {
 	Info(msg string)
 	Error(err error)
