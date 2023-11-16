@@ -7,27 +7,31 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
+	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
 )
 
 const (
-	dashboardPath = "/dashboard/"
+	panelPath          = "/panel/"
+	panelGuestbookPath = panelPath + "guestbook/"
 )
 
-type dashboardData struct {
+type panelPage struct {
+	Actions       []string
 	ActionSuccess bool
 	Token         string
 	MediaLocation string
 }
 
-func (s *Server) dashboardGet(w http.ResponseWriter, r *http.Request) {
-	s.serveDashboard(w, r, &dashboardData{})
+func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
+	s.serveDashboard(w, r, &panelPage{})
 }
 
-func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
+func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
@@ -37,9 +41,6 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 	if r.Form.Get("action") != "" {
 		s.dashboardPostAction(w, r)
 		return
-	} else if r.Form.Get("guestbook-action") != "" {
-		s.dashboardPostGuestbook(w, r)
-		return
 	} else if r.Form.Get("token") == "true" {
 		s.dashboardPostToken(w, r)
 		return
@@ -48,12 +49,12 @@ func (s *Server) dashboardPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.dashboardGet(w, r)
+	s.panelGet(w, r)
 }
 
 func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 	actions := r.Form["action"]
-	data := &dashboardData{}
+	data := &panelPage{}
 
 	var err error
 	for _, actionName := range actions {
@@ -72,7 +73,7 @@ func (s *Server) dashboardPostAction(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) dashboardPostToken(w http.ResponseWriter, r *http.Request) {
-	data := &dashboardData{}
+	data := &panelPage{}
 
 	clientID := r.Form.Get("client_id")
 	scope := r.Form.Get("scope")
@@ -143,69 +144,77 @@ func (s *Server) dashboardPostUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.serveDashboard(w, r, &dashboardData{
+	s.serveDashboard(w, r, &panelPage{
 		MediaLocation: location,
 	})
 }
 
-func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *dashboardData) {
-	doc, err := s.getTemplateDocument(r.URL.Path)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
+func (s *Server) serveDashboard(w http.ResponseWriter, r *http.Request, data *panelPage) {
+	data.Actions = s.getActions()
+	s.renderTemplateWithContent(w, r, "Panel", "panel.html", data)
+}
 
-	actionTemplate := doc.Find("eagle-action").First().Children().First()
-	doc.Find("eagle-actions").Empty()
-	for _, action := range s.getActions() {
-		node := actionTemplate.Clone()
-		node.Find("input[name=action]").SetAttr("value", action)
-		node.Find("action-name").ReplaceWithHtml(action)
-		doc.Find("eagle-actions").AppendSelection(node)
-	}
-
-	if !data.ActionSuccess {
-		doc.Find("eagle-action-success").Remove()
-	}
-
-	mediaNode := doc.Find("eagle-media-location")
-	if data.MediaLocation != "" {
-		mediaNode.Find("eagle-media-location-value").ReplaceWithHtml(data.MediaLocation)
-		mediaNode.ReplaceWithSelection(mediaNode.Children())
-	} else {
-		mediaNode.Remove()
-	}
-
-	tokenNode := doc.Find("eagle-token")
-	if data.Token != "" {
-		tokenNode.Find("eagle-token-value").ReplaceWithHtml(data.Token)
-		tokenNode.ReplaceWithSelection(tokenNode.Children())
-	} else {
-		tokenNode.Remove()
-	}
-
+func (s *Server) panelGuestbookGet(w http.ResponseWriter, r *http.Request) {
 	guestbookEntries, err := s.badger.GetGuestbookEntries(r.Context())
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting guestbook entries: %w", err))
 		return
 	}
-	guestbookNode := doc.Find("eagle-guestbook-entries")
-	if len(guestbookEntries) != 0 {
-		guestbookEntryTemplate := doc.Find("eagle-guestbook-entry")
-		guestbookNode.Empty()
-		for _, e := range guestbookEntries {
-			node := guestbookEntryTemplate.Clone()
-			node.Find("eagle-guestbook-name").ReplaceWithHtml(e.Name)
-			node.Find("eagle-guestbook-website").ReplaceWithHtml(e.Website)
-			node.Find("eagle-guestbook-date").ReplaceWithHtml(e.Date.String())
-			node.Find("eagle-guestbook-content").ReplaceWithHtml(e.Content)
-			node.Find("input[name='guestbook-id']").SetAttr("value", e.ID)
-			guestbookNode.AppendSelection(node.Children())
-		}
-		guestbookNode.ReplaceWithSelection(guestbookNode.Children())
-	} else {
-		guestbookNode.Remove()
+
+	s.renderTemplateWithContent(w, r, "Guestbook Moderation", "panel-guestbook.html", guestbookEntries)
+}
+
+func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		return
 	}
 
-	s.serveDocument(w, r, doc, http.StatusOK)
+	action := r.Form.Get("action")
+	id := r.Form.Get("id")
+
+	switch action {
+	case "approve":
+		e, err := s.badger.GetGuestbookEntry(r.Context(), id)
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		entries := core.GuestbookEntries{}
+		if err := s.fs.ReadJSON(guestbookFilename, &entries); err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error reading guestbook file: %w", err))
+			return
+		}
+		entries = append(entries, e)
+		sort.SliceStable(entries, func(i, j int) bool {
+			return entries[i].Date.After(entries[j].Date)
+		})
+		message := "guestbook: new entry"
+		if e.Name != "" {
+			message += " from " + e.Name
+		}
+		if err := s.fs.WriteJSON(guestbookFilename, entries, message); err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error writing guestbook file: %w", err))
+			return
+		}
+
+		go func() {
+			_ = s.hugo.Build(false)
+		}()
+
+		fallthrough
+	case "delete":
+		err := s.badger.DeleteGuestbookEntry(r.Context(), id)
+		if err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			return
+		}
+	default:
+		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid action: %s", action))
+		return
+	}
+
+	http.Redirect(w, r, r.URL.Path, http.StatusFound)
 }

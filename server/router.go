@@ -32,6 +32,7 @@ func (s *Server) makeRouter() http.Handler {
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
 	r.Post(guestbookPath, s.guestbookPost)
 	if s.meilisearch != nil {
+		// TODO: ensure /search /search/
 		r.Get(searchPath, s.searchGet)
 	}
 
@@ -63,8 +64,11 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(authPath+"/", s.authGet)
 		r.Post(authAcceptPath, s.authAcceptPost)
 
-		r.Get(dashboardPath, s.dashboardGet)
-		r.Post(dashboardPath, s.dashboardPost)
+		r.Get(panelPath, s.panelGet)
+		r.Post(panelPath, s.panelPost)
+
+		r.Get(panelGuestbookPath, s.panelGuestbookGet)
+		r.Post(panelGuestbookPath, s.panelGuestbookPost)
 	})
 
 	r.Group(func(r chi.Router) {

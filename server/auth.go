@@ -56,45 +56,7 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doc, err := s.getTemplateDocument(r.URL.Path)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	doc.Find("eagle-client-id").ReplaceWithHtml(req.ClientID)
-	doc.Find("eagle-redirect-uri").ReplaceWithHtml(req.RedirectURI)
-
-	challengeWarningNode := doc.Find("eagle-no-pkce")
-	if req.CodeChallenge == "" {
-		challengeWarningNode.ReplaceWithSelection(challengeWarningNode.Children())
-	} else {
-		challengeWarningNode.Remove()
-	}
-
-	scopesNode := doc.Find("eagle-scopes")
-	if len(req.Scopes) != 0 {
-		scopeTemplate := scopesNode.Find("eagle-scope")
-		scopesList := scopeTemplate.Parent()
-
-		for _, scope := range req.Scopes {
-			node := scopeTemplate.Clone()
-			node.Find("input").SetAttr("value", scope)
-			node.Find("eagle-scope-value").ReplaceWithHtml(scope)
-			scopesList.PrependSelection(node.Children())
-		}
-
-		scopeTemplate.Remove()
-	} else {
-		scopesNode.Remove()
-	}
-
-	doc.Find("input[name='redirect_uri']").SetAttr("value", req.RedirectURI)
-	doc.Find("input[name='client_id']").SetAttr("value", req.ClientID)
-	doc.Find("input[name='state']").SetAttr("value", req.State)
-	doc.Find("input[name='code_challenge']").SetAttr("value", req.CodeChallenge)
-	doc.Find("input[name='code_challenge_method']").SetAttr("value", req.CodeChallengeMethod)
-	s.serveDocument(w, r, doc, http.StatusOK)
+	s.renderTemplateWithContent(w, r, "Authorization", "authorization.html", req)
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,8 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
+const moreSeparator = "<!--more-->"
+
 type Entry struct {
 	FrontMatter
 	ID        string
@@ -22,6 +24,17 @@ func (e *Entry) Deleted() bool {
 	}
 
 	return e.FrontMatter.ExpiryDate.Before(time.Now())
+}
+
+func (e *Entry) Summary() string {
+	if strings.Contains(e.Content, moreSeparator) {
+		firstPart := strings.Split(e.Content, moreSeparator)[0]
+		return strings.TrimSpace(makePlainText(firstPart))
+	} else if content := e.TextContent(); content != "" {
+		return truncateStringWithEllipsis(content, 300)
+	} else {
+		return content
+	}
 }
 
 func (e *Entry) String() (string, error) {
@@ -47,6 +60,7 @@ type FrontMatter struct {
 	URL         string         `yaml:"url,omitempty"`
 	Draft       bool           `yaml:"draft,omitempty"`
 	Date        time.Time      `yaml:"date,omitempty"`
+	Lastmod     time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
 	NoIndex     bool           `yaml:"noIndex,omitempty"`
 	Tags        []string       `yaml:"tags,omitempty"`

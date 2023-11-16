@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -56,6 +57,7 @@ type Server struct {
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
+	templates    *template.Template
 }
 
 func NewServer(c *core.Config) (*Server, error) {
@@ -77,9 +79,17 @@ func NewServer(c *core.Config) (*Server, error) {
 		hugo:  core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
 		media: initMedia(c),
 	}
+
+	// TODO: make this init function, add check to ensure all necessary templates exist.
+	templates, err := template.ParseGlob(filepath.Join(c.SourceDirectory, "eagle", "*.html"))
+	if err != nil {
+		return nil, err
+	}
+
+	s.templates = templates
 	s.hugo.BuildHook = s.buildHook
 
-	err := errors.Join(
+	err = errors.Join(
 		s.initNotifier(),
 		s.initBadger(),
 		s.initMeiliSearch(),

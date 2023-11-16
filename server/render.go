@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -75,9 +74,10 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 				return
 			}
 
-			adminBarHTML, err := s.fs.ReadFile(templateAdminBar)
+			var buf bytes.Buffer
+			err = s.templates.ExecuteTemplate(&buf, templateAdminBar, nil)
 			if err == nil {
-				doc.Find("body").PrependHtml(string(adminBarHTML))
+				doc.Find("body").PrependHtml(buf.String())
 				raw, err := doc.Html()
 				if err != nil {
 					s.log.Warn("could not convert document", err)
@@ -152,15 +152,6 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 		"error":             err,
 		"error_description": errDescription,
 	})
-}
-
-func (s *Server) getTemplateDocument(path string) (*goquery.Document, error) {
-	f, err := s.staticFs.ReadFile(filepath.Join(path, "index.html"))
-	if err != nil {
-		return nil, err
-	}
-
-	return goquery.NewDocumentFromReader(bytes.NewReader(f))
 }
 
 func (s *Server) serveDocument(w http.ResponseWriter, r *http.Request, doc *goquery.Document, statusCode int) {

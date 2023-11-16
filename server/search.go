@@ -1,22 +1,29 @@
 package server
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	"go.hacdias.com/eagle/core"
 )
 
 const (
 	searchPath = "/search/"
 )
 
-func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
-	doc, err := s.getTemplateDocument(r.URL.Path)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
+type searchPage struct {
+	Entries  core.Entries
+	Query    string
+	Previous string
+	Next     string
+}
 
+func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	page := 0
 	if v := r.URL.Query().Get("page"); v != "" {
 		p, _ := strconv.Atoi(v)
@@ -25,71 +32,70 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	query := r.URL.Query().Get("query")
-	if query != "" {
-		entries, err := s.meilisearch.Search(int64(page), int64(s.c.Site.Paginate), query)
+	data := &searchPage{
+		Query: r.URL.Query().Get("query"),
+	}
+
+	if data.Query != "" {
+		ee, err := s.meilisearch.Search(int64(page), int64(s.c.Site.Paginate), data.Query)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
 		}
 
-		doc.Find("#eagle-search-input").SetAttr("value", query)
-
-		noResultsNode := doc.Find("eagle-no-search-results")
-		if len(entries) == 0 {
-			noResultsNode.ReplaceWithSelection(noResultsNode.Children())
-		} else {
-			noResultsNode.Empty()
-		}
-
-		resultsNode := doc.Find("eagle-search-results")
-		resultTemplate := doc.Find("eagle-search-result").Children()
-		paginationNode := doc.Find("eagle-search-pagination").Children()
-		resultsNode.Empty()
-
-		for _, e := range entries {
-			node := resultTemplate.Clone()
-
-			title := e.Title
-			if title == "" {
-				title = e.Description
-			}
-			if title == "" {
-				title = "Untitled Post"
-			}
-
-			content := e.TextContent()
-			if len(content) > 300 {
-				content = content[0:300]
-				content = strings.TrimSpace(content) + "…"
-			}
-
-			node.Find("entry-title").ReplaceWithHtml(title)
-			node.Find("entry-content").ReplaceWithHtml(content)
-			node.Find(".entry-link").SetAttr("href", e.Permalink)
-
-			resultsNode.AppendSelection(node)
-		}
-
 		rq := r.URL.Query()
-
-		if len(entries) == 0 {
-			paginationNode.Find(".eagle-next").Remove()
-		} else {
-			rq.Set("page", strconv.Itoa(page+1))
-			paginationNode.Find(".eagle-next").SetAttr("href", "?"+rq.Encode())
+		rq.Set("page", strconv.Itoa(page+1))
+		if len(ee) == s.c.Site.Paginate {
+			data.Next = r.URL.Path + "?" + rq.Encode()
 		}
 
-		if page == 0 {
-			paginationNode.Find(".eagle-prev").Remove()
-		} else {
+		if page != 0 {
 			rq.Set("page", strconv.Itoa(page-1))
-			paginationNode.Find(".eagle-prev").SetAttr("href", "?"+rq.Encode())
+			data.Previous = r.URL.Path + "?" + rq.Encode()
 		}
 
-		resultsNode.AppendSelection(paginationNode)
-		resultsNode.ReplaceWithSelection(resultsNode.Children())
+		data.Entries = ee
 	}
 
-	s.serveDocument(w, r, doc, http.StatusOK)
+	s.renderTemplateWithContent(w, r, "Search", "search.html", data)
+}
+
+func (s *Server) renderTemplateWithContent(w http.ResponseWriter, r *http.Request, title, template string, data interface{}) {
+	fd, err := s.staticFs.ReadFile(filepath.Join("/eagle/", "index.html"))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(fd))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	var buf bytes.Buffer
+	err = s.templates.ExecuteTemplate(&buf, template, data)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc.Find("title").SetText(strings.Replace(doc.Find("title").Text(), "Eagle", title, 1))
+
+	pageNode := doc.Find("eagle-page")
+	pageNode.ReplaceWithHtml(buf.String())
+
+	html, err := doc.Html()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte(html))
+	if err != nil {
+		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+	}
 }
