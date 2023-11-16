@@ -41,6 +41,33 @@ paginate = 15
     handle = 'johnsmith'
 ```
 
+### Templates
+
+Hugo website must produce a `/eagle/index.html` page. This page will be used as the template
+for the interface. The page should contain a `<eagle-page>` element, which Eagle will replace
+by the correct content:
+
+```html
+<eagle-page>
+  <p>⚠️ This page is only functional when in use with <a href='https://github.com/hacdias/eagle' rel='noopener noreferrer'>Eagle</a>.</p>
+</eagle-page>
+```
+
+Then, the Hugo website must have a `eagle` directory containing the following templates:
+
+- `admin-bar.html`: admin bar injected at the top of every page when user is logged in.
+- `authorization.html`: authorization page for IndieAuth.
+- `error.html`: error page.
+- `login.html`: login page.
+- `panel.html`: panel page.
+- `panel-guestbook.html`: guestbook comments moderation page.
+- `panel-tokens.html`: IndieAuth tokens management page.
+- `search.html`: search page.
+
+At the moment, it is best to check the source code to see what variables are available
+in each template. I may add an example at some point, or a link to when I re-open source
+my website's code.
+
 ## License
 
 MIT © Henrique Dias
