@@ -26,13 +26,7 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doc, err := s.getTemplateDocument(r.URL.Path)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	s.serveDocument(w, r, doc, http.StatusOK)
+	s.renderTemplate(w, r, loginTemplate, &pageData{Title: "Login"})
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {

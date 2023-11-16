@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"html/template"
 	"net"
 	"net/http"
 	"os"
@@ -56,6 +57,7 @@ type Server struct {
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
+	templates    *template.Template
 }
 
 func NewServer(c *core.Config) (*Server, error) {
@@ -81,6 +83,7 @@ func NewServer(c *core.Config) (*Server, error) {
 
 	err := errors.Join(
 		s.initNotifier(),
+		s.initTemplates(),
 		s.initBadger(),
 		s.initMeiliSearch(),
 		s.initPlugins(),
