@@ -44,9 +44,9 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.User.Password), []byte(password)) == nil
+	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.Login.Password), []byte(password)) == nil
 
-	if username != s.c.User.Username || !correctPassword {
+	if username != s.c.Login.Username || !correctPassword {
 		s.serveErrorHTML(w, r, http.StatusUnauthorized, errors.New("wrong credentials"))
 		return
 	}

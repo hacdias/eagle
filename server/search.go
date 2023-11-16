@@ -27,7 +27,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query().Get("query")
 	if query != "" {
-		entries, err := s.meilisearch.Search(int64(page), int64(s.c.Pagination), query)
+		entries, err := s.meilisearch.Search(int64(page), int64(s.c.Site.Paginate), query)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return

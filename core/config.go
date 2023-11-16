@@ -10,20 +10,41 @@ import (
 )
 
 type Config struct {
+	ServerConfig
+	Site SiteConfig
+}
+
+// ParseConfig parses the configuration from the default files and paths.
+func ParseConfig() (*Config, error) {
+	serverConfig, err := parseServerConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	siteConfig, err := parseSiteConfig(serverConfig.SourceDirectory)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Config{
+		ServerConfig: *serverConfig,
+		Site:         *siteConfig,
+	}, nil
+}
+
+type ServerConfig struct {
 	Development     bool
 	SourceDirectory string
 	PublicDirectory string
 	DataDirectory   string
 	Port            int
-	BaseURL         string
+	BaseURL         string // NOTE: maybe use the one from [SiteConfig].
 	TokensSecret    string
 	WebhookSecret   string
 	Logging         bool
-	Title           string
-	Pagination      int
 
+	Login         Login
 	MeiliSearch   *EndpointWithKey
-	User          User
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN
 	Miniflux      *Miniflux
@@ -31,7 +52,31 @@ type Config struct {
 	ImgProxy      *ImgProxy
 }
 
-func (c *Config) validate() error {
+func parseServerConfig() (*ServerConfig, error) {
+	v := viper.New()
+	v.SetConfigName("config")
+	v.AddConfigPath(".")
+
+	err := v.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	conf := &ServerConfig{}
+	err = v.Unmarshal(conf)
+	if err != nil {
+		return nil, err
+	}
+
+	err = conf.validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return conf, nil
+}
+
+func (c *ServerConfig) validate() error {
 	var err error
 
 	c.SourceDirectory, err = filepath.Abs(c.SourceDirectory)
@@ -50,7 +95,7 @@ func (c *Config) validate() error {
 	}
 
 	if c.Port < 0 {
-		return fmt.Errorf("port should be above zero")
+		return fmt.Errorf("config: Port should be positive number or 0")
 	}
 
 	baseUrl, err := urlpkg.Parse(c.BaseURL)
@@ -60,14 +105,10 @@ func (c *Config) validate() error {
 	baseUrl.Path = ""
 
 	if baseUrl.String() != c.BaseURL {
-		return fmt.Errorf("base url should be %s", baseUrl.String())
+		return fmt.Errorf("config: BaseURL should be %s", baseUrl.String())
 	}
 
-	if c.Pagination < 1 {
-		return errors.New("paginate must be larger than 1")
-	}
-
-	err = c.User.validate()
+	err = c.Login.validate()
 	if err != nil {
 		return err
 	}
@@ -75,17 +116,17 @@ func (c *Config) validate() error {
 	return nil
 }
 
-func (c *Config) ID() string {
+func (c *ServerConfig) ID() string {
 	return c.BaseURL + "/"
 }
 
-func (c *Config) resolvedURL(path string) *urlpkg.URL {
+func (c *ServerConfig) resolvedURL(path string) *urlpkg.URL {
 	url, _ := urlpkg.Parse(path)
 	base, _ := urlpkg.Parse(c.BaseURL)
 	return base.ResolveReference(url)
 }
 
-func (c *Config) AbsoluteURL(path string) string {
+func (c *ServerConfig) AbsoluteURL(path string) string {
 	resolved := c.resolvedURL(path)
 	if resolved == nil {
 		return ""
@@ -93,34 +134,18 @@ func (c *Config) AbsoluteURL(path string) string {
 	return resolved.String()
 }
 
-func (c *Config) RelativeURL(path string) string {
-	resolved := c.resolvedURL(path)
-	if resolved == nil {
-		return path
-	}
-
-	// Take out everything before the path.
-	resolved.User = nil
-	resolved.Host = ""
-	resolved.Scheme = ""
-	return resolved.String()
-}
-
-type User struct {
-	Name     string
+type Login struct {
 	Username string
 	Password string
-	Email    string
-	Photo    string
 }
 
-func (u *User) validate() error {
+func (u *Login) validate() error {
 	if u.Username == "" {
-		return errors.New("user.username is empty")
+		return errors.New("config: Login.Username is empty")
 	}
 
 	if u.Password == "" {
-		return errors.New("user.password is empty")
+		return errors.New("config: Login.Password is empty")
 	}
 
 	return nil
@@ -164,18 +189,30 @@ type ImgProxy struct {
 	Endpoint  string
 }
 
-// ParseConfig parses the configuration from the default files and paths.
-func ParseConfig() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
+type SiteConfig struct {
+	Paginate int
+	Params   struct {
+		Author struct {
+			Name   string
+			Email  string
+			Photo  string
+			Handle string
+		}
+	}
+}
 
-	err := viper.ReadInConfig()
+func parseSiteConfig(dir string) (*SiteConfig, error) {
+	v := viper.New()
+	v.SetConfigName("config")
+	v.AddConfigPath(dir)
+
+	err := v.ReadInConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	conf := &Config{}
-	err = viper.Unmarshal(conf)
+	conf := &SiteConfig{}
+	err = v.Unmarshal(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -186,4 +223,12 @@ func ParseConfig() (*Config, error) {
 	}
 
 	return conf, nil
+}
+
+func (c *SiteConfig) validate() error {
+	if c.Paginate < 1 {
+		return errors.New("hugo config: .Paginate must be larger than 1")
+	}
+
+	return nil
 }

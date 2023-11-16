@@ -23,21 +23,13 @@ logging: false
 language: en
 # The website title.
 title: "The Website Title"
-# Number of items in lists.
-pagination: 10
 
-# User configuration.
-user:
-  # The user's full name.
-  name: John Doe
-  # The user's username.
+# Login user configuration.
+login:
+  # The login username.
   username: johndoe
   # Encrypted password. Use 'eagle pwd' to generate the password.
   password: invalidSecret
-  # The user's email.
-  email: your@email.com
-  # The user's photo.
-  photo: https://example.com/beautiful.jpeg
 
 # Notifications configuration.
 notifications:
