@@ -85,7 +85,8 @@ func (s *Server) makeRouter() http.Handler {
 		panelPath, panelGuestbookPath, panelTokensPath,
 	} {
 		r.Get(strings.TrimSuffix(route, "/"), func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, r.URL.Path+"/", http.StatusPermanentRedirect)
+			r.URL.Path += "/"
+			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
 		})
 	}
 
