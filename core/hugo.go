@@ -90,7 +90,7 @@ func (h *Hugo) Build(clean bool) error {
 	}
 
 	destination := filepath.Join(h.pubDir, dir)
-	args := []string{"--minify", "--destination", destination, "--baseURL", h.baseURL}
+	args := []string{"--minify", "--destination", destination, "--baseURL", h.baseURL, "--environment", "eagle"}
 
 	cmd := exec.Command("hugo", args...)
 	cmd.Dir = h.srcDir
