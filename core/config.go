@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	urlpkg "net/url"
+	"net/url"
 	"path/filepath"
 
 	"github.com/spf13/viper"
@@ -98,7 +98,7 @@ func (c *ServerConfig) validate() error {
 		return fmt.Errorf("config: Port should be positive number or 0")
 	}
 
-	baseUrl, err := urlpkg.Parse(c.BaseURL)
+	baseUrl, err := url.Parse(c.BaseURL)
 	if err != nil {
 		return err
 	}
@@ -120,14 +120,14 @@ func (c *ServerConfig) ID() string {
 	return c.BaseURL + "/"
 }
 
-func (c *ServerConfig) resolvedURL(path string) *urlpkg.URL {
-	url, _ := urlpkg.Parse(path)
-	base, _ := urlpkg.Parse(c.BaseURL)
-	return base.ResolveReference(url)
+func (c *ServerConfig) resolvedURL(refStr string) *url.URL {
+	ref, _ := url.Parse(refStr)
+	base, _ := url.Parse(c.BaseURL)
+	return base.ResolveReference(ref)
 }
 
-func (c *ServerConfig) AbsoluteURL(path string) string {
-	resolved := c.resolvedURL(path)
+func (c *ServerConfig) AbsoluteURL(refStr string) string {
+	resolved := c.resolvedURL(refStr)
 	if resolved == nil {
 		return ""
 	}
