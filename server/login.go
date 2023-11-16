@@ -59,7 +59,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		jwt.ExpirationKey: expiration,
 	})
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
