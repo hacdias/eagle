@@ -1,14 +1,9 @@
 package server
 
 import (
-	"bytes"
-	"fmt"
 	"net/http"
-	"path/filepath"
 	"strconv"
-	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	"go.hacdias.com/eagle/core"
 )
 
@@ -57,45 +52,8 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		data.Entries = ee
 	}
 
-	s.renderTemplateWithContent(w, r, "Search", "search.html", data)
-}
-
-func (s *Server) renderTemplateWithContent(w http.ResponseWriter, r *http.Request, title, template string, data interface{}) {
-	fd, err := s.staticFs.ReadFile(filepath.Join("/eagle/", "index.html"))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(fd))
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	var buf bytes.Buffer
-	err = s.templates.ExecuteTemplate(&buf, template, data)
-	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	doc.Find("title").SetText(strings.Replace(doc.Find("title").Text(), "Eagle", title, 1))
-
-	pageNode := doc.Find("eagle-page")
-	pageNode.ReplaceWithHtml(buf.String())
-
-	html, err := doc.Html()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write([]byte(html))
-	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
-	}
+	s.renderTemplateWithContent(w, r, "search.html", &pageData{
+		Title: "Search",
+		Data:  data,
+	})
 }

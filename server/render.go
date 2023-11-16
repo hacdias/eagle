@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -100,42 +101,30 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 	})
 }
 
+type errorPage struct {
+	Status  int
+	Message string
+}
+
 func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, reqErr error) {
 	if reqErr != nil {
 		s.log.Error(reqErr)
 	}
 
 	w.Header().Del("Cache-Control")
-	f, err := s.staticFs.ReadFile("404.html")
-	if err != nil {
-		s.log.Error(err)
-		return
+
+	data := &errorPage{
+		Status: code,
 	}
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(f))
-	if err != nil {
-		s.log.Error(err)
-		return
-	}
-
-	errorTitle := fmt.Sprintf("%d %s", code, http.StatusText(code))
-
-	doc.Find("title").SetText(errorTitle)
-	doc.Find("eagle-error-title").ReplaceWithHtml(errorTitle)
-	selector := fmt.Sprintf("eagle-error[error~=\"%d\"]", code)
-	errorNode := doc.Find(selector)
-	errorNode.ReplaceWithSelection(errorNode.Children())
-	doc.Find("eagle-error").Remove()
-
-	detailsNode := doc.Find("eagle-error-details")
 	if reqErr != nil && (s.isLoggedIn(r) || code < 500) {
-		detailsNode.Find("eagle-error-details-value").ReplaceWithHtml(reqErr.Error())
-		detailsNode.ReplaceWithSelection(detailsNode.Children())
-	} else {
-		detailsNode.Remove()
+		data.Message = reqErr.Error()
 	}
 
-	s.serveDocument(w, r, doc, code)
+	s.renderTemplateWithContent(w, r, "error.html", &pageData{
+		Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
+		Data:  data,
+	})
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
@@ -154,10 +143,35 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 	})
 }
 
-func (s *Server) serveDocument(w http.ResponseWriter, r *http.Request, doc *goquery.Document, statusCode int) {
-	doc.Find("no-eagle-page").Remove()
+type pageData struct {
+	Title string
+	Data  interface{}
+}
+
+func (s *Server) renderTemplateWithContent(w http.ResponseWriter, r *http.Request, template string, p *pageData) {
+	fd, err := s.staticFs.ReadFile(filepath.Join("/eagle/", "index.html"))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(fd))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	var buf bytes.Buffer
+	err = s.templates.ExecuteTemplate(&buf, template, p)
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	doc.Find("title").SetText(strings.Replace(doc.Find("title").Text(), "Eagle", p.Title, 1))
+
 	pageNode := doc.Find("eagle-page")
-	pageNode.ReplaceWithSelection(pageNode.Children())
+	pageNode.ReplaceWithHtml(buf.String())
 
 	html, err := doc.Html()
 	if err != nil {
@@ -167,7 +181,7 @@ func (s *Server) serveDocument(w http.ResponseWriter, r *http.Request, doc *goqu
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(html))
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))

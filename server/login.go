@@ -26,7 +26,7 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplateWithContent(w, r, "Login", "login.html", nil)
+	s.renderTemplateWithContent(w, r, "login.html", &pageData{Title: "Login"})
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
