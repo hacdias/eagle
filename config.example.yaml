@@ -17,8 +17,6 @@ baseUrl: "http://localhost:8080"
 tokensSecret: SecureSecret
 # Optional GitHub (https://docs.github.com/) webhook secret to update the source repository.
 webhookSecret: GitHub
-# Enable request logging.
-logging: false
 # The website language.
 language: en
 # The website title.

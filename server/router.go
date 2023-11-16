@@ -6,16 +6,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
+	"go.hacdias.com/eagle/log"
 )
 
 func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 	r.Use(s.withRecoverer)
-
-	if s.c.Logging || s.c.Development {
-		r.Use(middleware.Logger)
-	}
-
+	r.Use(log.WithZap)
 	r.Use(withCleanPath)
 	r.Use(middleware.GetHead)
 	r.Use(s.withSecurityHeaders)

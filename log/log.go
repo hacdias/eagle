@@ -21,13 +21,13 @@ func init() {
 
 	encoder := zapcore.NewConsoleEncoder(encConfig)
 
-	sout, closer, err := zap.Open("stdout")
+	stdout, closer, err := zap.Open("stdout")
 	if err != nil {
 		closer()
 		panic(fmt.Errorf("failed to initialize logger: %w", err))
 	}
 
-	serr, closer, err := zap.Open("stderr")
+	stderr, closer, err := zap.Open("stderr")
 	if err != nil {
 		closer()
 		panic(fmt.Errorf("failed to initialize logger: %w", err))
@@ -38,20 +38,17 @@ func init() {
 		level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
 	}
 
-	stdout := sout
-	stderr := serr
-
 	ws := zapcore.NewMultiWriteSyncer(stdout)
 	core := zapcore.NewCore(encoder, ws, level)
 	logger = zap.New(core, zap.ErrorOutput(stderr))
 }
 
-// S returns a *zap.SugaredLogger
+// S returns a *[zap.SugaredLogger].
 func S() *zap.SugaredLogger {
 	return logger.Sugar()
 }
 
-// L returns a *zap.Logger
+// L returns a *[zap.Logger].
 func L() *zap.Logger {
 	return logger
 }
