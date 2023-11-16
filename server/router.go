@@ -57,7 +57,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Use(s.mustLoggedIn)
 
 		// IndieAuth Server (Part II)
-		r.Get(authPath, s.authGet)
+		r.Get(authPath+"/", s.authGet)
 		r.Post(authAcceptPath, s.authAcceptPost)
 
 		// Panel
