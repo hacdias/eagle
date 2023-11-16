@@ -2,7 +2,6 @@ package linkding
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -41,7 +40,6 @@ func NewExternalLinks(fs *core.FS, config map[string]interface{}) (server.Plugin
 		ignoredDomains: typed.New(config).Strings("ignored"),
 	}
 
-	fmt.Println(el.ignoredDomains)
 	links, err := el.loadDiskLinks()
 	if err != nil {
 		return nil, err
