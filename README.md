@@ -43,9 +43,10 @@ paginate = 15
 
 ### Templates
 
-Hugo website must produce a `/eagle/index.html` page. This page will be used as the template
-for the interface. The page should contain a `<eagle-page>` element, which Eagle will replace
-by the correct content:
+Hugo website must produce a `/_eagle/index.html` page. This page will be used as the template
+for the interface. All instances of `_EAGLE_TITLE` in the template will be replaced by the actual
+page title. The page should contain a `<eagle-page>` element, which Eagle will replace by the
+correct content:
 
 ```html
 <eagle-page>

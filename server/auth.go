@@ -56,10 +56,7 @@ func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplate(w, r, authTemplate, &pageData{
-		Title: "Authorization",
-		Data:  req,
-	})
+	s.renderTemplate(w, r, "Authorization", authTemplate, req)
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {

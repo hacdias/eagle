@@ -123,10 +123,7 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
 	data.Actions = s.getActions()
-	s.renderTemplate(w, r, panelTemplate, &pageData{
-		Title: "Panel",
-		Data:  data,
-	})
+	s.renderTemplate(w, r, "Panel", panelTemplate, data)
 }
 
 func (s *Server) panelGuestbookGet(w http.ResponseWriter, r *http.Request) {
@@ -136,10 +133,7 @@ func (s *Server) panelGuestbookGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplate(w, r, panelGuestbookTemplate, &pageData{
-		Title: "Panel Guestbook",
-		Data:  guestbookEntries,
-	})
+	s.renderTemplate(w, r, "Panel Guestbook", panelGuestbookTemplate, guestbookEntries)
 }
 
 func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
@@ -202,10 +196,7 @@ type tokenPage struct {
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
-	s.renderTemplate(w, r, panelTokensTemplate, &pageData{
-		Title: "Panel Tokens",
-		Data:  &tokenPage{},
-	})
+	s.renderTemplate(w, r, "Panel Tokens", panelTokensTemplate, &tokenPage{})
 }
 
 func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
@@ -238,8 +229,5 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplate(w, r, panelTokensTemplate, &pageData{
-		Title: "Panel Tokens",
-		Data:  data,
-	})
+	s.renderTemplate(w, r, "Panel Tokens", panelTokensTemplate, data)
 }

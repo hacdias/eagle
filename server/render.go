@@ -114,8 +114,9 @@ func (s *Server) withAdminBar(next http.Handler) http.Handler {
 }
 
 type errorPage struct {
-	Status  int
-	Message string
+	StatusText string
+	Status     int
+	Message    string
 }
 
 func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int, reqErr error) {
@@ -126,17 +127,15 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	w.Header().Del("Cache-Control")
 
 	data := &errorPage{
-		Status: code,
+		StatusText: fmt.Sprintf("%d %s", code, http.StatusText(code)),
+		Status:     code,
 	}
 
 	if reqErr != nil && (s.isLoggedIn(r) || code < 500) {
 		data.Message = reqErr.Error()
 	}
 
-	s.renderTemplate(w, r, errorTemplate, &pageData{
-		Title: fmt.Sprintf("%d %s", code, http.StatusText(code)),
-		Data:  data,
-	})
+	s.renderTemplate(w, r, data.StatusText, errorTemplate, data)
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
@@ -155,32 +154,29 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 	})
 }
 
-type pageData struct {
-	Title string
-	Data  interface{}
-}
-
-func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, template string, p *pageData) {
-	fd, err := s.staticFs.ReadFile(filepath.Join("/eagle/", "index.html"))
+func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, title, template string, data interface{}) {
+	fileContent, err := s.staticFs.ReadFile(filepath.Join("/_eagle/", "index.html"))
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		s.n.Error(fmt.Errorf("serving html: %w", err))
 		return
 	}
+	fileContent = bytes.ReplaceAll(fileContent, []byte("_EAGLE_TITLE"), []byte(title))
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(fd))
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(fileContent))
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		s.n.Error(fmt.Errorf("serving html: %w", err))
 		return
 	}
 
 	var buf bytes.Buffer
-	err = s.templates.ExecuteTemplate(&buf, template, p)
+	err = s.templates.ExecuteTemplate(&buf, template, data)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		s.n.Error(fmt.Errorf("serving html: %w", err))
 		return
 	}
-
-	doc.Find("title").SetText(strings.Replace(doc.Find("title").Text(), "Eagle", p.Title, 1))
 
 	pageNode := doc.Find("eagle-page")
 	pageNode.ReplaceWithHtml(buf.String())

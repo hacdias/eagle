@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -79,16 +78,10 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(userInfoPath, s.userInfoGet)
 	})
 
-	// Ensure this routes are redirected to the slash to avoid 404.
-	for _, route := range []string{
-		searchPath, authPath, loginPath, logoutPath,
-		panelPath, panelGuestbookPath, panelTokensPath,
-	} {
-		r.Get(strings.TrimSuffix(route, "/"), func(w http.ResponseWriter, r *http.Request) {
-			r.URL.Path += "/"
-			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
-		})
-	}
+	// Hide template page.
+	r.Get("/_eagle/", func(w http.ResponseWriter, r *http.Request) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	})
 
 	// Plugins that mount routes.
 	utilities := &PluginWebUtilities{s: s}
