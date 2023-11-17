@@ -195,3 +195,7 @@ func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, title, t
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
 	}
 }
+
+func (s *Server) serveNotFound(w http.ResponseWriter, r *http.Request) {
+	s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+}
