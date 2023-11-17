@@ -66,11 +66,10 @@ var brokenLinksCmd = &cobra.Command{
 
 			parts := strings.Split(u.Path, "/")
 			if len(parts) == 5 {
-				for _, section := range core.Sections {
-					_, err = fs.GetEntry("/" + section + "/" + parts[1] + "/" + parts[4])
-					if err == nil {
-						return false, "", nil
-					}
+				// TODO: handle other permalinks (such as categories).
+				_, err = fs.GetEntry("/" + core.SpecialSection + "/" + parts[1] + "/" + parts[4])
+				if err == nil {
+					return false, "", nil
 				}
 			}
 

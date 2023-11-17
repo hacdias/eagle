@@ -6,12 +6,13 @@ import (
 	urlpkg "net/url"
 	"strings"
 
-	"github.com/samber/lo"
 	yaml "gopkg.in/yaml.v3"
 )
 
-// TODO: do not hardcode these.
-var Sections = []string{"articles", "photos", "readings", "photos"}
+// TODO: do not hardcore this. Instead, use Hugo's configuration to deduce
+// and "back-engineer" how the permalinks are constructed. Then this can be used
+// only in the parser code.
+const SpecialSection = "posts"
 
 type Parser struct {
 	baseURL string
@@ -69,7 +70,7 @@ func (p *Parser) makePermalink(id string, fr *FrontMatter) (string, error) {
 	}
 
 	parts := strings.Split(id, "/")
-	if lo.Contains(Sections, parts[1]) && !fr.Date.IsZero() {
+	if parts[1] == SpecialSection && !fr.Date.IsZero() {
 		url.Path = fmt.Sprintf("/%04d/%02d/%02d/%s/", fr.Date.Year(), fr.Date.Month(), fr.Date.Day(), parts[len(parts)-2])
 	} else {
 		url.Path = id
