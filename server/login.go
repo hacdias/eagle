@@ -26,7 +26,7 @@ func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderTemplate(w, r, "Login", loginTemplate, nil)
+	s.renderTemplate(w, r, http.StatusOK, "Login", loginTemplate, nil)
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {

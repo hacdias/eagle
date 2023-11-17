@@ -135,7 +135,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 		data.Message = reqErr.Error()
 	}
 
-	s.renderTemplate(w, r, data.StatusText, errorTemplate, data)
+	s.renderTemplate(w, r, code, data.StatusText, errorTemplate, data)
 }
 
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
@@ -154,7 +154,7 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 	})
 }
 
-func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, title, template string, data interface{}) {
+func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, code int, title, template string, data interface{}) {
 	fileContent, err := s.staticFs.ReadFile(filepath.Join("/_eagle/", "index.html"))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -189,7 +189,7 @@ func (s *Server) renderTemplate(w http.ResponseWriter, r *http.Request, title, t
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(code)
 	_, err = w.Write([]byte(html))
 	if err != nil {
 		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))

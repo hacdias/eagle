@@ -52,5 +52,5 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		data.Entries = ee
 	}
 
-	s.renderTemplate(w, r, "Search", searchTemplate, data)
+	s.renderTemplate(w, r, http.StatusOK, "Search", searchTemplate, data)
 }
