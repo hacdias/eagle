@@ -104,7 +104,8 @@ func (fs *FS) GetEntry(id string) (*Entry, error) {
 		return nil, err
 	}
 
-	e.IsList = strings.Contains(filename, "_index.md")
+	// TODO: make this configurable.
+	e.IsList = strings.HasPrefix(id, "/categories/") || strings.HasPrefix(id, "/tags/")
 	return e, nil
 }
 
