@@ -139,6 +139,26 @@ func (fs *FS) GetEntries(includeList bool) (Entries, error) {
 	return ee, err
 }
 
+func (f *FS) SaveEntry(e *Entry) error {
+	filename := f.guessFilename(e.ID)
+	err := f.afero.MkdirAll(filepath.Dir(filename), 0777)
+	if err != nil {
+		return err
+	}
+
+	str, err := e.String()
+	if err != nil {
+		return err
+	}
+
+	err = f.WriteFile(filename, []byte(str), "entry: update "+e.ID)
+	if err != nil {
+		return fmt.Errorf("could not save entry: %w", err)
+	}
+
+	return nil
+}
+
 func (f *FS) guessFilename(id string) string {
 	path := filepath.Join(ContentDirectory, id, "_index.md")
 	if _, err := f.afero.Stat(path); err == nil {

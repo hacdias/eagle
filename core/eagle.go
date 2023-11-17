@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -38,12 +39,16 @@ func (e *Entry) Summary() string {
 }
 
 func (e *Entry) String() (string, error) {
-	fr, err := yaml.Marshal(&e.FrontMatter)
+	var buf bytes.Buffer
+	enc := yaml.NewEncoder(&buf)
+	enc.SetIndent(2)
+
+	err := enc.Encode(&e.FrontMatter)
 	if err != nil {
 		return "", err
 	}
 
-	text := fmt.Sprintf("---\n%s---\n\n%s\n", string(fr), strings.TrimSpace(e.Content))
+	text := fmt.Sprintf("---\n%s---\n\n%s\n", buf.String(), strings.TrimSpace(e.Content))
 	text = strings.TrimSpace(text) + "\n"
 	return normalizeNewlines(text), nil
 }
@@ -63,6 +68,7 @@ type FrontMatter struct {
 	Lastmod     time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
 	NoIndex     bool           `yaml:"noIndex,omitempty"`
+	Categories  []string       `yaml:"categories,omitempty"`
 	Tags        []string       `yaml:"tags,omitempty"`
 	Other       map[string]any `yaml:",inline"`
 }
