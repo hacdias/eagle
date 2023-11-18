@@ -125,9 +125,23 @@ func (fs *FS) GetEntries(includeList bool) (Entries, error) {
 		id = strings.TrimSuffix(id, "_index")
 		id = strings.TrimSuffix(id, "index")
 
+		// Ignore special entry.
+		// TODO: ideally this wouldn't be needed in the future.
+		if id == "/_eagle/" {
+			return nil
+		}
+
 		e, err := fs.GetEntry(id)
 		if err != nil {
 			return err
+		}
+
+		if v, ok := e.Other["_build"]; ok {
+			if m, ok := v.(map[string]any); ok {
+				if m["render"] == "never" {
+					return nil
+				}
+			}
 		}
 
 		if !e.IsList || includeList {

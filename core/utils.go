@@ -13,6 +13,9 @@ func cleanID(id string) string {
 	id = path.Clean(id)
 	id = strings.TrimSuffix(id, "/")
 	id = strings.TrimPrefix(id, "/")
+	if id == "" {
+		return "/"
+	}
 	return "/" + id + "/"
 }
 

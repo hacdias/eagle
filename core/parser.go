@@ -59,19 +59,19 @@ func (p *Parser) Parse(id, raw string) (*Entry, error) {
 }
 
 func (p *Parser) makePermalink(id string, fr *FrontMatter) (string, error) {
+	// TODO: just copy: https://github.com/golang/go/blob/go1.20/src/net/http/clone.go#L22
 	url, err := urlpkg.Parse(p.baseURL)
 	if err != nil {
 		return "", err
 	}
 
-	if fr.URL != "" {
-		url.Path = cleanID(fr.URL)
-		return url.String(), nil
-	}
-
 	parts := strings.Split(id, "/")
-	if parts[1] == SpecialSection && !fr.Date.IsZero() {
+	if len(parts) < 2 {
+		url.Path = id
+	} else if parts[1] == SpecialSection && !fr.Date.IsZero() {
 		url.Path = fmt.Sprintf("/%04d/%02d/%02d/%s/", fr.Date.Year(), fr.Date.Month(), fr.Date.Day(), parts[len(parts)-2])
+	} else if parts[1] == "categories" {
+		url.Path = "/" + parts[2] + "/"
 	} else {
 		url.Path = id
 	}
