@@ -18,7 +18,6 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
 	github.com/writeas/go-strip-markdown/v2 v2.1.1
-	github.com/yuin/goldmark v1.6.0
 	go.etcd.io/bbolt v1.3.8
 	go.hacdias.com/indielib v0.1.0
 	go.uber.org/zap v1.26.0
