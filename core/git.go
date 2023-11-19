@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/samber/lo"
 )
 
 type fsSync interface {
@@ -79,7 +81,9 @@ func (g *git) Sync() ([]string, error) {
 	defer g.mu.Unlock()
 
 	if g.hasStaged() {
+		g.messages = lo.Uniq(g.messages)
 		var message string
+
 		if len(g.messages) == 1 {
 			message = g.messages[0]
 		} else {
