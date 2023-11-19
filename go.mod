@@ -27,6 +27,7 @@ require (
 	gopkg.in/telebot.v3 v3.1.3
 	gopkg.in/yaml.v3 v3.0.1
 	miniflux.app/v2 v2.0.49
+	willnorris.com/go/webmention v0.0.0-20220108183051-4a23794272f0
 )
 
 require (
@@ -71,5 +72,4 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	willnorris.com/go/webmention v0.0.0-20220108183051-4a23794272f0 // indirect
 )
