@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -22,12 +20,17 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		fs, err := core.NewCore(c)
+		co, err := core.NewCore(c)
 		if err != nil {
 			return err
 		}
 
-		redirects, err := fs.GetRedirects(false)
+		err = co.Build(true)
+		if err != nil {
+			return err
+		}
+
+		redirects, err := co.GetRedirects(false)
 		if err != nil {
 			return err
 		}
@@ -41,52 +44,17 @@ var brokenLinksCmd = &cobra.Command{
 			return u
 		}
 
-		ee, err := fs.GetEntries(false)
+		ee, err := co.GetEntries(false)
 		if err != nil {
 			return err
 		}
 
-		isBroken := func(urlStr string) (bool, string, error) {
+		exists := func(urlStr string) (bool, error) {
 			if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.BaseURL) {
-				return false, "", nil
+				return true, nil
 			}
 
-			u, err := url.Parse(urlStr)
-			if err != nil {
-				return false, "", err
-			}
-
-			if strings.HasPrefix(u.Path, "/tags") {
-				return false, "", nil
-			}
-
-			u.Path = strings.TrimSuffix(u.Path, "/")
-
-			_, err = fs.GetEntry(u.Path)
-			if err == nil {
-				return false, "", nil
-			}
-
-			parts := strings.Split(u.Path, "/")
-			if len(parts) == 5 {
-				// TODO: handle other permalinks (such as categories).
-				_, err = fs.GetEntry("/" + core.SpecialSection + "/" + parts[1] + "/" + parts[4])
-				if err == nil {
-					return false, "", nil
-				}
-			}
-
-			_, err = fs.ReadFile(filepath.Join("content", u.Path))
-			if err == nil {
-				return false, "", nil
-			}
-
-			_, err = fs.ReadFile(filepath.Join("static", u.Path))
-			if err == nil {
-				return false, "", nil
-			}
-
-			return true, u.Path, nil
+			return co.IsLinkValid(urlStr)
 		}
 
 		printBroken := func(e *core.Entry, what string, urls []string) {
@@ -106,18 +74,18 @@ var brokenLinksCmd = &cobra.Command{
 		}
 
 		for _, e := range ee {
-			markdownURLs, err := core.GetMarkdownURLs(e)
+			markdownURLs, err := co.GetEntryLinks(e.Permalink)
 			if err != nil {
 				return err
 			}
 			brokenLinks := []string{}
 			for _, urlStr := range markdownURLs {
-				broken, canonical, err := isBroken(urlStr)
+				exists, err := exists(urlStr)
 				if err != nil {
 					return err
 				}
-				if broken {
-					brokenLinks = append(brokenLinks, canonical)
+				if !exists {
+					brokenLinks = append(brokenLinks, urlStr)
 				}
 			}
 			printBroken(e, "Entry", brokenLinks)
