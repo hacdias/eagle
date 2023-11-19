@@ -50,8 +50,7 @@ type Server struct {
 
 	server      *http.Server
 	meilisearch *meilisearch.MeiliSearch
-	fs          *core.FS
-	hugo        *core.Hugo
+	core        *core.Core
 	media       *media.Media
 	badger      *database.Database
 
@@ -61,6 +60,11 @@ type Server struct {
 }
 
 func NewServer(c *core.Config) (*Server, error) {
+	co, err := core.NewCore(c)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &Server{
 		c: c,
 
@@ -75,13 +79,13 @@ func NewServer(c *core.Config) (*Server, error) {
 		redirects: map[string]string{},
 		gone:      map[string]bool{},
 
-		fs:    initFS(c),
-		hugo:  core.NewHugo(c.SourceDirectory, c.PublicDirectory, c.BaseURL),
+		core:  co,
 		media: initMedia(c),
 	}
-	s.hugo.BuildHook = s.buildHook
 
-	err := errors.Join(
+	co.BuildHook = s.buildHook
+
+	err = errors.Join(
 		s.initNotifier(),
 		s.initTemplates(),
 		s.initBadger(),
@@ -102,13 +106,13 @@ func (s *Server) Start() error {
 	}()
 
 	// Make sure we have a built version to serve
-	should, err := s.hugo.ShouldBuild()
+	should, err := s.core.ShouldBuild()
 	if err != nil {
 		return err
 	}
 
 	if should {
-		err = s.hugo.Build(false)
+		err = s.core.Build(false)
 		if err != nil {
 			return err
 		}
@@ -155,7 +159,7 @@ func (s *Server) getActions() []string {
 }
 
 func (s *Server) loadRedirects() error {
-	redirects, err := s.fs.LoadRedirects(true)
+	redirects, err := s.core.GetRedirects(true)
 	if err != nil {
 		return err
 	}
@@ -164,7 +168,7 @@ func (s *Server) loadRedirects() error {
 }
 
 func (s *Server) loadGone() error {
-	gone, err := s.fs.LoadGone()
+	gone, err := s.core.GetGone()
 	if err != nil {
 		return err
 	}
@@ -182,7 +186,7 @@ func (s *Server) indexAll() {
 		s.n.Error(err)
 	}
 
-	entries, err := s.fs.GetEntries(false)
+	entries, err := s.core.GetEntries(false)
 	if err != nil {
 		s.n.Error(err)
 		return
@@ -236,7 +240,7 @@ func (s *Server) withSecurityHeaders(next http.Handler) http.Handler {
 }
 
 func (s *Server) syncStorage() {
-	changedFiles, err := s.fs.Sync()
+	changedFiles, err := s.core.Sync()
 	if err != nil {
 		s.n.Error(fmt.Errorf("sync storage: %w", err))
 		return
@@ -264,7 +268,7 @@ func (s *Server) syncStorage() {
 	buildClean := false
 
 	for _, id := range ids {
-		entry, err := s.fs.GetEntry(id)
+		entry, err := s.core.GetEntry(id)
 		if os.IsNotExist(err) {
 			if s.meilisearch != nil {
 				_ = s.meilisearch.Remove(id)
@@ -289,7 +293,7 @@ func (s *Server) syncStorage() {
 }
 
 func (s *Server) buildNotify(clean bool) {
-	err := s.hugo.Build(clean)
+	err := s.core.Build(clean)
 	if err != nil {
 		s.n.Error(fmt.Errorf("build failed: %w", err))
 	}

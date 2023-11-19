@@ -23,14 +23,14 @@ func init() {
 }
 
 type Linkding struct {
-	fs         *core.FS
+	core       *core.Core
 	httpClient *http.Client
 	endpoint   string
 	key        string
 	filename   string
 }
 
-func NewLinkding(fs *core.FS, config map[string]interface{}) (server.Plugin, error) {
+func NewLinkding(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
 	endpoint := typed.New(config).String("endpoint")
 	if endpoint == "" {
 		return nil, errors.New("linkding endpoint missing")
@@ -47,7 +47,7 @@ func NewLinkding(fs *core.FS, config map[string]interface{}) (server.Plugin, err
 	}
 
 	return &Linkding{
-		fs: fs,
+		core: co,
 		httpClient: &http.Client{
 			Timeout: 2 * time.Minute,
 		},
@@ -76,7 +76,7 @@ func (ld *Linkding) Execute() error {
 	}
 
 	var oldBookmarks []bookmark
-	err = ld.fs.ReadJSON(ld.filename, &oldBookmarks)
+	err = ld.core.ReadJSON(ld.filename, &oldBookmarks)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -85,7 +85,7 @@ func (ld *Linkding) Execute() error {
 		return nil
 	}
 
-	return ld.fs.WriteJSON(ld.filename, newBookmarks, "bookmarks: synchronize with linkding")
+	return ld.core.WriteJSON(ld.filename, newBookmarks, "bookmarks: synchronize with linkding")
 }
 
 type bookmark struct {

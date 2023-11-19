@@ -31,10 +31,10 @@ type Pagination struct {
 
 type MeiliSearch struct {
 	client meilisearch.ClientInterface
-	fs     *core.FS
+	core   *core.Core
 }
 
-func NewMeiliSearch(host, key string, fs *core.FS) (*MeiliSearch, error) {
+func NewMeiliSearch(host, key string, co *core.Core) (*MeiliSearch, error) {
 	client := meilisearch.NewClient(meilisearch.ClientConfig{
 		Host:   host,
 		APIKey: key,
@@ -70,7 +70,7 @@ func NewMeiliSearch(host, key string, fs *core.FS) (*MeiliSearch, error) {
 
 	return &MeiliSearch{
 		client: client,
-		fs:     fs,
+		core:   co,
 	}, nil
 }
 
@@ -132,7 +132,7 @@ func (ms *MeiliSearch) Search(page, limit int64, query string) (core.Entries, er
 			return nil, errors.New("hit does not contain id field")
 		}
 
-		entry, err := ms.fs.GetEntry(id)
+		entry, err := ms.core.GetEntry(id)
 		if err != nil {
 			if os.IsNotExist(err) {
 				_ = ms.Remove(id)

@@ -19,7 +19,7 @@ func (s *Server) generalHandler(w http.ResponseWriter, r *http.Request) {
 	s.staticFs.ServeHTTP(nfw, r)
 
 	if nfw.status == http.StatusNotFound {
-		e, err := s.fs.GetEntry(r.URL.Path)
+		e, err := s.core.GetEntry(r.URL.Path)
 		if err == nil && e.Deleted() {
 			s.serveErrorHTML(w, r, http.StatusGone, nil)
 		} else {

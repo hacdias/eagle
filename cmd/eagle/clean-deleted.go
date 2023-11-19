@@ -20,15 +20,19 @@ var cleanDeletedCmd = &cobra.Command{
 			return err
 		}
 
-		fs := core.NewFS(c.SourceDirectory, c.BaseURL, &core.NopSync{})
-		ee, err := fs.GetEntries(false)
+		co, err := core.NewCore(c)
+		if err != nil {
+			return err
+		}
+
+		ee, err := co.GetEntries(false)
 		if err != nil {
 			return err
 		}
 
 		for _, e := range ee {
 			if e.Deleted() {
-				err = fs.RemoveAll(filepath.Join(core.ContentDirectory, e.ID))
+				err = co.RemoveAll(filepath.Join(core.ContentDirectory, e.ID))
 				if err != nil {
 					return err
 				}
