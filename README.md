@@ -61,7 +61,7 @@ Then, the Hugo website must have a `eagle` directory containing the following te
 - `error.html`: error page.
 - `login.html`: login page.
 - `panel.html`: panel page.
-- `panel-guestbook.html`: guestbook comments moderation page.
+- `panel-mentions.html`: comments moderation page.
 - `panel-tokens.html`: IndieAuth tokens management page.
 - `search.html`: search page.
 

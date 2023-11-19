@@ -29,6 +29,11 @@ login:
   # Encrypted password. Use 'eagle pwd' to generate the password.
   password: invalidSecret
 
+# Webmentions configuration.
+webmentions:
+  # Webmention.io (https://webmention.io) secret for incoming webmentions.
+  secret: MySecret
+
 # Notifications configuration.
 notifications:
   # Telegram (https://core.telegram.org) credentials for notifications.

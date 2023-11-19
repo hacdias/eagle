@@ -20,10 +20,16 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(jwtauth.Verifier(s.jwtAuth))
 	r.Use(s.withLoggedIn)
 	r.Use(s.withAdminBar)
+	r.Post(commentsPath, s.commentsPost)
 
 	// GitHub WebHook
 	if s.c.WebhookSecret != "" {
 		r.Post(webhookPath, s.webhookPost)
+	}
+
+	// Webmentions Handler
+	if s.c.Webmentions.Secret != "" {
+		r.Post(webmentionPath, s.webmentionPost)
 	}
 
 	// WebFinger if handle is defined
@@ -33,9 +39,6 @@ func (s *Server) makeRouter() http.Handler {
 
 	// TODO: make this customizable. Plugin?
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
-
-	// Guestbook submit. TODO: eventually replace by general comment handler.
-	r.Post(guestbookPath, s.guestbookPost)
 
 	if s.meilisearch != nil {
 		r.Get(searchPath, s.searchGet)
@@ -64,8 +67,8 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(panelPath, s.panelGet)
 		r.Post(panelPath, s.panelPost)
 
-		r.Get(panelGuestbookPath, s.panelGuestbookGet)
-		r.Post(panelGuestbookPath, s.panelGuestbookPost)
+		r.Get(panelMentionsPtah, s.panelMentionsGet)
+		r.Post(panelMentionsPtah, s.panelMentionsPost)
 
 		r.Get(panelTokensPath, s.panelTokensGet)
 		r.Post(panelTokensPath, s.panelTokensPost)
@@ -82,7 +85,7 @@ func (s *Server) makeRouter() http.Handler {
 	// Ensure this routes are redirected to the slash to avoid 404.
 	for _, route := range []string{
 		searchPath, authPath, loginPath, logoutPath,
-		panelPath, panelGuestbookPath, panelTokensPath,
+		panelPath, panelMentionsPtah, panelTokensPath,
 	} {
 		r.Get(strings.TrimSuffix(route, "/"), func(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path += "/"

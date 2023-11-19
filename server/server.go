@@ -250,25 +250,16 @@ func (s *Server) syncStorage() {
 		return
 	}
 
-	ids := []string{}
-	// TODO: detect if redirects/gone changes, reload.
+	// TODO: also detect if redirects, gone, files have changed. If so, reload
+	// them respectively.
 
-	for _, file := range changedFiles {
-		if !strings.HasPrefix(file, core.ContentDirectory) {
-			continue
-		}
-
-		id := strings.TrimPrefix(file, core.ContentDirectory)
-		id = filepath.Dir(id)
-		ids = append(ids, id)
-	}
-
-	ids = lo.Uniq(ids)
-	entries := core.Entries{}
+	ids := idsFromChangedFiles(changedFiles)
+	ee := core.Entries{}
+	previousLinks := map[string][]string{}
 	buildClean := false
 
 	for _, id := range ids {
-		entry, err := s.core.GetEntry(id)
+		e, err := s.core.GetEntry(id)
 		if os.IsNotExist(err) {
 			if s.meilisearch != nil {
 				_ = s.meilisearch.Remove(id)
@@ -278,18 +269,55 @@ func (s *Server) syncStorage() {
 		} else if err != nil {
 			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
 			continue
+		} else {
+			ee = append(ee, e)
+
+			// Attempt to collect links that were in the entries before the updates.
+			targets, err := s.core.GetEntryLinks(e.Permalink)
+			if err == nil {
+				previousLinks[e.Permalink] = targets
+			}
 		}
-		entries = append(entries, entry)
 	}
 
+	// Sync meilisearch.
 	if s.meilisearch != nil {
-		err = s.meilisearch.Add(entries...)
+		err = s.meilisearch.Add(ee...)
 		if err != nil {
-			s.n.Error(fmt.Errorf("sync failed: %w", err))
+			s.n.Error(fmt.Errorf("meilisearch sync failed: %w", err))
 		}
 	}
 
 	s.buildNotify(buildClean)
+
+	// After building, send webmentions with new information and old links.
+	// This is a best effort to send webmentions to deleted links. Only works
+	// with deletions that use expiryDate.
+	for _, e := range ee {
+		if e.Draft {
+			continue
+		}
+
+		err = s.core.SendWebmentions(e.Permalink, previousLinks[e.Permalink]...)
+		if err != nil {
+			s.n.Error(fmt.Errorf("send webmentions: %w", err))
+		}
+	}
+}
+
+func idsFromChangedFiles(changedFiles []string) []string {
+	ids := []string{}
+	for _, file := range changedFiles {
+		if !strings.HasPrefix(file, core.ContentDirectory) {
+			continue
+		}
+
+		id := strings.TrimPrefix(file, core.ContentDirectory)
+		id = filepath.Dir(id)
+		ids = append(ids, id)
+	}
+	ids = lo.Uniq(ids)
+	return ids
 }
 
 func (s *Server) buildNotify(clean bool) {

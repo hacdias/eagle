@@ -13,19 +13,19 @@ import (
 )
 
 const (
-	adminBarTemplate       string = "admin-bar.html"
-	authTemplate           string = "authorization.html"
-	loginTemplate          string = "login.html"
-	errorTemplate          string = "error.html"
-	searchTemplate         string = "search.html"
-	panelTemplate          string = "panel.html"
-	panelGuestbookTemplate string = "panel-guestbook.html"
-	panelTokensTemplate    string = "panel-tokens.html"
+	adminBarTemplate      string = "admin-bar.html"
+	authTemplate          string = "authorization.html"
+	loginTemplate         string = "login.html"
+	errorTemplate         string = "error.html"
+	searchTemplate        string = "search.html"
+	panelTemplate         string = "panel.html"
+	panelMentionsTemplate string = "panel-mentions.html"
+	panelTokensTemplate   string = "panel-tokens.html"
 )
 
 var templates = []string{
 	adminBarTemplate, authTemplate, loginTemplate, errorTemplate, searchTemplate,
-	panelTemplate, panelGuestbookTemplate, panelTokensTemplate,
+	panelTemplate, panelMentionsTemplate, panelTokensTemplate,
 }
 
 // captureResponseWriter captures the content of an HTML response. If the response

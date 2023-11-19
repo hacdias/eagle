@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	urlpkg "net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
+	"willnorris.com/go/webmention"
 )
 
 const moreSeparator = "<!--more-->"
@@ -147,6 +151,25 @@ func (co *Core) GetEntries(includeList bool) (Entries, error) {
 	return ee, err
 }
 
+func (co *Core) GetEntryFromPermalink(permalink string) (*Entry, error) {
+	html, err := co.entryHTML(permalink)
+	if err != nil {
+		return nil, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
+	if err != nil {
+		return nil, err
+	}
+
+	id, exists := doc.Find("meta[name=entry-id]").Attr("content")
+	if !exists {
+		return nil, fmt.Errorf("cannot find entry for %s", permalink)
+	}
+
+	return co.GetEntry(id)
+}
+
 func (co *Core) SaveEntry(e *Entry) error {
 	filename := co.entryFilenameFromID(e.ID)
 	err := co.sourceFS.MkdirAll(filepath.Dir(filename), 0777)
@@ -230,4 +253,40 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) string {
 	}
 
 	return url.String()
+}
+
+// GetEntryLinks gets the links found in the HTML rendered version of the entry.
+// This uses the latest available build to check for the links. Entry must have
+// .h-entry and .e-content classes.
+func (co *Core) GetEntryLinks(permalink string) ([]string, error) {
+	html, err := co.entryHTML(permalink)
+	if err != nil {
+		return nil, err
+	}
+
+	targets, err := webmention.DiscoverLinksFromReader(bytes.NewBuffer(html), permalink, ".h-entry .e-content a, .h-entry .h-cite a")
+	if err != nil {
+		return nil, err
+	}
+
+	targets = (lo.Filter(targets, func(target string, _ int) bool {
+		url, err := urlpkg.Parse(target)
+		if err != nil {
+			return false
+		}
+
+		return url.Scheme == "http" || url.Scheme == "https"
+	}))
+
+	return lo.Uniq(targets), nil
+}
+
+func (co *Core) entryHTML(permalink string) ([]byte, error) {
+	url, err := urlpkg.Parse(permalink)
+	if err != nil {
+		return nil, err
+	}
+
+	filename := filepath.Join(co.buildName, url.Path, "index.html")
+	return co.buildFS.ReadFile(filename)
 }
