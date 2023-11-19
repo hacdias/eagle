@@ -1,15 +1,19 @@
 package core
 
 import (
+	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/spf13/afero"
+	"willnorris.com/go/webmention"
 )
 
 type Core struct {
-	cfg     *Config
-	baseURL *url.URL
+	cfg      *Config
+	baseURL  *url.URL
+	wmClient *webmention.Client
 
 	// Source
 	sourceFS   *afero.Afero
@@ -20,13 +24,14 @@ type Core struct {
 	buildFS   *afero.Afero // afero around [Config.PublicDirectory]
 	buildName string       // the name of the current build (sub-directory in buildFS)
 	BuildHook func(string) // called when the build directory has changed
-
-	// TODO: add method to fetch HTML of built entry
 }
 
 func NewCore(cfg *Config) (*Core, error) {
 	co := &Core{
 		cfg: cfg,
+		wmClient: webmention.New(&http.Client{
+			Timeout: time.Minute,
+		}),
 
 		// Source
 		sourceFS: &afero.Afero{

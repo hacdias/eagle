@@ -264,7 +264,7 @@ func (s *Server) syncStorage() {
 	}
 
 	ids = lo.Uniq(ids)
-	entries := core.Entries{}
+	ee := core.Entries{}
 	buildClean := false
 
 	for _, id := range ids {
@@ -279,13 +279,20 @@ func (s *Server) syncStorage() {
 			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
 			continue
 		}
-		entries = append(entries, entry)
+		ee = append(ee, entry)
 	}
 
 	if s.meilisearch != nil {
-		err = s.meilisearch.Add(entries...)
+		err = s.meilisearch.Add(ee...)
 		if err != nil {
-			s.n.Error(fmt.Errorf("sync failed: %w", err))
+			s.n.Error(fmt.Errorf("meilisearch sync failed: %w", err))
+		}
+	}
+
+	for _, e := range ee {
+		err = s.core.SendWebmentions(e)
+		if err != nil {
+			s.n.Error(fmt.Errorf("send webmentions: %w", err))
 		}
 	}
 

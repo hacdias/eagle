@@ -30,67 +30,67 @@ func (b *Database) Close() error {
 	return b.db.Close()
 }
 
-func (b *Database) AddGuestbookEntry(ctx context.Context, entry *core.GuestbookEntry) error {
-	entry.ID = uuid.New().String()
+func (b *Database) AddMention(ctx context.Context, mention *core.Mention) error {
+	mention.ID = uuid.New().String()
 	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(entry)
+	err := gob.NewEncoder(&buf).Encode(mention)
 	if err != nil {
 		return err
 	}
 
 	return b.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("guestbook"))
+		b, err := tx.CreateBucketIfNotExists([]byte("mentions"))
 		if err != nil {
 			return err
 		}
 
-		return b.Put([]byte(entry.ID), buf.Bytes())
+		return b.Put([]byte(mention.ID), buf.Bytes())
 	})
 }
 
-func (b *Database) GetGuestbookEntries(ctx context.Context) (core.GuestbookEntries, error) {
-	var ee core.GuestbookEntries
+func (b *Database) GetMentions(ctx context.Context) ([]*core.Mention, error) {
+	var mentions []*core.Mention
 
-	return ee, b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("guestbook"))
+	return mentions, b.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("mentions"))
 		if b == nil {
 			return nil
 		}
 
 		return b.ForEach(func(k, v []byte) error {
-			var e core.GuestbookEntry
-			err := gob.NewDecoder(bytes.NewReader(v)).Decode(&e)
+			var mention *core.Mention
+			err := gob.NewDecoder(bytes.NewReader(v)).Decode(&mention)
 			if err != nil {
 				return err
 			}
 
-			ee = append(ee, e)
+			mentions = append(mentions, mention)
 			return nil
 		})
 	})
 }
 
-func (b *Database) GetGuestbookEntry(ctx context.Context, id string) (core.GuestbookEntry, error) {
-	var e core.GuestbookEntry
+func (b *Database) GetMention(ctx context.Context, id string) (*core.Mention, error) {
+	var mention *core.Mention
 
-	return e, b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("guestbook"))
+	return mention, b.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("mentions"))
 		if b == nil {
-			return errors.New("entry doe not exist")
+			return errors.New("mention does not exist")
 		}
 
 		v := b.Get([]byte(id))
 		if v == nil {
-			return errors.New("entry doe not exist")
+			return errors.New("mention does not exist")
 		}
 
-		return gob.NewDecoder(bytes.NewReader(v)).Decode(&e)
+		return gob.NewDecoder(bytes.NewReader(v)).Decode(&mention)
 	})
 }
 
-func (b *Database) DeleteGuestbookEntry(ctx context.Context, id string) error {
+func (b *Database) DeleteMention(ctx context.Context, id string) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("guestbook"))
+		b := tx.Bucket([]byte("mentions"))
 		if b == nil {
 			return nil
 		}

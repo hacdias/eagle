@@ -7,18 +7,16 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
 )
 
 const (
-	panelPath          = "/panel/"
-	panelGuestbookPath = panelPath + "guestbook/"
-	panelTokensPath    = panelPath + "tokens/"
+	panelPath         = "/panel/"
+	panelMentionsPtah = panelPath + "mentions/"
+	panelTokensPath   = panelPath + "tokens/"
 )
 
 type panelPage struct {
@@ -126,17 +124,17 @@ func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelP
 	s.renderTemplate(w, r, http.StatusOK, "Panel", panelTemplate, data)
 }
 
-func (s *Server) panelGuestbookGet(w http.ResponseWriter, r *http.Request) {
-	guestbookEntries, err := s.badger.GetGuestbookEntries(r.Context())
+func (s *Server) panelMentionsGet(w http.ResponseWriter, r *http.Request) {
+	mentions, err := s.badger.GetMentions(r.Context())
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting guestbook entries: %w", err))
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting mentions: %w", err))
 		return
 	}
 
-	s.renderTemplate(w, r, http.StatusOK, "Panel Guestbook", panelGuestbookTemplate, guestbookEntries)
+	s.renderTemplate(w, r, http.StatusOK, "Panel Mentions", panelMentionsTemplate, mentions)
 }
 
-func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
+func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
@@ -148,27 +146,14 @@ func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "approve":
-		e, err := s.badger.GetGuestbookEntry(r.Context(), id)
+		e, err := s.badger.GetMention(r.Context(), id)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
 		}
 
-		entries := core.GuestbookEntries{}
-		if err := s.core.ReadJSON(guestbookFilename, &entries); err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error reading guestbook file: %w", err))
-			return
-		}
-		entries = append(entries, e)
-		sort.SliceStable(entries, func(i, j int) bool {
-			return entries[i].Date.After(entries[j].Date)
-		})
-		message := "guestbook: new entry"
-		if e.Name != "" {
-			message += " from " + e.Name
-		}
-		if err := s.core.WriteJSON(guestbookFilename, entries, message); err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error writing guestbook file: %w", err))
+		if err := s.core.AddOrUpdateWebmention(e.EntryID, e, ""); err != nil {
+			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error adding or updating webmention: %w", err))
 			return
 		}
 
@@ -178,7 +163,7 @@ func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
 
 		fallthrough
 	case "delete":
-		err := s.badger.DeleteGuestbookEntry(r.Context(), id)
+		err := s.badger.DeleteMention(r.Context(), id)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return

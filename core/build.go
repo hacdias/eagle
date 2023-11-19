@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash/fnv"
+	urlpkg "net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -81,4 +82,24 @@ func (co *Core) Build(cleanBuildDirectory bool) error {
 	}
 
 	return nil
+}
+
+// IsLinkValid checks if the given link exists in the built version of the website.
+func (co *Core) IsLinkValid(permalink string) (bool, error) {
+	url, err := urlpkg.Parse(permalink)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = co.buildFS.Stat(filepath.Join(co.buildName, url.Path))
+	if err == nil {
+		return true, nil
+	}
+
+	_, err = co.buildFS.Stat(filepath.Join(co.buildName, url.Path, "index.html"))
+	if err == nil {
+		return true, err
+	}
+
+	return false, nil
 }
