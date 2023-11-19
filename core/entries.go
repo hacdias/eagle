@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	urlpkg "net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -182,10 +181,7 @@ func (co *Core) parseEntry(id, raw string) (*Entry, error) {
 
 	id = cleanID(id)
 
-	permalink, err := co.entryPermalinkFromID(id, fr)
-	if err != nil {
-		return nil, err
-	}
+	permalink := co.entryPermalinkFromID(id, fr)
 
 	content := strings.TrimSpace(splits[1])
 	if content != "" {
@@ -218,12 +214,8 @@ func (f *Core) entryFilenameFromID(id string) string {
 // only in the parser code.
 const SpecialSection = "posts"
 
-func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) (string, error) {
-	// TODO: just copy: https://github.com/golang/go/blob/go1.20/src/net/http/clone.go#L22
-	url, err := urlpkg.Parse(co.cfg.BaseURL)
-	if err != nil {
-		return "", err
-	}
+func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) string {
+	url := co.BaseURL()
 
 	// TODO: very specific code.
 	parts := strings.Split(id, "/")
@@ -237,5 +229,5 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) (string, error)
 		url.Path = id
 	}
 
-	return url.String(), nil
+	return url.String()
 }

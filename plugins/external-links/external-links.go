@@ -107,9 +107,15 @@ func (el *ExternalLinks) UpdateExternalLinks() error {
 		return err
 	}
 
+	baseURL := el.core.BaseURL()
+
 	linksMap := map[string][]link{}
 	for _, e := range ee {
-		urls, err := core.GetMarkdownURLs(e)
+		if e.NoIndex {
+			continue
+		}
+
+		urls, err := el.core.GetEntryLinks(e.Permalink)
 		if err != nil {
 			return err
 		}
@@ -126,6 +132,10 @@ func (el *ExternalLinks) UpdateExternalLinks() error {
 
 			hostname := u.Hostname()
 			if hostname == "" {
+				continue
+			}
+
+			if hostname == baseURL.Hostname() {
 				continue
 			}
 
