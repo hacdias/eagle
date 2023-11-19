@@ -1,13 +1,15 @@
 package core
 
 import (
+	"net/url"
 	"sync"
 
 	"github.com/spf13/afero"
 )
 
 type Core struct {
-	cfg *Config
+	cfg     *Config
+	baseURL *url.URL
 
 	// Source
 	sourceFS   *afero.Afero
@@ -37,6 +39,13 @@ func NewCore(cfg *Config) (*Core, error) {
 		},
 	}
 
+	baseURL, err := url.Parse(cfg.BaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	co.baseURL = baseURL
+
 	if cfg.Development {
 		co.sourceSync = &noopGit{}
 	} else {
@@ -44,4 +53,9 @@ func NewCore(cfg *Config) (*Core, error) {
 	}
 
 	return co, nil
+}
+
+// BaseURL returns a clone of the base URL.
+func (co *Core) BaseURL() *url.URL {
+	return cloneURL(co.baseURL)
 }
