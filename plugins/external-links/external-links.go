@@ -20,7 +20,7 @@ func init() {
 }
 
 type ExternalLinks struct {
-	fs             *core.FS
+	core           *core.Core
 	filename       string
 	ignoredDomains []string
 
@@ -28,14 +28,14 @@ type ExternalLinks struct {
 	linksMap map[string]linkCollection
 }
 
-func NewExternalLinks(fs *core.FS, config map[string]interface{}) (server.Plugin, error) {
+func NewExternalLinks(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
 	filename := typed.New(config).String("filename")
 	if filename == "" {
 		return nil, errors.New("external-links filename missing")
 	}
 
 	el := &ExternalLinks{
-		fs:             fs,
+		core:           co,
 		filename:       filename,
 		ignoredDomains: typed.New(config).Strings("ignored"),
 	}
@@ -94,7 +94,7 @@ func (lc linkCollections) byDomain() map[string]linkCollection {
 
 func (e *ExternalLinks) loadDiskLinks() (linkCollections, error) {
 	var links []linkCollection
-	err := e.fs.ReadJSON(e.filename, &links)
+	err := e.core.ReadJSON(e.filename, &links)
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (e *ExternalLinks) loadDiskLinks() (linkCollections, error) {
 }
 
 func (el *ExternalLinks) UpdateExternalLinks() error {
-	ee, err := el.fs.GetEntries(false)
+	ee, err := el.core.GetEntries(false)
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func (el *ExternalLinks) UpdateExternalLinks() error {
 		return nil
 	}
 
-	err = el.fs.WriteJSON(el.filename, newLinks, "meta: update external links file")
+	err = el.core.WriteJSON(el.filename, newLinks, "meta: update external links file")
 	if err != nil {
 		return err
 	}

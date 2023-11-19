@@ -20,13 +20,13 @@ func init() {
 }
 
 type Miniflux struct {
-	fs           *core.FS
+	core         *core.Core
 	client       *miniflux.Client
 	jsonFilename string
 	opmlFilename string
 }
 
-func NewMiniflux(fs *core.FS, config map[string]interface{}) (server.Plugin, error) {
+func NewMiniflux(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
 	endpoint := typed.New(config).String("endpoint")
 	if endpoint == "" {
 		return nil, errors.New("miniflux endpoint missing")
@@ -43,7 +43,7 @@ func NewMiniflux(fs *core.FS, config map[string]interface{}) (server.Plugin, err
 	}
 
 	return &Miniflux{
-		fs:           fs,
+		core:         co,
 		client:       miniflux.New(endpoint, key),
 		jsonFilename: filename,
 		opmlFilename: typed.New(config).String("opml"),
@@ -69,7 +69,7 @@ func (u *Miniflux) Execute() error {
 	}
 
 	var oldFeeds map[string][]feed
-	err = u.fs.ReadJSON(u.jsonFilename, &oldFeeds)
+	err = u.core.ReadJSON(u.jsonFilename, &oldFeeds)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -96,7 +96,7 @@ func (u *Miniflux) Execute() error {
 		files[u.opmlFilename] = opmlData
 	}
 
-	return u.fs.WriteFiles(files, "blogroll: synchronize with miniflux")
+	return u.core.WriteFiles(files, "blogroll: synchronize with miniflux")
 }
 
 type feed struct {

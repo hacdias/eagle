@@ -7,7 +7,7 @@ import (
 	"go.hacdias.com/eagle/core"
 )
 
-type PluginInitializer func(fs *core.FS, config map[string]interface{}) (Plugin, error)
+type PluginInitializer func(co *core.Core, config map[string]interface{}) (Plugin, error)
 
 type PluginWebUtilities struct {
 	s *Server

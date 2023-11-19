@@ -15,17 +15,6 @@ import (
 	"go.hacdias.com/eagle/services/telegram"
 )
 
-func initFS(c *core.Config) *core.FS {
-	var srcSync core.Sync
-	if c.Development {
-		srcSync = &core.NopSync{}
-	} else {
-		srcSync = core.NewGitSync(c.SourceDirectory)
-	}
-
-	return core.NewFS(c.SourceDirectory, c.BaseURL, srcSync)
-}
-
 func initMedia(c *core.Config) *media.Media {
 	var (
 		storage     media.Storage
@@ -77,7 +66,7 @@ func (s *Server) initBadger() error {
 func (s *Server) initMeiliSearch() error {
 	var err error
 	if s.c.MeiliSearch != nil {
-		s.meilisearch, err = meilisearch.NewMeiliSearch(s.c.MeiliSearch.Endpoint, s.c.MeiliSearch.Key, s.fs)
+		s.meilisearch, err = meilisearch.NewMeiliSearch(s.c.MeiliSearch.Endpoint, s.c.MeiliSearch.Key, s.core)
 	}
 	return err
 }
@@ -87,7 +76,7 @@ func (s *Server) initPlugins() error {
 	for pluginName, pluginInitializer := range pluginRegistry {
 		cfg, ok := s.c.Plugins[pluginName]
 		if ok {
-			plugin, err := pluginInitializer(s.fs, cfg)
+			plugin, err := pluginInitializer(s.core, cfg)
 			if err != nil {
 				return err
 			}
@@ -100,10 +89,10 @@ func (s *Server) initPlugins() error {
 func (s *Server) initActions() error {
 	actions := map[string]func() error{
 		"Build Website": func() error {
-			return s.hugo.Build(false)
+			return s.core.Build(false)
 		},
 		"Build Website (Clean)": func() error {
-			return s.hugo.Build(true)
+			return s.core.Build(true)
 		},
 		"Sync Storage": func() error {
 			go s.syncStorage()
@@ -132,7 +121,7 @@ func (s *Server) initActions() error {
 			if err != nil {
 				return err
 			}
-			return s.hugo.Build(false)
+			return s.core.Build(false)
 		}
 	}
 

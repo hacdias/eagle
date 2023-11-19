@@ -155,7 +155,7 @@ func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		entries := core.GuestbookEntries{}
-		if err := s.fs.ReadJSON(guestbookFilename, &entries); err != nil {
+		if err := s.core.ReadJSON(guestbookFilename, &entries); err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error reading guestbook file: %w", err))
 			return
 		}
@@ -167,13 +167,13 @@ func (s *Server) panelGuestbookPost(w http.ResponseWriter, r *http.Request) {
 		if e.Name != "" {
 			message += " from " + e.Name
 		}
-		if err := s.fs.WriteJSON(guestbookFilename, entries, message); err != nil {
+		if err := s.core.WriteJSON(guestbookFilename, entries, message); err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error writing guestbook file: %w", err))
 			return
 		}
 
 		go func() {
-			_ = s.hugo.Build(false)
+			_ = s.core.Build(false)
 		}()
 
 		fallthrough
