@@ -18,6 +18,12 @@ func (co *Core) AddOrUpdateWebmention(id string, mention *Mention, sourceOrURL s
 		return err
 	}
 
+	source, err := urlpkg.Parse(mention.URL)
+	if err == nil && source.Hostname() == co.baseURL.Hostname() {
+		// Self-webmentions are ignored.
+		return nil
+	}
+
 	isInteraction := mention.IsInteraction()
 
 	return co.UpdateSidecar(e, func(sidecar *Sidecar) (*Sidecar, error) {
@@ -83,6 +89,12 @@ func (co *Core) SendWebmentions(permalink string, otherTargets ...string) error 
 
 	err = nil
 	for _, target := range targets {
+		targetUrl, targetErr := urlpkg.Parse(target)
+		if targetErr == nil && targetUrl.Hostname() == co.baseURL.Hostname() {
+			// Self-webmentions are ignored.
+			continue
+		}
+
 		wmErr := co.sendWebmention(permalink, target)
 		if wmErr != nil && !errors.Is(wmErr, webmention.ErrNoEndpointFound) {
 			wmErr = fmt.Errorf("send webmention error %s: %w", target, wmErr)
