@@ -19,16 +19,17 @@ import (
 const moreSeparator = "<!--more-->"
 
 type FrontMatter struct {
-	Title       string         `yaml:"title,omitempty"`
-	Description string         `yaml:"description,omitempty"`
-	Draft       bool           `yaml:"draft,omitempty"`
-	Date        time.Time      `yaml:"date,omitempty"`
-	Lastmod     time.Time      `yaml:"lastmod,omitempty"`
-	ExpiryDate  time.Time      `yaml:"expiryDate,omitempty"`
-	NoIndex     bool           `yaml:"noIndex,omitempty"`
-	Categories  []string       `yaml:"categories,omitempty"`
-	Tags        []string       `yaml:"tags,omitempty"`
-	Other       map[string]any `yaml:",inline"`
+	Title         string         `yaml:"title,omitempty"`
+	Description   string         `yaml:"description,omitempty"`
+	Draft         bool           `yaml:"draft,omitempty"`
+	Date          time.Time      `yaml:"date,omitempty"`
+	Lastmod       time.Time      `yaml:"lastmod,omitempty"`
+	ExpiryDate    time.Time      `yaml:"expiryDate,omitempty"`
+	NoIndex       bool           `yaml:"noIndex,omitempty"`
+	Categories    []string       `yaml:"categories,omitempty"`
+	Tags          []string       `yaml:"tags,omitempty"`
+	NoWebmentions bool           `yaml:"noWebmentions,omitempty"`
+	Other         map[string]any `yaml:",inline"`
 }
 
 type Entry struct {

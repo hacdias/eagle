@@ -294,7 +294,7 @@ func (s *Server) syncStorage() {
 	// This is a best effort to send webmentions to deleted links. Only works
 	// with deletions that use expiryDate.
 	for _, e := range ee {
-		if e.Draft {
+		if e.Draft || e.NoWebmentions {
 			continue
 		}
 
