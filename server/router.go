@@ -87,6 +87,11 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(userInfoPath, s.userInfoGet)
 	})
 
+	// Do not server Hugo's 404.html as 200 OK.
+	r.Get("/404.html", func(w http.ResponseWriter, r *http.Request) {
+		s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+	})
+
 	// Plugin Pages
 	utilities := &PluginWebUtilities{s: s}
 	for _, plugin := range s.plugins {
