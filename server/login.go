@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/url"
 	"time"
@@ -16,23 +15,33 @@ const (
 	sessionSubject     string     = "Eagle Session 2"
 	loggedInContextKey contextKey = "logged-in"
 
-	loginPath  = "/login/"
-	logoutPath = "/logout/"
+	loginPath  = "/panel/login"
+	logoutPath = "/panel/logout"
 )
+
+type loginPage struct {
+	Title string
+	Error string
+}
 
 func (s *Server) loginGet(w http.ResponseWriter, r *http.Request) {
 	if s.isLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, panelPath, http.StatusSeeOther)
 		return
 	}
 
-	s.renderTemplate(w, r, http.StatusOK, "Login", loginTemplate, nil)
+	s.panelTemplate(w, r, http.StatusOK, panelLoginTemplate, &loginPage{
+		Title: "Login",
+	})
 }
 
 func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelTemplate(w, r, http.StatusBadRequest, panelLoginTemplate, &loginPage{
+			Title: "Login",
+			Error: err.Error(),
+		})
 		return
 	}
 
@@ -41,7 +50,10 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 	correctPassword := bcrypt.CompareHashAndPassword([]byte(s.c.Login.Password), []byte(password)) == nil
 
 	if username != s.c.Login.Username || !correctPassword {
-		s.serveErrorHTML(w, r, http.StatusUnauthorized, errors.New("wrong credentials"))
+		s.panelTemplate(w, r, http.StatusUnauthorized, panelLoginTemplate, &loginPage{
+			Title: "Login",
+			Error: "Invalid credentials.",
+		})
 		return
 	}
 
@@ -53,7 +65,10 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		jwt.ExpirationKey: expiration,
 	})
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.panelTemplate(w, r, http.StatusInternalServerError, panelLoginTemplate, &loginPage{
+			Title: "Login",
+			Error: err.Error(),
+		})
 		return
 	}
 

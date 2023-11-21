@@ -43,6 +43,7 @@ type ServerConfig struct {
 	WebhookSecret   string
 
 	Login         Login
+	Comments      Comments
 	Webmentions   Webmentions
 	Plugins       map[string]map[string]interface{}
 	MeiliSearch   *EndpointWithKey
@@ -152,6 +153,10 @@ func (u *Login) validate() error {
 
 type Webmentions struct {
 	Secret string
+}
+
+type Comments struct {
+	Redirect string
 }
 
 type Telegram struct {

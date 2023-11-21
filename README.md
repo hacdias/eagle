@@ -43,31 +43,27 @@ paginate = 15
 
 ### Templates
 
-Hugo website must produce a `/_eagle/index.html` page. This page will be used as the template
-for the interface. All instances of `_EAGLE_TITLE` in the template will be replaced by the actual
-page title. The page should contain a `<eagle-page>` element, which Eagle will replace by the
-correct content:
+The following pages must be produced by your Hugo website:
+
+- `404.html` for 404 and other errors.
+- `/search/index.html` **if** search is enabled through Eagle.
+
+These pages must contain a `<eagle-page>` element, which Eagle will replace by the correct content.
+For example:
 
 ```html
 <eagle-page>
-  <p>⚠️ This page is only functional when in use with <a href='https://github.com/hacdias/eagle' rel='noopener noreferrer'>Eagle</a>.</p>
+  <h1>404 Not Found</h1>
+  <p>Page could not be found.</p>
 </eagle-page>
 ```
 
 Then, the Hugo website must have a `eagle` directory containing the following templates:
 
-- `admin-bar.html`: admin bar injected at the top of every page when user is logged in.
-- `authorization.html`: authorization page for IndieAuth.
-- `error.html`: error page.
-- `login.html`: login page.
-- `panel.html`: panel page.
-- `panel-mentions.html`: comments moderation page.
-- `panel-tokens.html`: IndieAuth tokens management page.
-- `search.html`: search page.
+- `error.html` for error page, which will replace content in `404.html`.
+- `search.html` for search page, which will replace content in `/search/index.html`.
 
-At the moment, it is best to check the source code to see what variables are available
-in each template. I may add an example at some point, or a link to when I re-open source
-my website's code.
+At the moment, it is best to check the source code to see what variables are available in each template.
 
 ## License
 

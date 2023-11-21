@@ -1,0 +1,48 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "panel" }}
+
+<h2>Quick Actions</h2>
+
+<div style='display: grid; grid-gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));'>
+{{ range .Actions }}
+  <form method=POST>
+    <input type='hidden' name='action' value='{{ . }}' />
+    <button style='width: 100%; height: 100%; margin: 0'>{{ . }}</button>
+  </form>
+{{ end }}
+</div>
+
+{{ if .ActionSuccess }}
+  <p>
+    <strong>✅ Success!</strong>
+  </p>
+{{ end }}
+
+<h2>Upload File</h2>
+
+<form method='POST' enctype='multipart/form-data'>
+  <input required type='file' name='file' />
+  <div class='options-list'>
+    <label><input type='checkbox' name='preserve-filename' checked /> Preserve Filename</label>
+  </div>
+  <button>Upload</button>
+</form>
+
+{{ with .MediaLocation }}
+  <pre>{{ . }}</pre>
+{{ end }}
+
+<h2>Send Webmention</h2>
+
+<form method='POST'>
+  <input type='url' name='webmention' placeholder='Post permalink...' />
+  <button>Send</button>
+</form>
+
+{{ if .WebmentionsSuccess }}
+  <p>
+    <strong>✅ Success!</strong>
+  </p>
+{{ end }}
+
+{{ template "_footer.html" . }}

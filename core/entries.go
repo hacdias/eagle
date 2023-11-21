@@ -84,12 +84,6 @@ type Entries []*Entry
 var errIgnoredEntry error = errors.New("ignored entry")
 
 func (co *Core) GetEntry(id string) (*Entry, error) {
-	// TODO: ideally this wouldn't be needed in the future if Eagle uses its
-	// own templates. Or if there's a better way of printing this template.
-	if id == "/_eagle/" {
-		return nil, errIgnoredEntry
-	}
-
 	filename := co.entryFilenameFromID(id)
 	raw, err := co.sourceFS.ReadFile(filename)
 	if err != nil {

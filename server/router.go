@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,22 +16,23 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(withCleanPath)
 	r.Use(middleware.GetHead)
 	r.Use(s.withSecurityHeaders)
-	r.Use(jwtauth.Verifier(s.jwtAuth))
-	r.Use(s.withLoggedIn)
-	r.Use(s.withAdminBar)
-	r.Post(commentsPath, s.commentsPost)
 
-	// GitHub WebHook
+	if s.c.Comments.Redirect != "" {
+		r.Post(commentsPath, s.commentsPost)
+	}
+
 	if s.c.WebhookSecret != "" {
 		r.Post(webhookPath, s.webhookPost)
 	}
 
-	// Webmentions Handler
 	if s.c.Webmentions.Secret != "" {
 		r.Post(webmentionPath, s.webmentionPost)
 	}
 
-	// WebFinger if handle is defined
+	if s.meilisearch != nil {
+		r.Get(searchPath, s.searchGet)
+	}
+
 	if s.c.Site.Params.Author.Handle != "" {
 		r.Get(wellKnownWebFingerPath, s.makeWellKnownWebFingerGet())
 	}
@@ -40,41 +40,46 @@ func (s *Server) makeRouter() http.Handler {
 	// TODO: make this customizable. Plugin?
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
 
-	if s.meilisearch != nil {
-		r.Get(searchPath, s.searchGet)
-	}
-
-	// Login
-	r.Get(loginPath, s.loginGet)
-	r.Post(loginPath, s.loginPost)
-	r.Get(logoutPath, s.logoutGet)
-
 	// IndieAuth Server (Part I)
 	r.Get(wellKnownOAuthServer, s.indieauthGet)
 	r.Post(authPath, s.authPost)
 	r.Post(tokenPath, s.tokenPost)
 	r.Post(tokenVerifyPath, s.tokenVerifyPost)
 
-	// Admin only pages.
+	// Panel Assets
+	r.Get("/panel/assets*", http.StripPrefix("/panel", http.FileServer(http.FS(panelAssetsFS))).ServeHTTP)
+
+	// Panel Pages
 	r.Group(func(r chi.Router) {
-		r.Use(s.mustLoggedIn)
+		r.Use(jwtauth.Verifier(s.jwtAuth))
+		r.Use(s.withLoggedIn)
 
-		// IndieAuth Server (Part II)
-		r.Get(authPath+"/", s.authGet)
-		r.Post(authAcceptPath, s.authAcceptPost)
+		// Login
+		r.Get(loginPath, s.loginGet)
+		r.Post(loginPath, s.loginPost)
+		r.Get(logoutPath, s.logoutGet)
 
-		// Panel
-		r.Get(panelPath, s.panelGet)
-		r.Post(panelPath, s.panelPost)
+		// Admin only pages.
+		r.Group(func(r chi.Router) {
+			r.Use(s.mustLoggedIn)
 
-		r.Get(panelMentionsPtah, s.panelMentionsGet)
-		r.Post(panelMentionsPtah, s.panelMentionsPost)
+			// IndieAuth Server (Part II)
+			r.Get(authPath, s.authGet)
+			r.Post(authAcceptPath, s.authAcceptPost)
 
-		r.Get(panelTokensPath, s.panelTokensGet)
-		r.Post(panelTokensPath, s.panelTokensPost)
+			// Panel
+			r.Get(panelPath, s.panelGet)
+			r.Post(panelPath, s.panelPost)
+			r.Get(panelMentionsPtah, s.panelMentionsGet)
+			r.Post(panelMentionsPtah, s.panelMentionsPost)
+			r.Get(panelTokensPath, s.panelTokensGet)
+			r.Post(panelTokensPath, s.panelTokensPost)
+		})
 	})
 
+	// IndieAuth-protected Pages
 	r.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(s.jwtAuth))
 		r.Use(s.mustIndieAuth)
 
 		// IndieAuth Server (Part III)
@@ -82,22 +87,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Get(userInfoPath, s.userInfoGet)
 	})
 
-	// Ensure this routes are redirected to the slash to avoid 404.
-	for _, route := range []string{
-		searchPath, authPath, loginPath, logoutPath,
-		panelPath, panelMentionsPtah, panelTokensPath,
-	} {
-		r.Get(strings.TrimSuffix(route, "/"), func(w http.ResponseWriter, r *http.Request) {
-			r.URL.Path += "/"
-			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
-		})
-	}
-
-	// Protect special templating page.
-	r.Get("/_eagle", s.serveNotFound)
-	r.Get("/_eagle/", s.serveNotFound)
-
-	// Plugins that mount routes.
+	// Plugin Pages
 	utilities := &PluginWebUtilities{s: s}
 	for _, plugin := range s.plugins {
 		route, handler := plugin.GetWebHandler(utilities)
@@ -106,6 +96,53 @@ func (s *Server) makeRouter() http.Handler {
 		}
 	}
 
-	r.Get("/*", s.generalHandler)
+	// Everything Bagel 🥯
+	r.Get("/*", s.everythingBagelHandler)
 	return r
+}
+
+func (s *Server) everythingBagelHandler(w http.ResponseWriter, r *http.Request) {
+	if url, ok := s.redirects[r.URL.Path]; ok {
+		http.Redirect(w, r, url, http.StatusMovedPermanently)
+		return
+	}
+
+	if _, ok := s.gone[r.URL.Path]; ok {
+		s.serveErrorHTML(w, r, http.StatusGone, nil)
+		return
+	}
+
+	nfw := &notFoundResponseWriter{ResponseWriter: w}
+	s.staticFs.ServeHTTP(nfw, r)
+
+	if nfw.status == http.StatusNotFound {
+		e, err := s.core.GetEntry(r.URL.Path)
+		if err == nil && e.Deleted() {
+			s.serveErrorHTML(w, r, http.StatusGone, nil)
+		} else {
+			s.serveErrorHTML(w, r, http.StatusNotFound, nil)
+		}
+	}
+}
+
+// notFoundResponseWriter wraps a Response Writer to capture 404 requests.
+// In case it is a 404 request, then we do not write the body.
+type notFoundResponseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *notFoundResponseWriter) WriteHeader(status int) {
+	w.status = status
+	if status != http.StatusNotFound {
+		w.ResponseWriter.WriteHeader(status)
+	}
+}
+
+func (w *notFoundResponseWriter) Write(p []byte) (int, error) {
+	if w.status != http.StatusNotFound {
+		return w.ResponseWriter.Write(p)
+	}
+	// Lie that we successfully written it
+	return len(p), nil
 }

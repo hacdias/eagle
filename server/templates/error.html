@@ -1,0 +1,10 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "" }}
+
+<h2>{{ .Title }}</h2>
+
+{{ with .Message }}
+  <pre style='color: darkred'>{{ . }}</pre>
+{{ end }}
+
+{{ template "_footer.html" . }}

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"time"
@@ -20,27 +19,15 @@ const (
 	commentsPath   = "/comments"
 )
 
-var commentTemplate = template.Must(template.New("").Parse(`<!DOCTYPE html>
-<html>
-	<head>
-		<title>Comment Registered</title>
-		<meta http-equiv="refresh" content="5; url={{ . }}">
-	</head>
-	<body>
-		<p>
-			Your comment has been registered and is pending moderation. You will be <a href="{{ . }}">redirected soon</a>.
-	</body>
-</html>`))
-
 func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("parse comment post request: %w", err))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("parse form failed: %w", err))
 		return
 	}
 
 	// Bot control honeypot field. If it's non-empty, just fake it was successful.
 	if r.Form.Get("url") != "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("gotcha, bot"))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("fell into honeypot trap"))
 		return
 	}
 
@@ -50,13 +37,13 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	target := r.Form.Get("target")
 
 	if target == "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("target is missing"))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("target entry is missing"))
 		return
 	}
 
 	e, err := s.core.GetEntry(target)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid target entry: %w", err))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("target entry is invalid: %w", err))
 		return
 	}
 
@@ -72,7 +59,7 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := url.Parse(website); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("url is invalid: %w", err))
+		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("website url is invalid: %w", err))
 		return
 	}
 
@@ -88,16 +75,12 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 		EntryID: e.ID,
 	})
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	err = commentTemplate.Execute(w, e.Permalink)
-	if err != nil {
-		s.n.Error(fmt.Errorf("rendering comment redirect for %s: %w", r.URL.Path, err))
-	} else {
-		s.n.Info(fmt.Sprintf("💬 #mention pending approval for %q", e.Permalink))
-	}
+	s.n.Info(fmt.Sprintf("💬 #mention pending approval for %q", e.Permalink))
+	http.Redirect(w, r, s.c.Comments.Redirect, http.StatusSeeOther)
 }
 
 type webmentionPayload struct {

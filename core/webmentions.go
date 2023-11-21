@@ -61,6 +61,10 @@ func (co *Core) AddOrUpdateWebmention(id string, mention *Mention, sourceOrURL s
 }
 
 func (co *Core) DeleteWebmention(id, sourceOrURL string) error {
+	if sourceOrURL == "" {
+		return nil
+	}
+
 	e, err := co.GetEntry(id)
 	if err != nil {
 		return err

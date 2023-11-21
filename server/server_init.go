@@ -47,7 +47,7 @@ func (s *Server) initTemplates() error {
 	if err != nil {
 		return err
 	}
-	for _, template := range templates {
+	for _, template := range []string{errorTemplate} {
 		if htmlTemplates.Lookup(template) == nil {
 			return fmt.Errorf("template %s missing", template)
 		}
