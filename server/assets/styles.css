@@ -29,6 +29,10 @@ nav > a:last-of-type {
   margin-left: auto;
 }
 
+nav > a[aria-current="page"] {
+  font-weight: bold;
+}
+
 pre {
   word-break: break-all;
   white-space: break-spaces;
