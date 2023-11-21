@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="138px" height="138px" viewBox="0 0 138 138" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>favicon</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="favicon">
+            <rect id="Rectangle" fill="#F0E8D0" fill-rule="nonzero" x="0" y="0" width="138" height="138" rx="8"></rect>
+            <g id="feather" stroke-linecap="round" stroke-linejoin="round" transform="translate(19.000000, 19.000000)" stroke="#000000" stroke-width="5.66666667">
+                <path d="M91.2074568,51.8191148 C102.930848,39.9647754 102.930848,20.7450939 91.2074568,8.89075452 C79.4840659,-2.96358484 60.4766937,-2.96358484 48.7533027,8.89075452 L15,43.0210763 L15,86 L57.504159,86 L91.2074568,51.8191148 Z" id="Path"></path>
+                <line x1="70" y1="31" x2="0" y2="101" id="Path"></line>
+                <line x1="78" y1="65.5" x2="35" y2="65.5" id="Path"></line>
+            </g>
+        </g>
+    </g>
+</svg>
