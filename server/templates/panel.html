@@ -32,4 +32,17 @@
   <pre>{{ . }}</pre>
 {{ end }}
 
+<h2>Send Webmention</h2>
+
+<form method='POST'>
+  <input type='url' name='webmention' placeholder='Post permalink...' />
+  <button>Send</button>
+</form>
+
+{{ if .WebmentionsSuccess }}
+  <p>
+    <strong>✅ Success!</strong>
+  </p>
+{{ end }}
+
 {{ template "_footer.html" . }}

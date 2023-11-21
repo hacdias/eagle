@@ -21,11 +21,12 @@ const (
 )
 
 type panelPage struct {
-	Title         string
-	Actions       []string
-	ActionSuccess bool
-	Token         string
-	MediaLocation string
+	Title              string
+	Actions            []string
+	ActionSuccess      bool
+	Token              string
+	MediaLocation      string
+	WebmentionsSuccess bool
 }
 
 func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +42,9 @@ func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 
 	if r.Form.Get("action") != "" {
 		s.panelPostAction(w, r)
+		return
+	} else if wm := r.Form.Get("webmention"); wm != "" {
+		s.panelPostWebmention(w, r)
 		return
 	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
 		s.panelPostUpload(w, r)
@@ -68,6 +72,17 @@ func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 
 	go s.buildNotify(false)
 	s.servePanel(w, r, data)
+}
+
+func (s *Server) panelPostWebmention(w http.ResponseWriter, r *http.Request) {
+	permalink := r.Form.Get("webmention")
+	err := s.core.SendWebmentions(permalink)
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.servePanel(w, r, &panelPage{WebmentionsSuccess: true})
 }
 
 func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
