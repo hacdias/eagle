@@ -44,19 +44,27 @@ func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type authPage struct {
+	Title   string
+	Request *indieauth.AuthenticationRequest
+}
+
 func (s *Server) authGet(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	s.renderTemplate(w, r, http.StatusOK, "Authorization", authTemplate, req)
+	s.panelTemplate(w, r, http.StatusOK, panelAuthTemplate, &authPage{
+		Title:   "Authorization",
+		Request: req,
+	})
 }
 
 func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {
@@ -65,13 +73,13 @@ func (s *Server) authPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	req, err := s.ias.ParseAuthorization(r)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -87,7 +95,7 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		"code_challenge_method": req.CodeChallengeMethod,
 	})
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 

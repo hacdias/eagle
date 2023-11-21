@@ -1,0 +1,43 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" . }}
+
+<h2>Mentions Moderation</h2>
+
+{{ if eq (len .Mentions) 0 }}
+  <p>🐦‍⬛ No mentions to moderate, still waiting for the raven.</p>
+{{ end }}
+{{ range .Mentions }}
+  <pre>
+    {{- with .EntryID }}<strong>Entry:</strong> {{ . }}<br>{{- end -}}
+    {{- with .Author }}<strong>Author Name:</strong> {{ . }}<br>{{- end -}}
+    {{- with .AuthorURL }}<strong>Author URL:</strong> {{ . }}<br>{{- end -}}
+    {{- with .Name }}<strong>Title:</strong> {{ . }}<br>{{- end -}}
+    {{- with .URL }}<strong>URL:</strong> {{ . }}<br>{{- end -}}
+    {{- with .Date }}<strong>Date:</strong> {{ . }}<br>{{- end -}}
+    {{- with .Content }}<strong>Content:</strong> {{ . }}<br>{{- end -}}
+    {{- with .Type }}<strong>Type:</strong> {{ . }}<br>{{- end -}}
+  </pre>
+
+  {{ if .Private }}
+    <form method='POST'>
+      <input type='hidden' name='id' value='{{ .ID }}' />
+      <input type='hidden' name='action' value='delete' />
+      <button style='background: orangered'>Read</button>
+    </form>
+  {{ else }}
+    <div class='inline-buttons'>
+      <form method='POST'>
+        <input type='hidden' name='id' value='{{ .ID }}' />
+        <input type='hidden' name='action' value='approve' />
+        <button style='background: lightgreen'>Approve</button>
+      </form>
+      <form method='POST'>
+        <input type='hidden' name='id' value='{{ .ID }}' />
+        <input type='hidden' name='action' value='delete' />
+        <button style='background: orangered'>Delete</button>
+      </form>
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ template "_footer.html" . }}

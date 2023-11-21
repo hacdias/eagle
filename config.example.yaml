@@ -34,6 +34,13 @@ webmentions:
   # Webmention.io (https://webmention.io) secret for incoming webmentions.
   secret: MySecret
 
+# Enable support for comments. They are moderated through the same view as
+# Webmentions, and stored in the same file. You need to add a form to your posts
+# to submit a comment to the '/comments' endpoint.
+comments:
+  # Must be set to enable. Page to which to redirect users after commenting.
+  redirect: /my-thank-you-page/
+
 # Notifications configuration.
 notifications:
   # Telegram (https://core.telegram.org) credentials for notifications.

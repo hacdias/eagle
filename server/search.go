@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"go.hacdias.com/eagle/core"
@@ -52,5 +53,11 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 		data.Entries = ee
 	}
 
-	s.renderTemplate(w, r, http.StatusOK, "Search", searchTemplate, data)
+	doc, err := s.getDocument(filepath.Join(r.URL.Path, "index.html"))
+	if err != nil {
+		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.renderDocument(w, r, doc, http.StatusOK, searchTemplate, data)
 }

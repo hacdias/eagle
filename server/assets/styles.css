@@ -1,0 +1,108 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 95%;
+  max-width: 45rem;
+  margin: 0 auto;
+  background: #fffcf2;
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
+    helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+nav {
+  display: flex;
+  margin: 1rem 0 3rem;
+}
+
+nav > a {
+  margin-right: 0.5rem;
+}
+
+nav > a:last-of-type {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+pre {
+  word-break: break-all;
+  white-space: break-spaces;
+  background: rgba(0,0,0,0.05);
+  padding: 0.5rem;
+}
+
+input,
+select,
+textarea,
+button {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  display: block;
+  width: 100%;
+  border: 1px solid black;
+  outline: 0;
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  background: white;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: blue;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  cursor: pointer;
+  background: darkgray;
+}
+
+button:hover {
+  background: gray;
+}
+
+fieldset,
+.options-list {
+  margin: 1rem 0;
+}
+
+fieldset {
+  border: 1px solid black;
+  padding: 0.5rem;
+}
+
+legend {
+  background-color: #000;
+  color: #fff;
+  padding: 0.25rem;
+}
+
+ol.options-list,
+ul.options-list {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.options-list label {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.options-list label * {
+  margin: 0 !important;
+  width: auto !important;
+  display: inline !important;
+}

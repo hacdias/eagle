@@ -10,16 +10,18 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
+	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
 )
 
 const (
-	panelPath         = "/panel/"
-	panelMentionsPtah = panelPath + "mentions/"
-	panelTokensPath   = panelPath + "tokens/"
+	panelPath         = "/panel"
+	panelMentionsPtah = panelPath + "/mentions"
+	panelTokensPath   = panelPath + "/tokens"
 )
 
 type panelPage struct {
+	Title         string
 	Actions       []string
 	ActionSuccess bool
 	Token         string
@@ -33,7 +35,7 @@ func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -60,7 +62,7 @@ func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -71,14 +73,14 @@ func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 	defer file.Close()
 
 	raw, err := io.ReadAll(file)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -94,7 +96,7 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if mime == nil {
-			s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+			s.panelError(w, r, http.StatusBadRequest, err)
 			return
 		}
 
@@ -110,7 +112,7 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -120,24 +122,33 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
+	data.Title = "Panel"
 	data.Actions = s.getActions()
-	s.renderTemplate(w, r, http.StatusOK, "Panel", panelTemplate, data)
+	s.panelTemplate(w, r, http.StatusOK, panelTemplate, data)
+}
+
+type mentionsPage struct {
+	Title    string
+	Mentions []*core.Mention
 }
 
 func (s *Server) panelMentionsGet(w http.ResponseWriter, r *http.Request) {
 	mentions, err := s.badger.GetMentions(r.Context())
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error getting mentions: %w", err))
+		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting mentions: %w", err))
 		return
 	}
 
-	s.renderTemplate(w, r, http.StatusOK, "Panel Mentions", panelMentionsTemplate, mentions)
+	s.panelTemplate(w, r, http.StatusOK, panelMentionsTemplate, &mentionsPage{
+		Title:    "Mentions",
+		Mentions: mentions,
+	})
 }
 
 func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
@@ -148,13 +159,13 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 	case "approve":
 		e, err := s.badger.GetMention(r.Context(), id)
 		if err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
 
 		if !e.Private {
 			if err := s.core.AddOrUpdateWebmention(e.EntryID, e, ""); err != nil {
-				s.serveErrorHTML(w, r, http.StatusInternalServerError, fmt.Errorf("error adding or updating webmention: %w", err))
+				s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error adding or updating webmention: %w", err))
 				return
 			}
 
@@ -167,11 +178,11 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 	case "delete":
 		err := s.badger.DeleteMention(r.Context(), id)
 		if err != nil {
-			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
 	default:
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid action: %s", action))
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("invalid action: %s", action))
 		return
 	}
 
@@ -179,32 +190,37 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 }
 
 type tokenPage struct {
+	Title string
 	Token string
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
-	s.renderTemplate(w, r, http.StatusOK, "Panel Tokens", panelTokensTemplate, &tokenPage{})
+	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, &tokenPage{
+		Title: "Tokens",
+	})
 }
 
 func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, err)
+		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	data := &tokenPage{}
+	data := &tokenPage{
+		Title: "Tokens",
+	}
 
 	clientID := r.Form.Get("client_id")
 	scope := r.Form.Get("scope")
 	expiry, err := handleExpiry(r.Form.Get("expiry"))
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
 		return
 	}
 
 	if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
 		return
 	}
 
@@ -212,9 +228,9 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		data.Token = signed
 	} else {
-		s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
+		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	s.renderTemplate(w, r, http.StatusOK, "Panel Tokens", panelTokensTemplate, data)
+	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, data)
 }

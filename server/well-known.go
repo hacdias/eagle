@@ -66,5 +66,5 @@ func (s *Server) wellKnownAvatarPath(w http.ResponseWriter, r *http.Request) {
 
 	// Rewrite request to correct avatar path.
 	r.URL.Path = "/avatar/" + size + ".jpg"
-	s.generalHandler(w, r)
+	s.everythingBagelHandler(w, r)
 }
