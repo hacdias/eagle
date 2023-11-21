@@ -44,7 +44,8 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 	doc, err := s.getDocument("404.html")
 	if err != nil {
 		w.WriteHeader(code)
-		w.Write([]byte(data.Message))
+		_, _ = w.Write([]byte(data.Message))
+		return
 	}
 
 	txt := doc.Find("title").Text()
