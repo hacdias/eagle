@@ -234,21 +234,20 @@ func (f *Core) entryFilenameFromID(id string) string {
 	return filepath.Join(ContentDirectory, id, "index.md")
 }
 
-// TODO: do not hardcore this. Instead, use Hugo's configuration to deduce
-// and "back-engineer" how the permalinks are constructed. Then this can be used
-// only in the parser code.
-const SpecialSection = "posts"
+const (
+	SpecialSection  = "posts"
+	SpecialTaxonomy = "categories"
+)
 
 func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) string {
 	url := co.BaseURL()
 
-	// TODO: very specific code.
 	parts := strings.Split(id, "/")
 	if len(parts) < 2 {
 		url.Path = id
 	} else if parts[1] == SpecialSection && !fr.Date.IsZero() {
 		url.Path = fmt.Sprintf("/%04d/%02d/%02d/%s/", fr.Date.Year(), fr.Date.Month(), fr.Date.Day(), parts[len(parts)-2])
-	} else if parts[1] == "categories" {
+	} else if parts[1] == SpecialTaxonomy {
 		url.Path = "/" + parts[2] + "/"
 	} else {
 		url.Path = id

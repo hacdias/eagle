@@ -260,8 +260,7 @@ func (s *Server) syncStorage() {
 		return
 	}
 
-	// TODO: also detect if redirects, gone, files have changed. If so, reload
-	// them respectively.
+	// TODO: detect if redirects and gone have changed, reload.
 
 	ids := idsFromChangedFiles(changedFiles)
 	ee := core.Entries{}
