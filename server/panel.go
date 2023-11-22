@@ -148,7 +148,7 @@ type mentionsPage struct {
 }
 
 func (s *Server) panelMentionsGet(w http.ResponseWriter, r *http.Request) {
-	mentions, err := s.badger.GetMentions(r.Context())
+	mentions, err := s.bolt.GetMentions(r.Context())
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting mentions: %w", err))
 		return
@@ -172,7 +172,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "approve":
-		e, err := s.badger.GetMention(r.Context(), id)
+		e, err := s.bolt.GetMention(r.Context(), id)
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
@@ -191,7 +191,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 
 		fallthrough
 	case "delete":
-		err := s.badger.DeleteMention(r.Context(), id)
+		err := s.bolt.DeleteMention(r.Context(), id)
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return

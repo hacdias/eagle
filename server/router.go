@@ -85,6 +85,11 @@ func (s *Server) makeRouter() http.Handler {
 		// IndieAuth Server (Part III)
 		r.Get(tokenPath, s.tokenGet) // Backwards compatible token verification endpoint
 		r.Get(userInfoPath, s.userInfoGet)
+
+		// Micropub
+		if s.c.Micropub != nil {
+			r.Handle(micropubPath, s.makeMicropub())
+		}
 	})
 
 	// Do not server Hugo's 404.html as 200 OK.

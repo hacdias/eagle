@@ -83,6 +83,18 @@ func (e *Entry) TextContent() string {
 
 type Entries []*Entry
 
+func (co *Core) NewBlankEntry(id string) *Entry {
+	e := &Entry{
+		FrontMatter: FrontMatter{
+			Date: time.Now(),
+		},
+		ID: id,
+	}
+
+	e.Permalink = co.entryPermalinkFromID(e.ID, &e.FrontMatter)
+	return e
+}
+
 // errIgnoredEntry is a locally used error to indicate this an errIgnoredEntry.
 var errIgnoredEntry error = errors.New("ignored entry")
 
