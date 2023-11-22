@@ -62,7 +62,7 @@ type Server struct {
 	meilisearch *meilisearch.MeiliSearch
 	core        *core.Core
 	media       *media.Media
-	badger      *database.Database
+	bolt        *database.Database
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -98,7 +98,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	err = errors.Join(
 		s.initNotifier(),
 		s.initTemplates(),
-		s.initBadger(),
+		s.initBolt(),
 		s.initMeiliSearch(),
 		s.initPlugins(),
 		s.initActions(),
@@ -155,7 +155,7 @@ func (s *Server) Stop() error {
 
 	return errors.Join(
 		s.server.Shutdown(ctx),
-		s.badger.Close(),
+		s.bolt.Close(),
 	)
 }
 
@@ -187,13 +187,8 @@ func (s *Server) loadGone() error {
 }
 
 func (s *Server) indexAll() {
-	if s.meilisearch == nil {
+	if s.meilisearch == nil && s.c.Micropub == nil {
 		return
-	}
-
-	err := s.meilisearch.ResetIndex()
-	if err != nil {
-		s.n.Error(err)
 	}
 
 	entries, err := s.core.GetEntries(false)
@@ -202,12 +197,54 @@ func (s *Server) indexAll() {
 		return
 	}
 
-	start := time.Now()
-	err = s.meilisearch.Add(entries...)
-	if err != nil {
-		s.n.Error(err)
+	if s.meilisearch != nil {
+		err := s.meilisearch.ResetIndex()
+		if err != nil {
+			s.n.Error(err)
+		}
+
+		start := time.Now()
+		err = s.meilisearch.Add(entries...)
+		if err != nil {
+			s.n.Error(err)
+		}
+		s.log.Infof("meilisearch update took %dms", time.Since(start).Milliseconds())
 	}
-	s.log.Infof("database update took %dms", time.Since(start).Milliseconds())
+
+	if s.c.Micropub != nil {
+		err := s.bolt.ResetTaxonomies(context.Background())
+		if err != nil {
+			s.n.Error(err)
+		}
+
+		start := time.Now()
+
+		if s.c.Micropub.CategoriesTaxonomy != "" {
+			err = s.indexAllTaxonomies(entries, s.c.Micropub.CategoriesTaxonomy)
+			if err != nil {
+				s.n.Error(err)
+			}
+		}
+
+		if s.c.Micropub.ChannelsTaxonomy != "" {
+			err = s.indexAllTaxonomies(entries, s.c.Micropub.ChannelsTaxonomy)
+			if err != nil {
+				s.n.Error(err)
+			}
+		}
+
+		s.log.Infof("bolt taxonomies update took %dms", time.Since(start).Milliseconds())
+	}
+}
+
+func (s *Server) indexAllTaxonomies(ee core.Entries, taxonomy string) error {
+	taxons := []string{}
+
+	for _, e := range ee {
+		taxons = append(taxons, e.Taxonomy(taxonomy)...)
+	}
+
+	return s.bolt.AddTaxonomy(context.Background(), taxonomy, taxons...)
 }
 
 func (s *Server) withRecoverer(next http.Handler) http.Handler {

@@ -57,9 +57,9 @@ func (s *Server) initTemplates() error {
 	return nil
 }
 
-func (s *Server) initBadger() error {
+func (s *Server) initBolt() error {
 	var err error
-	s.badger, err = database.NewDatabase(filepath.Join(s.c.DataDirectory, "bolt.db"))
+	s.bolt, err = database.NewDatabase(filepath.Join(s.c.DataDirectory, "bolt.db"))
 	return err
 }
 

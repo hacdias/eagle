@@ -41,6 +41,23 @@ comments:
   # Must be set to enable. Page to which to redirect users after commenting.
   redirect: /my-thank-you-page/
 
+# Optional Micropub configuration. Disabled otherwise.
+micropub:
+  # Which of your Hugo taxonomy is Micropub channels. Disabled if not set.
+  channelsTaxonomy: categories
+  # Which of your Hugo taxonomies is Micropub categories. Disabled if not set.
+  categoriesTaxonomy: tags
+  # Allowed Micropub properties. An incoming request will be refused if unknown
+  # properties are included. The following properties are always allowed: published,
+  # updated, content, name, summary, post-status, category.
+  properties:
+    - syndication
+    - bookmark-of
+  # Supported post types. All supported if not set.
+  postTypes:
+    - type: bookmark
+      name: Bookmark
+
 # Notifications configuration.
 notifications:
   # Telegram (https://core.telegram.org) credentials for notifications.

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/viper"
+	"go.hacdias.com/indielib/micropub"
 )
 
 type Config struct {
@@ -45,6 +46,7 @@ type ServerConfig struct {
 	Login         Login
 	Comments      Comments
 	Webmentions   Webmentions
+	Micropub      *Micropub
 	Plugins       map[string]map[string]interface{}
 	MeiliSearch   *MeiliSearch
 	Notifications Notifications
@@ -157,6 +159,13 @@ type Webmentions struct {
 
 type Comments struct {
 	Redirect string
+}
+
+type Micropub struct {
+	ChannelsTaxonomy   string
+	CategoriesTaxonomy string
+	Properties         []string
+	PostTypes          []micropub.PostType
 }
 
 type Telegram struct {
