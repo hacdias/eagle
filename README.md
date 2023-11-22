@@ -31,6 +31,12 @@ parts are used:
 # Used by Hugo and by Eagle for search results.
 paginate = 15
 
+# Used by Hugo for taxonomies. Eagle uses it to determine if a certain entry
+# is a list page. Only taxonomies are considered lists for Eagle.
+[taxonomies]
+  tag = 'tags'
+  category = 'categories'
+
 [params]
   [params.author]
     # Optional user's information for IndieAuth.

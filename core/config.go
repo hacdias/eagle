@@ -186,8 +186,9 @@ type ImgProxy struct {
 }
 
 type SiteConfig struct {
-	Paginate int
-	Params   struct {
+	Paginate   int
+	Taxonomies map[string]string
+	Params     struct {
 		Author struct {
 			Name   string
 			Email  string
