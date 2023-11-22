@@ -108,9 +108,13 @@ func (co *Core) GetEntry(id string) (*Entry, error) {
 		}
 	}
 
-	// TODO: make this configurable.
-	e.IsList = strings.HasPrefix(id, "/categories/") ||
-		strings.HasPrefix(id, "/tags/")
+	// We only consider taxonomies listings.
+	for _, taxonomy := range co.cfg.Site.Taxonomies {
+		if strings.HasPrefix(id, "/"+taxonomy+"/") {
+			e.IsList = true
+			break
+		}
+	}
 
 	return e, nil
 }
