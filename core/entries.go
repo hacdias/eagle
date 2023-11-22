@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 	"willnorris.com/go/webmention"
@@ -26,8 +27,6 @@ type FrontMatter struct {
 	Lastmod       time.Time      `yaml:"lastmod,omitempty"`
 	ExpiryDate    time.Time      `yaml:"expiryDate,omitempty"`
 	NoIndex       bool           `yaml:"noIndex,omitempty"`
-	Categories    []string       `yaml:"categories,omitempty"`
-	Tags          []string       `yaml:"tags,omitempty"`
 	NoWebmentions bool           `yaml:"noWebmentions,omitempty"`
 	Other         map[string]any `yaml:",inline"`
 }
@@ -57,6 +56,10 @@ func (e *Entry) Summary() string {
 	} else {
 		return content
 	}
+}
+
+func (e *Entry) Taxonomy(taxonomy string) []string {
+	return typed.New(e.Other).Strings(taxonomy)
 }
 
 func (e *Entry) String() (string, error) {

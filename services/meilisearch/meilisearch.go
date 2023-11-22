@@ -30,11 +30,12 @@ type Pagination struct {
 }
 
 type MeiliSearch struct {
-	client meilisearch.ClientInterface
-	core   *core.Core
+	client     meilisearch.ClientInterface
+	taxonomies []string
+	core       *core.Core
 }
 
-func NewMeiliSearch(host, key string, co *core.Core) (*MeiliSearch, error) {
+func NewMeiliSearch(host, key string, taxonomies []string, co *core.Core) (*MeiliSearch, error) {
 	client := meilisearch.NewClient(meilisearch.ClientConfig{
 		Host:   host,
 		APIKey: key,
@@ -69,8 +70,9 @@ func NewMeiliSearch(host, key string, co *core.Core) (*MeiliSearch, error) {
 	}
 
 	return &MeiliSearch{
-		client: client,
-		core:   co,
+		client:     client,
+		core:       co,
+		taxonomies: taxonomies,
 	}, nil
 }
 
@@ -87,11 +89,16 @@ func (ms *MeiliSearch) Add(ee ...*core.Entry) error {
 			continue
 		}
 
+		var tags []string
+		for _, taxonomy := range ms.taxonomies {
+			tags = append(tags, e.Taxonomy(taxonomy)...)
+		}
+
 		docs = append(docs, map[string]interface{}{
 			searchKey: hex.EncodeToString([]byte(e.ID)),
 			"id":      e.ID,
 			"title":   e.Title,
-			"tags":    e.Tags,
+			"tags":    tags,
 			"content": e.TextContent(),
 		})
 	}
