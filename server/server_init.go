@@ -66,7 +66,7 @@ func (s *Server) initBadger() error {
 func (s *Server) initMeiliSearch() error {
 	var err error
 	if s.c.MeiliSearch != nil {
-		s.meilisearch, err = meilisearch.NewMeiliSearch(s.c.MeiliSearch.Endpoint, s.c.MeiliSearch.Key, s.core)
+		s.meilisearch, err = meilisearch.NewMeiliSearch(s.c.MeiliSearch.Endpoint, s.c.MeiliSearch.Key, s.c.MeiliSearch.Taxonomies, s.core)
 	}
 	return err
 }

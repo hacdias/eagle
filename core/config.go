@@ -46,7 +46,7 @@ type ServerConfig struct {
 	Comments      Comments
 	Webmentions   Webmentions
 	Plugins       map[string]map[string]interface{}
-	MeiliSearch   *EndpointWithKey
+	MeiliSearch   *MeiliSearch
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN
 	ImgProxy      *ImgProxy
@@ -174,9 +174,10 @@ type BunnyCDN struct {
 	Base string
 }
 
-type EndpointWithKey struct {
-	Endpoint string
-	Key      string
+type MeiliSearch struct {
+	Endpoint   string
+	Key        string
+	Taxonomies []string
 }
 
 type ImgProxy struct {

@@ -58,6 +58,10 @@ bunnycdn:
 meilisearch:
   endpoint: myUrl
   key: myKey
+  # The name of the taxonomies to index for search.
+  taxonomies:
+  - tags
+  - categories
 
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
