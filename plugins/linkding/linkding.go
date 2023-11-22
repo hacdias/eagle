@@ -1,12 +1,12 @@
 package linkding
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
 	"os"
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -75,17 +75,29 @@ func (ld *Linkding) Execute() error {
 		return err
 	}
 
+	newBookmarksBytes, err := json.MarshalIndent(newBookmarks, "", "  ")
+	if err != nil {
+		return err
+	}
+
 	var oldBookmarks []bookmark
 	err = ld.core.ReadJSON(ld.filename, &oldBookmarks)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	if reflect.DeepEqual(oldBookmarks, newBookmarks) {
+	oldBookmarksBytes, err := json.MarshalIndent(oldBookmarks, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// NOTE: reflect.DeepEqual cannot be used here because [time.Time] representations
+	// of the same time might not be the same, and therefore yielding false positives.
+	if bytes.Equal(oldBookmarksBytes, newBookmarksBytes) {
 		return nil
 	}
 
-	return ld.core.WriteJSON(ld.filename, newBookmarks, "bookmarks: synchronize with linkding")
+	return ld.core.WriteFile(ld.filename, newBookmarksBytes, "bookmarks: synchronize with linkding")
 }
 
 type bookmark struct {
