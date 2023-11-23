@@ -22,9 +22,8 @@ const (
 	panelPath         = "/panel"
 	panelMentionsPtah = panelPath + "/mentions"
 	panelTokensPath   = panelPath + "/tokens"
-
-	panelBrowsePath = panelPath + "/browse"
-	panelEditPath   = panelPath + "/edit"
+	panelBrowsePath   = panelPath + "/browse"
+	panelEditPath     = panelPath + "/edit"
 )
 
 type panelPage struct {
