@@ -92,7 +92,7 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 		return "", fmt.Errorf("%w: mp-slug is missing", micropub.ErrBadRequest)
 	}
 
-	id := "/" + core.SpecialSection + "/" + time.Now().Format("2006") + "/" + slug + "/"
+	id := core.NewPostID(slug, time.Now())
 	e := m.s.core.NewBlankEntry(id)
 
 	err := m.updateEntryWithProps(e, req.Properties)

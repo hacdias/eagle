@@ -83,10 +83,18 @@ func (e *Entry) TextContent() string {
 
 type Entries []*Entry
 
+func NewPostID(slug string, t time.Time) string {
+	if t.IsZero() {
+		t = time.Now()
+	}
+	return "/" + SpecialSection + "/" + t.Format("2006") + "/" + slug + "/"
+}
+
 func (co *Core) NewBlankEntry(id string) *Entry {
 	e := &Entry{
 		FrontMatter: FrontMatter{
-			Date: time.Now(),
+			Date:  time.Now(),
+			Other: map[string]any{},
 		},
 		ID: id,
 	}
