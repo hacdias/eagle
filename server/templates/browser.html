@@ -11,4 +11,18 @@
   <p><a href="{{ .Name }}">{{ .Name }}</a></p>
 {{ end }}
 
+<h3>New Directory</h3>
+
+<form method='post'>
+  <input required type='text' name='dirname' placeholder='Directory name...' />
+  <button>Create</button>
+</form>
+
+<h3>New File</h3>
+
+<form method='post'>
+  <input required type='text' name='filename' placeholder='File name...' />
+  <button>Create</button>
+</form>
+
 {{ template "_footer.html" . }}

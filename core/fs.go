@@ -50,6 +50,10 @@ func (co *Core) ReadDir(filename string) ([]os.FileInfo, error) {
 	return co.sourceFS.ReadDir(filename)
 }
 
+func (co *Core) MkdirAll(filename string) error {
+	return co.sourceFS.MkdirAll(filename, 0777)
+}
+
 func (co *Core) Stat(filename string) (os.FileInfo, error) {
 	return co.sourceFS.Stat(filename)
 }

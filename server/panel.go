@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -62,6 +63,7 @@ func (s *Server) panelBrowserGet(w http.ResponseWriter, r *http.Request) {
 	canonical := path.Join(panelBrowsePath, filename) + "/"
 	if r.URL.Path != canonical {
 		http.Redirect(w, r, canonical, http.StatusTemporaryRedirect)
+		return
 	}
 
 	infos, err := s.core.ReadDir(filename)
@@ -78,14 +80,39 @@ func (s *Server) panelBrowserGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) panelBrowserPost(w http.ResponseWriter, r *http.Request) {
-	// filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelBrowsePath))
+	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelBrowsePath))
 
-	// TODO: new directory
+	err := r.ParseForm()
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if fname := r.FormValue("filename"); fname != "" {
+		http.Redirect(w, r, panelEditPath+path.Join(filename, fname), http.StatusSeeOther)
+		return
+	}
+
+	dirname := r.FormValue("dirname")
+	if dirname == "" {
+		s.panelError(w, r, http.StatusBadRequest, errors.New("dirname cannot be empty"))
+		return
+	}
+
+	filename = filepath.Join(filename, dirname)
+	err = s.core.MkdirAll(filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	http.Redirect(w, r, panelBrowsePath+path.Clean(filename), http.StatusSeeOther)
 }
 
 type editorPage struct {
 	Title   string
 	Success bool
+	New     bool
 	Path    string
 	Content string
 }
@@ -95,6 +122,16 @@ func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
 
 	info, err := s.core.Stat(filename)
 	if err != nil {
+		if os.IsNotExist(err) {
+			s.panelTemplate(w, r, http.StatusOK, panelEditorTemplate, &editorPage{
+				Title:   "Editor",
+				New:     true,
+				Path:    filename,
+				Content: "",
+			})
+			return
+		}
+
 		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
