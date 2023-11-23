@@ -1,0 +1,14 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "browser" }}
+
+<h2>Browsing <code>{{ .Path }}</code></h2>
+
+{{ if ne .Path "/" }}
+  <p><a href="../">↵ Back</a></p>
+{{ end }}
+
+{{ range .Files }}
+  <p><a href="{{ .Name }}">{{ .Name }}</a></p>
+{{ end }}
+
+{{ template "_footer.html" . }}

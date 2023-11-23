@@ -1,0 +1,17 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "editor" }}
+
+<h2>Editing <code>{{ .Path }}</code></h2>
+
+{{ if .Success }}
+<p>
+  <strong>✅ Success!</strong>
+</p>
+{{ end }}
+
+<form method='post'>
+  <textarea name='content' style='min-height: 50vh'>{{ .Content }}</textarea>
+  <button>Save</button>
+</form>
+
+{{ template "_footer.html" . }}

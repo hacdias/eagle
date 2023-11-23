@@ -22,6 +22,8 @@ const (
 	panelLoginTemplate    string = "login.html"
 	panelMentionsTemplate string = "mentions.html"
 	panelTokensTemplate   string = "tokens.html"
+	panelEditorTemplate   string = "editor.html"
+	panelBrowserTemplate  string = "browser.html"
 )
 
 type errorPage struct {

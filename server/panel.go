@@ -5,9 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
+	"path"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gabriel-vasile/mimetype"
 	"go.hacdias.com/eagle/core"
@@ -18,6 +21,9 @@ const (
 	panelPath         = "/panel"
 	panelMentionsPtah = panelPath + "/mentions"
 	panelTokensPath   = panelPath + "/tokens"
+
+	panelBrowsePath = panelPath + "/browse"
+	panelEditPath   = panelPath + "/edit"
 )
 
 type panelPage struct {
@@ -31,6 +37,120 @@ type panelPage struct {
 
 func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
 	s.servePanel(w, r, &panelPage{})
+}
+
+type browserPage struct {
+	Title string
+	Path  string
+	Files []fs.FileInfo
+}
+
+func (s *Server) panelBrowserGet(w http.ResponseWriter, r *http.Request) {
+	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelBrowsePath))
+
+	info, err := s.core.Stat(filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if !info.IsDir() {
+		http.Redirect(w, r, panelEditPath+filename, http.StatusTemporaryRedirect)
+		return
+	}
+
+	canonical := path.Join(panelBrowsePath, filename) + "/"
+	if r.URL.Path != canonical {
+		http.Redirect(w, r, canonical, http.StatusTemporaryRedirect)
+	}
+
+	infos, err := s.core.ReadDir(filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	s.panelTemplate(w, r, http.StatusOK, panelBrowserTemplate, &browserPage{
+		Title: "Browser",
+		Path:  filename,
+		Files: infos,
+	})
+}
+
+func (s *Server) panelBrowserPost(w http.ResponseWriter, r *http.Request) {
+	// filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelBrowsePath))
+
+	// TODO: new directory
+}
+
+type editorPage struct {
+	Title   string
+	Success bool
+	Path    string
+	Content string
+}
+
+func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
+	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelEditPath))
+
+	info, err := s.core.Stat(filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if info.IsDir() {
+		http.Redirect(w, r, panelBrowsePath+filename, http.StatusTemporaryRedirect)
+		return
+	}
+
+	canonical := path.Join(panelEditPath, filename)
+	if r.URL.Path != canonical {
+		http.Redirect(w, r, canonical, http.StatusTemporaryRedirect)
+		return
+	}
+
+	// TODO: detect if entry, if so give extra options.
+
+	val, err := s.core.ReadFile(filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	data := string(val)
+	if !utf8.ValidString(data) {
+		s.panelError(w, r, http.StatusPreconditionFailed, errors.New("file is not text file"))
+		return
+	}
+
+	s.panelTemplate(w, r, http.StatusOK, panelEditorTemplate, &editorPage{
+		Title:   "Editor",
+		Success: r.URL.Query().Get("success") == "true",
+		Path:    filename,
+		Content: data,
+	})
+}
+
+func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
+	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelEditPath))
+
+	err := r.ParseForm()
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	// TODO: CRLF????
+
+	content := r.FormValue("content")
+	err = s.core.WriteFile(filename, []byte(content), "editor: update "+filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	http.Redirect(w, r, r.URL.Path+"?success=true", http.StatusSeeOther)
 }
 
 func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {

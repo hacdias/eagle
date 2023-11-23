@@ -46,6 +46,14 @@ func (co *Core) ReadFile(filename string) ([]byte, error) {
 	return co.sourceFS.ReadFile(filename)
 }
 
+func (co *Core) ReadDir(filename string) ([]os.FileInfo, error) {
+	return co.sourceFS.ReadDir(filename)
+}
+
+func (co *Core) Stat(filename string) (os.FileInfo, error) {
+	return co.sourceFS.Stat(filename)
+}
+
 func (co *Core) WriteJSON(filename string, data interface{}, message string) error {
 	json, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
