@@ -39,7 +39,8 @@ RUN apk update && \
 USER eagle
 
 RUN git config --global user.name "Eagle" && \
-  git config --global user.email "eagle@eagle"
+  git config --global user.email "eagle@eagle" && \
+  git config --global pull.rebase true
 
 WORKDIR /app
 VOLUME /app/source
