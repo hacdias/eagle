@@ -178,10 +178,10 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: CRLF????
+	content := []byte(r.FormValue("content"))
+	content = normalizeLineEndings(content)
 
-	content := r.FormValue("content")
-	err = s.core.WriteFile(filename, []byte(content), "editor: update "+filename)
+	err = s.core.WriteFile(filename, content, "editor: update "+filename)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
@@ -405,4 +405,12 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, data)
+}
+
+func normalizeLineEndings(d []byte) []byte {
+	// replace CR LF \r\n (windows) with LF \n (unix)
+	d = bytes.Replace(d, []byte{13, 10}, []byte{10}, -1)
+	// replace CF \r (mac) with LF \n (unix)
+	d = bytes.Replace(d, []byte{13}, []byte{10}, -1)
+	return d
 }
