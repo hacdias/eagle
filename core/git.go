@@ -47,6 +47,9 @@ func (g *git) Persist(message string, filenames ...string) error {
 }
 
 func (g *git) add(filenames ...string) error {
+	filenames = lo.Map(filenames, func(v string, _ int) string {
+		return strings.TrimPrefix(v, "/")
+	})
 	args := append([]string{"add"}, filenames...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
