@@ -160,7 +160,7 @@ func (m *micropubServer) Undelete(url string) error {
 }
 
 func (m *micropubServer) updateWithPostRun(permalink string, clean bool, update func(e *core.Entry) (error, bool)) error {
-	targets, _ := m.s.core.GetEntryLinks(permalink)
+	targets, _ := m.s.core.GetEntryLinks(permalink, true)
 
 	e, err := m.s.core.GetEntryFromPermalink(permalink)
 	if err != nil {

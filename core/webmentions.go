@@ -84,7 +84,7 @@ func (co *Core) DeleteWebmention(id, sourceOrURL string) error {
 }
 
 func (co *Core) SendWebmentions(permalink string, otherTargets ...string) error {
-	targets, err := co.GetEntryLinks(permalink)
+	targets, err := co.GetEntryLinks(permalink, true)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}

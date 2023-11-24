@@ -115,7 +115,7 @@ func (el *ExternalLinks) UpdateExternalLinks() error {
 			continue
 		}
 
-		urls, err := el.core.GetEntryLinks(e.Permalink)
+		urls, err := el.core.GetEntryLinks(e.Permalink, false)
 		if err != nil {
 			return err
 		}

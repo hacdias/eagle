@@ -279,13 +279,18 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) string {
 // GetEntryLinks gets the links found in the HTML rendered version of the entry.
 // This uses the latest available build to check for the links. Entry must have
 // .h-entry and .e-content classes.
-func (co *Core) GetEntryLinks(permalink string) ([]string, error) {
+func (co *Core) GetEntryLinks(permalink string, withSyndications bool) ([]string, error) {
 	html, err := co.entryHTML(permalink)
 	if err != nil {
 		return nil, err
 	}
 
-	targets, err := webmention.DiscoverLinksFromReader(bytes.NewBuffer(html), permalink, ".h-entry .e-content a, .h-entry .h-cite a")
+	selector := ".h-entry .e-content a, .h-entry .h-cite a, .h-entry a.h-cite"
+	if withSyndications {
+		selector += ", .h-entry .u-syndication a, .h-entry a.u-syndication"
+	}
+
+	targets, err := webmention.DiscoverLinksFromReader(bytes.NewBuffer(html), permalink, selector)
 	if err != nil {
 		return nil, err
 	}
