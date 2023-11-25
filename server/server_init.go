@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"html/template"
+	"net/url"
 	"path/filepath"
 
 	"go.hacdias.com/eagle/core"
@@ -43,10 +44,16 @@ func (s *Server) initNotifier() error {
 }
 
 func (s *Server) initTemplates() error {
-	htmlTemplates, err := template.ParseGlob(filepath.Join(s.c.SourceDirectory, "eagle", "*.html"))
+	htmlTemplates, err := template.
+		New("").
+		Funcs(template.FuncMap{
+			"urlParse": url.Parse,
+		}).
+		ParseGlob(filepath.Join(s.c.SourceDirectory, "eagle", "*.html"))
 	if err != nil {
 		return err
 	}
+
 	for _, template := range []string{errorTemplate} {
 		if htmlTemplates.Lookup(template) == nil {
 			return fmt.Errorf("template %s missing", template)
