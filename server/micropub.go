@@ -185,8 +185,56 @@ func (m *micropubServer) updateWithPostRun(permalink string, clean bool, update 
 	return nil
 }
 
+func webArchive(url string) (string, error) {
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Head("https://web.archive.org/save/" + url)
+	if err != nil {
+		return "", err
+	}
+
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("status code not ok: %d", resp.StatusCode)
+	}
+
+	location, err := resp.Location()
+	if err != nil {
+		return "", err
+	}
+
+	return location.String(), nil
+}
+
+func (m *micropubServer) asyncWebArchiveBookmark(id, url string) {
+	location, err := webArchive(url)
+	if err != nil {
+		m.s.log.Infow("failed web archive", err)
+		return
+	}
+
+	e, err := m.s.core.GetEntry(id)
+	if err != nil {
+		m.s.log.Infow("failed to get entry", err)
+		return
+	}
+
+	e.Other["wa-bookmark-of"] = location
+	err = m.s.core.SaveEntry(e)
+	if err != nil {
+		m.s.log.Infow("failed save entry", err)
+	}
+}
+
 func (m *micropubServer) postRunActions(e *core.Entry, cleanBuild bool, oldTargets []string) {
 	var err error
+
+	if bm := typed.Typed(e.Other).String("bookmark-of"); bm != "" {
+		go m.asyncWebArchiveBookmark(e.ID, bm)
+	}
 
 	if m.s.meilisearch != nil {
 		if e.Deleted() {
