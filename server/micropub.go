@@ -380,6 +380,13 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		}
 	}
 
+	for _, k := range m.s.c.Micropub.Properties {
+		if v, ok := properties[k]; ok {
+			e.Other[k] = v
+			delete(properties, k)
+		}
+	}
+
 	keys := lo.Keys(properties)
 	if len(keys) > 0 {
 		return fmt.Errorf("unknown keys: %s", strings.Join(keys, ", "))
