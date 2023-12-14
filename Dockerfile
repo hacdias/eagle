@@ -27,7 +27,6 @@ COPY --from=build /eagle/main /bin/eagle
 COPY --from=build /hugo/hugo /bin/hugo
 
 ENV UID 501
-ENV GID 20
 
 RUN apk update && \
   apk add --no-cache git ca-certificates openssh tzdata mailcap && \
