@@ -21,6 +21,8 @@ webhookSecret: GitHub
 language: en
 # The website title.
 title: "The Website Title"
+# Turn on TOR Onion service (with Onion-Location header).
+tor: true
 
 # Login user configuration.
 login:

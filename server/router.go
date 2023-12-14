@@ -17,6 +17,10 @@ func (s *Server) makeRouter() http.Handler {
 	r.Use(middleware.GetHead)
 	r.Use(s.withSecurityHeaders)
 
+	if s.c.Tor {
+		r.Use(s.withOnionHeader)
+	}
+
 	if s.c.Comments.Redirect != "" {
 		r.Post(commentsPath, s.commentsPost)
 	}

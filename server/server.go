@@ -58,11 +58,13 @@ type Server struct {
 	redirects map[string]string
 	gone      map[string]bool
 
-	server      *http.Server
-	meilisearch *meilisearch.MeiliSearch
-	core        *core.Core
-	media       *media.Media
-	bolt        *database.Database
+	serversMu    sync.Mutex
+	servers      map[string]*http.Server
+	onionAddress string
+	meilisearch  *meilisearch.MeiliSearch
+	core         *core.Core
+	media        *media.Media
+	bolt         *database.Database
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -89,8 +91,9 @@ func NewServer(c *core.Config) (*Server, error) {
 		redirects: map[string]string{},
 		gone:      map[string]bool{},
 
-		core:  co,
-		media: initMedia(c),
+		servers: map[string]*http.Server{},
+		core:    co,
+		media:   initMedia(c),
 	}
 
 	co.BuildHook = s.buildHook
@@ -131,20 +134,49 @@ func (s *Server) Start() error {
 	s.cron.Start()
 
 	// Start server
+	router := s.makeRouter()
+	errCh := make(chan error)
+
+	// Start server(s)
+	err = s.startServer(errCh, router)
+	if err != nil {
+		return err
+	}
+
+	if s.c.Tor {
+		err = s.startTor(errCh, router)
+		if err != nil {
+			err = fmt.Errorf("onion service failed to start: %w", err)
+			s.log.Error(err)
+		}
+	}
+
+	return <-errCh
+}
+
+func (s *Server) registerServer(srv *http.Server, name string) {
+	s.serversMu.Lock()
+	defer s.serversMu.Unlock()
+
+	s.servers[name] = srv
+}
+
+func (s *Server) startServer(errCh chan error, h http.Handler) error {
 	addr := ":" + strconv.Itoa(s.c.Port)
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
-	errCh := make(chan error)
-	s.server = &http.Server{Handler: s.makeRouter()}
+	srv := &http.Server{Handler: h}
+	s.registerServer(srv, "public")
+
 	go func() {
 		s.log.Infof("listening on %s", ln.Addr().String())
-		errCh <- s.server.Serve(ln)
+		errCh <- srv.Serve(ln)
 	}()
 
-	return <-errCh
+	return nil
 }
 
 func (s *Server) Stop() error {
@@ -153,10 +185,13 @@ func (s *Server) Stop() error {
 
 	<-s.cron.Stop().Done()
 
-	return errors.Join(
-		s.server.Shutdown(ctx),
-		s.bolt.Close(),
-	)
+	var err error
+	for name, srv := range s.servers {
+		s.log.Infof("shutting down %s", name)
+		err = errors.Join(err, srv.Shutdown(ctx))
+	}
+
+	return errors.Join(err, s.bolt.Close())
 }
 
 func (s *Server) getActions() []string {

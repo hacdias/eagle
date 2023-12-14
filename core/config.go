@@ -42,6 +42,7 @@ type ServerConfig struct {
 	BaseURL         string // NOTE: maybe use the one from [SiteConfig].
 	TokensSecret    string
 	WebhookSecret   string
+	Tor             bool
 
 	Login         Login
 	Comments      Comments

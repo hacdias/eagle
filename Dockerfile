@@ -29,7 +29,7 @@ COPY --from=build /hugo/hugo /bin/hugo
 ENV UID 501
 
 RUN apk update && \
-  apk add --no-cache git ca-certificates openssh tzdata mailcap && \
+  apk add --no-cache git ca-certificates openssh tor tzdata mailcap && \
   addgroup -g $UID eagle && \
   adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
   mkdir /app /app/source /app/public /app/data /imgproxy && \
