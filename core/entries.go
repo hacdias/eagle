@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	urlpkg "net/url"
 	"os"
 	"path/filepath"
@@ -33,10 +34,11 @@ type FrontMatter struct {
 
 type Entry struct {
 	FrontMatter
-	ID        string
-	IsList    bool
-	Permalink string
-	Content   string
+	ID           string
+	IsList       bool
+	Permalink    string
+	RelPermalink string
+	Content      string
 }
 
 func (e *Entry) Deleted() bool {
@@ -99,7 +101,10 @@ func (co *Core) NewBlankEntry(id string) *Entry {
 		ID: id,
 	}
 
-	e.Permalink = co.entryPermalinkFromID(e.ID, &e.FrontMatter)
+	permalink := co.entryPermalinkFromID(e.ID, &e.FrontMatter)
+
+	e.Permalink = permalink.String()
+	e.RelPermalink = permalink.Path
 	return e
 }
 
@@ -236,10 +241,11 @@ func (co *Core) parseEntry(id, raw string) (*Entry, error) {
 	}
 
 	e := &Entry{
-		ID:          id,
-		Permalink:   permalink,
-		Content:     content,
-		FrontMatter: *fr,
+		ID:           id,
+		Permalink:    permalink.String(),
+		RelPermalink: permalink.Path,
+		Content:      content,
+		FrontMatter:  *fr,
 	}
 
 	return e, nil
@@ -259,7 +265,7 @@ const (
 	SpecialTaxonomy = "categories"
 )
 
-func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) string {
+func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *url.URL {
 	url := co.BaseURL()
 
 	parts := strings.Split(id, "/")
@@ -273,7 +279,7 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) string {
 		url.Path = id
 	}
 
-	return url.String()
+	return url
 }
 
 // GetEntryLinks gets the links found in the HTML rendered version of the entry.
