@@ -31,9 +31,9 @@ ENV UID 501
 RUN apk update && \
   apk add --no-cache git ca-certificates openssh tor tzdata mailcap && \
   addgroup -g $UID eagle && \
-  adduser --system --uid $UID --ingroup eagle --home /home/eagle eagle && \
-  mkdir /app /app/source /app/public /app/data /imgproxy && \
-  chown -R eagle:eagle /app /imgproxy
+  adduser -D -h /app -u 1000 -G users eagle && \
+  mkdir -p /app/source /app/public /app/data /imgproxy && \
+  chown -R eagle /app /imgproxy
 
 USER eagle
 
