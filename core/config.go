@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 	"go.hacdias.com/indielib/micropub"
@@ -48,17 +49,21 @@ type ServerConfig struct {
 	Comments      Comments
 	Webmentions   Webmentions
 	Micropub      *Micropub
-	Plugins       map[string]map[string]interface{}
-	MeiliSearch   *MeiliSearch
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN
+	MeiliSearch   *MeiliSearch
 	ImgProxy      *ImgProxy
+	Plugins       map[string]map[string]interface{}
 }
 
 func parseServerConfig() (*ServerConfig, error) {
 	v := viper.New()
 	v.SetConfigName("config")
 	v.AddConfigPath(".")
+
+	v.SetEnvPrefix("eagle")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
 
 	err := v.ReadInConfig()
 	if err != nil {
@@ -154,12 +159,12 @@ func (u *Login) validate() error {
 	return nil
 }
 
-type Webmentions struct {
-	Secret string
-}
-
 type Comments struct {
 	Redirect string
+}
+
+type Webmentions struct {
+	Secret string
 }
 
 type Micropub struct {
