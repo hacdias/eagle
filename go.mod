@@ -18,13 +18,13 @@ require (
 	github.com/samber/lo v1.39.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	github.com/writeas/go-strip-markdown/v2 v2.1.1
 	go.etcd.io/bbolt v1.3.8
 	go.hacdias.com/indielib v0.2.2
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/net v0.19.0
 	gopkg.in/telebot.v3 v3.2.1
 	gopkg.in/yaml.v3 v3.0.1
