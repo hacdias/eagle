@@ -89,7 +89,8 @@ func NewPostID(slug string, t time.Time) string {
 	if t.IsZero() {
 		t = time.Now()
 	}
-	return "/" + SpecialSection + "/" + t.Format("2006") + "/" + slug + "/"
+
+	return fmt.Sprintf("/%s/%04d/%02d/%02d/%s/", SpecialSection, t.Year(), t.Month(), t.Day(), slug)
 }
 
 func (co *Core) NewBlankEntry(id string) *Entry {
@@ -272,7 +273,7 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *url.URL {
 	if len(parts) < 2 {
 		url.Path = id
 	} else if parts[1] == SpecialSection && !fr.Date.IsZero() {
-		url.Path = fmt.Sprintf("/%04d/%02d/%02d/%s/", fr.Date.Year(), fr.Date.Month(), fr.Date.Day(), parts[len(parts)-2])
+		url.Path = strings.TrimPrefix(id, "/"+SpecialSection)
 	} else if parts[1] == SpecialTaxonomy {
 		url.Path = "/" + parts[2] + "/"
 	} else {

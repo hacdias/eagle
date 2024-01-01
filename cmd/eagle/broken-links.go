@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	urlpkg "net/url"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -49,14 +50,6 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		exists := func(urlStr string) (bool, error) {
-			if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.BaseURL) {
-				return true, nil
-			}
-
-			return co.IsLinkValid(urlStr)
-		}
-
 		printBroken := func(e *core.Entry, what string, urls []string) {
 			if len(urls) != 0 {
 				fmt.Println(what, e.ID)
@@ -80,12 +73,19 @@ var brokenLinksCmd = &cobra.Command{
 			}
 			brokenLinks := []string{}
 			for _, urlStr := range markdownURLs {
-				exists, err := exists(urlStr)
+				if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.BaseURL) {
+					continue
+				}
+				url, err := urlpkg.Parse(urlStr)
+				if err != nil {
+					return err
+				}
+				exists, err := co.IsLinkValid(url.Path)
 				if err != nil {
 					return err
 				}
 				if !exists {
-					brokenLinks = append(brokenLinks, urlStr)
+					brokenLinks = append(brokenLinks, url.Path)
 				}
 			}
 			printBroken(e, "Entry", brokenLinks)

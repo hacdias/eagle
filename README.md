@@ -55,7 +55,7 @@ It does not support `config` directory, or multi language configuration.
 
 Eagle assumes a very important `posts` section. This section contains all of your main, dated, posts, such as articles. Inside the `posts` directory, there are directories per year. Inside each year directory, there is a directory per post.
 
-The post on `/posts/2023/my-post/index.md` with `2023-02-10` in the `date` frontmatter field is assumed to be published at `/2023/02/10/my-post/`.
+The post on `/posts/2023/02/10/my-post/index.md` with `2023-02-10` in the `date` frontmatter field is assumed to be published at `/2023/02/10/my-post/`.
 
 Micropub posts are created following this assumption.
 
