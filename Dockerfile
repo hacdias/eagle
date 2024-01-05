@@ -1,6 +1,6 @@
 FROM golang:1.21-alpine3.19 as build
 
-ENV HUGO_VERSION v0.121.1
+ENV HUGO_VERSION v0.121.2
 
 RUN apk update && \
     apk add --no-cache git gcc g++ musl-dev && \
