@@ -85,7 +85,7 @@ func (ms *MeiliSearch) Add(ee ...*core.Entry) error {
 	docs := []interface{}{}
 
 	for _, e := range ee {
-		if e.Deleted() || e.Draft {
+		if e.Deleted() || e.Draft || e.NoIndex {
 			continue
 		}
 
