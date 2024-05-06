@@ -27,7 +27,7 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Anti-spam prevention with user-defined captcha value.
-	if s.c.Comments.Captcha != "" && r.Form.Get("captcha") != strings.ToLower(s.c.Comments.Captcha) {
+	if s.c.Comments.Captcha != "" && s.c.Comments.Captcha != strings.ToLower(r.Form.Get("captcha")) {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("anti-spam verification failed"))
 		return
 	}
