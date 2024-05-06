@@ -9,8 +9,11 @@
 {{ range .Mentions }}
   <pre>
     {{- with .EntryID }}<strong>Entry:</strong> {{ . }}<br>{{- end -}}
-    {{- with .Author }}<strong>Author Name:</strong> {{ . }}<br>{{- end -}}
-    {{- with .AuthorURL }}<strong>Author URL:</strong> {{ . }}<br>{{- end -}}
+    {{- if or .Author .AuthorURL}}<strong>From:</strong>
+      {{- with .Author }} {{ . }}{{ else }} Unknown{{ end -}}
+      {{- with .AuthorURL }} <{{ . }}>{{- end -}}
+      <br>
+    {{- end -}}
     {{- with .Name }}<strong>Title:</strong> {{ . }}<br>{{- end -}}
     {{- with .URL }}<strong>URL:</strong> {{ . }}<br>{{- end -}}
     {{- with .Date }}<strong>Date:</strong> {{ . }}<br>{{- end -}}
