@@ -35,6 +35,10 @@ login:
 comments:
   # Must be set to enable. Page to which to redirect users after commenting.
   redirect: /my-thank-you-page/
+  # Case-insensitive "captcha" value for anti-spam verification. If not empty,
+  # users will have to insert this value into a input field with name 'captcha'.
+  # Think about something they know about you: your name, last name, etc.
+  captcha: John
 
 # Webmentions configuration.
 webmentions:

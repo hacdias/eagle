@@ -121,6 +121,11 @@ func (c *ServerConfig) validate() error {
 		return err
 	}
 
+	err = c.Comments.validate()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -161,6 +166,12 @@ func (u *Login) validate() error {
 
 type Comments struct {
 	Redirect string
+	Captcha  string
+}
+
+func (c *Comments) validate() error {
+	c.Captcha = strings.ToLower(c.Captcha)
+	return nil
 }
 
 type Webmentions struct {

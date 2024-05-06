@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -25,9 +26,9 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Bot control honeypot field. If it's non-empty, just fake it was successful.
-	if r.Form.Get("url") != "" {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("fell into honeypot trap"))
+	// Anti-spam prevention with user-defined captcha value.
+	if s.c.Comments.Captcha != "" && r.Form.Get("captcha") != strings.ToLower(s.c.Comments.Captcha) {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("anti-spam verification failed"))
 		return
 	}
 
@@ -53,7 +54,12 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	website = sanitize.Sanitize(website)
 	content = sanitize.Sanitize(content)
 
-	if len(content) == 0 || len(content) > 500 || len(name) > 100 || len(website) > 100 {
+	if len(name) == 0 || len(content) == 0 {
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("name and content are required"))
+		return
+	}
+
+	if len(content) > 1000 || len(name) > 200 || len(website) > 200 {
 		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("content, name, or website outside of limits"))
 		return
 	}
