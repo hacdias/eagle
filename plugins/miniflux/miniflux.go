@@ -59,6 +59,13 @@ func (mf *Miniflux) GetDailyCron() func() error {
 }
 
 func (mf *Miniflux) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
+	if strings.HasPrefix(mf.opmlFilename, core.ContentDirectory) {
+		location := strings.TrimPrefix(mf.opmlFilename, core.ContentDirectory)
+		return wellKnownRecommendationsPath, func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, location, http.StatusFound)
+		}
+	}
+
 	return "", nil
 }
 
@@ -131,3 +138,5 @@ func (u *Miniflux) fetch() (map[string][]feed, error) {
 
 	return feedsByCategory, nil
 }
+
+const wellKnownRecommendationsPath = "/.well-known/recommendations.opml"
