@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.20 as build
+FROM golang:1.23-alpine3.20 as build
 
 ENV HUGO_VERSION v0.133.0
 
