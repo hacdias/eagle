@@ -33,7 +33,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if data.Query != "" {
-		ee, err := s.meilisearch.Search(int64(page), int64(s.c.Site.Paginate), data.Query)
+		ee, err := s.meilisearch.Search(int64(page), int64(s.c.Site.Pagination.PagerSize), data.Query)
 		if err != nil {
 			s.serveErrorHTML(w, r, http.StatusInternalServerError, err)
 			return
@@ -41,7 +41,7 @@ func (s *Server) searchGet(w http.ResponseWriter, r *http.Request) {
 
 		rq := r.URL.Query()
 		rq.Set("page", strconv.Itoa(page+1))
-		if len(ee) == s.c.Site.Paginate {
+		if len(ee) == s.c.Site.Pagination.PagerSize {
 			data.Next = r.URL.Path + "?" + rq.Encode()
 		}
 

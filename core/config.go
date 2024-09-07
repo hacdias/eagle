@@ -212,9 +212,11 @@ type ImgProxy struct {
 }
 
 type SiteConfig struct {
-	Paginate   int
 	Taxonomies map[string]string
-	Params     struct {
+	Pagination struct {
+		PagerSize int
+	}
+	Params struct {
 		Author struct {
 			Name   string
 			Email  string
@@ -249,8 +251,8 @@ func parseSiteConfig(dir string) (*SiteConfig, error) {
 }
 
 func (c *SiteConfig) validate() error {
-	if c.Paginate < 1 {
-		return errors.New("hugo config: .Paginate must be larger than 1")
+	if c.Pagination.PagerSize < 1 {
+		return errors.New("hugo config: .Pagination.PagerSize must be larger than 1")
 	}
 
 	return nil
