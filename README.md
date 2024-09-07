@@ -31,7 +31,8 @@ Eagle takes some of the configuration directly from your Hugo's website. It supp
 ```toml
 # Used by Eagle for the search results, in order to match
 # the same used for Hugo when listing posts.
-paginate = 15
+[pagination]
+  pagerSize = 15
 
 # Used by Eagle to determine if a certain page is a page list.
 # Only taxonomies are considered lists for Eagle.
