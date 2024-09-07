@@ -30,18 +30,15 @@ type Pagination struct {
 }
 
 type MeiliSearch struct {
-	client     meilisearch.ClientInterface
+	client     meilisearch.ServiceManager
 	taxonomies []string
 	core       *core.Core
 }
 
 func NewMeiliSearch(host, key string, taxonomies []string, co *core.Core) (*MeiliSearch, error) {
-	client := meilisearch.NewClient(meilisearch.ClientConfig{
-		Host:   host,
-		APIKey: key,
-	})
+	client := meilisearch.New(host, meilisearch.WithAPIKey(key))
 
-	indexes, err := client.GetIndexes(nil)
+	indexes, err := client.ListIndexes(nil)
 	if err != nil {
 		return nil, err
 	}
