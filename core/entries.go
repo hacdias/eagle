@@ -126,7 +126,7 @@ func (co *Core) GetEntry(id string) (*Entry, error) {
 
 	// Ignore entries that are not built. This is a very simplified way and won't
 	// really work for cascading builds.
-	if v, ok := e.Other["_build"]; ok {
+	if v, ok := e.Other["build"]; ok {
 		if m, ok := v.(map[string]any); ok {
 			if m["render"] == "never" {
 				return nil, errIgnoredEntry
