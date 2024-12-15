@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine3.20 as build
+FROM golang:1.23-alpine3.21 as build
 
 ENV HUGO_VERSION v0.139.5
 RUN apk update && \
@@ -20,7 +20,7 @@ RUN go mod download
 COPY . /eagle/
 RUN go build -o main ./cmd/eagle
 
-FROM alpine:3.20
+FROM alpine:3.21
 
 COPY --from=build /eagle/main /bin/eagle
 COPY --from=build /hugo/hugo /bin/hugo
