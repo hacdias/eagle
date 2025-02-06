@@ -18,6 +18,11 @@ import (
 	"go.hacdias.com/eagle/server"
 )
 
+var (
+	_ server.ActionPlugin = &Linkding{}
+	_ server.CronPlugin   = &Linkding{}
+)
+
 func init() {
 	server.RegisterPlugin("linkding", NewLinkding)
 }
@@ -57,19 +62,11 @@ func NewLinkding(co *core.Core, config map[string]interface{}) (server.Plugin, e
 	}, nil
 }
 
-func (ld *Linkding) GetAction() (string, func() error) {
-	return "Update Linkding Bookmarks", ld.Execute
+func (ld *Linkding) ActionName() string {
+	return "Update Linkding Bookmarks"
 }
 
-func (ld *Linkding) GetDailyCron() func() error {
-	return ld.Execute
-}
-
-func (ld *Linkding) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
-	return "", nil
-}
-
-func (ld *Linkding) Execute() error {
+func (ld *Linkding) Action() error {
 	newBookmarks, err := ld.fetch()
 	if err != nil {
 		return err
@@ -98,6 +95,10 @@ func (ld *Linkding) Execute() error {
 	}
 
 	return ld.core.WriteFile(ld.filename, newBookmarksBytes, "bookmarks: synchronize with linkding")
+}
+
+func (ld *Linkding) DailyCron() error {
+	return ld.Action()
 }
 
 type bookmark struct {

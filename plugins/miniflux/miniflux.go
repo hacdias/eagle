@@ -15,15 +15,22 @@ import (
 	miniflux "miniflux.app/v2/client"
 )
 
+var (
+	_ server.ActionPlugin  = &Miniflux{}
+	_ server.CronPlugin    = &Miniflux{}
+	_ server.HandlerPlugin = &Miniflux{}
+)
+
 func init() {
 	server.RegisterPlugin("miniflux", NewMiniflux)
 }
 
 type Miniflux struct {
-	core         *core.Core
-	client       *miniflux.Client
-	jsonFilename string
-	opmlFilename string
+	core             *core.Core
+	client           *miniflux.Client
+	jsonFilename     string
+	opmlFilename     string
+	redirectLocation string
 }
 
 func NewMiniflux(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
@@ -37,39 +44,31 @@ func NewMiniflux(co *core.Core, config map[string]interface{}) (server.Plugin, e
 		return nil, errors.New("miniflux key missing")
 	}
 
-	filename := typed.New(config).String("filename")
-	if filename == "" {
+	jsonFilename := typed.New(config).String("filename")
+	if jsonFilename == "" {
 		return nil, errors.New("miniflux filename missing")
 	}
 
+	opmlFilename := typed.New(config).String("opml")
+	redirectLocation := ""
+	if strings.HasPrefix(opmlFilename, core.ContentDirectory) {
+		redirectLocation = strings.TrimPrefix(opmlFilename, core.ContentDirectory)
+	}
+
 	return &Miniflux{
-		core:         co,
-		client:       miniflux.New(endpoint, key),
-		jsonFilename: filename,
-		opmlFilename: typed.New(config).String("opml"),
+		core:             co,
+		client:           miniflux.New(endpoint, key),
+		jsonFilename:     jsonFilename,
+		opmlFilename:     opmlFilename,
+		redirectLocation: redirectLocation,
 	}, nil
 }
 
-func (mf *Miniflux) GetAction() (string, func() error) {
-	return "Update Miniflux Blogroll", mf.Execute
+func (mf *Miniflux) ActionName() string {
+	return "Update Miniflux Blogroll"
 }
 
-func (mf *Miniflux) GetDailyCron() func() error {
-	return mf.Execute
-}
-
-func (mf *Miniflux) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
-	if strings.HasPrefix(mf.opmlFilename, core.ContentDirectory) {
-		location := strings.TrimPrefix(mf.opmlFilename, core.ContentDirectory)
-		return wellKnownRecommendationsPath, func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, location, http.StatusFound)
-		}
-	}
-
-	return "", nil
-}
-
-func (u *Miniflux) Execute() error {
+func (u *Miniflux) Action() error {
 	newFeeds, err := u.fetch()
 	if err != nil {
 		return err
@@ -104,6 +103,22 @@ func (u *Miniflux) Execute() error {
 	}
 
 	return u.core.WriteFiles(files, "blogroll: synchronize with miniflux")
+}
+
+func (mf *Miniflux) DailyCron() error {
+	return mf.Action()
+}
+
+func (mf *Miniflux) HandlerRoute() string {
+	return wellKnownRecommendationsPath
+}
+
+func (mf *Miniflux) Handler(w http.ResponseWriter, r *http.Request, utils *server.PluginWebUtilities) {
+	if mf.redirectLocation != "" {
+		http.Redirect(w, r, mf.redirectLocation, http.StatusFound)
+	} else {
+		utils.ErrorHTML(w, r, http.StatusNotFound, nil)
+	}
 }
 
 type feed struct {

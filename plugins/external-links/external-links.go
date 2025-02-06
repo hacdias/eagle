@@ -1,4 +1,4 @@
-package linkding
+package externallinks
 
 import (
 	"errors"
@@ -13,6 +13,12 @@ import (
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 	"golang.org/x/net/publicsuffix"
+)
+
+var (
+	_ server.ActionPlugin  = &ExternalLinks{}
+	_ server.CronPlugin    = &ExternalLinks{}
+	_ server.HandlerPlugin = &ExternalLinks{}
 )
 
 func init() {
@@ -50,24 +56,30 @@ func NewExternalLinks(co *core.Core, config map[string]interface{}) (server.Plug
 	return el, nil
 }
 
-func (el *ExternalLinks) GetAction() (string, func() error) {
-	return "Update External Links", el.UpdateExternalLinks
+func (el *ExternalLinks) ActionName() string {
+	return "Update External Links"
 }
 
-func (el *ExternalLinks) GetDailyCron() func() error {
-	return el.UpdateExternalLinks
+func (el *ExternalLinks) Action() error {
+	return el.UpdateExternalLinks()
 }
 
-func (el *ExternalLinks) GetWebHandler(utils *server.PluginWebUtilities) (string, http.HandlerFunc) {
-	return wellKnownLinksPath, func(w http.ResponseWriter, r *http.Request) {
-		domain := r.URL.Query().Get("domain")
-		if domain == "" {
-			utils.JSON(w, http.StatusOK, el.links)
-		} else if v, ok := el.linksMap[domain]; ok {
-			utils.JSON(w, http.StatusOK, v)
-		} else {
-			utils.ErrorHTML(w, r, http.StatusNotFound, nil)
-		}
+func (el *ExternalLinks) DailyCron() error {
+	return el.UpdateExternalLinks()
+}
+
+func (el *ExternalLinks) HandlerRoute() string {
+	return wellKnownLinksPath
+}
+
+func (el *ExternalLinks) Handler(w http.ResponseWriter, r *http.Request, utils *server.PluginWebUtilities) {
+	domain := r.URL.Query().Get("domain")
+	if domain == "" {
+		utils.JSON(w, http.StatusOK, el.links)
+	} else if v, ok := el.linksMap[domain]; ok {
+		utils.JSON(w, http.StatusOK, v)
+	} else {
+		utils.ErrorHTML(w, r, http.StatusNotFound, nil)
 	}
 }
 

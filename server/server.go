@@ -47,13 +47,12 @@ type Server struct {
 	n core.Notifier
 	c *core.Config
 
-	log      *zap.SugaredLogger
-	ias      *indieauth.Server
-	jwtAuth  *jwtauth.JWTAuth
-	actions  map[string]func() error
-	plugins  map[string]Plugin
-	cron     *cron.Cron
-	cronJobs []func() error
+	log     *zap.SugaredLogger
+	ias     *indieauth.Server
+	jwtAuth *jwtauth.JWTAuth
+	actions map[string]func() error
+	plugins map[string]Plugin
+	cron    *cron.Cron
 
 	redirects map[string]string
 	gone      map[string]bool
@@ -85,8 +84,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		jwtAuth: jwtauth.New("HS256", []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))), nil),
 		actions: map[string]func() error{},
 
-		cron:     cron.New(),
-		cronJobs: []func() error{},
+		cron: cron.New(),
 
 		redirects: map[string]string{},
 		gone:      map[string]bool{},

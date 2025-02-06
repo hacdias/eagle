@@ -25,10 +25,20 @@ func (u *PluginWebUtilities) ErrorHTML(w http.ResponseWriter, r *http.Request, c
 	u.s.serveErrorHTML(w, r, code, reqErr)
 }
 
-type Plugin interface {
-	GetWebHandler(utils *PluginWebUtilities) (string, http.HandlerFunc)
-	GetAction() (string, func() error)
-	GetDailyCron() func() error
+type Plugin = any
+
+type ActionPlugin interface {
+	ActionName() string
+	Action() error
+}
+
+type HandlerPlugin interface {
+	HandlerRoute() string
+	Handler(http.ResponseWriter, *http.Request, *PluginWebUtilities)
+}
+
+type CronPlugin interface {
+	DailyCron() error
 }
 
 var (
@@ -37,7 +47,7 @@ var (
 
 func RegisterPlugin(name string, pluginInitializer PluginInitializer) {
 	if _, ok := pluginRegistry[name]; ok {
-		panic(fmt.Sprintf("plugin with name  '%q' is already registered", name))
+		panic(fmt.Sprintf("plugin '%q' is already registered", name))
 	}
 
 	pluginRegistry[name] = pluginInitializer

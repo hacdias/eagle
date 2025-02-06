@@ -113,18 +113,23 @@ func (s *Server) initActions() error {
 		"Reload Gone":      s.loadGone,
 	}
 
-	for _, plugin := range s.plugins {
-		name, action := plugin.GetAction()
-		if name == "" || action == nil {
+	for pluginName, plugin := range s.plugins {
+		actionPlugin, ok := plugin.(ActionPlugin)
+		if !ok {
 			continue
 		}
 
-		if _, ok := actions[name]; ok {
-			return fmt.Errorf("action %s already registered", name)
+		actionName := actionPlugin.ActionName()
+		if actionName == "" {
+			return fmt.Errorf("plugin %s has no action name", pluginName)
 		}
 
-		actions[name] = func() error {
-			err := action()
+		if _, ok := actions[actionName]; ok {
+			return fmt.Errorf("action %s already registered", actionName)
+		}
+
+		actions[actionName] = func() error {
+			err := actionPlugin.Action()
 			if err != nil {
 				return err
 			}
@@ -139,16 +144,13 @@ func (s *Server) initActions() error {
 func (s *Server) initCron() error {
 	_, err := s.cron.AddFunc("00 05 * * *", func() {
 		for name, plugin := range s.plugins {
-			if job := plugin.GetDailyCron(); job != nil {
-				if err := job(); err != nil {
-					s.n.Error(fmt.Errorf("cron job (plugin %s): %w", name, err))
-				}
+			cronPlugin, ok := plugin.(CronPlugin)
+			if !ok {
+				continue
 			}
-		}
 
-		for _, job := range s.cronJobs {
-			if err := job(); err != nil {
-				s.n.Error(fmt.Errorf("cron job: %w", err))
+			if err := cronPlugin.DailyCron(); err != nil {
+				s.n.Error(fmt.Errorf("cron job (plugin %s): %w", name, err))
 			}
 		}
 

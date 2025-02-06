@@ -108,10 +108,14 @@ func (s *Server) makeRouter() http.Handler {
 	// Plugin Pages
 	utilities := &PluginWebUtilities{s: s}
 	for _, plugin := range s.plugins {
-		route, handler := plugin.GetWebHandler(utilities)
-		if route != "" {
-			r.HandleFunc(route, handler)
+		handlerPlugin, ok := plugin.(HandlerPlugin)
+		if !ok {
+			continue
 		}
+
+		r.HandleFunc(handlerPlugin.HandlerRoute(), func(w http.ResponseWriter, r *http.Request) {
+			handlerPlugin.Handler(w, r, utilities)
+		})
 	}
 
 	// Everything Bagel 🥯
