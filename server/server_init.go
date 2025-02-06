@@ -5,7 +5,9 @@ import (
 	"html/template"
 	"net/url"
 	"path/filepath"
+	"time"
 
+	"github.com/maypok86/otter"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/services/bunny"
@@ -33,6 +35,17 @@ func initMedia(c *core.Config) *media.Media {
 	return nil
 }
 
+func (s *Server) initMediaCache() error {
+	cache, err := otter.MustBuilder[string, []byte](1e8).
+		WithTTL(time.Hour).
+		Cost(func(key string, value []byte) uint32 {
+			return uint32(len(value))
+		}).
+		Build()
+
+	s.mediaCache = &cache
+	return err
+}
 func (s *Server) initNotifier() error {
 	var err error
 	if s.c.Notifications.Telegram != nil {

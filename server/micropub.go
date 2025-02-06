@@ -1,10 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -55,6 +57,10 @@ func (s *Server) makeMicropub() http.Handler {
 
 			return taxons
 		}))
+	}
+
+	if s.media != nil {
+		options = append(options, micropub.WithMediaEndpoint(s.c.AbsoluteURL(micropubMediaPath)))
 	}
 
 	return micropub.NewHandler(&micropubServer{s: s}, options...)
@@ -380,6 +386,11 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		}
 	}
 
+	err := m.updateEntryWithPhotos(e, properties)
+	if err != nil {
+		return err
+	}
+
 	for _, k := range m.s.c.Micropub.Properties {
 		if v, ok := properties[k]; ok {
 			e.Other[k] = v
@@ -391,6 +402,69 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 	if len(keys) > 0 {
 		return fmt.Errorf("unknown keys: %s", strings.Join(keys, ", "))
 	}
+
+	return nil
+}
+
+func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.Typed) error {
+	parts := strings.Split(strings.TrimSuffix(e.ID, "/"), "/")
+	slug := parts[len(parts)-1]
+	prefix := fmt.Sprintf("%04d-%02d-%s", e.Date.Year(), e.Date.Month(), slug)
+
+	photoUrls := []string{}
+	photoData := map[string][]byte{}
+
+	if url, ok := properties.StringIf("photo"); ok {
+		data, ok := m.s.mediaCache.Get(url)
+		if !ok {
+			return fmt.Errorf("photo %q not found in cache", url)
+		}
+
+		photoUrls = append(photoUrls, url)
+		photoData[url] = data
+		m.s.mediaCache.Delete(url)
+
+		delete(properties, "photo")
+	} else if photos, ok := properties.StringsIf("photo"); ok {
+		for _, url := range photos {
+			data, ok := m.s.mediaCache.Get(url)
+			if !ok {
+				return fmt.Errorf("photo %q not found in cache", url)
+			}
+
+			photoUrls = append(photoUrls, url)
+			photoData[url] = data
+			m.s.mediaCache.Delete(url)
+		}
+
+		delete(properties, "photo")
+	}
+
+	if len(photoUrls) == 0 {
+		return nil
+	}
+
+	photos := []any{}
+
+	for i, url := range photoUrls {
+		data := photoData[url]
+		filename := prefix
+		if len(photoUrls) > 1 {
+			filename += fmt.Sprintf("-%02d", i+1)
+		}
+
+		ext := filepath.Ext(url)
+		cdnUrl, err := m.s.media.UploadMedia(filename, ext, bytes.NewBuffer(data))
+		if err != nil {
+			return fmt.Errorf("failed to upload photo: %w", err)
+		}
+
+		photos = append(photos, map[string]string{
+			"url": cdnUrl,
+		})
+	}
+
+	e.Other["photos"] = photos
 
 	return nil
 }

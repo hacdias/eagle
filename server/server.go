@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/maypok86/otter"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
@@ -62,8 +63,11 @@ type Server struct {
 	onionAddress string
 	meilisearch  *meilisearch.MeiliSearch
 	core         *core.Core
-	media        *media.Media
-	bolt         *database.Database
+
+	media      *media.Media
+	mediaCache *otter.Cache[string, []byte]
+
+	bolt *database.Database
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -97,6 +101,7 @@ func NewServer(c *core.Config) (*Server, error) {
 	co.BuildHook = s.buildHook
 
 	err = errors.Join(
+		s.initMediaCache(),
 		s.initNotifier(),
 		s.initTemplates(),
 		s.initBolt(),

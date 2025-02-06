@@ -97,6 +97,9 @@ func (s *Server) makeRouter() http.Handler {
 		// Micropub
 		if s.c.Micropub != nil {
 			r.Handle(micropubPath, s.makeMicropub())
+			if s.media != nil {
+				r.Handle(micropubMediaPath, s.makeMicropubMedia())
+			}
 		}
 	})
 
