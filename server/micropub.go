@@ -246,20 +246,20 @@ func webArchive(url string) (string, error) {
 func (m *micropubServer) asyncWebArchiveBookmark(id, url string) {
 	location, err := webArchive(url)
 	if err != nil {
-		m.s.log.Infow("failed web archive", err)
+		m.s.log.Warnw("failed web archive", "err", err)
 		return
 	}
 
 	e, err := m.s.core.GetEntry(id)
 	if err != nil {
-		m.s.log.Infow("failed to get entry", err)
+		m.s.log.Warnw("failed to get entry", "id", id, "err", err)
 		return
 	}
 
 	e.Other["wa-bookmark-of"] = location
 	err = m.s.core.SaveEntry(e)
 	if err != nil {
-		m.s.log.Infow("failed save entry", err)
+		m.s.log.Warnw("failed save entry", "id", e.ID, "err", err)
 	}
 }
 
@@ -270,7 +270,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 		if syndicator, ok := m.s.syndicators[syndicateTarget]; ok {
 			syndication, removed, err := syndicator.Syndicate(context.Background(), e)
 			if err != nil {
-				m.s.log.Infow("failed to syndicate", "target", syndicateTarget, "err", err)
+				m.s.log.Warnw("failed to syndicate", "target", syndicateTarget, "err", err)
 				continue
 			}
 
@@ -285,7 +285,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 	e.Other["syndication"] = lo.Uniq(syndications)
 	err := m.s.core.SaveEntry(e)
 	if err != nil {
-		m.s.log.Infow("failed save entry", err)
+		m.s.log.Warnw("failed save entry", "id", e.ID, "err", err)
 	}
 }
 
