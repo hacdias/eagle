@@ -48,9 +48,14 @@ func (wa *WebArchive) PreSaveHook(*core.Entry) error {
 func (wa *WebArchive) PostSaveHook(e *core.Entry) error {
 	var errs error
 
+	other := typed.New(e.Other)
 	for _, field := range wa.fields {
-		url := typed.Typed(e.Other).String(field)
+		url := other.String(field)
 		if url == "" {
+			continue
+		}
+
+		if archived := other.String("wa-" + field); archived != "" {
 			continue
 		}
 
