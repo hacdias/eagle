@@ -113,3 +113,16 @@ plugins:
   external-links:
     filename: "data/external-links.json"
     ignored: ['domain.com', 'example.com']
+
+  # Optional Mastodon integration for post syndication.
+  mastodon:
+    server: yourServerUrl
+    clientKey: yourClientKey
+    clientSecret: yourClientSecret
+    accessToken: yourAccessToken
+
+  # Optional WebArchive integration.
+  webarchive:
+    # Which fields should be archived. It is either a string with @all or
+    # an array with the list of fields. @all is equivalent to [bookmark-of].
+    fields: "@all"
