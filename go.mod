@@ -12,6 +12,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.1.3
+	github.com/mattn/go-mastodon v0.0.10-0.20250117145019-7315f12d2af8
 	github.com/maypok86/otter v1.2.4
 	github.com/meilisearch/meilisearch-go v0.30.0
 	github.com/microcosm-cc/bluemonday v1.0.27
@@ -23,7 +24,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/writeas/go-strip-markdown/v2 v2.1.1
 	go.etcd.io/bbolt v1.3.11
-	go.hacdias.com/indielib v0.4.1
+	go.hacdias.com/indielib v0.4.3
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.32.0
 	golang.org/x/net v0.34.0
@@ -45,6 +46,7 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -66,9 +68,10 @@ require (
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c // indirect
-	golang.org/x/oauth2 v0.25.0 // indirect
+	golang.org/x/oauth2 v0.26.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
