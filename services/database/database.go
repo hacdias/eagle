@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	bolt "go.etcd.io/bbolt"
+	bolterrors "go.etcd.io/bbolt/errors"
 	"go.hacdias.com/eagle/core"
 )
 
@@ -203,7 +204,7 @@ func (b *Database) DeleteTaxonomy(ctx context.Context, taxonomy string, taxons .
 func (b *Database) ResetTaxonomies(ctx context.Context) error {
 	return b.db.Update(func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket([]byte("taxonomies"))
-		if errors.Is(err, bolt.ErrBucketNotFound) {
+		if errors.Is(err, bolterrors.ErrBucketNotFound) {
 			return nil
 		}
 		return err
