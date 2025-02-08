@@ -29,13 +29,13 @@ type Pagination struct {
 	Limit int
 }
 
-type MeiliSearch struct {
+type Meilisearch struct {
 	client     meilisearch.ServiceManager
 	taxonomies []string
 	core       *core.Core
 }
 
-func NewMeiliSearch(host, key string, taxonomies []string, co *core.Core) (*MeiliSearch, error) {
+func NewMeilisearch(host, key string, taxonomies []string, co *core.Core) (*Meilisearch, error) {
 	client := meilisearch.New(host, meilisearch.WithAPIKey(key))
 
 	indexes, err := client.ListIndexes(nil)
@@ -66,19 +66,19 @@ func NewMeiliSearch(host, key string, taxonomies []string, co *core.Core) (*Meil
 		return nil, err
 	}
 
-	return &MeiliSearch{
+	return &Meilisearch{
 		client:     client,
 		core:       co,
 		taxonomies: taxonomies,
 	}, nil
 }
 
-func (ms *MeiliSearch) ResetIndex() error {
+func (ms *Meilisearch) ResetIndex() error {
 	_, err := ms.client.Index(searchIndex).DeleteAllDocuments()
 	return err
 }
 
-func (ms *MeiliSearch) Add(ee ...*core.Entry) error {
+func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 	docs := []interface{}{}
 
 	for _, e := range ee {
@@ -104,12 +104,12 @@ func (ms *MeiliSearch) Add(ee ...*core.Entry) error {
 	return err
 }
 
-func (ms *MeiliSearch) Remove(ids ...string) error {
+func (ms *Meilisearch) Remove(ids ...string) error {
 	_, err := ms.client.Index(searchIndex).DeleteDocuments(ids)
 	return err
 }
 
-func (ms *MeiliSearch) Search(page, limit int64, query string) (core.Entries, error) {
+func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, error) {
 	req := &meilisearch.SearchRequest{
 		CropLength: 200,
 		Limit:      limit,

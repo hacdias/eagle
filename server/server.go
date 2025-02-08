@@ -48,12 +48,13 @@ type Server struct {
 	n core.Notifier
 	c *core.Config
 
-	log     *zap.SugaredLogger
-	ias     *indieauth.Server
-	jwtAuth *jwtauth.JWTAuth
-	actions map[string]func() error
-	plugins map[string]Plugin
-	cron    *cron.Cron
+	log         *zap.SugaredLogger
+	ias         *indieauth.Server
+	jwtAuth     *jwtauth.JWTAuth
+	actions     map[string]func() error
+	plugins     map[string]Plugin
+	syndicators map[string]SyndicationPlugin
+	cron        *cron.Cron
 
 	redirects map[string]string
 	gone      map[string]bool
@@ -61,7 +62,7 @@ type Server struct {
 	serversMu    sync.Mutex
 	servers      map[string]*http.Server
 	onionAddress string
-	meilisearch  *meilisearch.MeiliSearch
+	meilisearch  *meilisearch.Meilisearch
 	core         *core.Core
 
 	media      *media.Media
@@ -105,12 +106,13 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initNotifier(),
 		s.initTemplates(),
 		s.initBolt(),
-		s.initMeiliSearch(),
+		s.initMeilisearch(),
 		s.initPlugins(),
+		s.initSyndicators(),
 		s.initActions(),
+		s.initCron(),
 		s.loadRedirects(),
 		s.loadGone(),
-		s.initCron(),
 	)
 
 	return s, err

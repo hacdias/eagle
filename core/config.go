@@ -51,7 +51,7 @@ type ServerConfig struct {
 	Micropub      *Micropub
 	Notifications Notifications
 	BunnyCDN      *BunnyCDN
-	MeiliSearch   *MeiliSearch
+	Meilisearch   *Meilisearch
 	ImgProxy      *ImgProxy
 	Plugins       map[string]map[string]interface{}
 }
@@ -200,7 +200,7 @@ type BunnyCDN struct {
 	Base string
 }
 
-type MeiliSearch struct {
+type Meilisearch struct {
 	Endpoint   string
 	Key        string
 	Taxonomies []string

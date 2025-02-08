@@ -21,6 +21,39 @@ const (
 	micropubPath = "/micropub"
 )
 
+func (s *Server) getMicropubChannels() []micropub.Channel {
+	taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.ChannelsTaxonomy)
+	if err != nil {
+		s.log.Warnw("could not fetch channels taxonomy", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
+		return nil
+	}
+
+	return lo.Map(taxons, func(t string, _ int) micropub.Channel {
+		return micropub.Channel{
+			UID:  t,
+			Name: t,
+		}
+	})
+}
+
+func (s *Server) getMicropubCategories() []string {
+	taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.CategoriesTaxonomy)
+	if err != nil {
+		s.log.Warnw("could not fetch categories taxonomy", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
+		return nil
+	}
+
+	return taxons
+}
+
+func (s *Server) getMicropubSyndications() []micropub.Syndication {
+	syndications := []micropub.Syndication{}
+	for _, syndicator := range s.syndicators {
+		syndications = append(syndications, syndicator.Syndication())
+	}
+	return syndications
+}
+
 func (s *Server) makeMicropub() http.Handler {
 	var options []micropub.Option
 
@@ -31,39 +64,22 @@ func (s *Server) makeMicropub() http.Handler {
 	}
 
 	if s.c.Micropub.ChannelsTaxonomy != "" {
-		options = append(options, micropub.WithGetChannels(func() []micropub.Channel {
-			taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.ChannelsTaxonomy)
-			if err != nil {
-				s.log.Warnw("could not fetch channels taxonomy", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
-				return nil
-			}
-
-			return lo.Map(taxons, func(t string, _ int) micropub.Channel {
-				return micropub.Channel{
-					UID:  t,
-					Name: t,
-				}
-			})
-		}))
+		options = append(options, micropub.WithGetChannels(s.getMicropubChannels))
 	}
 
 	if s.c.Micropub.CategoriesTaxonomy != "" {
-		options = append(options, micropub.WithGetCategories(func() []string {
-			taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.CategoriesTaxonomy)
-			if err != nil {
-				s.log.Warnw("could not fetch categories taxonomy", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
-				return nil
-			}
-
-			return taxons
-		}))
+		options = append(options, micropub.WithGetCategories(s.getMicropubCategories))
 	}
 
 	if s.media != nil {
 		options = append(options, micropub.WithMediaEndpoint(s.c.AbsoluteURL(micropubMediaPath)))
 	}
 
-	return micropub.NewHandler(&micropubServer{s: s}, options...)
+	options = append(options, micropub.WithGetSyndicateTo(s.getMicropubSyndications))
+
+	return micropub.NewHandler(&micropubServer{
+		s: s,
+	}, options...)
 }
 
 type micropubServer struct {
@@ -122,12 +138,21 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 		e.Other[m.s.c.Micropub.ChannelsTaxonomy] = taxons
 	}
 
+	syndicateTo := []string{}
+	if syndicators, ok := req.Commands["syndicate-to"]; ok {
+		for _, ch := range syndicators {
+			if v, ok := ch.(string); ok {
+				syndicateTo = append(syndicateTo, v)
+			}
+		}
+	}
+
 	err = m.s.core.SaveEntry(e)
 	if err != nil {
 		return "", err
 	}
 
-	go m.postRunActions(e, false, nil)
+	go m.postRunActions(e, false, syndicateTo, nil)
 	return e.Permalink, nil
 }
 
@@ -187,7 +212,8 @@ func (m *micropubServer) updateWithPostRun(permalink string, clean bool, update 
 		return err
 	}
 
-	go m.postRunActions(e, clean, targets)
+	// TODO: syndications
+	go m.postRunActions(e, clean, nil, targets)
 	return nil
 }
 
@@ -235,12 +261,40 @@ func (m *micropubServer) asyncWebArchiveBookmark(id, url string) {
 	}
 }
 
-func (m *micropubServer) postRunActions(e *core.Entry, cleanBuild bool, oldTargets []string) {
+func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
+	syndications := typed.New(e.Other).Strings("syndications")
+
+	for _, syndicateTarget := range syndicators {
+		if syndicator, ok := m.s.syndicators[syndicateTarget]; ok {
+			syndication, removed, err := syndicator.Syndicate(context.Background(), e)
+			if err != nil {
+				m.s.log.Infow("failed to syndicate", "target", syndicateTarget, "err", err)
+				continue
+			}
+
+			if removed {
+				syndications = lo.Without(syndications, syndication)
+			} else {
+				syndications = append(syndications, syndication)
+			}
+		}
+	}
+
+	e.Other["syndication"] = lo.Uniq(syndications)
+	err := m.s.core.SaveEntry(e)
+	if err != nil {
+		m.s.log.Infow("failed save entry", err)
+	}
+}
+
+func (m *micropubServer) postRunActions(e *core.Entry, cleanBuild bool, syndicateTo []string, oldTargets []string) {
 	var err error
 
 	if bm := typed.Typed(e.Other).String("bookmark-of"); bm != "" {
 		go m.asyncWebArchiveBookmark(e.ID, bm)
 	}
+
+	m.syndicate(e, syndicateTo)
 
 	if m.s.meilisearch != nil {
 		if e.Deleted() {

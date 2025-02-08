@@ -46,6 +46,7 @@ func (s *Server) initMediaCache() error {
 	s.mediaCache = &cache
 	return err
 }
+
 func (s *Server) initNotifier() error {
 	var err error
 	if s.c.Notifications.Telegram != nil {
@@ -83,10 +84,10 @@ func (s *Server) initBolt() error {
 	return err
 }
 
-func (s *Server) initMeiliSearch() error {
+func (s *Server) initMeilisearch() error {
 	var err error
-	if s.c.MeiliSearch != nil {
-		s.meilisearch, err = meilisearch.NewMeiliSearch(s.c.MeiliSearch.Endpoint, s.c.MeiliSearch.Key, s.c.MeiliSearch.Taxonomies, s.core)
+	if s.c.Meilisearch != nil {
+		s.meilisearch, err = meilisearch.NewMeilisearch(s.c.Meilisearch.Endpoint, s.c.Meilisearch.Key, s.c.Meilisearch.Taxonomies, s.core)
 	}
 	return err
 }
@@ -102,6 +103,20 @@ func (s *Server) initPlugins() error {
 			}
 			s.plugins[pluginName] = plugin
 		}
+	}
+	return nil
+}
+
+func (s *Server) initSyndicators() error {
+	s.syndicators = map[string]SyndicationPlugin{}
+	for _, plugin := range s.plugins {
+		syndicationPlugin, ok := plugin.(SyndicationPlugin)
+		if !ok {
+			continue
+		}
+
+		config := syndicationPlugin.Syndication()
+		s.syndicators[config.UID] = syndicationPlugin
 	}
 	return nil
 }

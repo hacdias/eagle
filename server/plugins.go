@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/indielib/micropub"
 )
 
 type PluginInitializer func(co *core.Core, config map[string]interface{}) (Plugin, error)
@@ -39,6 +41,11 @@ type HandlerPlugin interface {
 
 type CronPlugin interface {
 	DailyCron() error
+}
+
+type SyndicationPlugin interface {
+	Syndication() micropub.Syndication
+	Syndicate(ctx context.Context, e *core.Entry) (syndication string, removed bool, err error)
 }
 
 var (
