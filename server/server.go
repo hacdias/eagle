@@ -376,6 +376,8 @@ func (s *Server) syncStorage() {
 
 	s.buildNotify(buildClean)
 
+	// TODO: smh call postSave here
+
 	// After building, send webmentions with new information and old links.
 	// This is a best effort to send webmentions to deleted links. Only works
 	// with deletions that use expiryDate.

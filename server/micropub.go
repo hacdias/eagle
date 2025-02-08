@@ -20,6 +20,8 @@ import (
 
 const (
 	micropubPath = "/micropub"
+
+	SyndicationField = "syndication"
 )
 
 func (s *Server) getMicropubChannels() []micropub.Channel {
@@ -105,12 +107,7 @@ func (m *micropubServer) SourceMany(limit, offset int) ([]map[string]any, error)
 }
 
 func (m *micropubServer) Create(req *micropub.Request) (string, error) {
-	slug := ""
-	if slugs, ok := req.Commands["slug"]; ok {
-		if len(slugs) == 1 {
-			slug, _ = slugs[0].(string)
-		}
-	}
+	slug := getRequestSlug(req)
 	if slug == "" {
 		return "", fmt.Errorf("%w: mp-slug is missing", micropub.ErrBadRequest)
 	}
@@ -128,24 +125,12 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 	}
 
 	if m.s.c.Micropub.ChannelsTaxonomy != "" {
-		var taxons []string
-		if channels, ok := req.Commands["channel"]; ok {
-			for _, ch := range channels {
-				if v, ok := ch.(string); ok {
-					taxons = append(taxons, v)
-				}
-			}
-		}
-		e.Other[m.s.c.Micropub.ChannelsTaxonomy] = taxons
+		e.Other[m.s.c.Micropub.ChannelsTaxonomy], _ = getRequestChannels(req)
 	}
 
-	syndicateTo := []string{}
-	if syndicators, ok := req.Commands["syndicate-to"]; ok {
-		for _, ch := range syndicators {
-			if v, ok := ch.(string); ok {
-				syndicateTo = append(syndicateTo, v)
-			}
-		}
+	err = m.preSave(e)
+	if err != nil {
+		return "", err
 	}
 
 	err = m.s.core.SaveEntry(e)
@@ -153,16 +138,28 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 		return "", err
 	}
 
-	go m.postRunActions(e, false, syndicateTo, nil)
+	err = m.s.core.Build(false)
+	if err != nil {
+		return "", err
+	}
+
+	go m.postSave(e, req, nil)
 	return e.Permalink, nil
 }
 
 func (m *micropubServer) Update(req *micropub.Request) (string, error) {
-	return req.URL, m.updateWithPostRun(req.URL, false, func(e *core.Entry) (error, bool) {
+	return req.URL, m.update(req.URL, req, func(e *core.Entry) (error, bool) {
 		mf2 := m.entryToMF2(e)["properties"].(map[string][]any)
 		mf2, err := Update(mf2, req.Updates)
 		if err != nil {
 			return err, false
+		}
+
+		if m.s.c.Micropub.ChannelsTaxonomy != "" {
+			channels, set := getRequestChannels(req)
+			if set {
+				e.Other[m.s.c.Micropub.ChannelsTaxonomy] = channels
+			}
 		}
 
 		e.Lastmod = time.Now()
@@ -171,7 +168,7 @@ func (m *micropubServer) Update(req *micropub.Request) (string, error) {
 }
 
 func (m *micropubServer) Delete(url string) error {
-	return m.updateWithPostRun(url, true, func(e *core.Entry) (error, bool) {
+	return m.update(url, nil, func(e *core.Entry) (error, bool) {
 		if e.Deleted() {
 			return nil, false
 		}
@@ -182,7 +179,7 @@ func (m *micropubServer) Delete(url string) error {
 }
 
 func (m *micropubServer) Undelete(url string) error {
-	return m.updateWithPostRun(url, false, func(e *core.Entry) (error, bool) {
+	return m.update(url, nil, func(e *core.Entry) (error, bool) {
 		if !e.Deleted() {
 			return nil, false
 		}
@@ -192,7 +189,7 @@ func (m *micropubServer) Undelete(url string) error {
 	})
 }
 
-func (m *micropubServer) updateWithPostRun(permalink string, clean bool, update func(e *core.Entry) (error, bool)) error {
+func (m *micropubServer) update(permalink string, req *micropub.Request, update func(e *core.Entry) (error, bool)) error {
 	targets, _ := m.s.core.GetEntryLinks(permalink, true)
 
 	e, err := m.s.core.GetEntryFromPermalink(permalink)
@@ -200,13 +197,18 @@ func (m *micropubServer) updateWithPostRun(permalink string, clean bool, update 
 		return err
 	}
 
-	err, ok := update(e)
+	err, modified := update(e)
 	if err != nil {
 		return err
 	}
 
-	if !ok {
+	if !modified {
 		return nil
+	}
+
+	err = m.preSave(e)
+	if err != nil {
+		return err
 	}
 
 	err = m.s.core.SaveEntry(e)
@@ -214,8 +216,12 @@ func (m *micropubServer) updateWithPostRun(permalink string, clean bool, update 
 		return err
 	}
 
-	// TODO: syndications
-	go m.postRunActions(e, clean, nil, targets)
+	err = m.s.core.Build(e.Deleted())
+	if err != nil {
+		return err
+	}
+
+	go m.postSave(e, req, targets)
 	return nil
 }
 
@@ -264,13 +270,20 @@ func (m *micropubServer) asyncWebArchiveBookmark(id, url string) {
 }
 
 func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
-	syndications := typed.New(e.Other).Strings("syndications")
+	// Include syndicators that have already been used for this post
+	for name, syndicator := range m.s.syndicators {
+		if syndicator.IsSyndicated(e) {
+			syndicators = append(syndicators, name)
+		}
+	}
 
-	for _, syndicateTarget := range syndicators {
-		if syndicator, ok := m.s.syndicators[syndicateTarget]; ok {
+	// Do the actual syndication
+	syndications := typed.New(e.Other).Strings(SyndicationField)
+	for _, name := range syndicators {
+		if syndicator, ok := m.s.syndicators[name]; ok {
 			syndication, removed, err := syndicator.Syndicate(context.Background(), e)
 			if err != nil {
-				m.s.log.Warnw("failed to syndicate", "target", syndicateTarget, "err", err)
+				m.s.log.Warnw("failed to syndicate", "name", name, "err", err)
 				continue
 			}
 
@@ -282,23 +295,41 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 		}
 	}
 
-	e.Other["syndication"] = lo.Uniq(syndications)
+	syndications = lo.Uniq(syndications)
+	if len(syndications) == 0 {
+		delete(e.Other, SyndicationField)
+	} else {
+		e.Other[SyndicationField] = lo.Uniq(syndications)
+	}
+
 	err := m.s.core.SaveEntry(e)
 	if err != nil {
 		m.s.log.Warnw("failed save entry", "id", e.ID, "err", err)
 	}
 }
 
-func (m *micropubServer) postRunActions(e *core.Entry, cleanBuild bool, syndicateTo []string, oldTargets []string) {
-	var err error
+func (m *micropubServer) preSave(e *core.Entry) error {
+	// TODO: implement pre-save hooks.
+	return nil
+}
 
+func (m *micropubServer) postSave(e *core.Entry, req *micropub.Request, oldTargets []string) {
+	// Syndications
+	var syndicateTo []string
+	if req != nil {
+		syndicateTo, _ = getRequestSyndicateTo(req)
+	}
+	m.syndicate(e, syndicateTo)
+
+	// Post-save hooks
+	// TODO: implement post-save hooks (plugins). Make this a plugin.
 	if bm := typed.Typed(e.Other).String("bookmark-of"); bm != "" {
 		go m.asyncWebArchiveBookmark(e.ID, bm)
 	}
 
-	m.syndicate(e, syndicateTo)
-
+	// Search indexing
 	if m.s.meilisearch != nil {
+		var err error
 		if e.Deleted() {
 			err = m.s.meilisearch.Remove(e.ID)
 		} else {
@@ -309,15 +340,17 @@ func (m *micropubServer) postRunActions(e *core.Entry, cleanBuild bool, syndicat
 		}
 	}
 
-	m.s.buildNotify(cleanBuild)
+	// Rebuild
+	m.s.buildNotify(false)
 
+	// No further action for drafts or no webmentions
 	if e.Draft || e.NoWebmentions {
 		return
 	}
 
-	err = m.s.core.SendWebmentions(e.Permalink, oldTargets...)
+	err := m.s.core.SendWebmentions(e.Permalink, oldTargets...)
 	if err != nil {
-		m.s.n.Error(fmt.Errorf("meilisearch sync failed: %w", err))
+		m.s.n.Error(fmt.Errorf("sending webmentions failed: %w", err))
 	}
 }
 
@@ -361,6 +394,10 @@ func (m *micropubServer) entryToMF2(e *core.Entry) map[string]any {
 		if len(taxons) != 0 {
 			properties["category"] = e.Taxonomy(m.s.c.Micropub.CategoriesTaxonomy)
 		}
+	}
+
+	if m.s.c.Micropub.ChannelsTaxonomy != "" {
+		properties["mp-channel"] = e.Taxonomy(m.s.c.Micropub.ChannelsTaxonomy)
 	}
 
 	return Deflatten(map[string]interface{}{
@@ -469,7 +506,10 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		}
 	}
 
-	keys := lo.Keys(properties)
+	// Get remaining keys, except mp- commands
+	keys := lo.Filter(lo.Keys(properties), func(prop string, index int) bool {
+		return !strings.HasPrefix(prop, "mp-")
+	})
 	if len(keys) > 0 {
 		return fmt.Errorf("unknown keys: %s", strings.Join(keys, ", "))
 	}

@@ -45,7 +45,8 @@ type CronPlugin interface {
 
 type SyndicationPlugin interface {
 	Syndication() micropub.Syndication
-	Syndicate(ctx context.Context, e *core.Entry) (syndication string, removed bool, err error)
+	IsSyndicated(*core.Entry) bool
+	Syndicate(context.Context, *core.Entry) (syndication string, removed bool, err error)
 }
 
 var (
