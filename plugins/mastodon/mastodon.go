@@ -111,15 +111,23 @@ func (ld *Mastodon) Syndicate(ctx context.Context, e *core.Entry) (string, bool,
 		}
 	}
 
-	toot := mastodon.Toot{
-		Visibility: mastodon.VisibilityPublic,
+	textContent := e.TextContent()
+	addPermalink := false
+
+	if textContent == "" || len(textContent) >= 500 {
+		textContent = e.Title
+		addPermalink = true
+	} else if _, ok := e.Other["photos"]; ok {
+		addPermalink = true
 	}
 
-	textContent := e.TextContent()
-	if textContent != "" && len(textContent) < 500 {
-		toot.Status = textContent
-	} else {
-		toot.Status = fmt.Sprintf("%s\n\n%s\n", e.Title, e.Permalink)
+	if addPermalink {
+		textContent += "\n\n" + e.Permalink + "\n"
+	}
+
+	toot := mastodon.Toot{
+		Visibility: mastodon.VisibilityPublic,
+		Status:     textContent,
 	}
 
 	var status *mastodon.Status
