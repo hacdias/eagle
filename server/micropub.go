@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 
@@ -446,10 +447,25 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		return err
 	}
 
-	for _, k := range m.s.c.Micropub.Properties {
-		if v, ok := properties[k]; ok {
-			e.Other[k] = v
-			delete(properties, k)
+	for _, key := range m.s.c.Micropub.Properties {
+		// NOTE: this ensures that things that were arrays stay as arrays. However,
+		// I should probably improve this such that there is a list of properties
+		// to keep as arrays and others as non-arrays.
+		// Maybe indielib/microformats.propertyToType properties should always be
+		// single, the rest always arrays.
+		if newValue, ok := properties[key]; ok {
+			if oldValue, ok := e.Other[key]; ok {
+				oldKind := reflect.TypeOf(oldValue).Kind()
+				newKind := reflect.TypeOf(newValue).Kind()
+				if oldKind == reflect.Slice && newKind != reflect.Slice {
+					e.Other[key] = []any{newValue}
+				} else {
+					e.Other[key] = newValue
+				}
+			} else {
+				e.Other[key] = newValue
+			}
+			delete(properties, key)
 		}
 	}
 
