@@ -43,6 +43,11 @@ type CronPlugin interface {
 	DailyCron() error
 }
 
+type HookPlugin interface {
+	PreSaveHook(*core.Entry) error
+	PostSaveHook(*core.Entry) error
+}
+
 type SyndicationPlugin interface {
 	Syndication() micropub.Syndication
 	IsSyndicated(*core.Entry) bool

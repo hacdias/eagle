@@ -225,50 +225,6 @@ func (m *micropubServer) update(permalink string, req *micropub.Request, update 
 	return nil
 }
 
-func webArchive(url string) (string, error) {
-	client := http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
-	resp, err := client.Head("https://web.archive.org/save/" + url)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("status code not ok: %d", resp.StatusCode)
-	}
-
-	location, err := resp.Location()
-	if err != nil {
-		return "", err
-	}
-
-	return location.String(), nil
-}
-
-func (m *micropubServer) asyncWebArchiveBookmark(id, url string) {
-	location, err := webArchive(url)
-	if err != nil {
-		m.s.log.Warnw("failed web archive", "err", err)
-		return
-	}
-
-	e, err := m.s.core.GetEntry(id)
-	if err != nil {
-		m.s.log.Warnw("failed to get entry", "id", id, "err", err)
-		return
-	}
-
-	e.Other["wa-bookmark-of"] = location
-	err = m.s.core.SaveEntry(e)
-	if err != nil {
-		m.s.log.Warnw("failed save entry", "id", e.ID, "err", err)
-	}
-}
-
 func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 	// Include syndicators that have already been used for this post
 	for name, syndicator := range m.s.syndicators {
@@ -309,7 +265,18 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 }
 
 func (m *micropubServer) preSave(e *core.Entry) error {
-	// TODO: implement pre-save hooks.
+	for name, plugin := range m.s.plugins {
+		hookPlugin, ok := plugin.(HookPlugin)
+		if !ok {
+			continue
+		}
+
+		err := hookPlugin.PreSaveHook(e)
+		if err != nil {
+			return fmt.Errorf("plugin %s error: %w", name, err)
+		}
+	}
+
 	return nil
 }
 
@@ -322,9 +289,16 @@ func (m *micropubServer) postSave(e *core.Entry, req *micropub.Request, oldTarge
 	m.syndicate(e, syndicateTo)
 
 	// Post-save hooks
-	// TODO: implement post-save hooks (plugins). Make this a plugin.
-	if bm := typed.Typed(e.Other).String("bookmark-of"); bm != "" {
-		go m.asyncWebArchiveBookmark(e.ID, bm)
+	for name, plugin := range m.s.plugins {
+		hookPlugin, ok := plugin.(HookPlugin)
+		if !ok {
+			continue
+		}
+
+		err := hookPlugin.PostSaveHook(e)
+		if err != nil {
+			m.s.n.Error(fmt.Errorf("plugin %s post save hook failed sync failed: %w", name, err))
+		}
 	}
 
 	// Search indexing

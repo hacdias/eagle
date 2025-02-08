@@ -93,7 +93,6 @@ func (ld *Mastodon) getSyndication(e *core.Entry) (string, mastodon.ID, error) {
 
 func (ld *Mastodon) IsSyndicated(e *core.Entry) bool {
 	_, id, err := ld.getSyndication(e)
-	fmt.Println(id, err)
 	if err != nil {
 		return false
 	}
