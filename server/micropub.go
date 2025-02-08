@@ -164,6 +164,7 @@ func (m *micropubServer) Update(req *micropub.Request) (string, error) {
 			return err, false
 		}
 
+		e.Lastmod = time.Now()
 		return m.updateEntryWithProps(e, mf2), true
 	})
 }
