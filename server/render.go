@@ -70,7 +70,7 @@ func (s *Server) renderDocument(w http.ResponseWriter, r *http.Request, doc *goq
 	err := s.templates.ExecuteTemplate(&buf, template, data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.n.Error(fmt.Errorf("serving html: %w", err))
+		s.log.Errorw("failed to serve html", "url", r.URL.Path, "err", err)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (s *Server) renderDocument(w http.ResponseWriter, r *http.Request, doc *goq
 	html, err := doc.Html()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+		s.log.Errorw("failed to get document html", "url", r.URL.Path, "err", err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (s *Server) renderDocument(w http.ResponseWriter, r *http.Request, doc *goq
 	w.WriteHeader(code)
 	_, err = w.Write([]byte(html))
 	if err != nil {
-		s.n.Error(fmt.Errorf("serving html for %s: %w", r.URL.Path, err))
+		s.log.Errorw("failed to write html", "url", r.URL.Path, "err", err)
 	}
 }
 
@@ -111,7 +111,7 @@ func (s *Server) panelTemplate(w http.ResponseWriter, r *http.Request, code int,
 	w.WriteHeader(code)
 	err := panelTemplates.ExecuteTemplate(w, template, data)
 	if err != nil {
-		s.n.Error(fmt.Errorf("serving html: %w", err))
+		s.log.Errorw("failed to execute template", "url", r.URL.Path, "err", err)
 	}
 }
 
@@ -120,7 +120,7 @@ func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
-		s.n.Error(fmt.Errorf("serving html: %w", err))
+		s.log.Errorw("failed to write JSON", "err", err)
 	}
 }
 

@@ -113,7 +113,7 @@ func (m *Mastodon) uploadPhotos(ctx context.Context, photos []server.Photo) []ma
 
 		attachment, err := m.client.UploadMediaFromBytes(ctx, photo.Data)
 		if err != nil {
-			m.log.Warnw("photo upload failed", "err", err)
+			m.log.Warnw("photo upload failed", "mimetype", photo.MimeType, "err", err)
 			continue
 		}
 

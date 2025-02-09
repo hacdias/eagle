@@ -5,7 +5,6 @@ import (
 	"embed"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"html/template"
 	"net"
 	"net/http"
@@ -151,8 +150,7 @@ func (s *Server) Start() error {
 	if s.c.Tor {
 		err = s.startTor(errCh, router)
 		if err != nil {
-			err = fmt.Errorf("onion service failed to start: %w", err)
-			s.log.Error(err)
+			s.log.Errorw("onion service failed to start", "err", err)
 		}
 	}
 
@@ -233,20 +231,20 @@ func (s *Server) indexAll() {
 
 	entries, err := s.core.GetEntries(false)
 	if err != nil {
-		s.n.Error(err)
+		s.log.Errorw("failed to get entries", "err", err)
 		return
 	}
 
 	if s.meilisearch != nil {
 		err := s.meilisearch.ResetIndex()
 		if err != nil {
-			s.n.Error(err)
+			s.log.Errorw("failed to reset meilisearch index", "err", err)
 		}
 
 		start := time.Now()
 		err = s.meilisearch.Add(entries...)
 		if err != nil {
-			s.n.Error(err)
+			s.log.Errorw("failed to add to meilisearch index", "err", err)
 		}
 		s.log.Infof("meilisearch update took %dms", time.Since(start).Milliseconds())
 	}
@@ -254,7 +252,7 @@ func (s *Server) indexAll() {
 	if s.c.Micropub != nil {
 		err := s.bolt.ResetTaxonomies(context.Background())
 		if err != nil {
-			s.n.Error(err)
+			s.log.Errorw("failed to reset taxonomies", "err", err)
 		}
 
 		start := time.Now()
@@ -262,14 +260,14 @@ func (s *Server) indexAll() {
 		if s.c.Micropub.CategoriesTaxonomy != "" {
 			err = s.indexAllTaxonomies(entries, s.c.Micropub.CategoriesTaxonomy)
 			if err != nil {
-				s.n.Error(err)
+				s.log.Errorw("failed to index all taxonomies", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
 			}
 		}
 
 		if s.c.Micropub.ChannelsTaxonomy != "" {
 			err = s.indexAllTaxonomies(entries, s.c.Micropub.ChannelsTaxonomy)
 			if err != nil {
-				s.n.Error(err)
+				s.log.Errorw("failed to index all taxonomies", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
 			}
 		}
 
@@ -291,8 +289,7 @@ func (s *Server) withRecoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				err := fmt.Errorf("panic while serving: %v: %s", rvr, string(debug.Stack()))
-				s.n.Error(err)
+				s.log.Errorw("panic while serving", "rvr", rvr, "stack", string(debug.Stack()))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
@@ -329,7 +326,7 @@ func (s *Server) withSecurityHeaders(next http.Handler) http.Handler {
 func (s *Server) syncStorage() {
 	changedFiles, err := s.core.Sync()
 	if err != nil {
-		s.n.Error(fmt.Errorf("sync storage: %w", err))
+		s.log.Errorw("failed to sync storage", "err", err)
 		return
 	}
 
@@ -353,7 +350,7 @@ func (s *Server) syncStorage() {
 			buildClean = true
 			continue
 		} else if err != nil {
-			s.n.Error(fmt.Errorf("cannot open entry to update %s: %w", id, err))
+			s.log.Errorw("failed to open entry to update", "id", id, "err", err)
 			continue
 		} else {
 			ee = append(ee, e)
@@ -370,11 +367,11 @@ func (s *Server) syncStorage() {
 	if s.meilisearch != nil {
 		err = s.meilisearch.Add(ee...)
 		if err != nil {
-			s.n.Error(fmt.Errorf("meilisearch sync failed: %w", err))
+			s.log.Errorw("failed to add entries to meilisearch", "err", err)
 		}
 	}
 
-	s.buildNotify(buildClean)
+	s.build(buildClean)
 
 	// TODO: smh call postSave here
 
@@ -388,7 +385,7 @@ func (s *Server) syncStorage() {
 
 		err = s.core.SendWebmentions(e.Permalink, previousLinks[e.Permalink]...)
 		if err != nil {
-			s.n.Error(fmt.Errorf("send webmentions: %w", err))
+			s.log.Errorw("failed to send webmentions", "id", e.Permalink, "err", err)
 		}
 	}
 }
@@ -408,10 +405,10 @@ func idsFromChangedFiles(changedFiles []string) []string {
 	return ids
 }
 
-func (s *Server) buildNotify(clean bool) {
+func (s *Server) build(clean bool) {
 	err := s.core.Build(clean)
 	if err != nil {
-		s.n.Error(fmt.Errorf("build failed: %w", err))
+		s.log.Errorw("failed to build", "err", err)
 	}
 }
 
@@ -426,7 +423,7 @@ func (s *Server) buildHook(dir string) {
 	if oldFs != nil {
 		err := os.RemoveAll(oldFs.dir)
 		if err != nil {
-			s.n.Error(fmt.Errorf("could not delete old directory: %w", err))
+			s.log.Errorw("failed to delete old build directory", "path", oldFs.dir, "err", err)
 		}
 	}
 }

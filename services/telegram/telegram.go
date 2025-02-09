@@ -8,15 +8,15 @@ import (
 )
 
 type Telegram struct {
-	chat   int64
-	errLog *zap.SugaredLogger
-	bot    *tb.Bot
+	chat int64
+	log  *zap.SugaredLogger
+	bot  *tb.Bot
 }
 
 func NewTelegram(c *core.Telegram) (*Telegram, error) {
 	n := &Telegram{
-		chat:   c.ChatID,
-		errLog: log.S().Named("telegram"),
+		chat: c.ChatID,
+		log:  log.S().Named("telegram"),
 	}
 	bot, err := tb.NewBot(tb.Settings{Token: c.Token})
 	if err != nil {
@@ -27,26 +27,13 @@ func NewTelegram(c *core.Telegram) (*Telegram, error) {
 	return n, nil
 }
 
-func (n *Telegram) Info(msg string) {
+func (n *Telegram) Notify(msg string) {
 	_, err := n.bot.Send(&tb.Chat{ID: n.chat}, msg, &tb.SendOptions{
 		DisableWebPagePreview: true,
 		ParseMode:             tb.ModeDefault,
 	})
 
 	if err != nil {
-		n.errLog.Error(err)
-	}
-}
-
-func (n *Telegram) Error(err error) {
-	n.errLog.Error(err)
-
-	_, botErr := n.bot.Send(&tb.Chat{ID: n.chat}, "An error occurred:\n"+err.Error(), &tb.SendOptions{
-		DisableWebPagePreview: true,
-		ParseMode:             tb.ModeDefault,
-	})
-
-	if botErr != nil {
-		n.errLog.Error(err)
+		n.log.Error(err)
 	}
 }

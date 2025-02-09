@@ -100,7 +100,7 @@ func (m *Media) upload(filename, ext string, data []byte) (string, error) {
 	if isImage(ext) {
 		str, err := m.uploadImage(filename, data)
 		if err != nil {
-			m.log.Warnf("could not upload image: %s", err.Error())
+			m.log.Errorf("failed to upload image", "filename", filename, "ext", ext, "err", err)
 		} else {
 			return str, nil
 		}

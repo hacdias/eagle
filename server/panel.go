@@ -226,7 +226,7 @@ func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go s.buildNotify(false)
+	go s.build(false)
 	s.servePanel(w, r, data)
 }
 

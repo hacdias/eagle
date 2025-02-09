@@ -85,7 +85,7 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.n.Info(fmt.Sprintf("💬 #mention pending approval for %q", e.Permalink))
+	s.n.Notify(fmt.Sprintf("💬 #mention pending approval for %q", e.Permalink))
 	http.Redirect(w, r, s.c.Comments.Redirect, http.StatusSeeOther)
 }
 
@@ -102,7 +102,7 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		s.log.Warnf("error when decoding webmention: %s", err.Error())
+		s.log.Errorw("error decoding webmention", "err", err)
 		return
 	}
 
@@ -120,20 +120,16 @@ func (s *Server) handleWebmention(payload *webmentionPayload) {
 	s.log.Infow("received webmention", "webmention", payload)
 	e, err := s.core.GetEntryFromPermalink(payload.Target)
 	if err != nil {
-		err = fmt.Errorf("could not get entry for permalink %s: %w", payload.Target, err)
-		s.log.Errorf("webmention", err)
-		s.n.Error(err)
+		s.log.Errorw("failed to get entry for permalink", "target", payload.Target, "err", err)
 		return
 	}
 
 	if payload.Deleted {
 		err = s.core.DeleteWebmention(e.ID, payload.Source)
 		if err != nil {
-			err = fmt.Errorf("could not delete webmention for %s: %w", payload.Target, err)
-			s.log.Errorf("webmention", err)
-			s.n.Error(err)
+			s.log.Errorw("failed to delete webmention", "target", payload.Target, "err", err)
 		} else {
-			s.n.Info(fmt.Sprintf("💬 #mention deleted for %q: %q", e.Permalink, payload.Source))
+			s.n.Notify(fmt.Sprintf("💬 #mention deleted for %q: %q", e.Permalink, payload.Source))
 		}
 		return
 	}
@@ -149,10 +145,8 @@ func (s *Server) handleWebmention(payload *webmentionPayload) {
 
 	err = s.bolt.AddMention(context.Background(), mention)
 	if err != nil {
-		err = fmt.Errorf("could not add webmention for %s: %w", payload.Target, err)
-		s.log.Errorf("webmention", err)
-		s.n.Error(err)
+		s.log.Errorw("failed to add webmention", "target", payload.Target, "err", err)
 	} else {
-		s.n.Info(fmt.Sprintf("💬 #mention pending approval for %q: %q", e.Permalink, payload.Source))
+		s.n.Notify(fmt.Sprintf("💬 #mention pending approval for %q: %q", e.Permalink, payload.Source))
 	}
 }

@@ -8,14 +8,10 @@ type LogNotifier struct {
 
 func NewLogNotifier() *LogNotifier {
 	return &LogNotifier{
-		log: S().Named("notify"),
+		log: S().Named("notifier"),
 	}
 }
 
-func (n *LogNotifier) Info(msg string) {
+func (n *LogNotifier) Notify(msg string) {
 	n.log.Info(msg)
-}
-
-func (n *LogNotifier) Error(err error) {
-	n.log.Error(err)
 }

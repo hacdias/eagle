@@ -38,7 +38,7 @@ var rootCmd = &cobra.Command{
 			log.Info("starting server")
 			err := server.Start()
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Errorf("failed to start server: %s", err)
+				log.Errorw("failed to start server", "err", err)
 			}
 			quit <- os.Interrupt
 		}()

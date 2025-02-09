@@ -30,7 +30,7 @@ const (
 func (s *Server) getMicropubChannels() []micropub.Channel {
 	taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.ChannelsTaxonomy)
 	if err != nil {
-		s.log.Warnw("could not fetch channels taxonomy", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
+		s.log.Errorw("failed to fetch channels taxonomy", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
 		return nil
 	}
 
@@ -45,7 +45,7 @@ func (s *Server) getMicropubChannels() []micropub.Channel {
 func (s *Server) getMicropubCategories() []string {
 	taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.CategoriesTaxonomy)
 	if err != nil {
-		s.log.Warnw("could not fetch categories taxonomy", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
+		s.log.Errorw("failed to fetch categories taxonomy", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
 		return nil
 	}
 
@@ -279,7 +279,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 	// Get the photos to use during syndication
 	photos, err := m.getPhotos(e)
 	if err != nil {
-		m.s.log.Warnw("failed to get photos for syndication", "err", err)
+		m.s.log.Errorw("failed to get photos for syndication", "entry", e.ID, "err", err)
 		return
 	}
 
@@ -296,7 +296,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 		if syndicator, ok := m.s.syndicators[name]; ok {
 			syndication, removed, err := syndicator.Syndicate(context.Background(), e, photos)
 			if err != nil {
-				m.s.log.Warnw("failed to syndicate", "name", name, "err", err)
+				m.s.log.Errorw("failed to syndicate", "entry", e.ID, "syndicator", name, "err", err)
 				continue
 			}
 
@@ -317,7 +317,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 
 	err = m.s.core.SaveEntry(e)
 	if err != nil {
-		m.s.log.Warnw("failed save entry", "id", e.ID, "err", err)
+		m.s.log.Errorw("failed save entry", "id", e.ID, "err", err)
 	}
 }
 
@@ -354,7 +354,7 @@ func (m *micropubServer) postSave(e *core.Entry, req *micropub.Request, oldTarge
 
 		err := hookPlugin.PostSaveHook(e)
 		if err != nil {
-			m.s.n.Error(fmt.Errorf("plugin %s post save hook failed sync failed: %w", name, err))
+			m.s.log.Errorw("plugin post save hook failed", "plugin", name, "err", err)
 		}
 	}
 
@@ -367,12 +367,12 @@ func (m *micropubServer) postSave(e *core.Entry, req *micropub.Request, oldTarge
 			err = m.s.meilisearch.Add(e)
 		}
 		if err != nil {
-			m.s.n.Error(fmt.Errorf("meilisearch sync failed: %w", err))
+			m.s.log.Errorw("meilisearch sync failed", "err", err)
 		}
 	}
 
 	// Rebuild
-	m.s.buildNotify(false)
+	m.s.build(false)
 
 	// No further action for drafts or no webmentions
 	if e.Draft || e.NoWebmentions {
@@ -381,7 +381,7 @@ func (m *micropubServer) postSave(e *core.Entry, req *micropub.Request, oldTarge
 
 	err := m.s.core.SendWebmentions(e.Permalink, oldTargets...)
 	if err != nil {
-		m.s.n.Error(fmt.Errorf("sending webmentions failed: %w", err))
+		m.s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
 	}
 }
 

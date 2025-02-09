@@ -178,7 +178,7 @@ func (s *Server) initCron() error {
 			}
 
 			if err := cronPlugin.DailyCron(); err != nil {
-				s.n.Error(fmt.Errorf("cron job (plugin %s): %w", name, err))
+				s.log.Errorw("plugin cron job execution failed", "plugin", name, "err", err)
 			}
 		}
 
