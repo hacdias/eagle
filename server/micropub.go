@@ -231,17 +231,12 @@ func (m *micropubServer) update(permalink string, req *micropub.Request, update 
 func (m *micropubServer) getPhotos(e *core.Entry) ([]Photo, error) {
 	var photos []Photo
 
-	for i, photo := range typed.New(e.Other).Objects("photos") {
+	for i, photo := range e.Photos {
 		if i >= 4 {
 			break
 		}
 
-		photoUrl := photo.String("url")
-		if photoUrl == "" {
-			return nil, errors.New("photo has no url")
-		}
-
-		photoUrl, err := m.s.media.GetImageURL(photoUrl, media.FormatJPEG, media.Width1000)
+		photoUrl, err := m.s.media.GetImageURL(photo.URL, media.FormatJPEG, media.Width1000)
 		if err != nil {
 			return nil, err
 		}
@@ -420,6 +415,12 @@ func (m *micropubServer) entryToMF2(e *core.Entry) map[string]any {
 		properties["post-status"] = "published"
 	}
 
+	if len(e.Photos) > 0 {
+		properties["photo"] = lo.Map(e.Photos, func(p core.Photo, i int) string {
+			return p.URL
+		})
+	}
+
 	if m.s.c.Micropub.CategoriesTaxonomy != "" {
 		taxons := e.Taxonomy(m.s.c.Micropub.CategoriesTaxonomy)
 		if len(taxons) != 0 {
@@ -549,64 +550,82 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 }
 
 func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.Typed) error {
+	// Define prefix for the photos that will be uploaded
 	parts := strings.Split(strings.TrimSuffix(e.ID, "/"), "/")
 	slug := parts[len(parts)-1]
 	prefix := fmt.Sprintf("%04d-%02d-%s", e.Date.Year(), e.Date.Month(), slug)
 
-	photoUrls := []string{}
-	photoData := map[string][]byte{}
+	urls := []string{}
+	cachedData := map[string][]byte{}
 
 	if url, ok := properties.StringIf("photo"); ok {
-		data, ok := m.s.mediaCache.Get(url)
-		if !ok {
-			return fmt.Errorf("photo %q not found in cache", url)
-		}
-
-		photoUrls = append(photoUrls, url)
-		photoData[url] = data
-		m.s.mediaCache.Delete(url)
-
-		delete(properties, "photo")
-	} else if photos, ok := properties.StringsIf("photo"); ok {
-		for _, url := range photos {
+		if strings.HasPrefix(url, "cache:/") {
 			data, ok := m.s.mediaCache.Get(url)
 			if !ok {
 				return fmt.Errorf("photo %q not found in cache", url)
 			}
 
-			photoUrls = append(photoUrls, url)
-			photoData[url] = data
+			cachedData[url] = data
 			m.s.mediaCache.Delete(url)
+		}
+
+		urls = append(urls, url)
+		delete(properties, "photo")
+	} else if photos, ok := properties.StringsIf("photo"); ok {
+		for _, url := range photos {
+			if strings.HasPrefix(url, "cache:/") {
+				data, ok := m.s.mediaCache.Get(url)
+				if !ok {
+					return fmt.Errorf("photo %q not found in cache", url)
+				}
+
+				cachedData[url] = data
+				m.s.mediaCache.Delete(url)
+			}
+
+			urls = append(urls, url)
 		}
 
 		delete(properties, "photo")
 	}
 
-	if len(photoUrls) == 0 {
+	if len(urls) == 0 {
+		e.Photos = nil
 		return nil
 	}
 
-	photos := []any{}
+	// Get old titles
+	titles := lo.Reduce(e.Photos, func(t map[string]string, p core.Photo, i int) map[string]string {
+		t[p.Title] = p.URL
+		return t
+	}, map[string]string{})
 
-	for i, url := range photoUrls {
-		data := photoData[url]
-		filename := prefix
-		if len(photoUrls) > 1 {
-			filename += fmt.Sprintf("-%02d", i+1)
+	e.Photos = []core.Photo{}
+	for i, url := range urls {
+		data, isCached := cachedData[url]
+
+		if isCached {
+			filename := prefix
+			if len(urls) > 1 {
+				filename += fmt.Sprintf("-%02d", i+1)
+			}
+
+			ext := filepath.Ext(url)
+			cdnUrl, err := m.s.media.UploadMedia(filename, ext, bytes.NewBuffer(data))
+			if err != nil {
+				return fmt.Errorf("failed to upload photo: %w", err)
+			}
+
+			e.Photos = append(e.Photos, core.Photo{
+				URL: cdnUrl,
+			})
+		} else {
+			e.Photos = append(e.Photos, core.Photo{
+				URL:   url,
+				Title: titles[url],
+			})
 		}
-
-		ext := filepath.Ext(url)
-		cdnUrl, err := m.s.media.UploadMedia(filename, ext, bytes.NewBuffer(data))
-		if err != nil {
-			return fmt.Errorf("failed to upload photo: %w", err)
-		}
-
-		photos = append(photos, map[string]string{
-			"url": cdnUrl,
-		})
 	}
-
-	e.Other["photos"] = photos
 
 	return nil
 }

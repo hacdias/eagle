@@ -19,6 +19,12 @@ import (
 
 const moreSeparator = "<!--more-->"
 
+// TODO: update to match https://aaronparecki.com/2017/02/25/9/day-67-image-alt-text
+type Photo struct {
+	URL   string `yaml:"url,omitempty"`
+	Title string `yaml:"title,omitempty"`
+}
+
 type FrontMatter struct {
 	Title         string         `yaml:"title,omitempty"`
 	Description   string         `yaml:"description,omitempty"`
@@ -28,6 +34,7 @@ type FrontMatter struct {
 	ExpiryDate    time.Time      `yaml:"expiryDate,omitempty"`
 	NoIndex       bool           `yaml:"noIndex,omitempty"`
 	NoWebmentions bool           `yaml:"noWebmentions,omitempty"`
+	Photos        []Photo        `yaml:"photos,omitempty"`
 	Other         map[string]any `yaml:",inline"`
 }
 
@@ -38,7 +45,6 @@ type Entry struct {
 	Permalink    string
 	RelPermalink string
 	Content      string
-	// Photos       [][]byte
 }
 
 func (e *Entry) Deleted() bool {

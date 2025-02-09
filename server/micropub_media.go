@@ -43,7 +43,7 @@ func (s *Server) makeMicropubMedia() http.Handler {
 			ext = mime.Extension()
 		}
 
-		filename := fmt.Sprintf("cache://%x%s", sha256.Sum256(data), ext)
+		filename := fmt.Sprintf("cache:/%x%s", sha256.Sum256(data), ext)
 
 		added := s.mediaCache.Set(filename, data)
 		if !added {
