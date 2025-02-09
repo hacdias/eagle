@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"reflect"
@@ -12,9 +13,11 @@ import (
 	"time"
 
 	"github.com/araddon/dateparse"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/services/media"
 	"go.hacdias.com/indielib/micropub"
 )
 
@@ -225,7 +228,61 @@ func (m *micropubServer) update(permalink string, req *micropub.Request, update 
 	return nil
 }
 
+func (m *micropubServer) getPhotos(e *core.Entry) ([]Photo, error) {
+	var photos []Photo
+
+	for i, photo := range typed.New(e.Other).Objects("photos") {
+		if i >= 4 {
+			break
+		}
+
+		photoUrl := photo.String("url")
+		if photoUrl == "" {
+			return nil, errors.New("photo has no url")
+		}
+
+		photoUrl, err := m.s.media.GetImageURL(photoUrl, media.FormatJPEG, media.Width1000)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err := http.Get(photoUrl)
+		if err != nil {
+			return nil, err
+		}
+
+		data, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		err = res.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		mime := mimetype.Detect(data)
+		if mime == nil {
+			return nil, fmt.Errorf("cannot detect mimetype of %s", photo)
+		}
+
+		photos = append(photos, Photo{
+			Data:     data,
+			MimeType: mime.String(),
+		})
+	}
+
+	return photos, nil
+}
+
 func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
+	// Get the photos to use during syndication
+	photos, err := m.getPhotos(e)
+	if err != nil {
+		m.s.log.Warnw("failed to get photos for syndication", "err", err)
+		return
+	}
+
 	// Include syndicators that have already been used for this post
 	for name, syndicator := range m.s.syndicators {
 		if syndicator.IsSyndicated(e) {
@@ -237,7 +294,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 	syndications := typed.New(e.Other).Strings(SyndicationField)
 	for _, name := range syndicators {
 		if syndicator, ok := m.s.syndicators[name]; ok {
-			syndication, removed, err := syndicator.Syndicate(context.Background(), e)
+			syndication, removed, err := syndicator.Syndicate(context.Background(), e, photos)
 			if err != nil {
 				m.s.log.Warnw("failed to syndicate", "name", name, "err", err)
 				continue
@@ -258,7 +315,7 @@ func (m *micropubServer) syndicate(e *core.Entry, syndicators []string) {
 		e.Other[SyndicationField] = lo.Uniq(syndications)
 	}
 
-	err := m.s.core.SaveEntry(e)
+	err = m.s.core.SaveEntry(e)
 	if err != nil {
 		m.s.log.Warnw("failed save entry", "id", e.ID, "err", err)
 	}

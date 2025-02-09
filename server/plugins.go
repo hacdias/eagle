@@ -48,10 +48,15 @@ type HookPlugin interface {
 	PostSaveHook(*core.Entry) error
 }
 
+type Photo struct {
+	Data     []byte
+	MimeType string
+}
+
 type SyndicationPlugin interface {
 	Syndication() micropub.Syndication
 	IsSyndicated(*core.Entry) bool
-	Syndicate(context.Context, *core.Entry) (syndication string, removed bool, err error)
+	Syndicate(context.Context, *core.Entry, []Photo) (syndication string, removed bool, err error)
 }
 
 var (

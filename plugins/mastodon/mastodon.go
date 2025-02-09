@@ -10,8 +10,10 @@ import (
 	"github.com/karlseguin/typed"
 	"github.com/mattn/go-mastodon"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
 	"go.hacdias.com/indielib/micropub"
+	"go.uber.org/zap"
 )
 
 var (
@@ -24,6 +26,7 @@ func init() {
 
 type Mastodon struct {
 	core   *core.Core
+	log    *zap.SugaredLogger
 	client *mastodon.Client
 }
 
@@ -50,6 +53,7 @@ func NewMastodon(co *core.Core, config map[string]interface{}) (server.Plugin, e
 
 	return &Mastodon{
 		core: co,
+		log:  log.S().Named("mastodon"),
 		client: mastodon.NewClient(&mastodon.Config{
 			Server:       server,
 			ClientID:     clientKey,
@@ -59,14 +63,14 @@ func NewMastodon(co *core.Core, config map[string]interface{}) (server.Plugin, e
 	}, nil
 }
 
-func (ld *Mastodon) Syndication() micropub.Syndication {
+func (m *Mastodon) Syndication() micropub.Syndication {
 	return micropub.Syndication{
 		UID:  "mastodon",
 		Name: "Mastodon",
 	}
 }
 
-func (ld *Mastodon) extractID(urlStr string) (mastodon.ID, error) {
+func (m *Mastodon) extractID(urlStr string) (mastodon.ID, error) {
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", err
@@ -80,44 +84,79 @@ func (ld *Mastodon) extractID(urlStr string) (mastodon.ID, error) {
 	return mastodon.ID(parts[2]), nil
 }
 
-func (ld *Mastodon) getSyndication(e *core.Entry) (string, mastodon.ID, error) {
+func (m *Mastodon) getSyndication(e *core.Entry) (string, mastodon.ID, error) {
 	syndications := typed.New(e.Other).Strings(server.SyndicationField)
 	for _, urlStr := range syndications {
-		if strings.HasPrefix(urlStr, ld.client.Config.Server) {
-			id, err := ld.extractID(urlStr)
+		if strings.HasPrefix(urlStr, m.client.Config.Server) {
+			id, err := m.extractID(urlStr)
 			return urlStr, id, err
 		}
 	}
 	return "", "", nil
 }
 
-func (ld *Mastodon) IsSyndicated(e *core.Entry) bool {
-	_, id, err := ld.getSyndication(e)
+func (m *Mastodon) IsSyndicated(e *core.Entry) bool {
+	_, id, err := m.getSyndication(e)
 	if err != nil {
 		return false
 	}
 	return id != ""
 }
 
-func (ld *Mastodon) Syndicate(ctx context.Context, e *core.Entry) (string, bool, error) {
-	url, id, err := ld.getSyndication(e)
+func (m *Mastodon) uploadPhotos(ctx context.Context, photos []server.Photo) []mastodon.ID {
+	mediaIDs := []mastodon.ID{}
+
+	for i, photo := range photos {
+		if i >= 5 {
+			break
+		}
+
+		attachment, err := m.client.UploadMediaFromBytes(ctx, photo.Data)
+		if err != nil {
+			m.log.Warnw("photo upload failed", "err", err)
+			continue
+		}
+
+		mediaIDs = append(mediaIDs, attachment.ID)
+	}
+
+	return mediaIDs
+}
+
+func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, photos []server.Photo) (string, bool, error) {
+	url, id, err := m.getSyndication(e)
 	if err != nil {
 		return "", false, err
 	}
 
 	if id != "" {
 		if e.Deleted() || e.Draft {
-			return url, true, ld.client.DeleteStatus(ctx, id)
+			return url, true, m.client.DeleteStatus(ctx, id)
+		}
+	}
+
+	toot := mastodon.Toot{
+		Visibility: mastodon.VisibilityPublic,
+	}
+
+	if id == "" {
+		toot.MediaIDs = m.uploadPhotos(ctx, photos)
+	} else {
+		status, err := m.client.GetStatus(ctx, id)
+		if err != nil {
+			return "", false, err
+		}
+
+		for _, attachment := range status.MediaAttachments {
+			toot.MediaIDs = append(toot.MediaIDs, attachment.ID)
 		}
 	}
 
 	textContent := e.TextContent()
-	addPermalink := false
+	addPermalink := len(photos) != len(toot.MediaIDs)
 
-	if textContent == "" || len(textContent) >= 500 {
+	if textContent == "" || len(textContent) >= 500-(len(e.Permalink)+3) {
 		textContent = e.Title
-		addPermalink = true
-	} else if _, ok := e.Other["photos"]; ok {
 		addPermalink = true
 	}
 
@@ -125,16 +164,13 @@ func (ld *Mastodon) Syndicate(ctx context.Context, e *core.Entry) (string, bool,
 		textContent += "\n\n" + e.Permalink + "\n"
 	}
 
-	toot := mastodon.Toot{
-		Visibility: mastodon.VisibilityPublic,
-		Status:     textContent,
-	}
+	toot.Status = textContent
 
 	var status *mastodon.Status
 	if id != "" {
-		status, err = ld.client.UpdateStatus(ctx, &toot, id)
+		status, err = m.client.UpdateStatus(ctx, &toot, id)
 	} else {
-		status, err = ld.client.PostStatus(ctx, &toot)
+		status, err = m.client.PostStatus(ctx, &toot)
 	}
 	if err != nil {
 		return "", false, err

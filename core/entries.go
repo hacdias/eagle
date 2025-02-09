@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net/url"
 	urlpkg "net/url"
 	"os"
 	"path/filepath"
@@ -39,6 +38,7 @@ type Entry struct {
 	Permalink    string
 	RelPermalink string
 	Content      string
+	// Photos       [][]byte
 }
 
 func (e *Entry) Deleted() bool {
@@ -266,7 +266,7 @@ const (
 	SpecialTaxonomy = "categories"
 )
 
-func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *url.URL {
+func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *urlpkg.URL {
 	url := co.BaseURL()
 
 	parts := strings.Split(id, "/")
