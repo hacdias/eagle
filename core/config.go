@@ -40,7 +40,7 @@ type ServerConfig struct {
 	PublicDirectory string
 	DataDirectory   string
 	Port            int
-	BaseURL         string // NOTE: maybe use the one from [SiteConfig].
+	BaseURL         string // TODO: maybe use the one from [SiteConfig].
 	TokensSecret    string
 	WebhookSecret   string
 	Tor             bool

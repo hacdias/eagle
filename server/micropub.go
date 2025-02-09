@@ -519,7 +519,7 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		// NOTE: this ensures that things that were arrays stay as arrays. However,
 		// I should probably improve this such that there is a list of properties
 		// to keep as arrays and others as non-arrays.
-		// Maybe indielib/microformats.propertyToType properties should always be
+		// TODO: Maybe indielib/microformats.propertyToType properties should always be
 		// single, the rest always arrays.
 		if newValue, ok := properties[key]; ok {
 			if oldValue, ok := e.Other[key]; ok {
