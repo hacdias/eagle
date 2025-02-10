@@ -373,20 +373,13 @@ func (s *Server) syncStorage() {
 
 	s.build(buildClean)
 
-	// TODO: smh call postSave here
+	if len(ids) > 10 {
+		s.log.Warn("not running post save hooks due to high quantity of changed entries")
+		return
+	}
 
-	// After building, send webmentions with new information and old links.
-	// This is a best effort to send webmentions to deleted links. Only works
-	// with deletions that use expiryDate.
 	for _, e := range ee {
-		if e.Draft || e.NoWebmentions {
-			continue
-		}
-
-		err = s.core.SendWebmentions(e.Permalink, previousLinks[e.Permalink]...)
-		if err != nil {
-			s.log.Errorw("failed to send webmentions", "id", e.Permalink, "err", err)
-		}
+		s.postSaveEntry(e, nil, previousLinks[e.Permalink], true)
 	}
 }
 
