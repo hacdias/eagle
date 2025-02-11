@@ -29,6 +29,9 @@ Hugo posts are assumed to be bundles and not plain `.md` files. For example, `ab
 Eagle takes some of the configuration directly from your Hugo's website. It supports a single file configuration in any of the formats supported by Hugo (JSON, TOML, YAML). The following parts are used:
 
 ```toml
+# Used by the location plugin to fetch the location in this language.
+language = 'en'
+
 # Used by Eagle for the search results, in order to match
 # the same used for Hugo when listing posts.
 [pagination]
