@@ -124,3 +124,8 @@ plugins:
     # Which fields should be archived. It is either a string with @all or
     # an array with the list of fields. @all is equivalent to [bookmark-of].
     fields: "@all"
+
+  # Optional Locations plugin.
+  locations:
+    # Tries to expand the "location" property into a more detailed object.
+    expand: true

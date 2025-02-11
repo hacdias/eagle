@@ -64,3 +64,8 @@ func NewCore(cfg *Config) (*Core, error) {
 func (co *Core) BaseURL() *url.URL {
 	return cloneURL(co.baseURL)
 }
+
+// Language returns the language of the website.
+func (co *Core) Language() string {
+	return co.cfg.Site.LanguageCode
+}

@@ -212,8 +212,9 @@ type ImgProxy struct {
 }
 
 type SiteConfig struct {
-	Taxonomies map[string]string
-	Pagination struct {
+	LanguageCode string
+	Taxonomies   map[string]string
+	Pagination   struct {
 		PagerSize int
 	}
 	Params struct {
