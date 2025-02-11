@@ -17,8 +17,6 @@ baseUrl: "http://localhost:8080"
 tokensSecret: SecureSecret
 # Optional GitHub (https://docs.github.com/) webhook secret to update the source repository.
 webhookSecret: GitHub
-# The website language.
-language: en
 # Turn on TOR Onion service (with Onion-Location header).
 tor: true
 
