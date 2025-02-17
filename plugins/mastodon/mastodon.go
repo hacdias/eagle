@@ -25,28 +25,32 @@ func init() {
 }
 
 type Mastodon struct {
-	core   *core.Core
-	log    *zap.SugaredLogger
-	client *mastodon.Client
+	core              *core.Core
+	log               *zap.SugaredLogger
+	client            *mastodon.Client
+	maximumCharacters int
+	maximumPhotos     int
 }
 
-func NewMastodon(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
-	server := typed.New(config).String("server")
+func NewMastodon(co *core.Core, configMap map[string]interface{}) (server.Plugin, error) {
+	config := typed.New(configMap)
+
+	server := config.String("server")
 	if server == "" {
 		return nil, errors.New("server missing")
 	}
 
-	clientKey := typed.New(config).String("clientkey")
+	clientKey := config.String("clientkey")
 	if clientKey == "" {
 		return nil, errors.New("clientKey missing")
 	}
 
-	clientSecret := typed.New(config).String("clientsecret")
+	clientSecret := config.String("clientsecret")
 	if clientSecret == "" {
 		return nil, errors.New("clientSecret missing")
 	}
 
-	accessToken := typed.New(config).String("accesstoken")
+	accessToken := config.String("accesstoken")
 	if accessToken == "" {
 		return nil, errors.New("accessToken missing")
 	}
@@ -60,6 +64,8 @@ func NewMastodon(co *core.Core, config map[string]interface{}) (server.Plugin, e
 			ClientSecret: clientSecret,
 			AccessToken:  accessToken,
 		}),
+		maximumCharacters: config.IntOr("maximumCharacters", 500),
+		maximumPhotos:     config.IntOr("maximumPhotos", 5),
 	}, nil
 }
 
@@ -107,7 +113,7 @@ func (m *Mastodon) uploadPhotos(ctx context.Context, photos []server.Photo) []ma
 	mediaIDs := []mastodon.ID{}
 
 	for i, photo := range photos {
-		if i >= 5 {
+		if i >= m.maximumPhotos {
 			break
 		}
 
@@ -155,7 +161,12 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, photos []server
 	textContent := e.TextContent()
 	addPermalink := len(photos) != len(toot.MediaIDs)
 
-	if textContent == "" || len(textContent) >= 500-(len(e.Permalink)+3) {
+maximumCharacters := m.maximumCharacters
+	if addPermalink {
+		maximumCharacters -= len(e.Permalink) + 3
+	}
+
+	if textContent == "" || len(textContent) >= maximumCharacters {
 		textContent = e.Title
 		addPermalink = true
 	}

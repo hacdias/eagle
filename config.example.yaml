@@ -118,6 +118,10 @@ plugins:
     clientKey: yourClientKey
     clientSecret: yourClientSecret
     accessToken: yourAccessToken
+    # Maximum allowed characters per post
+    maximumCharacters: 500
+    # Maximum allowed photos per post
+    maximumPhotos: 5
 
   # Optional WebArchive integration.
   webarchive:
