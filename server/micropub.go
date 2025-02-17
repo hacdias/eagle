@@ -388,7 +388,7 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		return !strings.HasPrefix(prop, "mp-")
 	})
 	if len(keys) > 0 {
-		return fmt.Errorf("unknown keys: %s", strings.Join(keys, ", "))
+		m.s.log.Warnw("unknown micropub keys", "keys", keys)
 	}
 
 	return nil
