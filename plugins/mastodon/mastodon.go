@@ -64,8 +64,8 @@ func NewMastodon(co *core.Core, configMap map[string]interface{}) (server.Plugin
 			ClientSecret: clientSecret,
 			AccessToken:  accessToken,
 		}),
-		maximumCharacters: config.IntOr("maximumCharacters", 500),
-		maximumPhotos:     config.IntOr("maximumPhotos", 5),
+		maximumCharacters: config.IntOr("maximumcharacters", 500),
+		maximumPhotos:     config.IntOr("maximumphotos", 5),
 	}, nil
 }
 
@@ -161,7 +161,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, photos []server
 	textContent := e.TextContent()
 	addPermalink := len(photos) != len(toot.MediaIDs)
 
-maximumCharacters := m.maximumCharacters
+	maximumCharacters := m.maximumCharacters
 	if addPermalink {
 		maximumCharacters -= len(e.Permalink) + 3
 	}
