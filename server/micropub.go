@@ -398,7 +398,7 @@ func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.T
 	// Define prefix for the photos that will be uploaded
 	parts := strings.Split(strings.TrimSuffix(e.ID, "/"), "/")
 	slug := parts[len(parts)-1]
-	prefix := fmt.Sprintf("%04d-%02d-%s", e.Date.Year(), e.Date.Month(), slug)
+	prefix := fmt.Sprintf("%04d-%02d-%02d-%s", e.Date.Year(), e.Date.Month(), e.Date.Day(), slug)
 
 	urls := []string{}
 	cachedData := map[string][]byte{}
