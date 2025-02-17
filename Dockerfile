@@ -1,6 +1,6 @@
-FROM golang:1.24-alpine3.21 as build
+FROM golang:1.24-alpine3.21 AS build
 
-ENV HUGO_VERSION v0.144.0
+ENV HUGO_VERSION=v0.144.0
 RUN apk update && \
     apk add --no-cache git gcc g++ musl-dev && \
     go install github.com/magefile/mage@latest
@@ -25,7 +25,7 @@ FROM alpine:3.21
 COPY --from=build /eagle/main /bin/eagle
 COPY --from=build /hugo/hugo /bin/hugo
 
-ENV UID 501
+ENV UID=501
 
 RUN apk update && \
   apk add --no-cache git ca-certificates openssh tor tzdata mailcap && \
