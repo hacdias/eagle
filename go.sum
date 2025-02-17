@@ -499,8 +499,6 @@ go.etcd.io/etcd/client/v2 v2.305.4/go.mod h1:Ud+VUwIi9/uQHOMA+4ekToJ12lTxlv0zB/+
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.hacdias.com/indielib v0.4.3 h1:1QT0ZzMk+vMkoe4uZ31DLnWlLklGPgBYry0I+lCl0qM=
 go.hacdias.com/indielib v0.4.3/go.mod h1:W7tSM6pCiM2JLdZ8xzSMpPf3GBB2hz+ONvGfvdp6S9o=
-go.hacdias.com/maze v0.3.0 h1:8Que0B+k3juO9sGoAfSCRiK3xloD1qqvDPq5NA840UQ=
-go.hacdias.com/maze v0.3.0/go.mod h1:jPceWckKjTDyyr4xgQkDEs0I4jYOZljoxFPs/zBHqlU=
 go.hacdias.com/maze v0.4.0 h1:KqajgnOgxPFn+sgjlhr89jway7L728Z+O/lGdjnt1lY=
 go.hacdias.com/maze v0.4.0/go.mod h1:jPceWckKjTDyyr4xgQkDEs0I4jYOZljoxFPs/zBHqlU=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
