@@ -57,7 +57,7 @@ func NewMiniflux(co *core.Core, config map[string]interface{}) (server.Plugin, e
 
 	return &Miniflux{
 		core:             co,
-		client:           miniflux.New(endpoint, key),
+		client:           miniflux.NewClient(endpoint, key),
 		jsonFilename:     jsonFilename,
 		opmlFilename:     opmlFilename,
 		redirectLocation: redirectLocation,
