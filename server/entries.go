@@ -64,10 +64,10 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 		ctx.Photos = append(ctx.Photos, photo)
 	}
 
-	coverImageStr := typed.New(e.Other).String("coverImage")
-	if coverImageStr != "" {
+	thumbnailStr := typed.New(e.Other).String("thumbnail")
+	if thumbnailStr != "" {
 		var err error
-		ctx.Thumbnail, err = s.getPhoto(coverImageStr)
+		ctx.Thumbnail, err = s.getPhoto(thumbnailStr)
 		if err != nil {
 			return nil, err
 		}
