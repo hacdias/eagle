@@ -128,6 +128,10 @@ plugins:
     identifier: yourUsernameIdentifier
     password: yourAppSpecificPassword
 
+  # Optional IndieNews integration for post syndication.
+  indienews:
+    language: en
+
   # Optional WebArchive integration.
   webarchive:
     # Which fields should be archived. It is either a string with @all or

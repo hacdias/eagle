@@ -26,14 +26,14 @@ type IndieNews struct {
 func NewIndieNews(co *core.Core, configMap map[string]interface{}) (server.Plugin, error) {
 	config := typed.New(configMap)
 
-	lang := config.String("lang")
-	if lang == "" {
-		return nil, errors.New("lang missing")
+	language := config.String("language")
+	if language == "" {
+		return nil, errors.New("language missing")
 	}
 
 	return &IndieNews{
-		lang: lang,
-		url:  "https://news.indieweb.org/" + lang,
+		lang: language,
+		url:  "https://news.indieweb.org/" + language,
 	}, nil
 }
 
