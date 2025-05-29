@@ -24,7 +24,7 @@ var htmlRemover = bluemonday.StrictPolicy()
 
 func makePlainText(text string) string {
 	text = normalizeNewlines(text)
-	text = strings.Replace(text, "\n", " ", -1)
+	text = strings.ReplaceAll(text, "\n", " ")
 	text = htmlRemover.Sanitize(text)
 	// Unescapes html entities.
 	text = html.UnescapeString(text)
@@ -35,9 +35,9 @@ func makePlainText(text string) string {
 
 func normalizeNewlines(d string) string {
 	// replace CR LF \r\n (windows) with LF \n (unix)
-	d = strings.Replace(d, "\r\n", "\n", -1)
+	d = strings.ReplaceAll(d, "\r\n", "\n")
 	// replace CF \r (mac) with LF \n (unix)
-	d = strings.Replace(d, "\r", "\n", -1)
+	d = strings.ReplaceAll(d, "\r", "\n")
 	return d
 }
 

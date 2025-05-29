@@ -9,13 +9,13 @@ import (
 	"go.hacdias.com/indielib/micropub"
 )
 
-type PluginInitializer func(co *core.Core, config map[string]interface{}) (Plugin, error)
+type PluginInitializer func(co *core.Core, config map[string]any) (Plugin, error)
 
 type PluginWebUtilities struct {
 	s *Server
 }
 
-func (u *PluginWebUtilities) JSON(w http.ResponseWriter, code int, data interface{}) {
+func (u *PluginWebUtilities) JSON(w http.ResponseWriter, code int, data any) {
 	u.s.serveJSON(w, code, data)
 }
 

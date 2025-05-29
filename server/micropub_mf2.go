@@ -3,7 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"reflect"
+	"slices"
 
 	"github.com/samber/lo"
 	"go.hacdias.com/indielib/micropub"
@@ -26,7 +28,7 @@ func flatten(data any) any {
 
 		parsed := make([]any, value.Len())
 
-		for i := 0; i < value.Len(); i++ {
+		for i := range value.Len() {
 			parsed[i] = flatten(value.Index(i).Interface())
 		}
 
@@ -82,7 +84,7 @@ func deflatten(data any) any {
 	if kind == reflect.Slice {
 		parsed := make([]any, value.Len())
 
-		for i := 0; i < value.Len(); i++ {
+		for i := range value.Len() {
 			parsed[i] = deflatten(value.Index(i).Interface())
 		}
 
@@ -117,9 +119,7 @@ func deflatten(data any) any {
 // Update updates a set of existing properties with the new request.
 func Update(properties map[string][]any, req micropub.RequestUpdate) (map[string][]any, error) {
 	if req.Replace != nil {
-		for key, value := range req.Replace {
-			properties[key] = value
-		}
+		maps.Copy(properties, req.Replace)
 	}
 
 	if req.Add != nil {
@@ -172,12 +172,7 @@ func Update(properties map[string][]any, req micropub.RequestUpdate) (map[string
 				}
 
 				properties[key] = lo.Filter(properties[key], func(ss any, _ int) bool {
-					for _, s := range value {
-						if s == ss {
-							return false
-						}
-					}
-					return true
+					return !slices.Contains(value, ss)
 				})
 			}
 		}

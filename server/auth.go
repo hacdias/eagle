@@ -32,7 +32,7 @@ const (
 )
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
-	s.serveJSON(w, http.StatusOK, map[string]interface{}{
+	s.serveJSON(w, http.StatusOK, map[string]any{
 		"issuer":                           s.c.ID(),
 		"authorization_endpoint":           s.c.AbsoluteURL(authPath),
 		"token_endpoint":                   s.c.AbsoluteURL(tokenPath),
@@ -83,7 +83,7 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
+	_, signed, err := s.jwtAuth.Encode(map[string]any{
 		jwt.SubjectKey:          authCodeSubject,
 		jwt.IssuedAtKey:         time.Now().Unix(),
 		jwt.ExpirationKey:       time.Now().Add(time.Minute * 5),
@@ -161,13 +161,13 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 	token, _, err := jwtauth.FromContext(r.Context())
 	isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != tokenSubject)
 	if !isValid {
-		s.serveJSON(w, http.StatusOK, map[string]interface{}{
+		s.serveJSON(w, http.StatusOK, map[string]any{
 			"active": false,
 		})
 		return
 	}
 
-	info := map[string]interface{}{
+	info := map[string]any{
 		"active":    true,
 		"me":        s.c.ID(),
 		"client_id": getString(token, "client_id"),
@@ -287,7 +287,7 @@ func handleExpiry(expiry string) (time.Duration, error) {
 }
 
 func (s *Server) generateToken(client, scope string, expiry time.Duration) (string, error) {
-	claims := map[string]interface{}{
+	claims := map[string]any{
 		jwt.SubjectKey:  tokenSubject,
 		jwt.IssuedAtKey: time.Now().Unix(),
 		"client_id":     client,

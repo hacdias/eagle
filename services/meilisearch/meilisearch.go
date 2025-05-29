@@ -79,7 +79,7 @@ func (ms *Meilisearch) ResetIndex() error {
 }
 
 func (ms *Meilisearch) Add(ee ...*core.Entry) error {
-	docs := []interface{}{}
+	docs := []any{}
 
 	for _, e := range ee {
 		if e.Deleted() || e.Draft || e.NoIndex {
@@ -91,7 +91,7 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 			tags = append(tags, e.Taxonomy(taxonomy)...)
 		}
 
-		docs = append(docs, map[string]interface{}{
+		docs = append(docs, map[string]any{
 			searchKey: hex.EncodeToString([]byte(e.ID)),
 			"id":      e.ID,
 			"title":   e.Title,
@@ -127,9 +127,9 @@ func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, er
 
 	entries := core.Entries{}
 	for _, hit := range res.Hits {
-		m, ok := hit.(map[string]interface{})
+		m, ok := hit.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("cannot convert hit in map[string]interface{}: %q", hit)
+			return nil, fmt.Errorf("cannot convert hit in map[string]any: %q", hit)
 		}
 		id, ok := typed.Typed(m).StringIf("id")
 		if !ok {

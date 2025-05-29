@@ -35,7 +35,7 @@ type Linkding struct {
 	filename   string
 }
 
-func NewLinkding(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
+func NewLinkding(co *core.Core, config map[string]any) (server.Plugin, error) {
 	endpoint := typed.New(config).String("endpoint")
 	if endpoint == "" {
 		return nil, errors.New("linkding endpoint missing")

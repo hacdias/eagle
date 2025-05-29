@@ -26,7 +26,7 @@ type Locations struct {
 	expand   bool
 }
 
-func NewLocations(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
+func NewLocations(co *core.Core, config map[string]any) (server.Plugin, error) {
 	cfg := typed.New(config)
 
 	language := co.Language()

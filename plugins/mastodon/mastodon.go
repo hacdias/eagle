@@ -32,7 +32,7 @@ type Mastodon struct {
 	maximumPhotos     int
 }
 
-func NewMastodon(co *core.Core, configMap map[string]interface{}) (server.Plugin, error) {
+func NewMastodon(co *core.Core, configMap map[string]any) (server.Plugin, error) {
 	config := typed.New(configMap)
 
 	server := config.String("server")

@@ -53,7 +53,7 @@ type ServerConfig struct {
 	BunnyCDN      *BunnyCDN
 	Meilisearch   *Meilisearch
 	ImgProxy      *ImgProxy
-	Plugins       map[string]map[string]interface{}
+	Plugins       map[string]map[string]any
 }
 
 func parseServerConfig() (*ServerConfig, error) {

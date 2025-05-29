@@ -33,7 +33,7 @@ type Miniflux struct {
 	redirectLocation string
 }
 
-func NewMiniflux(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
+func NewMiniflux(co *core.Core, config map[string]any) (server.Plugin, error) {
 	endpoint := typed.New(config).String("endpoint")
 	if endpoint == "" {
 		return nil, errors.New("miniflux endpoint missing")

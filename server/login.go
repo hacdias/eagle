@@ -59,7 +59,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(time.Hour * 24 * 7)
 
-	_, signed, err := s.jwtAuth.Encode(map[string]interface{}{
+	_, signed, err := s.jwtAuth.Encode(map[string]any{
 		jwt.SubjectKey:    sessionSubject,
 		jwt.IssuedAtKey:   time.Now().Unix(),
 		jwt.ExpirationKey: expiration,

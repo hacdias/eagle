@@ -34,7 +34,7 @@ type ExternalLinks struct {
 	linksMap map[string]linkCollection
 }
 
-func NewExternalLinks(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
+func NewExternalLinks(co *core.Core, config map[string]any) (server.Plugin, error) {
 	filename := typed.New(config).String("filename")
 	if filename == "" {
 		return nil, errors.New("external-links filename missing")

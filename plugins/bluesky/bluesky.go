@@ -41,7 +41,7 @@ type Bluesky struct {
 	userAgent  string
 }
 
-func NewBluesky(co *core.Core, configMap map[string]interface{}) (server.Plugin, error) {
+func NewBluesky(co *core.Core, configMap map[string]any) (server.Plugin, error) {
 	config := typed.New(configMap)
 
 	identifier := config.String("identifier")

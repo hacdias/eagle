@@ -58,7 +58,7 @@ func (co *Core) Stat(filename string) (os.FileInfo, error) {
 	return co.sourceFS.Stat(filename)
 }
 
-func (co *Core) WriteJSON(filename string, data interface{}, message string) error {
+func (co *Core) WriteJSON(filename string, data any, message string) error {
 	json, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (co *Core) WriteJSON(filename string, data interface{}, message string) err
 	return co.WriteFile(filename, json, message)
 }
 
-func (co *Core) ReadJSON(filename string, v interface{}) error {
+func (co *Core) ReadJSON(filename string, v any) error {
 	data, err := co.sourceFS.ReadFile(filename)
 	if err != nil {
 		return err
@@ -91,9 +91,9 @@ func (co *Core) GetRedirects(ignoreMalformed bool) (map[string]string, error) {
 		return nil, err
 	}
 
-	lines := strings.Split(string(data), "\n")
+	lines := strings.SplitSeq(string(data), "\n")
 
-	for _, line := range lines {
+	for line := range lines {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
@@ -120,9 +120,9 @@ func (co *Core) GetGone() (map[string]bool, error) {
 		return nil, err
 	}
 
-	lines := strings.Split(string(data), "\n")
+	lines := strings.SplitSeq(string(data), "\n")
 
-	for _, line := range lines {
+	for line := range lines {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}

@@ -408,8 +408,8 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 
 func normalizeLineEndings(d []byte) []byte {
 	// replace CR LF \r\n (windows) with LF \n (unix)
-	d = bytes.Replace(d, []byte{13, 10}, []byte{10}, -1)
+	d = bytes.ReplaceAll(d, []byte{13, 10}, []byte{10})
 	// replace CF \r (mac) with LF \n (unix)
-	d = bytes.Replace(d, []byte{13}, []byte{10}, -1)
+	d = bytes.ReplaceAll(d, []byte{13}, []byte{10})
 	return d
 }

@@ -23,7 +23,7 @@ type WebArchive struct {
 	fields []string
 }
 
-func NewWebArchive(co *core.Core, config map[string]interface{}) (server.Plugin, error) {
+func NewWebArchive(co *core.Core, config map[string]any) (server.Plugin, error) {
 	cfg := typed.New(config)
 
 	var fields []string

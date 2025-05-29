@@ -90,11 +90,11 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 }
 
 type webmentionPayload struct {
-	Source  string                 `json:"source"`
-	Secret  string                 `json:"secret"`
-	Deleted bool                   `json:"deleted"`
-	Target  string                 `json:"target"`
-	Post    map[string]interface{} `json:"post"`
+	Source  string         `json:"source"`
+	Secret  string         `json:"secret"`
+	Deleted bool           `json:"deleted"`
+	Target  string         `json:"target"`
+	Post    map[string]any `json:"post"`
 }
 
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {

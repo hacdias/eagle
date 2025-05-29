@@ -240,7 +240,7 @@ func (m *micropubServer) update(permalink string, req *micropub.Request, update 
 }
 
 func (m *micropubServer) entryToMF2(e *core.Entry) map[string]any {
-	properties := map[string]interface{}{}
+	properties := map[string]any{}
 
 	for _, k := range m.s.c.Micropub.Properties {
 		if v, ok := e.Other[k]; ok {
@@ -291,13 +291,13 @@ func (m *micropubServer) entryToMF2(e *core.Entry) map[string]any {
 		properties["mp-channel"] = e.Taxonomy(m.s.c.Micropub.ChannelsTaxonomy)
 	}
 
-	return Deflatten(map[string]interface{}{
+	return Deflatten(map[string]any{
 		"type":       "h-entry",
 		"properties": properties,
 	})
 }
 
-func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string][]interface{}) error {
+func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string][]any) error {
 	properties := typed.New(Flatten(newProps))
 
 	// Micropublish.net sends the file name that was uploaded through

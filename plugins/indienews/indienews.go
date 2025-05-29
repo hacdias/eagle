@@ -3,6 +3,7 @@ package indienews
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
@@ -23,7 +24,7 @@ type IndieNews struct {
 	lang string
 }
 
-func NewIndieNews(co *core.Core, configMap map[string]interface{}) (server.Plugin, error) {
+func NewIndieNews(co *core.Core, configMap map[string]any) (server.Plugin, error) {
 	config := typed.New(configMap)
 
 	language := config.String("language")
@@ -45,12 +46,7 @@ func (m *IndieNews) Syndication() micropub.Syndication {
 }
 
 func (m *IndieNews) IsSyndicated(e *core.Entry) bool {
-	for _, urlStr := range typed.New(e.Other).Strings(server.SyndicationField) {
-		if urlStr == m.url {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(typed.New(e.Other).Strings(server.SyndicationField), m.url)
 }
 
 func (m *IndieNews) Syndicate(ctx context.Context, e *core.Entry, _ *server.SyndicationContext) (string, bool, error) {

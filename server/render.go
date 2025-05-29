@@ -65,7 +65,7 @@ func (s *Server) getDocument(path string) (*goquery.Document, error) {
 	return goquery.NewDocumentFromReader(bytes.NewReader(fileContent))
 }
 
-func (s *Server) renderDocument(w http.ResponseWriter, r *http.Request, doc *goquery.Document, code int, template string, data interface{}) {
+func (s *Server) renderDocument(w http.ResponseWriter, r *http.Request, doc *goquery.Document, code int, template string, data any) {
 	var buf bytes.Buffer
 	err := s.templates.ExecuteTemplate(&buf, template, data)
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *Server) panelError(w http.ResponseWriter, r *http.Request, code int, re
 	s.panelTemplate(w, r, code, panelErrorTemplate, data)
 }
 
-func (s *Server) panelTemplate(w http.ResponseWriter, r *http.Request, code int, template string, data interface{}) {
+func (s *Server) panelTemplate(w http.ResponseWriter, r *http.Request, code int, template string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
 	err := panelTemplates.ExecuteTemplate(w, template, data)
@@ -115,7 +115,7 @@ func (s *Server) panelTemplate(w http.ResponseWriter, r *http.Request, code int,
 	}
 }
 
-func (s *Server) serveJSON(w http.ResponseWriter, code int, data interface{}) {
+func (s *Server) serveJSON(w http.ResponseWriter, code int, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
 	err := json.NewEncoder(w).Encode(data)

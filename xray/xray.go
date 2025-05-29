@@ -45,11 +45,11 @@ func NewXRay(c *Config, log *zap.SugaredLogger) (*XRay, error) {
 }
 
 type xrayResponse struct {
-	Data map[string]interface{} `json:"data"`
-	Code int                    `json:"code"`
+	Data map[string]any `json:"data"`
+	Code int            `json:"code"`
 }
 
-func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
+func (x *XRay) Fetch(urlStr string) (*Post, any, error) {
 	url, err := urlpkg.Parse(urlStr)
 	if err != nil {
 		return nil, nil, err
@@ -96,11 +96,11 @@ func (x *XRay) Fetch(urlStr string) (*Post, interface{}, error) {
 	return parsed, xray.Data, nil
 }
 
-func (x *XRay) Parse(data map[string]interface{}) *Post {
+func (x *XRay) Parse(data map[string]any) *Post {
 	return Parse(data)
 }
 
-func Parse(data map[string]interface{}) *Post {
+func Parse(data map[string]any) *Post {
 	raw := typed.New(data)
 
 	if raw.String("type") == "feed" {
