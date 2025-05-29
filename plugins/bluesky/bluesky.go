@@ -167,7 +167,15 @@ func (m *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.
 				},
 			},
 		},
-	}
+		Embed: &bsky.FeedPost_Embed{
+			EmbedExternal: &bsky.EmbedExternal{
+				External: &bsky.EmbedExternal_External{
+					Uri:         e.Permalink,
+					Title:       e.Title,
+					Description: e.Summary(),
+				},
+			},
+		}}
 
 	resp, err := atproto.RepoCreateRecord(ctx, xrpcc, &atproto.RepoCreateRecord_Input{
 		Collection: "app.bsky.feed.post",
