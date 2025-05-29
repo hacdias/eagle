@@ -109,7 +109,7 @@ func (m *Mastodon) IsSyndicated(e *core.Entry) bool {
 	return id != ""
 }
 
-func (m *Mastodon) uploadPhotos(ctx context.Context, photos []server.Photo) []mastodon.ID {
+func (m *Mastodon) uploadPhotos(ctx context.Context, photos []*server.Photo) []mastodon.ID {
 	mediaIDs := []mastodon.ID{}
 
 	for i, photo := range photos {
@@ -129,7 +129,7 @@ func (m *Mastodon) uploadPhotos(ctx context.Context, photos []server.Photo) []ma
 	return mediaIDs
 }
 
-func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, photos []server.Photo) (string, bool, error) {
+func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) (string, bool, error) {
 	url, id, err := m.getSyndication(e)
 	if err != nil {
 		return "", false, err
@@ -146,7 +146,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, photos []server
 	}
 
 	if id == "" {
-		toot.MediaIDs = m.uploadPhotos(ctx, photos)
+		toot.MediaIDs = m.uploadPhotos(ctx, sctx.Photos)
 	} else {
 		status, err := m.client.GetStatus(ctx, id)
 		if err != nil {
@@ -159,7 +159,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, photos []server
 	}
 
 	textContent := e.TextContent()
-	addPermalink := len(photos) != len(toot.MediaIDs)
+	addPermalink := len(sctx.Photos) != len(toot.MediaIDs)
 
 	maximumCharacters := m.maximumCharacters
 	if addPermalink {

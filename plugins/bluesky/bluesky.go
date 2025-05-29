@@ -127,7 +127,20 @@ func (m *Bluesky) IsSyndicated(e *core.Entry) bool {
 	return id != ""
 }
 
-func (b *Bluesky) uploadPhotos(ctx context.Context, xrpcc *xrpc.Client, photos []server.Photo) []*bsky.EmbedImages_Image {
+func (b *Bluesky) uploadImage(ctx context.Context, xrpcc *xrpc.Client, photo *server.Photo) (*lexutil.LexBlob, error) {
+	resp, err := atproto.RepoUploadBlob(ctx, xrpcc, bytes.NewReader(photo.Data))
+	if err != nil {
+		return nil, err
+	}
+
+	return &lexutil.LexBlob{
+		Ref:      resp.Blob.Ref,
+		MimeType: photo.MimeType,
+		Size:     resp.Blob.Size,
+	}, nil
+}
+
+func (b *Bluesky) uploadPhotos(ctx context.Context, xrpcc *xrpc.Client, photos []*server.Photo) []*bsky.EmbedImages_Image {
 	embeddings := []*bsky.EmbedImages_Image{}
 
 	for i, photo := range photos {
@@ -135,18 +148,15 @@ func (b *Bluesky) uploadPhotos(ctx context.Context, xrpcc *xrpc.Client, photos [
 			break
 		}
 
-		resp, err := atproto.RepoUploadBlob(ctx, xrpcc, bytes.NewReader(photo.Data))
+		blob, err := b.uploadImage(ctx, xrpcc, photo)
 		if err != nil {
 			b.log.Warnw("photo upload failed", "mimetype", photo.MimeType, "err", err)
 			continue
 		}
 
 		embeddings = append(embeddings, &bsky.EmbedImages_Image{
-			Image: &lexutil.LexBlob{
-				Ref:      resp.Blob.Ref,
-				MimeType: photo.MimeType,
-				Size:     resp.Blob.Size,
-			},
+			Image: blob,
+			Alt:   photo.Title,
 		})
 	}
 
@@ -177,7 +187,7 @@ func (b *Bluesky) getPost(ctx context.Context, xrpcc *xrpc.Client, recordKey str
 	return existentPost, resp.Cid, nil
 }
 
-func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.Photo) (string, bool, error) {
+func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) (string, bool, error) {
 	xrpcc, err := b.getClient(ctx)
 	if err != nil {
 		return "", false, err
@@ -206,7 +216,7 @@ func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.
 			Embed:     &bsky.FeedPost_Embed{},
 		}
 
-		embeddings := b.uploadPhotos(ctx, xrpcc, photos)
+		embeddings := b.uploadPhotos(ctx, xrpcc, sctx.Photos)
 		if len(embeddings) > 0 {
 			post.Embed.EmbedImages = &bsky.EmbedImages{
 				Images: embeddings,
@@ -231,7 +241,7 @@ func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.
 
 	// Prepare text
 	post.Text = e.TextContent()
-	textWithPermalink := len(photos) != imagesCount
+	textWithPermalink := len(sctx.Photos) != imagesCount
 
 	// Calculate maximum characters, and account for permalink
 	maximumCharacters := 300
@@ -279,6 +289,13 @@ func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.
 					Description: e.Summary(),
 				},
 			},
+		}
+
+		if sctx.Thumbnail != nil {
+			blob, err := b.uploadImage(ctx, xrpcc, sctx.Thumbnail)
+			if err == nil {
+				post.Embed.EmbedExternal.External.Thumb = blob
+			}
 		}
 	}
 

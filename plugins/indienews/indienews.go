@@ -53,6 +53,6 @@ func (m *IndieNews) IsSyndicated(e *core.Entry) bool {
 	return false
 }
 
-func (m *IndieNews) Syndicate(ctx context.Context, e *core.Entry, photos []server.Photo) (string, bool, error) {
+func (m *IndieNews) Syndicate(ctx context.Context, e *core.Entry, _ *server.SyndicationContext) (string, bool, error) {
 	return m.url, false, nil
 }

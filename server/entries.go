@@ -14,53 +14,75 @@ import (
 	"go.hacdias.com/indielib/micropub"
 )
 
-func (s *Server) getEntryPhotos(e *core.Entry) ([]Photo, error) {
-	var photos []Photo
+func (s *Server) getPhoto(url string) (*Photo, error) {
+	photoUrl, err := s.media.GetImageURL(url, media.FormatJPEG, media.Width1000)
+	if err != nil {
+		return nil, err
+	}
 
-	for i, photo := range e.Photos {
+	res, err := http.Get(photoUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	mime := mimetype.Detect(data)
+	if mime == nil {
+		return nil, fmt.Errorf("cannot detect mimetype of %s", url)
+	}
+
+	return &Photo{
+		Data:     data,
+		MimeType: mime.String(),
+	}, nil
+}
+
+func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext, error) {
+	ctx := &SyndicationContext{}
+
+	// Get the first 4 photos from the entry
+	for i, p := range e.Photos {
 		if i >= 4 {
 			break
 		}
 
-		photoUrl, err := s.media.GetImageURL(photo.URL, media.FormatJPEG, media.Width1000)
+		photo, err := s.getPhoto(p.URL)
 		if err != nil {
 			return nil, err
 		}
+		photo.Title = p.Title
 
-		res, err := http.Get(photoUrl)
-		if err != nil {
-			return nil, err
-		}
-
-		data, err := io.ReadAll(res.Body)
-		if err != nil {
-			return nil, err
-		}
-
-		err = res.Body.Close()
-		if err != nil {
-			return nil, err
-		}
-
-		mime := mimetype.Detect(data)
-		if mime == nil {
-			return nil, fmt.Errorf("cannot detect mimetype of %s", photo)
-		}
-
-		photos = append(photos, Photo{
-			Data:     data,
-			MimeType: mime.String(),
-		})
+		ctx.Photos = append(ctx.Photos, photo)
 	}
 
-	return photos, nil
+	coverImageStr := typed.New(e.Other).String("coverImage")
+	if coverImageStr != "" {
+		var err error
+		ctx.Thumbnail, err = s.getPhoto(coverImageStr)
+		if err != nil {
+			return nil, err
+		}
+	} else if len(ctx.Photos) > 0 {
+		ctx.Thumbnail = ctx.Photos[0]
+	}
+
+	return ctx, nil
 }
 
 func (s *Server) syndicate(e *core.Entry, syndicators []string) {
-	// Get the photos to use during syndication
-	photos, err := s.getEntryPhotos(e)
+	// Get the syndication context
+	syndicationContext, err := s.getEntrySyndicationContext(e)
 	if err != nil {
-		s.log.Errorw("failed to get photos for syndication", "entry", e.ID, "err", err)
+		s.log.Errorw("failed to get syndication context", "entry", e.ID, "err", err)
 		return
 	}
 
@@ -75,7 +97,7 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string) {
 	syndications := typed.New(e.Other).Strings(SyndicationField)
 	for _, name := range syndicators {
 		if syndicator, ok := s.syndicators[name]; ok {
-			syndication, removed, err := syndicator.Syndicate(context.Background(), e, photos)
+			syndication, removed, err := syndicator.Syndicate(context.Background(), e, syndicationContext)
 			if err != nil {
 				s.log.Errorw("failed to syndicate", "entry", e.ID, "syndicator", name, "err", err)
 				continue

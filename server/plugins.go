@@ -50,13 +50,19 @@ type HookPlugin interface {
 
 type Photo struct {
 	Data     []byte
+	Title    string
 	MimeType string
+}
+
+type SyndicationContext struct {
+	Thumbnail *Photo
+	Photos    []*Photo
 }
 
 type SyndicationPlugin interface {
 	Syndication() micropub.Syndication
 	IsSyndicated(*core.Entry) bool
-	Syndicate(context.Context, *core.Entry, []Photo) (syndication string, removed bool, err error)
+	Syndicate(context.Context, *core.Entry, *SyndicationContext) (syndication string, removed bool, err error)
 }
 
 var (
