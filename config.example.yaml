@@ -123,6 +123,11 @@ plugins:
     # Maximum allowed photos per post
     maximumPhotos: 5
 
+  # Optional Bluesky integration for post syndication.
+  bluesky:
+    identifier: yourUsernameIdentifier
+    password: yourAppSpecificPassword
+
   # Optional WebArchive integration.
   webarchive:
     # Which fields should be archived. It is either a string with @all or

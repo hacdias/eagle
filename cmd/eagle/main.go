@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	_ "go.hacdias.com/eagle/plugins/bluesky"
 	_ "go.hacdias.com/eagle/plugins/external-links"
 	_ "go.hacdias.com/eagle/plugins/indienews"
 	_ "go.hacdias.com/eagle/plugins/linkding"
