@@ -1,6 +1,7 @@
 package bluesky
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -14,8 +15,10 @@ import (
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
 	"go.hacdias.com/indielib/micropub"
+	"go.uber.org/zap"
 )
 
 var (
@@ -32,6 +35,7 @@ func init() {
 }
 
 type Bluesky struct {
+	log        *zap.SugaredLogger
 	identifier string
 	password   string
 	userAgent  string
@@ -54,6 +58,7 @@ func NewBluesky(co *core.Core, configMap map[string]interface{}) (server.Plugin,
 		userAgent:  fmt.Sprintf("eagle/%s", co.BaseURL().String()),
 		identifier: identifier,
 		password:   password,
+		log:        log.S().Named("bluesky"),
 	}, nil
 }
 
@@ -122,37 +127,132 @@ func (m *Bluesky) IsSyndicated(e *core.Entry) bool {
 	return id != ""
 }
 
-func (m *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.Photo) (string, bool, error) {
-	xrpcc, err := m.getClient(ctx)
+func (b *Bluesky) uploadPhotos(ctx context.Context, xrpcc *xrpc.Client, photos []server.Photo) []*bsky.EmbedImages_Image {
+	embeddings := []*bsky.EmbedImages_Image{}
+
+	for i, photo := range photos {
+		if i >= 4 {
+			break
+		}
+
+		resp, err := atproto.RepoUploadBlob(ctx, xrpcc, bytes.NewReader(photo.Data))
+		if err != nil {
+			b.log.Warnw("photo upload failed", "mimetype", photo.MimeType, "err", err)
+			continue
+		}
+
+		embeddings = append(embeddings, &bsky.EmbedImages_Image{
+			Image: &lexutil.LexBlob{
+				Ref:      resp.Blob.Ref,
+				MimeType: photo.MimeType,
+				Size:     resp.Blob.Size,
+			},
+		})
+	}
+
+	return embeddings
+}
+
+func (b *Bluesky) deletePost(ctx context.Context, xrpcc *xrpc.Client, recordKey string) error {
+	_, err := atproto.RepoDeleteRecord(ctx, xrpcc, &atproto.RepoDeleteRecord_Input{
+		Collection: "app.bsky.feed.post",
+		Repo:       xrpcc.Auth.Did,
+		Rkey:       recordKey,
+	})
+
+	return err
+}
+
+func (b *Bluesky) getPost(ctx context.Context, xrpcc *xrpc.Client, recordKey string) (*bsky.FeedPost, *string, error) {
+	resp, err := atproto.RepoGetRecord(ctx, xrpcc, "", "app.bsky.feed.post", xrpcc.Auth.Did, recordKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	existentPost, ok := resp.Value.Val.(*bsky.FeedPost)
+	if !ok {
+		return nil, nil, fmt.Errorf("record %s is not a post", recordKey)
+	}
+
+	return existentPost, resp.Cid, nil
+}
+
+func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.Photo) (string, bool, error) {
+	xrpcc, err := b.getClient(ctx)
 	if err != nil {
 		return "", false, err
 	}
 
-	url, id, err := m.getSyndication(e)
+	url, recordKey, err := b.getSyndication(e)
 	if err != nil {
 		return "", false, err
 	}
 
-	if id != "" {
-		if e.Deleted() || e.Draft {
-			_, err := atproto.RepoDeleteRecord(ctx, xrpcc, &atproto.RepoDeleteRecord_Input{
-				Collection: "app.bsky.feed.post",
-				Repo:       xrpcc.Auth.Did,
-				Rkey:       id,
-			})
-
-			return url, true, err
+	// Handle deleted or draft entries
+	if e.Deleted() || e.Draft {
+		if recordKey == "" {
+			return "", false, errors.New("cannot syndicate a deleted or draft entry")
+		} else {
+			return url, true, b.deletePost(ctx, xrpcc, recordKey)
 		}
 	}
 
-	text := []byte(e.Title + "\n\n" + e.Permalink)
-	byteStart := int64(len(e.Title) + 2)
-	byteEnd := byteStart + int64(len([]byte(e.Permalink)))
+	// Initialize the post
+	var post *bsky.FeedPost
+	var cid *string
+	if recordKey == "" {
+		post = &bsky.FeedPost{
+			CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
+			Embed:     &bsky.FeedPost_Embed{},
+		}
 
-	post := bsky.FeedPost{
-		Text:      string(text),
-		CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
-		Facets: []*bsky.RichtextFacet{
+		embeddings := b.uploadPhotos(ctx, xrpcc, photos)
+		if len(embeddings) > 0 {
+			post.Embed.EmbedImages = &bsky.EmbedImages{
+				Images: embeddings,
+			}
+		}
+	} else {
+		post, cid, err = b.getPost(ctx, xrpcc, recordKey)
+		if err != nil {
+			return "", false, err
+		}
+
+		if post.Embed == nil {
+			post.Embed = &bsky.FeedPost_Embed{}
+		}
+	}
+
+	// Calculate how many images are embedded
+	imagesCount := 0
+	if post.Embed.EmbedImages != nil {
+		imagesCount = len(post.Embed.EmbedImages.Images)
+	}
+
+	// Prepare text
+	post.Text = e.TextContent()
+	textWithPermalink := len(photos) != imagesCount
+
+	// Calculate maximum characters, and account for permalink
+	maximumCharacters := 300
+	if textWithPermalink {
+		maximumCharacters -= len(e.Permalink) + 3
+	}
+
+	// In this case, just use the title
+	if post.Text == "" || len(post.Text) >= maximumCharacters {
+		post.Text = e.Title
+		textWithPermalink = true
+	}
+
+	if textWithPermalink {
+		post.Text += "\n\n" + e.Permalink + "\n"
+
+		// Include facet
+		byteStart := bytes.Index([]byte(post.Text), []byte(e.Permalink))
+		byteEnd := byteStart + len([]byte(e.Permalink))
+
+		post.Facets = []*bsky.RichtextFacet{
 			{
 				Features: []*bsky.RichtextFacet_Features_Elem{
 					{
@@ -162,12 +262,16 @@ func (m *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.
 					},
 				},
 				Index: &bsky.RichtextFacet_ByteSlice{
-					ByteStart: byteStart,
-					ByteEnd:   byteEnd,
+					ByteStart: int64(byteStart),
+					ByteEnd:   int64(byteEnd),
 				},
 			},
-		},
-		Embed: &bsky.FeedPost_Embed{
+		}
+	}
+
+	// If there are no images, embed the post link
+	if imagesCount == 0 {
+		post.Embed = &bsky.FeedPost_Embed{
 			EmbedExternal: &bsky.EmbedExternal{
 				External: &bsky.EmbedExternal_External{
 					Uri:         e.Permalink,
@@ -175,22 +279,38 @@ func (m *Bluesky) Syndicate(ctx context.Context, e *core.Entry, photos []server.
 					Description: e.Summary(),
 				},
 			},
-		}}
-
-	resp, err := atproto.RepoCreateRecord(ctx, xrpcc, &atproto.RepoCreateRecord_Input{
-		Collection: "app.bsky.feed.post",
-		Repo:       xrpcc.Auth.Did,
-		Record:     &lexutil.LexiconTypeDecoder{Val: &post},
-	})
-	if err != nil {
-		return "", false, err
+		}
 	}
 
-	uri, err := syntax.ParseATURI(resp.Uri)
-	if err != nil {
-		return "", false, err
+	// Update or create the post
+	if recordKey == "" {
+		resp, err := atproto.RepoCreateRecord(ctx, xrpcc, &atproto.RepoCreateRecord_Input{
+			Collection: "app.bsky.feed.post",
+			Repo:       xrpcc.Auth.Did,
+			Record:     &lexutil.LexiconTypeDecoder{Val: post},
+		})
+		if err != nil {
+			return "", false, err
+		}
+
+		uri, err := syntax.ParseATURI(resp.Uri)
+		if err != nil {
+			return "", false, err
+		}
+
+		return fmt.Sprintf("%s/profile/%s/post/%s", appUrl, uri.Authority(), uri.RecordKey()), false, nil
+	} else {
+		_, err := atproto.RepoPutRecord(ctx, xrpcc, &atproto.RepoPutRecord_Input{
+			Rkey:       recordKey,
+			Collection: "app.bsky.feed.post",
+			Repo:       xrpcc.Auth.Did,
+			Record:     &lexutil.LexiconTypeDecoder{Val: post},
+			SwapRecord: cid,
+		})
+		if err != nil {
+			return "", false, err
+		}
+
+		return url, false, nil
 	}
-
-	return fmt.Sprintf("%s/profile/%s/post/%s", appUrl, uri.Authority(), uri.RecordKey()), false, nil
-
 }
