@@ -36,7 +36,7 @@ func initMedia(c *core.Config) *media.Media {
 }
 
 func (s *Server) initMediaCache() error {
-	cache, err := otter.MustBuilder[string, []byte](1e8).
+	cache, err := otter.MustBuilder[string, []byte](2e8).
 		WithTTL(time.Hour).
 		Cost(func(key string, value []byte) uint32 {
 			return uint32(len(value))
