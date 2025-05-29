@@ -149,6 +149,8 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 
 func (m *micropubServer) Update(req *micropub.Request) (string, error) {
 	return req.URL, m.update(req.URL, req, func(e *core.Entry) (error, bool) {
+		oldContent := strings.TrimSpace(e.TextContent())
+
 		mf2 := m.entryToMF2(e)["properties"].(map[string][]any)
 		mf2, err := Update(mf2, req.Updates)
 		if err != nil {
@@ -162,7 +164,19 @@ func (m *micropubServer) Update(req *micropub.Request) (string, error) {
 			}
 		}
 
-		e.Lastmod = time.Now()
+		err = m.updateEntryWithProps(e, mf2)
+		if err != nil {
+			return err, false
+		}
+
+		newContent := strings.TrimSpace(e.TextContent())
+
+		// Only update the last modified date if the content has changed,
+		// the entry has a date, and the entry is older than 12 hours.
+		if newContent != oldContent && !e.Date.IsZero() && time.Since(e.Date) > 12*time.Hour {
+			e.Lastmod = time.Now()
+		}
+
 		return m.updateEntryWithProps(e, mf2), true
 	})
 }
