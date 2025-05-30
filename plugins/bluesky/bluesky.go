@@ -26,8 +26,9 @@ var (
 )
 
 const (
-	apiUrl = "https://bsky.social"
-	appUrl = "https://bsky.app"
+	apiUrl            = "https://bsky.social"
+	appUrl            = "https://bsky.app"
+	maximumCharacters = 300
 )
 
 func init() {
@@ -233,31 +234,16 @@ func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Syn
 		}
 	}
 
-	// Calculate how many images are embedded
+	// Determine how many images are embedded
 	imagesCount := 0
 	if post.Embed.EmbedImages != nil {
 		imagesCount = len(post.Embed.EmbedImages.Images)
 	}
 
-	// Prepare text
-	post.Text = e.TextContent()
-	textWithPermalink := len(sctx.Photos) != imagesCount
+	// Get text content and determine if it's too long
+	post.Text = e.Status(maximumCharacters, len(e.Photos) > imagesCount)
 
-	// Calculate maximum characters, and account for permalink
-	maximumCharacters := 300
-	if textWithPermalink {
-		maximumCharacters -= len(e.Permalink) + 3
-	}
-
-	// In this case, just use the title
-	if post.Text == "" || len(post.Text) >= maximumCharacters {
-		post.Text = e.Title
-		textWithPermalink = true
-	}
-
-	if textWithPermalink {
-		post.Text += "\n\n" + e.Permalink + "\n"
-
+	if byteStart := bytes.Index([]byte(post.Text), []byte(e.Permalink)); byteStart != -1 {
 		// Include facet
 		byteStart := bytes.Index([]byte(post.Text), []byte(e.Permalink))
 		byteEnd := byteStart + len([]byte(e.Permalink))
