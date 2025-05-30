@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"image"
 	"net/url"
 	"strings"
 
@@ -155,10 +156,22 @@ func (b *Bluesky) uploadPhotos(ctx context.Context, xrpcc *xrpc.Client, photos [
 			continue
 		}
 
-		embeddings = append(embeddings, &bsky.EmbedImages_Image{
+		embedding := &bsky.EmbedImages_Image{
 			Image: blob,
 			Alt:   photo.Title,
-		})
+		}
+
+		config, _, err := image.DecodeConfig(bytes.NewReader(photo.Data))
+		if err == nil {
+			embedding.AspectRatio = &bsky.EmbedDefs_AspectRatio{
+				Width:  int64(config.Width),
+				Height: int64(config.Height),
+			}
+		} else {
+			b.log.Warnw("decoding photo config failed", "mimetype", photo.MimeType, "err", err)
+		}
+
+		embeddings = append(embeddings, embedding)
 	}
 
 	return embeddings
