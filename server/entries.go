@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Server) getPhoto(url string) (*Photo, error) {
-	photoUrl, err := s.media.GetImageURL(url, media.FormatJPEG, media.Width1000)
+	photoUrl, err := s.media.GetImageURL(url, media.FormatJPEG, media.Width2000)
 	if err != nil {
 		return nil, err
 	}
