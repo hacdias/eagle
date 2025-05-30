@@ -158,24 +158,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		}
 	}
 
-	textContent := e.TextContent()
-	addPermalink := len(sctx.Photos) != len(toot.MediaIDs)
-
-	maximumCharacters := m.maximumCharacters
-	if addPermalink {
-		maximumCharacters -= len(e.Permalink) + 3
-	}
-
-	if textContent == "" || len(textContent) >= maximumCharacters {
-		textContent = e.Title
-		addPermalink = true
-	}
-
-	if addPermalink {
-		textContent += "\n\n" + e.Permalink + "\n"
-	}
-
-	toot.Status = textContent
+	toot.Status = e.Status(m.maximumCharacters, len(e.Photos) > len(toot.MediaIDs))
 
 	var status *mastodon.Status
 	if id != "" {

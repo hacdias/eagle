@@ -89,6 +89,29 @@ func (e *Entry) TextContent() string {
 	return makePlainText(e.Content)
 }
 
+func (e *Entry) Status(maximumCharacters int, forcePermalink bool) string {
+	content := e.TextContent()
+	contentTooLong := len(content) > maximumCharacters
+
+	usePermalink := forcePermalink || contentTooLong
+	useTitle := content == "" ||
+		contentTooLong ||
+		(usePermalink && (len(e.Permalink)+len(content)+1) > maximumCharacters)
+
+	var status string
+	if useTitle {
+		status = e.Title
+	} else {
+		status = content
+	}
+
+	if usePermalink {
+		status += " " + e.Permalink
+	}
+
+	return status
+}
+
 type Entries []*Entry
 
 func NewPostID(slug string, t time.Time) string {
