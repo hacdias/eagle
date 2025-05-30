@@ -64,22 +64,22 @@ func NewBluesky(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 	}, nil
 }
 
-func (m *Bluesky) Syndication() micropub.Syndication {
+func (b *Bluesky) Syndication() micropub.Syndication {
 	return micropub.Syndication{
 		UID:  "bluesky",
 		Name: "Bluesky",
 	}
 }
 
-func (m *Bluesky) getClient(ctx context.Context) (*xrpc.Client, error) {
+func (b *Bluesky) getClient(ctx context.Context) (*xrpc.Client, error) {
 	client := &xrpc.Client{
 		Host:      apiUrl,
-		UserAgent: &m.userAgent,
+		UserAgent: &b.userAgent,
 	}
 
 	sess, err := atproto.ServerCreateSession(context.Background(), client, &atproto.ServerCreateSession_Input{
-		Identifier: m.identifier,
-		Password:   m.password,
+		Identifier: b.identifier,
+		Password:   b.password,
 	})
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (m *Bluesky) getClient(ctx context.Context) (*xrpc.Client, error) {
 	return client, nil
 }
 
-func (m *Bluesky) extractID(urlStr string) (string, error) {
+func (b *Bluesky) extractID(urlStr string) (string, error) {
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", err
@@ -109,11 +109,11 @@ func (m *Bluesky) extractID(urlStr string) (string, error) {
 	return parts[4], nil
 }
 
-func (m *Bluesky) getSyndication(e *core.Entry) (string, string, error) {
+func (b *Bluesky) getSyndication(e *core.Entry) (string, string, error) {
 	syndications := typed.New(e.Other).Strings(server.SyndicationField)
 	for _, urlStr := range syndications {
 		if strings.HasPrefix(urlStr, appUrl) {
-			id, err := m.extractID(urlStr)
+			id, err := b.extractID(urlStr)
 			return urlStr, id, err
 		}
 	}
@@ -121,8 +121,8 @@ func (m *Bluesky) getSyndication(e *core.Entry) (string, string, error) {
 	return "", "", nil
 }
 
-func (m *Bluesky) IsSyndicated(e *core.Entry) bool {
-	_, id, err := m.getSyndication(e)
+func (b *Bluesky) IsSyndicated(e *core.Entry) bool {
+	_, id, err := b.getSyndication(e)
 	if err != nil {
 		return false
 	}
@@ -314,7 +314,7 @@ func (b *Bluesky) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Syn
 			return "", false, err
 		}
 
-		return fmt.Sprintf("%s/profile/%s/post/%s", appUrl, uri.Authority(), uri.RecordKey()), false, nil
+		return fmt.Sprintf("%s/profile/%s/post/%s", appUrl, b.identifier, uri.RecordKey()), false, nil
 	} else {
 		_, err := atproto.RepoPutRecord(ctx, xrpcc, &atproto.RepoPutRecord_Input{
 			Rkey:       recordKey,
