@@ -26,7 +26,7 @@ require (
 	github.com/writeas/go-strip-markdown/v2 v2.1.1
 	go.etcd.io/bbolt v1.4.0
 	go.hacdias.com/indielib v0.4.3
-	go.hacdias.com/maze v0.4.0
+	go.hacdias.com/maze v0.5.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.38.0
 	golang.org/x/net v0.40.0
@@ -37,7 +37,6 @@ require (
 )
 
 require (
-	git.jlel.se/jlelse/go-geouri v0.0.0-20210525190615-a9c1d50f42d6 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect

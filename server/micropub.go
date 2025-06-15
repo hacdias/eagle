@@ -16,6 +16,7 @@ import (
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/micropub"
+	"go.hacdias.com/maze"
 )
 
 const (
@@ -266,6 +267,10 @@ func (m *micropubServer) entryToMF2(e *core.Entry) map[string]any {
 		properties["summary"] = e.Description
 	}
 
+	if e.Location != nil {
+		properties["location"] = e.Location.String()
+	}
+
 	if e.Draft {
 		properties["post-status"] = "draft"
 	} else if e.Deleted() {
@@ -351,6 +356,16 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 	if summary, ok := properties.StringIf("summary"); ok {
 		e.Description = summary
 		delete(properties, "summary")
+	}
+
+	if location, ok := properties.StringIf("location"); ok {
+		parsedLocation, err := maze.ParseLocation(location)
+		if err != nil {
+			return err
+		}
+
+		e.Location = parsedLocation
+		delete(properties, "location")
 	}
 
 	if status, ok := properties.StringIf("post-status"); ok {

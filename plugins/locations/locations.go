@@ -2,7 +2,6 @@ package locations
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/karlseguin/typed"
@@ -53,33 +52,20 @@ func (l *Locations) PostSaveHook(e *core.Entry) error {
 		return nil
 	}
 
-	locationStr := typed.New(e.Other).String("location")
-	if locationStr == "" {
+	if e.Location == nil {
 		return nil
 	}
 
-	location, err := l.parseLocation(locationStr)
+	hasDetails := e.Location.Country != "" || e.Location.Locality != "" || e.Location.Name != "" || e.Location.ICAO != "" || e.Location.IATA != ""
+	if hasDetails {
+		return nil
+	}
+
+	var err error
+	e.Location, err = l.maze.ReverseGeoURI(l.language, e.Location.String())
 	if err != nil {
 		return err
 	}
 
-	if location == nil {
-		return nil
-	}
-
-	e.Other["location"] = location
 	return l.core.SaveEntry(e)
-}
-
-func (l *Locations) parseLocation(str string) (*maze.Location, error) {
-	if strings.HasPrefix(str, "geo:") {
-		return l.maze.ReverseGeoURI(l.language, str)
-	} else if strings.HasPrefix(str, "airport:") {
-		code := strings.TrimPrefix(str, "airport:")
-		return l.maze.Airport(code)
-	} else {
-		return l.maze.Search(l.language, str)
-	}
-
-	// Also add swarm option
 }

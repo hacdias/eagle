@@ -13,6 +13,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
+	"go.hacdias.com/maze"
 	"gopkg.in/yaml.v3"
 	"willnorris.com/go/webmention"
 )
@@ -35,6 +36,7 @@ type FrontMatter struct {
 	NoIndex       bool           `yaml:"noIndex,omitempty"`
 	NoWebmentions bool           `yaml:"noWebmentions,omitempty"`
 	Photos        []Photo        `yaml:"photos,omitempty"`
+	Location      *maze.Location `yaml:"location,omitempty"`
 	Other         map[string]any `yaml:",inline"`
 }
 
