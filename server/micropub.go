@@ -433,7 +433,7 @@ func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.T
 	cachedData := map[string][]byte{}
 
 	if url, ok := properties.StringIf("photo"); ok {
-		if strings.HasPrefix(url, "cache:/") {
+		if strings.HasPrefix(url, "cache:") {
 			data, ok := m.s.mediaCache.Get(url)
 			if !ok {
 				return fmt.Errorf("photo %q not found in cache", url)
@@ -447,7 +447,7 @@ func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.T
 		delete(properties, "photo")
 	} else if photos, ok := properties.StringsIf("photo"); ok {
 		for _, url := range photos {
-			if strings.HasPrefix(url, "cache:/") {
+			if strings.HasPrefix(url, "cache:") {
 				data, ok := m.s.mediaCache.Get(url)
 				if !ok {
 					return fmt.Errorf("photo %q not found in cache", url)
