@@ -49,9 +49,6 @@ const (
 	Width600  Width = 600
 	Width900  Width = 900
 	Width1800 Width = 1800
-
-	// MaximumWidth used for the largest resolution
-	MaximumWidth Width = 10000
 )
 
 var widths = []Width{
@@ -130,52 +127,42 @@ func isImage(ext string) bool {
 }
 
 func (m *Media) uploadImage(filename string, data []byte) (string, error) {
-	if len(data) < 100000 {
-		if filepath.Ext(filename) == ".jpeg" {
-			return "", errors.New("image is smaller than 100 KB, ignore")
-		}
-
-		config, _, err := image.DecodeConfig(bytes.NewReader(data))
-		if err != nil {
-			return "", fmt.Errorf("failed to decode image config: %w", err)
-		}
-
-		imgReader, err := m.transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100)
-		if err != nil {
-			return "", err
-		}
-
-		return m.storage.UploadMedia(filename+".jpeg", imgReader)
-	}
-
 	if m.transformer == nil {
 		return "", errors.New("transformer not implemented")
 	}
 
-	var imgReader io.Reader
-	config, _, err := image.DecodeConfig(bytes.NewReader(data))
-	if err == nil && config.Width > int(MaximumWidth) {
-		imgReader, err = m.transformer.Transform(bytes.NewReader(data), "jpeg", int(MaximumWidth), 100)
-		if err != nil {
-			return "", err
+	if len(data) < 100000 {
+		var reader io.Reader
+		if filepath.Ext(filename) == ".jpeg" || filepath.Ext(filename) == ".jpg" {
+			reader = bytes.NewReader(data)
+		} else {
+			config, _, err := image.DecodeConfig(bytes.NewReader(data))
+			if err != nil {
+				return "", fmt.Errorf("failed to decode image config: %w", err)
+			}
+
+			reader, err = m.transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100)
+			if err != nil {
+				return "", err
+			}
 		}
-	} else {
-		imgReader = bytes.NewReader(data)
+
+		return m.storage.UploadMedia(filename+".jpeg", reader)
 	}
 
-	_, err = m.storage.UploadMedia(filename+".jpeg", imgReader)
+	_, err := m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
 	if err != nil {
 		return "", err
 	}
 
 	for _, format := range formats {
 		for _, width := range widths {
-			imgReader, err = m.transformer.Transform(bytes.NewReader(data), string(format), int(width), 80)
+			reader, err := m.transformer.Transform(bytes.NewReader(data), string(format), int(width), 80)
 			if err != nil {
 				return "", err
 			}
 
-			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), imgReader)
+			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
 			if err != nil {
 				return "", err
 			}
