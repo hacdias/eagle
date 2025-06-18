@@ -5,6 +5,10 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"net/http"
 	"net/url"
@@ -42,17 +46,16 @@ type Width int
 
 const (
 	// Widths used for transforms
-	Width250  Width = 250
-	Width500  Width = 500
-	Width1000 Width = 1000
-	Width2000 Width = 2000
+	Width600  Width = 600
+	Width900  Width = 900
+	Width1800 Width = 1800
 
 	// MaximumWidth used for the largest resolution
 	MaximumWidth Width = 3000
 )
 
 var widths = []Width{
-	Width250, Width500, Width1000, Width2000,
+	Width600, Width900, Width1800,
 }
 
 type Media struct {
@@ -106,7 +109,12 @@ func (m *Media) upload(filename, ext string, data []byte) (string, error) {
 		}
 	}
 
-	filename = filepath.Join("media", filename+ext)
+	// Consistency
+	if ext == ".jpg" {
+		ext = ".jpeg"
+	}
+
+	filename = filename + ext
 	return m.storage.UploadMedia(filename, bytes.NewBuffer(data))
 }
 
@@ -123,19 +131,39 @@ func isImage(ext string) bool {
 
 func (m *Media) uploadImage(filename string, data []byte) (string, error) {
 	if len(data) < 100000 {
-		return "", errors.New("image is smaller than 100 KB, ignore")
+		if filepath.Ext(filename) == ".jpeg" {
+			return "", errors.New("image is smaller than 100 KB, ignore")
+		}
+
+		config, _, err := image.DecodeConfig(bytes.NewReader(data))
+		if err != nil {
+			return "", fmt.Errorf("failed to decode image config: %w", err)
+		}
+
+		imgReader, err := m.transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100)
+		if err != nil {
+			return "", err
+		}
+
+		return m.storage.UploadMedia(filename+".jpeg", imgReader)
 	}
 
 	if m.transformer == nil {
 		return "", errors.New("transformer not implemented")
 	}
 
-	imgReader, err := m.transformer.Transform(bytes.NewReader(data), "jpeg", int(MaximumWidth), 100)
-	if err != nil {
-		return "", err
+	var imgReader io.Reader
+	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err == nil && config.Width > int(MaximumWidth) {
+		imgReader, err = m.transformer.Transform(bytes.NewReader(data), "jpeg", int(MaximumWidth), 100)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		imgReader = bytes.NewReader(data)
 	}
 
-	_, err = m.storage.UploadMedia(filepath.Join("media", filename+".jpeg"), imgReader)
+	_, err = m.storage.UploadMedia(filename+".jpeg", imgReader)
 	if err != nil {
 		return "", err
 	}
@@ -147,14 +175,14 @@ func (m *Media) uploadImage(filename string, data []byte) (string, error) {
 				return "", err
 			}
 
-			_, err = m.storage.UploadMedia(filepath.Join("img", strconv.Itoa(int(width)), filename+"."+string(format)), imgReader)
+			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), imgReader)
 			if err != nil {
 				return "", err
 			}
 		}
 	}
 
-	return "cdn:/" + filename, nil
+	return "image:" + filename, nil
 }
 
 func (m *Media) GetImageURL(urlStr string, format Format, width Width) (string, error) {
@@ -163,12 +191,10 @@ func (m *Media) GetImageURL(urlStr string, format Format, width Width) (string, 
 		return "", err
 	}
 
-	if u.Scheme != "cdn" {
+	if u.Scheme != "image" {
 		return urlStr, nil
 	}
 
-	id := strings.TrimPrefix(u.Path, "/")
-	urlStr = fmt.Sprintf("%s/img/%d/%s.%s", m.storage.BaseURL(), width, id, format)
-
+	urlStr = fmt.Sprintf("%s/image/%d/%s.%s", m.storage.BaseURL(), width, u.Opaque, format)
 	return urlStr, nil
 }
