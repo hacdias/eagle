@@ -2,7 +2,6 @@ package media
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"image"
@@ -79,16 +78,6 @@ func (m *Media) UploadMedia(filename, ext string, reader io.Reader) (string, err
 		return "", err
 	}
 
-	return m.upload(filename, ext, data)
-}
-
-func (m *Media) UploadAnonymousMedia(ext string, reader io.Reader) (string, error) {
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return "", err
-	}
-
-	filename := fmt.Sprintf("%x", sha256.Sum256(data))
 	return m.upload(filename, ext, data)
 }
 

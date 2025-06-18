@@ -274,14 +274,7 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 		ext = mime.Extension()
 	}
 
-	var location string
-
-	if r.Form.Get("preserve-filename") == "on" {
-		location, err = s.media.UploadMedia(strings.TrimSuffix(header.Filename, ext), ext, bytes.NewReader(raw))
-	} else {
-		location, err = s.media.UploadAnonymousMedia(ext, bytes.NewReader(raw))
-	}
-
+	location, err := s.Media.UploadMedia(strings.TrimSuffix(header.Filename, ext), ext, bytes.NewReader(raw))
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
