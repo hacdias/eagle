@@ -51,7 +51,7 @@ const (
 	Width1800 Width = 1800
 
 	// MaximumWidth used for the largest resolution
-	MaximumWidth Width = 3000
+	MaximumWidth Width = 10000
 )
 
 var widths = []Width{
