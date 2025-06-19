@@ -485,14 +485,18 @@ func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.T
 			}
 
 			ext := filepath.Ext(url)
-			cdnUrl, err := m.s.media.UploadMedia(filename, ext, bytes.NewBuffer(data))
+			location, photo, err := m.s.media.UploadMedia(filename, ext, bytes.NewBuffer(data))
 			if err != nil {
 				return fmt.Errorf("failed to upload photo: %w", err)
 			}
 
-			e.Photos = append(e.Photos, core.Photo{
-				URL: cdnUrl,
-			})
+			if photo != nil {
+				e.Photos = append(e.Photos, *photo)
+			} else {
+				e.Photos = append(e.Photos, core.Photo{
+					URL: location,
+				})
+			}
 		} else {
 			e.Photos = append(e.Photos, core.Photo{
 				URL:   url,

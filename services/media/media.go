@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.uber.org/zap"
 )
@@ -72,26 +73,26 @@ func NewMedia(storage Storage, transformer Transformer) *Media {
 	return m
 }
 
-func (m *Media) UploadMedia(filename, ext string, reader io.Reader) (string, error) {
+func (m *Media) UploadMedia(filename, ext string, reader io.Reader) (string, *core.Photo, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	return m.upload(filename, ext, data)
 }
 
-func (m *Media) upload(filename, ext string, data []byte) (string, error) {
+func (m *Media) upload(filename, ext string, data []byte) (string, *core.Photo, error) {
 	if m.storage == nil {
-		return "", errors.New("media is not implemented")
+		return "", nil, errors.New("media is not implemented")
 	}
 
 	if isImage(ext) {
-		str, err := m.uploadImage(filename, data)
+		p, err := m.uploadImage(filename, data)
 		if err != nil {
 			m.log.Errorf("failed to upload image", "filename", filename, "ext", ext, "err", err)
 		} else {
-			return str, nil
+			return "", p, nil
 		}
 	}
 
@@ -100,8 +101,8 @@ func (m *Media) upload(filename, ext string, data []byte) (string, error) {
 		ext = ".jpeg"
 	}
 
-	filename = filename + ext
-	return m.storage.UploadMedia(filename, bytes.NewBuffer(data))
+	s, err := m.storage.UploadMedia(filename+ext, bytes.NewBuffer(data))
+	return s, nil, err
 }
 
 var imageExtensions []string = []string{
@@ -115,9 +116,14 @@ func isImage(ext string) bool {
 	return lo.Contains(imageExtensions, strings.ToLower(ext))
 }
 
-func (m *Media) uploadImage(filename string, data []byte) (string, error) {
+func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 	if m.transformer == nil {
-		return "", errors.New("transformer not implemented")
+		return nil, errors.New("transformer not implemented")
+	}
+
+	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image config: %w", err)
 	}
 
 	if len(data) < 100000 {
@@ -125,40 +131,43 @@ func (m *Media) uploadImage(filename string, data []byte) (string, error) {
 		if filepath.Ext(filename) == ".jpeg" || filepath.Ext(filename) == ".jpg" {
 			reader = bytes.NewReader(data)
 		} else {
-			config, _, err := image.DecodeConfig(bytes.NewReader(data))
-			if err != nil {
-				return "", fmt.Errorf("failed to decode image config: %w", err)
-			}
-
 			reader, err = m.transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 		}
 
-		return m.storage.UploadMedia(filename+".jpeg", reader)
-	}
+		_, err = m.storage.UploadMedia(filename+".jpeg", reader)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		_, err := m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
+		if err != nil {
+			return nil, err
+		}
 
-	_, err := m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
-	if err != nil {
-		return "", err
-	}
+		for _, format := range formats {
+			for _, width := range widths {
+				reader, err := m.transformer.Transform(bytes.NewReader(data), string(format), int(width), 80)
+				if err != nil {
+					return nil, err
+				}
 
-	for _, format := range formats {
-		for _, width := range widths {
-			reader, err := m.transformer.Transform(bytes.NewReader(data), string(format), int(width), 80)
-			if err != nil {
-				return "", err
-			}
-
-			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
-			if err != nil {
-				return "", err
+				_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
+
 	}
 
-	return "image:" + filename, nil
+	return &core.Photo{
+		URL:    "image:" + filename,
+		Width:  config.Width,
+		Height: config.Height,
+	}, nil
 }
 
 func (m *Media) GetImageURL(urlStr string, format Format, width Width) (string, error) {

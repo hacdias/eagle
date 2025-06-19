@@ -32,6 +32,7 @@ type panelPage struct {
 	ActionSuccess      bool
 	Token              string
 	MediaLocation      string
+	MediaPhoto         *core.Photo
 	WebmentionsSuccess bool
 }
 
@@ -274,14 +275,15 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 		ext = mime.Extension()
 	}
 
-	location, err := s.Media.UploadMedia(strings.TrimSuffix(header.Filename, ext), ext, bytes.NewReader(raw))
+	mediaLocation, mediaPhoto, err := s.media.UploadMedia(strings.TrimSuffix(header.Filename, ext), ext, bytes.NewReader(raw))
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	s.servePanel(w, r, &panelPage{
-		MediaLocation: location,
+		MediaLocation: mediaLocation,
+		MediaPhoto:    mediaPhoto,
 	})
 }
 

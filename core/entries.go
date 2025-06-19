@@ -22,8 +22,10 @@ const moreSeparator = "<!--more-->"
 
 // TODO: update to match https://aaronparecki.com/2017/02/25/9/day-67-image-alt-text
 type Photo struct {
-	URL   string `yaml:"url,omitempty"`
-	Title string `yaml:"title,omitempty"`
+	URL    string `yaml:"url,omitempty"`
+	Title  string `yaml:"title,omitempty"`
+	Width  int    `yaml:"width,omitempty"`
+	Height int    `yaml:"height,omitempty"`
 }
 
 type FrontMatter struct {
@@ -144,7 +146,7 @@ func (co *Core) NewBlankEntry(id string) *Entry {
 var errIgnoredEntry error = errors.New("ignored entry")
 
 func (co *Core) GetEntry(id string) (*Entry, error) {
-	filename := co.entryFilenameFromID(id)
+	filename := co.EntryFilenameFromID(id)
 	raw, err := co.sourceFS.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -230,7 +232,7 @@ func (co *Core) GetEntryFromPermalink(permalink string) (*Entry, error) {
 }
 
 func (co *Core) SaveEntry(e *Entry) error {
-	filename := co.entryFilenameFromID(e.ID)
+	filename := co.EntryFilenameFromID(e.ID)
 	err := co.sourceFS.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
 		return err
@@ -283,7 +285,7 @@ func (co *Core) parseEntry(id, raw string) (*Entry, error) {
 	return e, nil
 }
 
-func (f *Core) entryFilenameFromID(id string) string {
+func (f *Core) EntryFilenameFromID(id string) string {
 	path := filepath.Join(ContentDirectory, id, "_index.md")
 	if _, err := f.sourceFS.Stat(path); err == nil {
 		return path

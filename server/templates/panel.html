@@ -27,6 +27,14 @@
 
 {{ with .MediaLocation }}
   <pre>{{ . }}</pre>
+{{ else with .MediaPhoto }}
+  <pre>![]({{ .URL }}{{ with .Title }} "{{ . }}"{{ end }}){{ if .Width }}
+{width="{{ .Width }}" height="{{ .Height }}"}{{end }}</pre>
+
+  <pre>- url: "{{ .URL }}"{{ with .Title }}
+  title: {{ . }}{{ end }}{{ if .Width }}
+  width: {{ .Width }}
+  height: {{ .Height }}{{end }}</pre>
 {{ end }}
 
 <h2>Send Webmention</h2>
