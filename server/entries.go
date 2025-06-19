@@ -1,10 +1,16 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"image"
 	"io"
 	"net/http"
+
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/karlseguin/typed"
@@ -49,6 +55,8 @@ func (s *Server) getPhoto(url string) (*Photo, error) {
 func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext, error) {
 	ctx := &SyndicationContext{}
 
+	thumbnailStr := typed.New(e.Other).String("thumbnail")
+
 	// Get the first 4 photos from the entry
 	for i, p := range e.Photos {
 		if i >= 4 {
@@ -60,16 +68,27 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 			return nil, err
 		}
 		photo.Title = p.Title
+		photo.Width = p.Width
+		photo.Height = p.Height
+
+		if p.URL == thumbnailStr {
+			ctx.Thumbnail = photo
+		}
 
 		ctx.Photos = append(ctx.Photos, photo)
 	}
 
-	thumbnailStr := typed.New(e.Other).String("thumbnail")
-	if thumbnailStr != "" {
+	if ctx.Thumbnail == nil && thumbnailStr != "" {
 		var err error
 		ctx.Thumbnail, err = s.getPhoto(thumbnailStr)
 		if err != nil {
 			return nil, err
+		}
+
+		config, _, err := image.DecodeConfig(bytes.NewReader(ctx.Thumbnail.Data))
+		if err == nil {
+			ctx.Thumbnail.Width = config.Width
+			ctx.Thumbnail.Height = config.Height
 		}
 	} else if len(ctx.Photos) > 0 {
 		ctx.Thumbnail = ctx.Photos[0]

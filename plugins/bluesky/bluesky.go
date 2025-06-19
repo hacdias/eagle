@@ -5,13 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"image"
 	"net/url"
 	"strings"
-
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
@@ -165,14 +160,11 @@ func (b *Bluesky) uploadPhotos(ctx context.Context, xrpcc *xrpc.Client, photos [
 			Alt:   photo.Title,
 		}
 
-		config, _, err := image.DecodeConfig(bytes.NewReader(photo.Data))
-		if err == nil {
+		if photo.Width > 0 && photo.Height > 0 {
 			embedding.AspectRatio = &bsky.EmbedDefs_AspectRatio{
-				Width:  int64(config.Width),
-				Height: int64(config.Height),
+				Width:  int64(photo.Width),
+				Height: int64(photo.Height),
 			}
-		} else {
-			b.log.Warnw("decoding photo config failed", "mimetype", photo.MimeType, "err", err)
 		}
 
 		embeddings = append(embeddings, embedding)

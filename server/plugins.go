@@ -52,6 +52,8 @@ type Photo struct {
 	Data     []byte
 	Title    string
 	MimeType string
+	Width    int
+	Height   int
 }
 
 type SyndicationContext struct {
