@@ -8,15 +8,13 @@ require (
 	github.com/bluesky-social/indigo v0.0.0-20250617211950-336ebe49427b
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.9
-	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/jwtauth/v5 v5.3.3
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.1.3
-	github.com/lestrrat-go/jwx/v3 v3.0.7
 	github.com/mattn/go-mastodon v0.0.10-0.20250511125006-6efc40b8f802
 	github.com/maypok86/otter v1.2.4
-	github.com/maypok86/otter/v2 v2.0.0
 	github.com/meilisearch/meilisearch-go v0.32.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/robfig/cron/v3 v3.0.1
