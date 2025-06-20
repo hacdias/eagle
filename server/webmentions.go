@@ -139,7 +139,7 @@ func (s *Server) handleWebmention(payload *webmentionPayload) {
 		EntryID: e.ID,
 	}
 
-	if payload.Source != mention.Post.URL {
+	if payload.Source != mention.URL {
 		mention.Source = payload.Source
 	}
 

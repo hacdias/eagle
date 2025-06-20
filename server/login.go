@@ -112,7 +112,7 @@ func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := jwtauth.FromContext(r.Context())
-		valid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != sessionSubject)
+		valid := err == nil && token != nil && jwt.Validate(token) == nil && token.Subject() == sessionSubject
 		ctx := r.Context()
 
 		if valid {

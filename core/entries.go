@@ -52,11 +52,11 @@ type Entry struct {
 }
 
 func (e *Entry) Deleted() bool {
-	if e.FrontMatter.ExpiryDate.IsZero() {
+	if e.ExpiryDate.IsZero() {
 		return false
 	}
 
-	return e.FrontMatter.ExpiryDate.Before(time.Now())
+	return e.ExpiryDate.Before(time.Now())
 }
 
 func (e *Entry) Summary() string {
