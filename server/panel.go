@@ -248,7 +248,9 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	raw, err := io.ReadAll(file)
 	if err != nil {

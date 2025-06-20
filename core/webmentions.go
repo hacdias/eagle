@@ -124,7 +124,9 @@ func (co *Core) sendWebmention(source, target string) error {
 	}
 
 	_, _ = io.Copy(io.Discard, res.Body)
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	return nil
 }

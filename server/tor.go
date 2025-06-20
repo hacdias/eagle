@@ -42,7 +42,7 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 		RemotePorts: []int{80},
 	})
 	if err != nil {
-		t.Close()
+		_ = t.Close()
 		return err
 	}
 
@@ -57,7 +57,12 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 	s.registerServer(srv, "tor")
 
 	go func() {
-		defer t.Close()
+		defer func() {
+			err = t.Close()
+			if err != nil {
+				s.log.Warnf("error while closing tor", "err", err)
+			}
+		}()
 		s.log.Infof("tor listening on %s", ln.Addr().String())
 		errCh <- srv.Serve(ln)
 

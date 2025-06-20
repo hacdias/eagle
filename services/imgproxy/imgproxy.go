@@ -52,7 +52,9 @@ func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New("status code is not ok")

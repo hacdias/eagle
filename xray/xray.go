@@ -75,7 +75,9 @@ func (x *XRay) Fetch(urlStr string) (*Post, any, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	var xray xrayResponse
 	err = json.NewDecoder(res.Body).Decode(&xray)

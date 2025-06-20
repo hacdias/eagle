@@ -44,7 +44,9 @@ func (m *Bunny) UploadMedia(filename string, data io.Reader) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.StatusCode != http.StatusCreated {
 		return "", errors.New("status code is not ok")

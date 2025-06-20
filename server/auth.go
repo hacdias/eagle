@@ -159,7 +159,7 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 	token, _, err := jwtauth.FromContext(r.Context())
-	isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != tokenSubject)
+	isValid := err == nil && token != nil && jwt.Validate(token) == nil && token.Subject() == tokenSubject
 	if !isValid {
 		s.serveJSON(w, http.StatusOK, map[string]any{
 			"active": false,
@@ -317,7 +317,7 @@ func getString(token jwt.Token, prop string) string {
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := jwtauth.FromContext(r.Context())
-		isValid := !(err != nil || token == nil || jwt.Validate(token) != nil || token.Subject() != tokenSubject)
+		isValid := err == nil && token != nil && jwt.Validate(token) == nil && token.Subject() == tokenSubject
 		if !isValid {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
