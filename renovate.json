@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended",
     "group:allNonMajor",
+    "group:allDigest",
     ":disableDependencyDashboard"
   ],
   "postUpdateOptions": [
