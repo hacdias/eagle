@@ -1168,8 +1168,8 @@ honnef.co/go/tools v0.0.1-2020.1.3/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9
 honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
 lukechampine.com/blake3 v1.4.1 h1:I3Smz7gso8w4/TunLKec6K2fn+kyKtDxr/xcQEN84Wg=
 lukechampine.com/blake3 v1.4.1/go.mod h1:QFosUxmjB8mnrWFSNwKmvxHpfY72bmD2tQ0kBMM3kwo=
-miniflux.app/v2 v2.2.8 h1:SsWBlyK7hiBJ5fkNeOgK1p872a4/qDJMOyTH2iSWIsA=
-miniflux.app/v2 v2.2.8/go.mod h1:30vy970xFSfHePD/W+SKFz1vnzQx9rqo9/xeFP/GDlE=
+miniflux.app/v2 v2.2.10 h1:nOrpVXZ1m6GbJrNu5cRBhVtgswkRW4XJs/FnkSl0kwE=
+miniflux.app/v2 v2.2.10/go.mod h1:TmYJKXklzIgDCZTGJGV+I9omj0vjTNT4CDvvfZd/khw=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
 rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
