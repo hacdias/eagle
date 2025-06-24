@@ -1,6 +1,8 @@
 module go.hacdias.com/eagle
 
-go 1.24
+go 1.24.0
+
+toolchain go1.24.4
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.3
@@ -32,7 +34,7 @@ require (
 	golang.org/x/net v0.41.0
 	gopkg.in/telebot.v3 v3.3.8
 	gopkg.in/yaml.v3 v3.0.1
-	miniflux.app/v2 v2.2.8
+	miniflux.app/v2 v2.2.10
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
