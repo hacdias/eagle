@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/maypok86/otter"
+	"github.com/maypok86/otter/v2"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
