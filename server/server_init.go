@@ -36,14 +36,15 @@ func initMedia(c *core.Config) *media.Media {
 }
 
 func (s *Server) initMediaCache() error {
-	cache, err := otter.MustBuilder[string, []byte](2e8).
-		WithTTL(time.Hour).
-		Cost(func(key string, value []byte) uint32 {
+	cache, err := otter.New(&otter.Options[string, []byte]{
+		MaximumWeight:    2e8, // 200 MB
+		ExpiryCalculator: otter.ExpiryWriting[string, []byte](time.Hour),
+		Weigher: func(key string, value []byte) uint32 {
 			return uint32(len(value))
-		}).
-		Build()
+		},
+	})
 
-	s.mediaCache = &cache
+	s.mediaCache = cache
 	return err
 }
 

@@ -434,13 +434,13 @@ func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.T
 
 	if url, ok := properties.StringIf("photo"); ok {
 		if strings.HasPrefix(url, "cache:") {
-			data, ok := m.s.mediaCache.Get(url)
+			data, ok := m.s.mediaCache.GetIfPresent(url)
 			if !ok {
 				return fmt.Errorf("photo %q not found in cache", url)
 			}
 
 			cachedData[url] = data
-			m.s.mediaCache.Delete(url)
+			m.s.mediaCache.Invalidate(url)
 		}
 
 		urls = append(urls, url)
@@ -448,13 +448,13 @@ func (m *micropubServer) updateEntryWithPhotos(e *core.Entry, properties typed.T
 	} else if photos, ok := properties.StringsIf("photo"); ok {
 		for _, url := range photos {
 			if strings.HasPrefix(url, "cache:") {
-				data, ok := m.s.mediaCache.Get(url)
+				data, ok := m.s.mediaCache.GetIfPresent(url)
 				if !ok {
 					return fmt.Errorf("photo %q not found in cache", url)
 				}
 
 				cachedData[url] = data
-				m.s.mediaCache.Delete(url)
+				m.s.mediaCache.Invalidate(url)
 			}
 
 			urls = append(urls, url)

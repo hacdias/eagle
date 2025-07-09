@@ -45,7 +45,7 @@ func (s *Server) makeMicropubMedia() http.Handler {
 
 		filename := fmt.Sprintf("cache:%x%s", sha256.Sum256(data), ext)
 
-		added := s.mediaCache.Set(filename, data)
+		_, added := s.mediaCache.Set(filename, data)
 		if !added {
 			return "", errors.New("failed to add item to cache")
 		}
