@@ -16,7 +16,7 @@ require (
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v2 v2.1.6
 	github.com/mattn/go-mastodon v0.0.10-0.20250511125006-6efc40b8f802
-	github.com/maypok86/otter v1.2.4
+	github.com/maypok86/otter/v2 v2.2.0
 	github.com/meilisearch/meilisearch-go v0.32.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/robfig/cron/v3 v3.0.1
@@ -45,10 +45,8 @@ require (
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
-	github.com/dolthub/maphash v0.1.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gammazero/deque v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
