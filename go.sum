@@ -83,8 +83,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/bluesky-social/indigo v0.0.0-20250714120356-edc81792ec9d h1:WTKI2HLm64UOfoWv7N4gJARl2UqeYTz0LKKRymm5FGw=
-github.com/bluesky-social/indigo v0.0.0-20250714120356-edc81792ec9d/go.mod h1:tM+dqMA0M4vbpXB2qAcDpBwRC5VUHxGwEh/TQvHeTNA=
+github.com/bluesky-social/indigo v0.0.0-20250715103748-824a830ef76a h1:6hjtbf4v8Hp0W7mroQ88tHCaOjc3mXN5rD0FJKS6vRk=
+github.com/bluesky-social/indigo v0.0.0-20250715103748-824a830ef76a/go.mod h1:tM+dqMA0M4vbpXB2qAcDpBwRC5VUHxGwEh/TQvHeTNA=
 github.com/carlmjohnson/versioninfo v0.22.5 h1:O00sjOLUAFxYQjlN/bzYTuZiS0y6fWDQjMRvwtKgwwc=
 github.com/carlmjohnson/versioninfo v0.22.5/go.mod h1:QT9mph3wcVfISUKd0i9sZfVrPviHuSF+cUtLjm2WSf8=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
