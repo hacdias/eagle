@@ -34,12 +34,12 @@ require (
 	golang.org/x/net v0.42.0
 	gopkg.in/telebot.v3 v3.3.8
 	gopkg.in/yaml.v3 v3.0.1
-	miniflux.app/v2 v2.2.10
+	miniflux.app/v2 v2.2.11
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
 require (
-	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/carlmjohnson/versioninfo v0.22.5 // indirect
