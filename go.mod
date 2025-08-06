@@ -25,7 +25,6 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	github.com/writeas/go-strip-markdown/v2 v2.1.1
 	go.etcd.io/bbolt v1.4.2
 	go.hacdias.com/indielib v0.4.3
 	go.hacdias.com/maze v0.5.0
