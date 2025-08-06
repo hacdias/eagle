@@ -2,11 +2,9 @@ package meilisearch
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"os"
 
-	"github.com/karlseguin/typed"
 	"github.com/meilisearch/meilisearch-go"
 	"go.hacdias.com/eagle/core"
 )
@@ -100,7 +98,7 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 		})
 	}
 
-	_, err := ms.client.Index(searchIndex).UpdateDocuments(docs)
+	_, err := ms.client.Index(searchIndex).UpdateDocuments(docs, nil)
 	return err
 }
 
@@ -127,19 +125,17 @@ func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, er
 
 	entries := core.Entries{}
 	for _, hit := range res.Hits {
-		m, ok := hit.(map[string]any)
-		if !ok {
+		m := struct {
+			ID string `json:"id"`
+		}{}
+		if err := hit.Decode(&m); err != nil {
 			return nil, fmt.Errorf("cannot convert hit in map[string]any: %q", hit)
 		}
-		id, ok := typed.Typed(m).StringIf("id")
-		if !ok {
-			return nil, errors.New("hit does not contain id field")
-		}
 
-		entry, err := ms.core.GetEntry(id)
+		entry, err := ms.core.GetEntry(m.ID)
 		if err != nil {
 			if os.IsNotExist(err) {
-				_ = ms.Remove(id)
+				_ = ms.Remove(m.ID)
 			} else {
 				return nil, err
 			}
