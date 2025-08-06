@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/karlseguin/typed"
+	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 	miniflux "miniflux.app/v2/client"
@@ -26,11 +27,12 @@ func init() {
 }
 
 type Miniflux struct {
-	core             *core.Core
-	client           *miniflux.Client
-	jsonFilename     string
-	opmlFilename     string
-	redirectLocation string
+	core              *core.Core
+	client            *miniflux.Client
+	jsonFilename      string
+	opmlFilename      string
+	redirectLocation  string
+	ignoredCategories []string
 }
 
 func NewMiniflux(co *core.Core, config map[string]any) (server.Plugin, error) {
@@ -56,11 +58,12 @@ func NewMiniflux(co *core.Core, config map[string]any) (server.Plugin, error) {
 	}
 
 	return &Miniflux{
-		core:             co,
-		client:           miniflux.NewClient(endpoint, key),
-		jsonFilename:     jsonFilename,
-		opmlFilename:     opmlFilename,
-		redirectLocation: redirectLocation,
+		core:              co,
+		client:            miniflux.NewClient(endpoint, key),
+		jsonFilename:      jsonFilename,
+		opmlFilename:      opmlFilename,
+		redirectLocation:  redirectLocation,
+		ignoredCategories: typed.New(config).Strings("ignoredcategories"),
 	}, nil
 }
 
@@ -94,7 +97,7 @@ func (u *Miniflux) Action() error {
 	}
 
 	if u.opmlFilename != "" {
-		opmlData, err := u.client.Export()
+		opmlData, err := makeOpml(newFeeds)
 		if err != nil {
 			return err
 		}
@@ -139,7 +142,11 @@ func (u *Miniflux) fetch() (map[string][]feed, error) {
 
 	feedsByCategory := map[string][]feed{}
 	for _, f := range rawFeeds {
-		category := strings.ToLower(f.Category.Title)
+		category := f.Category.Title
+		if lo.Contains(u.ignoredCategories, category) {
+			continue
+		}
+
 		if _, ok := feedsByCategory[category]; !ok {
 			feedsByCategory[category] = []feed{}
 		}
