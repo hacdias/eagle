@@ -7,7 +7,7 @@ meilisearch:
 	docker run -it --rm \
 		-p 7700:7700 \
 		-e MEILI_ENV='development' \
-		getmeili/meilisearch:v1.2
+		getmeili/meilisearch:v1.16
 
 ngrok:
 	ngrok http --region eu 8080
