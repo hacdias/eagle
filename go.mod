@@ -2,7 +2,7 @@ module go.hacdias.com/eagle
 
 go 1.24.0
 
-toolchain go1.24.5
+toolchain go1.24.6
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.3
