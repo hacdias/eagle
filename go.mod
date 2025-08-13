@@ -7,7 +7,7 @@ toolchain go1.24.6
 require (
 	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/bluesky-social/indigo v0.0.0-20250808182429-6f0837c2d12b
+	github.com/bluesky-social/indigo v0.0.0-20250813002524-42e2d5b7f598
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/go-chi/chi/v5 v5.2.2
