@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine3.22 AS build
+FROM golang:1.25-alpine3.22 AS build
 
 ENV HUGO_VERSION=v0.148.2
 RUN apk update && \
