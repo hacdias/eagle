@@ -14,7 +14,7 @@ require (
 	github.com/go-chi/jwtauth/v5 v5.3.3
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
-	github.com/lestrrat-go/jwx/v2 v2.1.6
+	github.com/lestrrat-go/jwx/v3 v3.0.10
 	github.com/mattn/go-mastodon v0.0.10
 	github.com/maypok86/otter/v2 v2.2.1
 	github.com/meilisearch/meilisearch-go v0.33.1
