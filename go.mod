@@ -10,7 +10,7 @@ require (
 	github.com/bluesky-social/indigo v0.0.0-20250813051257-8be102876fb7
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.10
-	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/jwtauth/v5 v5.3.3
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
