@@ -408,8 +408,8 @@ github.com/mattn/go-runewidth v0.0.10/go.mod h1:RAqKPSqVFrSLVXbA8x7dzmKdmGzieGRC
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/maypok86/otter/v2 v2.2.1 h1:hnGssisMFkdisYcvQ8L019zpYQcdtPse+g0ps2i7cfI=
 github.com/maypok86/otter/v2 v2.2.1/go.mod h1:1NKY9bY+kB5jwCXBJfE59u+zAwOt6C7ni1FTlFFMqVs=
-github.com/meilisearch/meilisearch-go v0.33.2 h1:YgsQSLYhAkRN2ias6I1KNRTjdYCN5w2uHbLUQ+xgrws=
-github.com/meilisearch/meilisearch-go v0.33.2/go.mod h1:6eOPcQ+OAuwXvnONlfSgfgvr7TIAWM/6OdhcVHg8cF0=
+github.com/meilisearch/meilisearch-go v0.33.3 h1:2YdKy3jeppton+vQJvRZmVO6dreUrG2aubfN71xk78w=
+github.com/meilisearch/meilisearch-go v0.33.3/go.mod h1:cUVJZ2zMqTvvwIMEEAdsWH+zrHsrLpAw6gm8Lt1MXK0=
 github.com/microcosm-cc/bluemonday v1.0.27 h1:MpEUotklkwCSLeH+Qdx1VJgNqLlpY2KXwXFM08ygZfk=
 github.com/microcosm-cc/bluemonday v1.0.27/go.mod h1:jFi9vgW+H7c3V0lb6nR74Ib/DIB5OBs92Dimizgw2cA=
 github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
