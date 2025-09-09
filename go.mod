@@ -30,7 +30,7 @@ require (
 	go.hacdias.com/maze v0.5.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.42.0
-	golang.org/x/net v0.43.0
+	golang.org/x/net v0.44.0
 	gopkg.in/telebot.v3 v3.3.8
 	gopkg.in/yaml.v3 v3.0.1
 	miniflux.app/v2 v2.2.12
