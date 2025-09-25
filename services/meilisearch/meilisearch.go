@@ -128,7 +128,7 @@ func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, er
 		m := struct {
 			ID string `json:"id"`
 		}{}
-		if err := hit.Decode(&m); err != nil {
+		if err := hit.DecodeInto(&m); err != nil {
 			return nil, fmt.Errorf("cannot convert hit in map[string]any: %q", hit)
 		}
 
