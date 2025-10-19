@@ -17,7 +17,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.6
 	github.com/mattn/go-mastodon v0.0.10
 	github.com/maypok86/otter/v2 v2.2.1
-	github.com/meilisearch/meilisearch-go v0.34.0
+	github.com/meilisearch/meilisearch-go v0.34.1
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.52.0
@@ -33,7 +33,7 @@ require (
 	golang.org/x/net v0.46.0
 	gopkg.in/telebot.v3 v3.3.8
 	gopkg.in/yaml.v3 v3.0.1
-	miniflux.app/v2 v2.2.12
+	miniflux.app/v2 v2.2.13
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
@@ -106,7 +106,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
+	golang.org/x/oauth2 v0.31.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
