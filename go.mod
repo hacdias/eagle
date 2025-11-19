@@ -28,8 +28,8 @@ require (
 	go.etcd.io/bbolt v1.4.3
 	go.hacdias.com/indielib v0.4.3
 	go.hacdias.com/maze v0.5.0
-	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.44.0
+	go.uber.org/zap v1.27.1
+	golang.org/x/crypto v0.45.0
 	golang.org/x/net v0.47.0
 	gopkg.in/telebot.v3 v3.3.8
 	gopkg.in/yaml.v3 v3.0.1
