@@ -20,7 +20,7 @@ RUN go mod download
 COPY . /eagle/
 RUN go build -o main ./cmd/eagle
 
-FROM alpine:3.22
+FROM alpine:3.23
 
 COPY --from=build /eagle/main /bin/eagle
 COPY --from=build /hugo/hugo /bin/hugo
