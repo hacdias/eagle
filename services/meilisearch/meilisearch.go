@@ -72,7 +72,7 @@ func NewMeilisearch(host, key string, taxonomies []string, co *core.Core) (*Meil
 }
 
 func (ms *Meilisearch) ResetIndex() error {
-	_, err := ms.client.Index(searchIndex).DeleteAllDocuments()
+	_, err := ms.client.Index(searchIndex).DeleteAllDocuments(nil)
 	return err
 }
 
@@ -103,7 +103,7 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 }
 
 func (ms *Meilisearch) Remove(ids ...string) error {
-	_, err := ms.client.Index(searchIndex).DeleteDocuments(ids)
+	_, err := ms.client.Index(searchIndex).DeleteDocuments(ids, nil)
 	return err
 }
 
