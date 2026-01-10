@@ -33,7 +33,7 @@ require (
 	golang.org/x/net v0.48.0
 	gopkg.in/telebot.v3 v3.3.8
 	gopkg.in/yaml.v3 v3.0.1
-	miniflux.app/v2 v2.2.15
+	miniflux.app/v2 v2.2.16
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
