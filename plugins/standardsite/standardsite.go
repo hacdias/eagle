@@ -227,7 +227,7 @@ func (at *StandardSite) HandlerRoute() string {
 }
 
 func (at *StandardSite) Handler(w http.ResponseWriter, r *http.Request, utils *server.PluginWebUtilities) {
-	w.Write([]byte(at.publicationUri))
+	_, _ = w.Write([]byte(at.publicationUri))
 }
 
 const wellKnownStandardPublication = "/.well-known/site.standard.publication"
