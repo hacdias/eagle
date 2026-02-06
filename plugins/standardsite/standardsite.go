@@ -103,9 +103,9 @@ func (at *StandardSite) init(ctx context.Context) error {
 	at.repositoryDid = xrpcc.Auth.Did
 
 	url := at.co.BaseURL()
-	recordKey := url.Hostname()
 
-	expectedRecord := map[string]any{
+	recordKey := url.Hostname()
+	record := map[string]any{
 		"$type":       "site.standard.publication",
 		"url":         strings.TrimSuffix(url.String(), "/"),
 		"name":        at.co.SiteConfig().Params.Site.Description,
@@ -115,34 +115,13 @@ func (at *StandardSite) init(ctx context.Context) error {
 		},
 	}
 
-	getResult, err := agnostic.RepoGetRecord(ctx, xrpcc, "", "site.standard.publication", at.repositoryDid, recordKey)
-	if err == nil {
-		at.log.Info("publication record found")
-		var currentRecord map[string]any
-		err = json.Unmarshal(*getResult.Value, &currentRecord)
-		if err != nil {
-			return err
-		}
-
-		if reflect.DeepEqual(expectedRecord, currentRecord) {
-			at.log.Infow("document record is up to date", "uri", getResult.Uri)
-			at.publicationUri = getResult.Uri
-			return nil
-		}
-	}
-
-	putRecord, err := agnostic.RepoPutRecord(ctx, xrpcc, &agnostic.RepoPutRecord_Input{
-		Collection: "site.standard.publication",
-		Repo:       at.repositoryDid,
-		Rkey:       recordKey,
-		Record:     expectedRecord,
-	})
+	uri, err := upsertRecord(ctx, xrpcc, "site.standard.publication", at.repositoryDid, recordKey, record)
 	if err != nil {
 		return err
 	}
 
-	at.log.Infow("publication record updated", "uri", putRecord.Uri)
-	at.publicationUri = putRecord.Uri
+	at.log.Infow("publication record upserted", "uri", uri)
+	at.publicationUri = uri
 	return nil
 }
 
@@ -218,47 +197,12 @@ func (at *StandardSite) Syndicate(ctx context.Context, e *core.Entry, sctx *serv
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
-	// Create new record
-	if recordKey == "" {
-		result, err := agnostic.RepoCreateRecord(ctx, xrpcc, &agnostic.RepoCreateRecord_Input{
-			Collection: "site.standard.document",
-			Repo:       at.repositoryDid,
-			Record:     record,
-		})
-		if err != nil {
-			return "", false, err
-		}
-		return result.Uri, false, nil
-	}
-
-	// Get existing record and check if needs to be updated
-	getResult, err := agnostic.RepoGetRecord(ctx, xrpcc, "", "site.standard.document", at.repositoryDid, recordKey)
-	if err == nil {
-		at.log.Info("document record found")
-		var currentRecord map[string]any
-		err = json.Unmarshal(*getResult.Value, &currentRecord)
-		if err != nil {
-			return "", false, err
-		}
-
-		if reflect.DeepEqual(record, currentRecord) {
-			at.log.Infow("publication record is up to date", "uri", getResult.Uri)
-			return getResult.Uri, false, nil
-		}
-	}
-
-	// Update existing record
-	putResult, err := agnostic.RepoPutRecord(ctx, xrpcc, &agnostic.RepoPutRecord_Input{
-		Collection: "site.standard.document",
-		Repo:       at.repositoryDid,
-		Rkey:       recordKey,
-		Record:     record,
-	})
+	uri, err = upsertRecord(ctx, xrpcc, "site.standard.document", at.repositoryDid, recordKey, record)
 	if err != nil {
 		return "", false, err
 	}
 
-	return putResult.Uri, false, nil
+	return uri, false, nil
 
 }
 
@@ -271,3 +215,45 @@ func (at *StandardSite) Handler(w http.ResponseWriter, r *http.Request, utils *s
 }
 
 const wellKnownStandardPublication = "/.well-known/site.standard.publication"
+
+func upsertRecord(ctx context.Context, client *xrpc.Client, collection, repo, recordKey string, record map[string]any) (string, error) {
+	// Create if there's no recordKey known
+	if recordKey == "" {
+		result, err := agnostic.RepoCreateRecord(ctx, client, &agnostic.RepoCreateRecord_Input{
+			Collection: collection,
+			Repo:       repo,
+			Record:     record,
+		})
+		if err != nil {
+			return "", err
+		}
+
+		return result.Uri, nil
+	}
+
+	// Check if the record exists and is the same, if so, return the existing URI
+	if result, err := agnostic.RepoGetRecord(ctx, client, "", collection, repo, recordKey); err == nil {
+		var currentRecord map[string]any
+		err = json.Unmarshal(*result.Value, &currentRecord)
+		if err != nil {
+			return "", err
+		}
+
+		if reflect.DeepEqual(record, currentRecord) {
+			return result.Uri, nil
+		}
+	}
+
+	// Otherwise, update the record
+	result, err := agnostic.RepoPutRecord(ctx, client, &agnostic.RepoPutRecord_Input{
+		Collection: collection,
+		Repo:       repo,
+		Rkey:       recordKey,
+		Record:     record,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return result.Uri, nil
+}
