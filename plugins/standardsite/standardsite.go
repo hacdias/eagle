@@ -2,9 +2,11 @@ package standardsite
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -97,31 +99,50 @@ func (at *StandardSite) init(ctx context.Context) error {
 		return err
 	}
 
-	url := at.co.BaseURL()
+	at.log.Infof("repository did is %s", xrpcc.Auth.Did)
+	at.repositoryDid = xrpcc.Auth.Did
 
-	result, err := agnostic.RepoPutRecord(ctx, xrpcc, &agnostic.RepoPutRecord_Input{
-		Collection: "site.standard.publication",
-		Repo:       xrpcc.Auth.Did,
-		Rkey:       url.Hostname(),
-		Record: map[string]any{
-			"$type":       "site.standard.publication",
-			"url":         strings.TrimSuffix(url.String(), "/"),
-			"name":        at.co.SiteConfig().Params.Site.Description,
-			"description": at.co.SiteConfig().Title,
-			"preferences": map[string]any{
-				"showInDiscover": true,
-			},
+	url := at.co.BaseURL()
+	recordKey := url.Hostname()
+
+	expectedRecord := map[string]any{
+		"$type":       "site.standard.publication",
+		"url":         strings.TrimSuffix(url.String(), "/"),
+		"name":        at.co.SiteConfig().Params.Site.Description,
+		"description": at.co.SiteConfig().Title,
+		"preferences": map[string]any{
+			"showInDiscover": true,
 		},
+	}
+
+	getResult, err := agnostic.RepoGetRecord(ctx, xrpcc, "", "site.standard.publication", at.repositoryDid, recordKey)
+	if err == nil {
+		at.log.Info("publication record found")
+		var currentRecord map[string]any
+		err = json.Unmarshal(*getResult.Value, &currentRecord)
+		if err != nil {
+			return err
+		}
+
+		if reflect.DeepEqual(expectedRecord, currentRecord) {
+			at.log.Infow("document record is up to date", "uri", getResult.Uri)
+			at.publicationUri = getResult.Uri
+			return nil
+		}
+	}
+
+	putRecord, err := agnostic.RepoPutRecord(ctx, xrpcc, &agnostic.RepoPutRecord_Input{
+		Collection: "site.standard.publication",
+		Repo:       at.repositoryDid,
+		Rkey:       recordKey,
+		Record:     expectedRecord,
 	})
 	if err != nil {
 		return err
 	}
 
-	at.log.Infow("updated publication record", "uri", result.Uri)
-
-	at.repositoryDid = xrpcc.Auth.Did
-	at.publicationUri = result.Uri
-
+	at.log.Infow("publication record updated", "uri", putRecord.Uri)
+	at.publicationUri = putRecord.Uri
 	return nil
 }
 
@@ -129,15 +150,14 @@ func (at *StandardSite) getSyndication(e *core.Entry) (string, string, error) {
 	prefix := "at://" + at.repositoryDid + "/site.standard.document/"
 
 	syndications := typed.New(e.Other).Strings(server.SyndicationField)
-	for _, urlStr := range syndications {
-		if strings.HasPrefix(urlStr, prefix) {
-			id := strings.TrimPrefix(urlStr, prefix)
-
-			if id == "" {
-				return "", "", fmt.Errorf("invalid syndication url: %s", urlStr)
+	for _, uri := range syndications {
+		if strings.HasPrefix(uri, prefix) {
+			recordKey := strings.TrimPrefix(uri, prefix)
+			if recordKey == "" {
+				return "", "", fmt.Errorf("invalid syndication uri: %s", uri)
 			}
 
-			return urlStr, id, nil
+			return uri, recordKey, nil
 		}
 	}
 
@@ -162,20 +182,20 @@ func (at *StandardSite) Syndicate(ctx context.Context, e *core.Entry, sctx *serv
 		return "", false, err
 	}
 
-	uri, rkey, err := at.getSyndication(e)
+	uri, recordKey, err := at.getSyndication(e)
 	if err != nil {
 		return "", false, err
 	}
 
 	// Handle deleted or draft entries
 	if e.Deleted() || e.Draft {
-		if rkey == "" {
+		if recordKey == "" {
 			return "", false, errors.New("cannot syndicate a deleted or draft entry")
 		} else {
 			_, err = atproto.RepoDeleteRecord(ctx, xrpcc, &atproto.RepoDeleteRecord_Input{
 				Collection: "site.standard.publication",
-				Repo:       xrpcc.Auth.Did,
-				Rkey:       rkey,
+				Repo:       at.repositoryDid,
+				Rkey:       recordKey,
 			})
 
 			return uri, err == nil, err
@@ -198,21 +218,11 @@ func (at *StandardSite) Syndicate(ctx context.Context, e *core.Entry, sctx *serv
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
-	if rkey == "" {
+	// Create new record
+	if recordKey == "" {
 		result, err := agnostic.RepoCreateRecord(ctx, xrpcc, &agnostic.RepoCreateRecord_Input{
 			Collection: "site.standard.document",
-			Repo:       xrpcc.Auth.Did,
-			Record:     record,
-		})
-		if err != nil {
-			return "", false, err
-		}
-		return result.Uri, false, nil
-	} else {
-		result, err := agnostic.RepoPutRecord(ctx, xrpcc, &agnostic.RepoPutRecord_Input{
-			Collection: "site.standard.document",
-			Repo:       xrpcc.Auth.Did,
-			Rkey:       rkey,
+			Repo:       at.repositoryDid,
 			Record:     record,
 		})
 		if err != nil {
@@ -220,6 +230,36 @@ func (at *StandardSite) Syndicate(ctx context.Context, e *core.Entry, sctx *serv
 		}
 		return result.Uri, false, nil
 	}
+
+	// Get existing record and check if needs to be updated
+	getResult, err := agnostic.RepoGetRecord(ctx, xrpcc, "", "site.standard.document", at.repositoryDid, recordKey)
+	if err == nil {
+		at.log.Info("document record found")
+		var currentRecord map[string]any
+		err = json.Unmarshal(*getResult.Value, &currentRecord)
+		if err != nil {
+			return "", false, err
+		}
+
+		if reflect.DeepEqual(record, currentRecord) {
+			at.log.Infow("publication record is up to date", "uri", getResult.Uri)
+			return getResult.Uri, false, nil
+		}
+	}
+
+	// Update existing record
+	putResult, err := agnostic.RepoPutRecord(ctx, xrpcc, &agnostic.RepoPutRecord_Input{
+		Collection: "site.standard.document",
+		Repo:       at.repositoryDid,
+		Rkey:       recordKey,
+		Record:     record,
+	})
+	if err != nil {
+		return "", false, err
+	}
+
+	return putResult.Uri, false, nil
+
 }
 
 func (at *StandardSite) HandlerRoute() string {
