@@ -212,6 +212,7 @@ type ImgProxy struct {
 }
 
 type SiteConfig struct {
+	Title        string
 	LanguageCode string
 	Taxonomies   map[string]string
 	Pagination   struct {
@@ -223,6 +224,9 @@ type SiteConfig struct {
 			Email  string
 			Photo  string
 			Handle string
+		}
+		Site struct {
+			Description string
 		}
 	}
 }
