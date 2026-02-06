@@ -41,6 +41,8 @@ type StandardSite struct {
 	password   string
 	userAgent  string
 
+	tagsTaxonomy string
+
 	repositoryDid  string
 	publicationUri string
 }
@@ -63,7 +65,9 @@ func NewStandardSite(co *core.Core, configMap map[string]any) (server.Plugin, er
 		userAgent:  fmt.Sprintf("eagle/%s", co.BaseURL().String()),
 		identifier: identifier,
 		password:   password,
-		log:        log.S().Named("standard.site"),
+
+		tagsTaxonomy: config.String("tagstaxonomy"),
+		log:          log.S().Named("standard.site"),
 	}
 
 	return at, at.init(context.Background())
@@ -195,6 +199,13 @@ func (at *StandardSite) Syndicate(ctx context.Context, e *core.Entry, sctx *serv
 
 	if !e.Lastmod.IsZero() {
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
+	}
+
+	if at.tagsTaxonomy != "" {
+		tags := e.Taxonomy(at.tagsTaxonomy)
+		if len(tags) > 0 {
+			record["tags"] = tags
+		}
 	}
 
 	uri, err = upsertRecord(ctx, xrpcc, "site.standard.document", at.repositoryDid, recordKey, record)
