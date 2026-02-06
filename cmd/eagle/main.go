@@ -11,6 +11,7 @@ import (
 	_ "go.hacdias.com/eagle/plugins/locations"
 	_ "go.hacdias.com/eagle/plugins/mastodon"
 	_ "go.hacdias.com/eagle/plugins/miniflux"
+	_ "go.hacdias.com/eagle/plugins/standardsite"
 	_ "go.hacdias.com/eagle/plugins/webarchive"
 )
 
