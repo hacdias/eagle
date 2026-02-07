@@ -193,7 +193,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 		postsNeeded = int(math.Ceil(float64(len(sctx.Photos)) / maximumPhotos))
 	}
 
-	statuses := e.Statuses(maximumCharacters, postsNeeded)
+	statuses := e.Statuses(maximumCharacters, postsNeeded, false)
 
 	embeddings, err := at.uploadBlueskyPhotos(ctx, xrpcc, sctx.Photos)
 	if err != nil {

@@ -93,66 +93,47 @@ func (e *Entry) TextContent() string {
 	return makePlainText(e.Content)
 }
 
-// TODO: merge with status
-func (e *Entry) Statuses(maximumCharacters, maximumPosts int) []string {
+func (e *Entry) Statuses(maximumCharacters, maximumPosts int, forcePermalink bool) []string {
 	content := e.TextContent()
-	totalMaximumCharacters := maximumCharacters * maximumPosts
-	contentTooLong := len(content) > totalMaximumCharacters
 
+	totalMaximumCharacters := maximumCharacters * maximumPosts
+	if forcePermalink {
+		totalMaximumCharacters -= len(e.Permalink) + 1 // 1 for space
+	}
+
+	contentTooLong := len(content) > totalMaximumCharacters
 	if contentTooLong || content == "" {
 		status := e.Title
-		if contentTooLong {
+		if contentTooLong || forcePermalink {
 			status += " " + e.Permalink
 		}
 		return []string{status}
 	}
 
 	statuses := []string{}
-
 	currStatus := ""
-	for word := range strings.SplitSeq(content, " ") {
-		if len(currStatus+" "+word) > maximumCharacters-3 { // 3 for "..." when splitting
-			if strings.HasSuffix(currStatus, ".") ||
-				strings.HasSuffix(currStatus, "!") ||
-				strings.HasSuffix(currStatus, "?") {
-				statuses = append(statuses, strings.TrimSpace(currStatus))
-			} else {
-				statuses = append(statuses, strings.TrimSpace(currStatus)+"...")
-			}
-
+	for word := range strings.FieldsSeq(content) {
+		if len(currStatus+" "+word) > maximumCharacters {
+			statuses = append(statuses, strings.TrimSpace(currStatus))
 			currStatus = ""
 		}
-		currStatus += " " + word
+
+		if currStatus != "" {
+			currStatus += " "
+		}
+
+		currStatus += word
 	}
 
 	if currStatus != "" {
 		statuses = append(statuses, strings.TrimSpace(currStatus))
 	}
 
+	if forcePermalink {
+		statuses[len(statuses)-1] += " " + e.Permalink
+	}
+
 	return statuses
-}
-
-func (e *Entry) Status(maximumCharacters int, forcePermalink bool) string {
-	content := e.TextContent()
-	contentTooLong := len(content) > maximumCharacters
-
-	usePermalink := forcePermalink || contentTooLong
-	useTitle := content == "" ||
-		contentTooLong ||
-		(usePermalink && (len(e.Permalink)+len(content)+1) > maximumCharacters)
-
-	var status string
-	if useTitle {
-		status = e.Title
-	} else {
-		status = content
-	}
-
-	if usePermalink {
-		status += " " + e.Permalink
-	}
-
-	return status
 }
 
 type Entries []*Entry

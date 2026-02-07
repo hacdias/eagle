@@ -10,56 +10,92 @@ func TestEntryStatus(t *testing.T) {
 	tests := []struct {
 		title          string
 		content        string
+		maximumPosts   int
 		forcePermalink bool
-		expected       string
+		expected       []string
 	}{
 		{
 			title:          "Lorem Ipsum A",
 			content:        "Breprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
 			forcePermalink: false,
-			expected:       "Lorem Ipsum A https://example.com/test-entry",
+			maximumPosts:   1,
+			expected:       []string{"Lorem Ipsum A https://example.com/test-entry"},
 		},
 		{
 			title:          "Lorem Ipsum B",
 			content:        "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
 			forcePermalink: false,
-			expected:       "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
+			maximumPosts:   1,
+			expected:       []string{"reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup"},
 		},
 		{
 			title:          "Lorem Ipsum C",
 			content:        "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
 			forcePermalink: false,
-			expected:       "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
+			maximumPosts:   1,
+			expected:       []string{"reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup"},
 		},
 		{
 			title:          "Lorem Ipsum D",
 			content:        "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
 			forcePermalink: true,
-			expected:       "Lorem Ipsum D https://example.com/test-entry",
+			maximumPosts:   1,
+			expected:       []string{"Lorem Ipsum D https://example.com/test-entry"},
 		},
 		{
 			title:          "Lorem Ipsum E",
 			content:        "",
 			forcePermalink: false,
-			expected:       "Lorem Ipsum E",
+			maximumPosts:   1,
+			expected:       []string{"Lorem Ipsum E"},
 		},
 		{
 			title:          "Lorem Ipsum F",
 			content:        "",
 			forcePermalink: true,
-			expected:       "Lorem Ipsum F https://example.com/test-entry",
+			maximumPosts:   1,
+			expected:       []string{"Lorem Ipsum F https://example.com/test-entry"},
 		},
 		{
 			title:          "Lorem Ipsum G",
 			content:        "commodo veniam est consectetur proident ipsum dolore fugiat duis voluptate",
 			forcePermalink: false,
-			expected:       "commodo veniam est consectetur proident ipsum dolore fugiat duis voluptate",
+			maximumPosts:   1,
+			expected:       []string{"commodo veniam est consectetur proident ipsum dolore fugiat duis voluptate"},
 		},
 		{
 			title:          "Lorem Ipsum H",
 			content:        "commodo veniam est consectetur proident ipsum dolore fugiat duis voluptate",
 			forcePermalink: true,
-			expected:       "commodo veniam est consectetur proident ipsum dolore fugiat duis voluptate https://example.com/test-entry",
+			maximumPosts:   1,
+			expected:       []string{"commodo veniam est consectetur proident ipsum dolore fugiat duis voluptate https://example.com/test-entry"},
+		},
+		{
+			title:          "Lorem Ipsum F",
+			content:        "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim",
+			forcePermalink: false,
+			maximumPosts:   2,
+			expected: []string{
+				"reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
+				"reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim",
+			},
+		},
+		{
+			title:          "Lorem Ipsum G",
+			content:        "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim",
+			forcePermalink: true,
+			maximumPosts:   2,
+			expected:       []string{"Lorem Ipsum G https://example.com/test-entry"},
+		},
+		{
+			title:          "Lorem Ipsum H",
+			content:        "reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim eaa",
+			forcePermalink: true,
+			maximumPosts:   2,
+			expected: []string{
+				"reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim ea cillum ea sunt quis dolore enim cup",
+				"reprehenderit velit nisi proident dolor commodo ipsum duis Lorem non voluptate est nostrud ipsum incididunt amet et ullamco enim deserunt velit amet est dolore ex enim pariatur id est proident proident reprehenderit elit ea Lorem incididunt officia laborum anim eaa https://example.com/test-entry",
+			},
 		},
 	}
 
@@ -72,7 +108,7 @@ func TestEntryStatus(t *testing.T) {
 			Permalink: "https://example.com/test-entry",
 		}
 
-		status := e.Status(300, tt.forcePermalink)
-		assert.Equal(t, tt.expected, status, "failed for title: %s", tt.title)
+		statuses := e.Statuses(300, tt.maximumPosts, tt.forcePermalink)
+		assert.Equal(t, tt.expected, statuses, "failed for title: %s", tt.title)
 	}
 }
