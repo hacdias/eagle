@@ -193,6 +193,7 @@ func (co *Core) GetEntryFromContent(id, content string) (*Entry, error) {
 }
 
 func (co *Core) GetEntryByFilename(filename string) (*Entry, error) {
+	filename = strings.TrimPrefix(filename, "/")
 	base := filepath.Base(filename)
 	if base != "index.md" && base != "_index.md" {
 		return nil, os.ErrNotExist
