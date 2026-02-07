@@ -123,6 +123,8 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 		}
 	}
 
+	syndicators = lo.Uniq(syndicators)
+
 	// Do the actual syndication
 	syndications := typed.New(e.Other).Strings(SyndicationField)
 	for _, name := range syndicators {
