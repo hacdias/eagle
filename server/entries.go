@@ -109,6 +109,8 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 }
 
 func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
+	s.log.Debugw("syndicating entry", "id", e.ID, "syndicators", syndicators)
+
 	// Get the syndication context
 	syndicationContext, err := s.getEntrySyndicationContext(e)
 	if err != nil {
@@ -154,6 +156,8 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 	if err != nil {
 		s.log.Errorw("failed save entry", "id", e.ID, "err", err)
 	}
+
+	s.log.Debugw("syndicated entry", "id", e.ID)
 }
 
 func (s *Server) saveEntryWithHooks(e *core.Entry, req *micropub.Request, oldTargets []string) error {
@@ -177,6 +181,8 @@ func (s *Server) saveEntryWithHooks(e *core.Entry, req *micropub.Request, oldTar
 }
 
 func (s *Server) preSaveEntry(e *core.Entry) error {
+	s.log.Debugw("pre save entry hooks", "id", e.ID)
+
 	for name, plugin := range s.plugins {
 		hookPlugin, ok := plugin.(HookPlugin)
 		if !ok {
@@ -193,6 +199,8 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 }
 
 func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, oldTargets []string, skipBuild bool) {
+	s.log.Debugw("post save entry hooks", "id", e.ID)
+
 	// Syndications
 	var syndicateTo []string
 	if req != nil {
