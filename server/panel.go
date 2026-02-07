@@ -147,8 +147,6 @@ func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: detect if entry, if so give extra options.
-
 	val, err := s.core.ReadFile(filename)
 	if err != nil {
 		s.panelError(w, r, http.StatusBadRequest, err)

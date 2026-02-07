@@ -66,12 +66,6 @@ func (co *Core) BaseURL() *url.URL {
 }
 
 // SiteConfig returns the site configuration.
-// TODO: find better way to expose this.
 func (co *Core) SiteConfig() SiteConfig {
 	return co.cfg.Site
-}
-
-// Language returns the language of the website.
-func (co *Core) Language() string {
-	return co.cfg.Site.LanguageCode
 }

@@ -28,7 +28,7 @@ type Locations struct {
 func NewLocations(co *core.Core, config map[string]any) (server.Plugin, error) {
 	cfg := typed.New(config)
 
-	language := co.Language()
+	language := co.SiteConfig().LanguageCode
 	if language == "" {
 		language = "en"
 	}
