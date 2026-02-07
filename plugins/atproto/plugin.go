@@ -88,8 +88,8 @@ func (at *ATProto) init(co *core.Core) error {
 
 func (at *ATProto) Syndication() micropub.Syndication {
 	return micropub.Syndication{
-		UID:  "bluesky",
-		Name: "Bluesky",
+		UID:  "atproto",
+		Name: "ATProto",
 	}
 }
 

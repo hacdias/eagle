@@ -59,7 +59,6 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 			"uri":   post.uri,
 			"cid":   post.cid,
 		},
-		// "textContent"
 	}
 
 	if tags := e.Taxonomy("tags"); len(tags) > 0 {
@@ -70,8 +69,14 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		record["coverImage"] = post.Embed.EmbedExternal.External.Thumb
 	}
 
+	if textContent := e.TextContent(); textContent != "" {
+		record["textContent"] = textContent
+	}
+
 	if e.Description != "" {
 		record["description"] = e.Description
+	} else if summary := e.Summary(); summary != "" {
+		record["description"] = summary
 	}
 
 	if !e.Lastmod.IsZero() {
