@@ -37,9 +37,14 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 }
 
 func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentUri string, e *core.Entry, post *blueskyPost) (string, error) {
-	uri, err := syntax.ParseATURI(documentUri)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse site.standard.document URI: %w", err)
+	recordKey := ""
+	if documentUri != "" {
+		uri, err := syntax.ParseATURI(documentUri)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse site.standard.document URI: %w", err)
+		}
+
+		recordKey = uri.RecordKey().String()
 	}
 
 	// https://standard.site/
@@ -73,7 +78,7 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
-	documentUri, err = upsertRecord(ctx, client, "site.standard.document", uri.RecordKey().String(), record)
+	documentUri, err := upsertRecord(ctx, client, "site.standard.document", recordKey, record)
 	if err != nil {
 		return "", fmt.Errorf("failed to upsert site.standard.document record: %w", err)
 	}
