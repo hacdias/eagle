@@ -2,17 +2,19 @@ package atproto
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/bluesky-social/indigo/xrpc"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 )
 
 func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Client, co *core.Core) error {
-	at.log.Infof("repository did is %s", xrpcc.Auth.Did)
+	at.log.Infow("repository information found", "did", xrpcc.Auth.Did)
 
 	record := map[string]any{
 		"$type":       "site.standard.publication",
@@ -34,7 +36,12 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 	return nil
 }
 
-func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, recordKey string, e *core.Entry, post *blueskyPost) (string, error) {
+func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentUri string, e *core.Entry, post *blueskyPost) (string, error) {
+	uri, err := syntax.ParseATURI(documentUri)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse site.standard.document URI: %w", err)
+	}
+
 	// https://standard.site/
 	record := map[string]any{
 		"$type":       "site.standard.document",
@@ -47,8 +54,11 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 			"uri":   post.uri,
 			"cid":   post.cid,
 		},
-		"tags": post.Tags,
 		// "textContent"
+	}
+
+	if tags := e.Taxonomy("tags"); len(tags) > 0 {
+		record["tags"] = tags
 	}
 
 	if post.Embed != nil && post.Embed.EmbedExternal != nil && post.Embed.EmbedExternal.External != nil && post.Embed.EmbedExternal.External.Thumb != nil {
@@ -63,17 +73,22 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
-	uri, err := upsertRecord(ctx, client, "site.standard.document", recordKey, record)
+	documentUri, err = upsertRecord(ctx, client, "site.standard.document", uri.RecordKey().String(), record)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to upsert site.standard.document record: %w", err)
 	}
 
-	return uri, nil
+	return documentUri, nil
 
 }
 
-func (at *ATProto) deleteStandardDocument(ctx context.Context, client *xrpc.Client, recordKey string) error {
-	return deleteRecord(ctx, client, "site.standard.publication", recordKey)
+func (at *ATProto) deleteStandardDocument(ctx context.Context, client *xrpc.Client, document string) error {
+	uri, err := syntax.ParseATURI(document)
+	if err != nil {
+		return fmt.Errorf("failed to parse site.standard.document URI: %w", err)
+	}
+
+	return deleteRecord(ctx, client, "site.standard.publication", uri.RecordKey().String())
 }
 
 func (at *ATProto) HandlerRoute() string {

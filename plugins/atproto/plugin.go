@@ -68,7 +68,7 @@ func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 		userAgent:            fmt.Sprintf("eagle/%s", co.BaseURL().String()),
 		identifier:           identifier,
 		password:             password,
-		log:                  log.S().Named("bluesky"),
+		log:                  log.S().Named("atproto"),
 		publicationRecordKey: publicationRecordKey,
 	}
 
