@@ -25,9 +25,8 @@ var htmlRemover = bluemonday.StrictPolicy()
 func makePlainText(text string) string {
 	text = normalizeNewlines(text)
 	text = htmlRemover.Sanitize(text)
-	text = strings.ReplaceAll(text, moreSeparator, "")
 	text = stripMarkdown(text)
-	text = strings.ReplaceAll(text, "\n", " ")
+	text = strings.Join(strings.Fields(text), " ")
 	// Unescapes html entities.
 	text = html.UnescapeString(text)
 	return text
@@ -105,12 +104,18 @@ var (
 	atxHeaderReg4   = regexp.MustCompile(`^-{3,}\s*$`)
 	atxHeaderReg5   = regexp.MustCompile("`(.+?)`")
 	atxHeaderReg6   = regexp.MustCompile(`\n{2,}`)
-	shortcodesReg   = regexp.MustCompile(`(?m)^{.*}$`)
+	shortcodesReg   = regexp.MustCompile(`(?m){{.*?}}`)
+	attributesReg   = regexp.MustCompile(`(?m){.*?}$`)
 )
 
 func stripMarkdown(s string) string {
 	res := s
+
+	// Custom additions
 	res = shortcodesReg.ReplaceAllString(res, "")
+	res = attributesReg.ReplaceAllString(res, "")
+
+	// Original strippers
 	res = listLeadersReg.ReplaceAllString(res, "$1")
 	res = headerReg.ReplaceAllString(res, "\n")
 	res = strikeReg.ReplaceAllString(res, "")
