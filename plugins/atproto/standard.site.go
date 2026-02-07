@@ -19,8 +19,8 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 	record := map[string]any{
 		"$type":       "site.standard.publication",
 		"url":         strings.TrimSuffix(co.BaseURL().String(), "/"),
-		"name":        co.SiteConfig().Params.Site.Description,
-		"description": co.SiteConfig().Title,
+		"name":        co.SiteConfig().Title,
+		"description": co.SiteConfig().Params.Site.Description,
 		"preferences": map[string]any{
 			"showInDiscover": true,
 		},
