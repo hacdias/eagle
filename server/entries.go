@@ -7,6 +7,7 @@ import (
 	"image"
 	"io"
 	"net/http"
+	"sort"
 
 	_ "image/gif"
 	_ "image/jpeg"
@@ -137,11 +138,14 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 		}
 	}
 
+	// Ensure uniqueness and that it always yields the same result
 	syndications = lo.Uniq(syndications)
+	sort.Strings(syndications)
+
 	if len(syndications) == 0 {
 		delete(e.Other, SyndicationField)
 	} else {
-		e.Other[SyndicationField] = lo.Uniq(syndications)
+		e.Other[SyndicationField] = syndications
 	}
 
 	err = s.core.SaveEntry(e)
