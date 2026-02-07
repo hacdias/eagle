@@ -179,26 +179,10 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 	content := []byte(r.FormValue("content"))
 	content = normalizeLineEndings(content)
 
-	if e, err := s.core.GetEntryByFilename(filename); err == nil {
-		targets, _ := s.core.GetEntryLinks(e.Permalink, true)
-
-		e, err = s.core.GetEntryFromContent(e.ID, string(content))
-		if err != nil {
-			s.panelError(w, r, http.StatusBadRequest, err)
-			return
-		}
-
-		err = s.saveEntryWithHooks(e, nil, targets)
-		if err != nil {
-			s.panelError(w, r, http.StatusInternalServerError, err)
-			return
-		}
-	} else {
-		err = s.core.WriteFile(filename, content, "editor: update "+filename)
-		if err != nil {
-			s.panelError(w, r, http.StatusInternalServerError, err)
-			return
-		}
+	err = s.core.WriteFile(filename, content, "editor: update "+filename)
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
 	}
 
 	http.Redirect(w, r, r.URL.Path+"?success=true", http.StatusSeeOther)
