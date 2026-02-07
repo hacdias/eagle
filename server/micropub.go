@@ -129,22 +129,11 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 		e.Other[m.s.c.Micropub.ChannelsTaxonomy], _ = getRequestChannels(req)
 	}
 
-	err = m.s.preSaveEntry(e)
+	err = m.s.saveEntryWithHooks(e, req, nil)
 	if err != nil {
 		return "", err
 	}
 
-	err = m.s.core.SaveEntry(e)
-	if err != nil {
-		return "", err
-	}
-
-	err = m.s.core.Build(false)
-	if err != nil {
-		return "", err
-	}
-
-	go m.s.postSaveEntry(e, req, nil, false)
 	return e.Permalink, nil
 }
 
@@ -221,22 +210,11 @@ func (m *micropubServer) update(permalink string, req *micropub.Request, update 
 		return nil
 	}
 
-	err = m.s.preSaveEntry(e)
+	err = m.s.saveEntryWithHooks(e, req, targets)
 	if err != nil {
 		return err
 	}
 
-	err = m.s.core.SaveEntry(e)
-	if err != nil {
-		return err
-	}
-
-	err = m.s.core.Build(e.Deleted())
-	if err != nil {
-		return err
-	}
-
-	go m.s.postSaveEntry(e, req, targets, false)
 	return nil
 }
 

@@ -150,6 +150,26 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 	}
 }
 
+func (s *Server) saveEntryWithHooks(e *core.Entry, req *micropub.Request, oldTargets []string) error {
+	err := s.preSaveEntry(e)
+	if err != nil {
+		return err
+	}
+
+	err = s.core.SaveEntry(e)
+	if err != nil {
+		return err
+	}
+
+	err = s.core.Build(e.Deleted())
+	if err != nil {
+		return err
+	}
+
+	go s.postSaveEntry(e, req, oldTargets, false)
+	return nil
+}
+
 func (s *Server) preSaveEntry(e *core.Entry) error {
 	for name, plugin := range s.plugins {
 		hookPlugin, ok := plugin.(HookPlugin)

@@ -89,7 +89,6 @@ func (e *Entry) String() (string, error) {
 	return normalizeNewlines(text), nil
 }
 
-// TODO: improve this. It doesn't really strip all markdown down.
 func (e *Entry) TextContent() string {
 	return makePlainText(e.Content)
 }
@@ -185,14 +184,8 @@ func (co *Core) NewBlankEntry(id string) *Entry {
 // errIgnoredEntry is a locally used error to indicate this an errIgnoredEntry.
 var errIgnoredEntry error = errors.New("ignored entry")
 
-func (co *Core) GetEntry(id string) (*Entry, error) {
-	filename := co.EntryFilenameFromID(id)
-	raw, err := co.sourceFS.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	e, err := co.parseEntry(id, string(raw))
+func (co *Core) GetEntryFromContent(id, content string) (*Entry, error) {
+	e, err := co.parseEntry(id, content)
 	if err != nil {
 		return nil, err
 	}
@@ -216,6 +209,32 @@ func (co *Core) GetEntry(id string) (*Entry, error) {
 	}
 
 	return e, nil
+}
+
+func (co *Core) GetEntryByFilename(filename string) (*Entry, error) {
+	base := filepath.Base(filename)
+	if base != "index.md" && base != "_index.md" {
+		return nil, os.ErrNotExist
+	}
+
+	if !strings.HasPrefix(filename, ContentDirectory) {
+		return nil, os.ErrNotExist
+	}
+
+	id := strings.TrimPrefix(filename, ContentDirectory)
+	id = filepath.Dir(id)
+
+	return co.GetEntry(id)
+}
+
+func (co *Core) GetEntry(id string) (*Entry, error) {
+	filename := co.EntryFilenameFromID(id)
+	raw, err := co.sourceFS.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return co.GetEntryFromContent(id, string(raw))
 }
 
 func (co *Core) GetEntries(includeList bool) (Entries, error) {
