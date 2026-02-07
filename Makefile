@@ -7,7 +7,7 @@ meilisearch:
 	docker run -it --rm \
 		-p 7700:7700 \
 		-e MEILI_ENV='development' \
-		getmeili/meilisearch:v1.16
+		getmeili/meilisearch:latest
 
 ngrok:
 	ngrok http --region eu 8080
@@ -22,4 +22,4 @@ imgproxy:
 		--env IMGPROXY_STRIP_COLOR_PROFILE=true \
 		--env IMGPROXY_ALLOWED_SOURCES="local://" \
 		--env IMGPROXY_BASE_URL="local:///" \
-		darthsim/imgproxy
+		darthsim/imgproxy:latest

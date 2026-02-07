@@ -28,7 +28,7 @@ type Storage interface {
 }
 
 type Transformer interface {
-	Transform(reader io.Reader, format string, width, quality int) (io.Reader, error)
+	Transform(reader io.Reader, format string, width, quality, maxBytes int) (io.Reader, error)
 }
 
 type Format string
@@ -58,16 +58,16 @@ var widths = []Width{
 type Media struct {
 	log         *zap.SugaredLogger
 	httpClient  *http.Client
-	storage     Storage
-	transformer Transformer
+	Storage     Storage
+	Transformer Transformer
 }
 
 func NewMedia(storage Storage, transformer Transformer) *Media {
 	m := &Media{
 		log:         log.S().Named("media"),
 		httpClient:  &http.Client{Timeout: 2 * time.Minute},
-		storage:     storage,
-		transformer: transformer,
+		Storage:     storage,
+		Transformer: transformer,
 	}
 
 	return m
@@ -83,7 +83,7 @@ func (m *Media) UploadMedia(filename, ext string, reader io.Reader) (string, *co
 }
 
 func (m *Media) upload(filename, ext string, data []byte) (string, *core.Photo, error) {
-	if m.storage == nil {
+	if m.Storage == nil {
 		return "", nil, errors.New("media is not implemented")
 	}
 
@@ -101,7 +101,7 @@ func (m *Media) upload(filename, ext string, data []byte) (string, *core.Photo, 
 		ext = ".jpeg"
 	}
 
-	s, err := m.storage.UploadMedia(filename+ext, bytes.NewBuffer(data))
+	s, err := m.Storage.UploadMedia(filename+ext, bytes.NewBuffer(data))
 	return s, nil, err
 }
 
@@ -117,7 +117,7 @@ func isImage(ext string) bool {
 }
 
 func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
-	if m.transformer == nil {
+	if m.Transformer == nil {
 		return nil, errors.New("transformer not implemented")
 	}
 
@@ -131,30 +131,30 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 		if filepath.Ext(filename) == ".jpeg" || filepath.Ext(filename) == ".jpg" {
 			reader = bytes.NewReader(data)
 		} else {
-			reader, err = m.transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100)
+			reader, err = m.Transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100, 0)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		_, err = m.storage.UploadMedia(filename+".jpeg", reader)
+		_, err = m.Storage.UploadMedia(filename+".jpeg", reader)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		_, err := m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
+		_, err := m.Storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
 		if err != nil {
 			return nil, err
 		}
 
 		for _, format := range formats {
 			for _, width := range widths {
-				reader, err := m.transformer.Transform(bytes.NewReader(data), string(format), int(width), 80)
+				reader, err := m.Transformer.Transform(bytes.NewReader(data), string(format), int(width), 80, 0)
 				if err != nil {
 					return nil, err
 				}
 
-				_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
+				_, err = m.Storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
 				if err != nil {
 					return nil, err
 				}
@@ -180,6 +180,6 @@ func (m *Media) GetImageURL(urlStr string, format Format, width Width) (string, 
 		return urlStr, nil
 	}
 
-	urlStr = fmt.Sprintf("%s/image/%d/%s.%s", m.storage.BaseURL(), width, u.Opaque, format)
+	urlStr = fmt.Sprintf("%s/image/%d/%s.%s", m.Storage.BaseURL(), width, u.Opaque, format)
 	return urlStr, nil
 }

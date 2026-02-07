@@ -89,8 +89,48 @@ func (e *Entry) String() (string, error) {
 	return normalizeNewlines(text), nil
 }
 
+// TODO: improve this. It doesn't really strip all markdown down.
 func (e *Entry) TextContent() string {
 	return makePlainText(e.Content)
+}
+
+// TODO: merge with status
+func (e *Entry) Statuses(maximumCharacters, maximumPosts int) []string {
+	content := e.TextContent()
+	totalMaximumCharacters := maximumCharacters * maximumPosts
+	contentTooLong := len(content) > totalMaximumCharacters
+
+	if contentTooLong || content == "" {
+		status := e.Title
+		if contentTooLong {
+			status += " " + e.Permalink
+		}
+		return []string{status}
+	}
+
+	statuses := []string{}
+
+	currStatus := ""
+	for word := range strings.SplitSeq(content, " ") {
+		if len(currStatus+" "+word) > maximumCharacters-3 { // 3 for "..." when splitting
+			if strings.HasSuffix(currStatus, ".") ||
+				strings.HasSuffix(currStatus, "!") ||
+				strings.HasSuffix(currStatus, "?") {
+				statuses = append(statuses, strings.TrimSpace(currStatus))
+			} else {
+				statuses = append(statuses, strings.TrimSpace(currStatus)+"...")
+			}
+
+			currStatus = ""
+		}
+		currStatus += " " + word
+	}
+
+	if currStatus != "" {
+		statuses = append(statuses, strings.TrimSpace(currStatus))
+	}
+
+	return statuses
 }
 
 func (e *Entry) Status(maximumCharacters int, forcePermalink bool) string {

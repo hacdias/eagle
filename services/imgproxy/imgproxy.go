@@ -31,7 +31,7 @@ func NewImgProxy(conf *core.ImgProxy) *ImgProxy {
 	}
 }
 
-func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int) (io.Reader, error) {
+func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality, maxBytes int) (io.Reader, error) {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (i *ImgProxy) Transform(reader io.Reader, format string, width, quality int
 		_ = i.fs.Remove(filename)
 	}()
 
-	urlStr := fmt.Sprintf("%s/rs:auto:%d/q:%d/plain/%s@%s", i.endpoint, width, quality, filename, format)
+	urlStr := fmt.Sprintf("%s/rs:auto:%d/q:%d/mb:%d/plain/%s@%s", i.endpoint, width, quality, maxBytes, filename, format)
 
 	res, err := i.httpClient.Get(urlStr)
 	if err != nil {

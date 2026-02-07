@@ -129,15 +129,15 @@ func (m *Mastodon) uploadPhotos(ctx context.Context, photos []*server.Photo) []m
 	return mediaIDs
 }
 
-func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) (string, bool, error) {
+func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) ([]string, []string, error) {
 	url, id, err := m.getSyndication(e)
 	if err != nil {
-		return "", false, err
+		return nil, nil, err
 	}
 
 	if id != "" {
 		if e.Deleted() || e.Draft {
-			return url, true, m.client.DeleteStatus(ctx, id)
+			return []string{url}, nil, m.client.DeleteStatus(ctx, id)
 		}
 	}
 
@@ -150,7 +150,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	} else {
 		status, err := m.client.GetStatus(ctx, id)
 		if err != nil {
-			return "", false, err
+			return nil, nil, err
 		}
 
 		for _, attachment := range status.MediaAttachments {
@@ -167,8 +167,8 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		status, err = m.client.PostStatus(ctx, &toot)
 	}
 	if err != nil {
-		return "", false, err
+		return nil, nil, err
 	}
 
-	return status.URL, false, nil
+	return nil, []string{status.URL}, nil
 }

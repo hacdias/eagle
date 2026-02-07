@@ -123,10 +123,13 @@ plugins:
     # Maximum allowed photos per post
     maximumPhotos: 5
 
-  # Optional Bluesky integration for post syndication.
-  bluesky:
+  # Optional Bluesky and Standard.site integration for post syndication.
+  atproto:
     identifier: yourUsernameIdentifier
     password: yourAppSpecificPassword
+
+    # Standard.site publication record key.
+    publicationRecordKey: yourPublicationRecordKey
 
   # Optional IndieNews integration for post syndication.
   indienews:

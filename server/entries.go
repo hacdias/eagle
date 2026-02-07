@@ -41,6 +41,20 @@ func (s *Server) getPhoto(url string) (*Photo, error) {
 		return nil, err
 	}
 
+	if len(data) > 1000000 {
+		if s.media != nil && s.media.Transformer != nil {
+			reader, err := s.media.Transformer.Transform(bytes.NewReader(data), "jpeg", 1800, 80, 1000000)
+			if err != nil {
+				return nil, err
+			}
+
+			data, err = io.ReadAll(reader)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	mime := mimetype.Detect(data)
 	if mime == nil {
 		return nil, fmt.Errorf("cannot detect mimetype of %s", url)
@@ -58,11 +72,7 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 	thumbnailStr := typed.New(e.Other).String("thumbnail")
 
 	// Get the first 4 photos from the entry
-	for i, p := range e.Photos {
-		if i >= 4 {
-			break
-		}
-
+	for _, p := range e.Photos {
 		photo, err := s.getPhoto(p.URL)
 		if err != nil {
 			return nil, err
@@ -97,7 +107,7 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 	return ctx, nil
 }
 
-func (s *Server) syndicate(e *core.Entry, syndicators []string) {
+func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 	// Get the syndication context
 	syndicationContext, err := s.getEntrySyndicationContext(e)
 	if err != nil {
@@ -116,17 +126,14 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string) {
 	syndications := typed.New(e.Other).Strings(SyndicationField)
 	for _, name := range syndicators {
 		if syndicator, ok := s.syndicators[name]; ok {
-			syndication, removed, err := syndicator.Syndicate(context.Background(), e, syndicationContext)
+			old, new, err := syndicator.Syndicate(context.Background(), e, syndicationContext)
 			if err != nil {
 				s.log.Errorw("failed to syndicate", "entry", e.ID, "syndicator", name, "err", err)
 				continue
 			}
 
-			if removed {
-				syndications = lo.Without(syndications, syndication)
-			} else {
-				syndications = append(syndications, syndication)
-			}
+			syndications = lo.Without(syndications, old...)
+			syndications = append(syndications, new...)
 		}
 	}
 
@@ -165,7 +172,7 @@ func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, oldTargets 
 	if req != nil {
 		syndicateTo, _ = getRequestSyndicateTo(req)
 	}
-	s.syndicate(e, syndicateTo)
+	s.Syndicate(e, syndicateTo)
 
 	// Post-save hooks
 	for name, plugin := range s.plugins {
