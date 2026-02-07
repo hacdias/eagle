@@ -189,13 +189,16 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = s.saveEntryWithHooks(e, nil, targets)
+		if err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
 	} else {
 		err = s.core.WriteFile(filename, content, "editor: update "+filename)
-	}
-
-	if err != nil {
-		s.panelError(w, r, http.StatusInternalServerError, err)
-		return
+		if err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	http.Redirect(w, r, r.URL.Path+"?success=true", http.StatusSeeOther)
