@@ -13,7 +13,7 @@ import (
 
 	"github.com/samber/lo"
 	"go.hacdias.com/maze"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 	"willnorris.com/go/webmention"
 )
 
@@ -306,7 +306,7 @@ func (co *Core) parseEntry(id, raw string) (*Entry, error) {
 	}
 
 	fr := &FrontMatter{}
-	err := yaml.Unmarshal([]byte(splits[0]), &fr)
+	err := yaml.Load([]byte(splits[0]), &fr)
 	if err != nil {
 		return nil, err
 	}
