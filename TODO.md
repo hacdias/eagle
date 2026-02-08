@@ -1,8 +1,7 @@
 # Eagle
 
 - [ ] Monitor external links for 404s, and replace with Web Archive when possible
-- [ ] See if can remove need for `entry-id` if we can rely on SpecialSection (and other)
-  - [ ] Maybe rely on Goldmark ast parsing for webmentions detection? tests
+- [ ] Maybe rely on Goldmark ast parsing for webmentions detection? tests
   - [ ] For deleted posts see if can run `git` command for latest version of certain file
 
 ## IndieAuth
