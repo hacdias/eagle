@@ -18,11 +18,14 @@
 
 ## ATProto
 
-- [ ] Set text documents for site.standard.document
-- [ ] Set content based on leaflet.pub (Goldmark with custom extension) e.g. https://pdsls.dev/at://did:plc:ragtjsm2j2vknwkz3zp4oxrd/site.standard.document/3m4qqzatka22o
-- [ ] Set site.standard.document
-- [ ] Add publication icon: e.g. https://pdsls.dev/at://did:plc:ragtjsm2j2vknwkz3zp4oxrd/site.standard.publication/3ly4hnkatvc2p
-- [ ] Proper authentication
-- [ ] Popfeed lexicons for watches, readings: https://popfeed.social/
-  - [ ] Start with readings?
-- [ ] Always POSSE
+- [ ] Reuse authentication
+- [ ] `site.standard.document`
+  - [ ] Define `content` based on https://leaflet.pub's lexicons (can use Goldmark as parser with custom renderer)
+- [ ] `site.standard.publication`
+  - [ ] Upsert asynchronously
+  - [ ] Add custom theme
+  - [ ] Add custom icon
+- [ ] Keep an eye on:
+  - [ ] https://popfeed.social's lexicons for watches (movies, series), readings, perhaps music
+  - [ ] https://dropanchor.app's lexicons for Swarm-like check-ins
+- [ ] See way to enable auto POSSE'ing without manually triggering it every time
