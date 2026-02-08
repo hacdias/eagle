@@ -6,11 +6,11 @@ import (
 	"fmt"
 	urlpkg "net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/maze"
@@ -18,7 +18,12 @@ import (
 	"willnorris.com/go/webmention"
 )
 
-const moreSeparator = "<!--more-->"
+const (
+	moreSeparator = "<!--more-->"
+
+	postsSection       = "posts"
+	categoriesTaxonomy = "categories"
+)
 
 // TODO: update to match https://aaronparecki.com/2017/02/25/9/day-67-image-alt-text
 type Photo struct {
@@ -143,7 +148,7 @@ func NewPostID(slug string, t time.Time) string {
 		t = time.Now()
 	}
 
-	return fmt.Sprintf("/%s/%04d/%02d/%02d/%s/", SpecialSection, t.Year(), t.Month(), t.Day(), slug)
+	return fmt.Sprintf("/%s/%04d/%02d/%02d/%s/", postsSection, t.Year(), t.Month(), t.Day(), slug)
 }
 
 func (co *Core) NewBlankEntry(id string) *Entry {
@@ -165,8 +170,57 @@ func (co *Core) NewBlankEntry(id string) *Entry {
 // errIgnoredEntry is a locally used error to indicate this an errIgnoredEntry.
 var errIgnoredEntry error = errors.New("ignored entry")
 
-func (co *Core) GetEntryFromContent(id, content string) (*Entry, error) {
-	e, err := co.parseEntry(id, content)
+func (co *Core) GetEntryByFilename(filename string) (*Entry, error) {
+	filename = strings.TrimPrefix(filename, "/")
+	base := filepath.Base(filename)
+	if base != "index.md" && base != "_index.md" {
+		return nil, os.ErrNotExist
+	}
+
+	if !strings.HasPrefix(filename, ContentDirectory) {
+		return nil, os.ErrNotExist
+	}
+
+	id := strings.TrimPrefix(filename, ContentDirectory)
+	id = filepath.Dir(id)
+
+	return co.GetEntry(id)
+}
+
+func (co *Core) GetEntryByPermalink(permalink string) (*Entry, error) {
+	url, err := urlpkg.Parse(permalink)
+	if err != nil {
+		return nil, err
+	}
+
+	id := cleanID(url.Path)
+	parts := splitID(id)
+
+	if len(parts) == 1 {
+		if e, err := co.GetEntry(path.Join(categoriesTaxonomy, parts[0])); err == nil {
+			return e, nil
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		}
+	} else if len(parts) >= 5 {
+		if e, err := co.GetEntry(postsSection + id); err == nil {
+			return e, nil
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		}
+	}
+
+	return co.GetEntry(id)
+}
+
+func (co *Core) GetEntry(id string) (*Entry, error) {
+	filename := co.EntryFilenameFromID(id)
+	raw, err := co.sourceFS.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	e, err := co.parseEntry(id, string(raw))
 	if err != nil {
 		return nil, err
 	}
@@ -190,33 +244,6 @@ func (co *Core) GetEntryFromContent(id, content string) (*Entry, error) {
 	}
 
 	return e, nil
-}
-
-func (co *Core) GetEntryByFilename(filename string) (*Entry, error) {
-	filename = strings.TrimPrefix(filename, "/")
-	base := filepath.Base(filename)
-	if base != "index.md" && base != "_index.md" {
-		return nil, os.ErrNotExist
-	}
-
-	if !strings.HasPrefix(filename, ContentDirectory) {
-		return nil, os.ErrNotExist
-	}
-
-	id := strings.TrimPrefix(filename, ContentDirectory)
-	id = filepath.Dir(id)
-
-	return co.GetEntry(id)
-}
-
-func (co *Core) GetEntry(id string) (*Entry, error) {
-	filename := co.EntryFilenameFromID(id)
-	raw, err := co.sourceFS.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	return co.GetEntryFromContent(id, string(raw))
 }
 
 func (co *Core) GetEntries(includeList bool) (Entries, error) {
@@ -251,25 +278,6 @@ func (co *Core) GetEntries(includeList bool) (Entries, error) {
 	})
 
 	return ee, err
-}
-
-func (co *Core) GetEntryFromPermalink(permalink string) (*Entry, error) {
-	html, err := co.entryHTML(permalink)
-	if err != nil {
-		return nil, err
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
-	if err != nil {
-		return nil, err
-	}
-
-	id, exists := doc.Find("meta[name=entry-id]").Attr("content")
-	if !exists {
-		return nil, fmt.Errorf("cannot find entry for %s", permalink)
-	}
-
-	return co.GetEntry(id)
 }
 
 func (co *Core) SaveEntry(e *Entry) error {
@@ -335,21 +343,16 @@ func (f *Core) EntryFilenameFromID(id string) string {
 	return filepath.Join(ContentDirectory, id, "index.md")
 }
 
-const (
-	SpecialSection  = "posts"
-	SpecialTaxonomy = "categories"
-)
-
 func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *urlpkg.URL {
 	url := co.BaseURL()
+	parts := splitID(id)
 
-	parts := strings.Split(id, "/")
-	if len(parts) < 2 {
-		url.Path = id
-	} else if parts[1] == SpecialSection && !fr.Date.IsZero() {
-		url.Path = strings.TrimPrefix(id, "/"+SpecialSection)
-	} else if parts[1] == SpecialTaxonomy {
-		url.Path = "/" + parts[2] + "/"
+	if len(parts) >= 5 && parts[0] == postsSection && !fr.Date.IsZero() {
+		// Path format: /posts/YYYY/MM/DD/slug/
+		url.Path = "/" + strings.Join(parts[1:], "/") + "/"
+	} else if len(parts) == 2 && parts[0] == categoriesTaxonomy {
+		// Path format: /categories/slug/
+		url.Path = "/" + parts[1] + "/"
 	} else {
 		url.Path = id
 	}

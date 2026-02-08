@@ -118,7 +118,7 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleWebmention(payload *webmentionPayload) {
 	s.log.Infow("received webmention", "webmention", payload)
-	e, err := s.core.GetEntryFromPermalink(payload.Target)
+	e, err := s.core.GetEntryByPermalink(payload.Target)
 	if err != nil {
 		s.log.Errorw("failed to get entry for permalink", "target", payload.Target, "err", err)
 		return

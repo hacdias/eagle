@@ -67,16 +67,6 @@ Micropub posts are created following this assumption.
 
 Eagle assumes that taxonomy pages are the only page lists. The `categories` taxonomy is handled differently. The category page at `/categories/articles/_index.md` is assumed to be published at `/articles/`.
 
-### HTML Files
-
-Eagle expects a `entry-id` meta element in your Hugo's website HTML output. This will be used to do inverse mapping from Permalink to the Entry ID. This may be changed in the future by reverse engineering the assumed permalinks.
-
-```html
-{{ with .File }}
-  <meta name='entry-id' content='{{ .Dir }}'>
-{{ end }}
-```
-
 ### Templates
 
 The following pages must be produced by your Hugo website:

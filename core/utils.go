@@ -20,6 +20,12 @@ func cleanID(id string) string {
 	return "/" + id + "/"
 }
 
+func splitID(id string) []string {
+	return strings.FieldsFunc(id, func(r rune) bool {
+		return r == '/'
+	})
+}
+
 var htmlRemover = bluemonday.StrictPolicy()
 
 func makePlainText(text string) string {

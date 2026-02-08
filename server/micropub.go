@@ -95,7 +95,7 @@ func (m *micropubServer) HasScope(r *http.Request, scope string) bool {
 }
 
 func (m *micropubServer) Source(url string) (map[string]any, error) {
-	e, err := m.s.core.GetEntryFromPermalink(url)
+	e, err := m.s.core.GetEntryByPermalink(url)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (m *micropubServer) Undelete(url string) error {
 func (m *micropubServer) update(permalink string, req *micropub.Request, update func(e *core.Entry) (error, bool)) error {
 	targets, _ := m.s.core.GetEntryLinks(permalink, true)
 
-	e, err := m.s.core.GetEntryFromPermalink(permalink)
+	e, err := m.s.core.GetEntryByPermalink(permalink)
 	if err != nil {
 		return err
 	}
