@@ -17,13 +17,16 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 	at.log.Infow("repository information found", "did", xrpcc.Auth.Did)
 
 	record := map[string]any{
-		"$type":       "site.standard.publication",
-		"url":         strings.TrimSuffix(co.BaseURL().String(), "/"),
-		"name":        co.SiteConfig().Title,
-		"description": co.SiteConfig().Params.Site.Description,
+		"$type": "site.standard.publication",
+		"url":   strings.TrimSuffix(co.BaseURL().String(), "/"),
+		"name":  co.SiteConfig().Title,
 		"preferences": map[string]any{
 			"showInDiscover": true,
 		},
+	}
+
+	if co.SiteConfig().Params.Site.Description != "" {
+		record["description"] = co.SiteConfig().Params.Site.Description
 	}
 
 	uri, err := upsertRecord(ctx, xrpcc, "site.standard.publication", at.publicationRecordKey, record)
@@ -54,19 +57,22 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		"path":        e.RelPermalink,
 		"title":       e.Title,
 		"publishedAt": e.Date.Format(time.RFC3339),
-		"bskyPostRef": map[string]any{
+	}
+
+	if post != nil {
+		record["bskyPostRef"] = map[string]any{
 			"$type": "com.atproto.repo.strongRef",
 			"uri":   post.uri,
 			"cid":   post.cid,
-		},
+		}
+
+		if post.Embed != nil && post.Embed.EmbedExternal != nil && post.Embed.EmbedExternal.External != nil && post.Embed.EmbedExternal.External.Thumb != nil {
+			record["coverImage"] = post.Embed.EmbedExternal.External.Thumb
+		}
 	}
 
 	if tags := e.Taxonomy("tags"); len(tags) > 0 {
 		record["tags"] = tags
-	}
-
-	if post.Embed != nil && post.Embed.EmbedExternal != nil && post.Embed.EmbedExternal.External != nil && post.Embed.EmbedExternal.External.Thumb != nil {
-		record["coverImage"] = post.Embed.EmbedExternal.External.Thumb
 	}
 
 	if textContent := e.TextContent(); textContent != "" {

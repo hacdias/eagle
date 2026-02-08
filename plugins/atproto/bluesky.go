@@ -216,10 +216,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 		}
 
 		embeddingsStart := i * 4
-		embeddingsEnd := (i + 1) * 4
-		if embeddingsEnd > len(embeddings) {
-			embeddingsEnd = len(embeddings)
-		}
+		embeddingsEnd := min((i+1)*4, len(embeddings))
 
 		post.Embed.EmbedImages = &bsky.EmbedImages{
 			Images: embeddings[embeddingsStart:embeddingsEnd],

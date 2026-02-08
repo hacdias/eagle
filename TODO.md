@@ -3,6 +3,8 @@
 - [ ] Monitor external links for 404s, and replace with Web Archive when possible
 - [ ] Maybe rely on Goldmark ast parsing for webmentions detection? tests
   - [ ] For deleted posts see if can run `git` command for latest version of certain file
+- [ ] Remove `.Taxonomy` and just put `Categories`, `Tags` and `Syndication` in the FrontMatter. These are well-known fields
+  - [ ] Remove taxonomy configurations for micropub
 
 ## IndieAuth
 
