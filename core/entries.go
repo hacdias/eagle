@@ -201,7 +201,7 @@ func (co *Core) GetEntryByPermalink(permalink string) (*Entry, error) {
 		} else if !errors.Is(err, os.ErrNotExist) {
 			return nil, err
 		}
-	} else if len(parts) >= 5 {
+	} else if len(parts) >= 4 {
 		if e, err := co.GetEntry(PostsSection + id); err == nil {
 			return e, nil
 		} else if !errors.Is(err, os.ErrNotExist) {
