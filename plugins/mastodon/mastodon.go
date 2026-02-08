@@ -9,6 +9,7 @@ import (
 
 	"github.com/karlseguin/typed"
 	"github.com/mattn/go-mastodon"
+	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
@@ -128,15 +129,21 @@ func (m *Mastodon) uploadPhotos(ctx context.Context, photos []*server.Photo) []m
 	return mediaIDs
 }
 
-func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) ([]string, []string, error) {
+func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) error {
 	url, id, err := m.getSyndication(e)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	if id != "" {
 		if e.Deleted() || e.Draft {
-			return []string{url}, nil, m.client.DeleteStatus(ctx, id)
+			err = m.client.DeleteStatus(ctx, id)
+			if err != nil {
+				return err
+			}
+
+			e.Syndications = lo.Without(e.Syndications, url)
+			return nil
 		}
 	}
 
@@ -149,7 +156,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	} else {
 		status, err := m.client.GetStatus(ctx, id)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
 		for _, attachment := range status.MediaAttachments {
@@ -159,7 +166,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 
 	statuses := e.Statuses(m.maximumCharacters, 1, len(e.Photos) > len(toot.MediaIDs))
 	if len(statuses) != 1 {
-		return nil, nil, fmt.Errorf("expected 1 status, got %d", len(statuses))
+		return fmt.Errorf("expected 1 status, got %d", len(statuses))
 	}
 
 	toot.Status = statuses[0]
@@ -170,8 +177,10 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		status, err = m.client.PostStatus(ctx, &toot)
 	}
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
-	return nil, []string{status.URL}, nil
+	e.Syndications = lo.Without(e.Syndications, url)
+	e.Syndications = append(e.Syndications, status.URL)
+	return nil
 }

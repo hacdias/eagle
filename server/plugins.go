@@ -64,7 +64,7 @@ type SyndicationContext struct {
 type SyndicationPlugin interface {
 	Syndication() micropub.Syndication
 	IsSyndicated(*core.Entry) bool
-	Syndicate(context.Context, *core.Entry, *SyndicationContext) (old, new []string, err error)
+	Syndicate(context.Context, *core.Entry, *SyndicationContext) error
 }
 
 var (

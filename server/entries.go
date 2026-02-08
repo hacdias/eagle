@@ -128,25 +128,19 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 	syndicators = lo.Uniq(syndicators)
 
 	// Do the actual syndication
-	syndications := e.Syndications
 	for _, name := range syndicators {
 		if syndicator, ok := s.syndicators[name]; ok {
-			// TODO: maybe let plugin modify syndication field themselves and keep sorting and uniqueness logic after runniung?
-			old, new, err := syndicator.Syndicate(context.Background(), e, syndicationContext)
+			err := syndicator.Syndicate(context.Background(), e, syndicationContext)
 			if err != nil {
 				s.log.Errorw("failed to syndicate", "entry", e.ID, "syndicator", name, "err", err)
 				continue
 			}
-
-			syndications = lo.Without(syndications, old...)
-			syndications = append(syndications, new...)
 		}
 	}
 
 	// Ensure uniqueness and that it always yields the same result
-	syndications = lo.Uniq(syndications)
-	sort.Strings(syndications)
-	e.Syndications = syndications
+	e.Syndications = lo.Uniq(e.Syndications)
+	sort.Strings(e.Syndications)
 
 	err = s.core.SaveEntry(e)
 	if err != nil {

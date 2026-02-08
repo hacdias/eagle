@@ -5,8 +5,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/url"
-	"strings"
 
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
@@ -19,32 +17,8 @@ import (
 
 type blueskyPost struct {
 	*bsky.FeedPost
-	cid         string
-	uri         string
-	syndication string
-}
-
-func (at *ATProto) blueskySyndicationToPostId(urlStr string) (string, error) {
-	u, err := url.Parse(urlStr)
-	if err != nil {
-		return "", err
-	}
-
-	parts := strings.Split(u.Path, "/")
-	if len(parts) != 5 {
-		return "", fmt.Errorf("expected url to have 5 parts, has %d", len(parts))
-	}
-
-	return parts[4], nil
-}
-
-func (at *ATProto) blueskyUriToSyndication(raw string) (string, error) {
-	uri, err := syntax.ParseATURI(raw)
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s/profile/%s/post/%s", appUrl, at.identifier, uri.RecordKey()), nil
+	cid string
+	uri string
 }
 
 func (at *ATProto) deleteBlueskyPost(ctx context.Context, client *xrpc.Client, recordKey string) error {
@@ -93,16 +67,10 @@ func (at *ATProto) getBlueskyPost(ctx context.Context, client *xrpc.Client, reco
 		return nil, fmt.Errorf("record %s has no cid", recordKey)
 	}
 
-	syndication, err := at.blueskyUriToSyndication(response.Uri)
-	if err != nil {
-		return nil, err
-	}
-
 	return &blueskyPost{
-		FeedPost:    post,
-		cid:         *response.Cid,
-		uri:         response.Uri,
-		syndication: syndication,
+		FeedPost: post,
+		cid:      *response.Cid,
+		uri:      response.Uri,
 	}, nil
 }
 
@@ -173,16 +141,10 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 		return nil, err
 	}
 
-	syndication, err := at.blueskyUriToSyndication(record.Uri)
-	if err != nil {
-		return nil, err
-	}
-
 	return &blueskyPost{
-		FeedPost:    post,
-		cid:         record.Cid,
-		uri:         record.Uri,
-		syndication: syndication,
+		FeedPost: post,
+		cid:      record.Cid,
+		uri:      record.Uri,
 	}, nil
 }
 
@@ -242,16 +204,10 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 			return nil, err
 		}
 
-		syndication, err := at.blueskyUriToSyndication(record.Uri)
-		if err != nil {
-			return nil, err
-		}
-
 		posts = append(posts, &blueskyPost{
-			FeedPost:    post,
-			cid:         record.Cid,
-			uri:         record.Uri,
-			syndication: syndication,
+			FeedPost: post,
+			cid:      record.Cid,
+			uri:      record.Uri,
 		})
 	}
 

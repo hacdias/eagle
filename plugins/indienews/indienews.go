@@ -49,6 +49,10 @@ func (m *IndieNews) IsSyndicated(e *core.Entry) bool {
 	return slices.Contains(e.Syndications, m.url)
 }
 
-func (m *IndieNews) Syndicate(ctx context.Context, e *core.Entry, _ *server.SyndicationContext) ([]string, []string, error) {
-	return []string{m.url}, []string{m.url}, nil
+func (m *IndieNews) Syndicate(ctx context.Context, e *core.Entry, _ *server.SyndicationContext) error {
+	if !m.IsSyndicated(e) {
+		e.Syndications = append(e.Syndications, m.url)
+	}
+
+	return nil
 }

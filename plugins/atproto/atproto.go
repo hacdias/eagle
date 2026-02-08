@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bluesky-social/indigo/api/atproto"
+	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
@@ -24,10 +25,7 @@ var (
 )
 
 const (
-	apiUrl = "https://bsky.social"
-	appUrl = "https://bsky.app"
-
-	documentField     = "standard-document"
+	apiUrl            = "https://bsky.social"
 	maximumCharacters = 300
 	maximumPhotos     = 4
 )
@@ -117,28 +115,44 @@ func (at *ATProto) getClient(ctx context.Context) (*xrpc.Client, error) {
 	return client, nil
 }
 
-func (at *ATProto) getSyndications(e *core.Entry) ([]string, string, error) {
-	return lo.Filter(e.Syndications, func(urlStr string, i int) bool {
-		return strings.HasPrefix(urlStr, appUrl)
-	}), typed.New(e.Other).String(documentField), nil
+func (at *ATProto) getSyndications(e *core.Entry) ([]syntax.ATURI, *syntax.ATURI, error) {
+	var documentURI *syntax.ATURI
+	feedPostsURIs := []syntax.ATURI{}
+
+	for _, syndication := range e.Syndications {
+		if !strings.HasPrefix(syndication, "at://") {
+			continue
+		}
+
+		uri, err := syntax.ParseATURI(syndication)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if uri.Collection() == "app.bsky.feed.post" {
+			feedPostsURIs = append(feedPostsURIs, uri)
+		}
+
+		if uri.Collection() == "site.standard.document" {
+			documentURI = &uri
+		}
+
+	}
+
+	return feedPostsURIs, documentURI, nil
 }
 
 func (at *ATProto) IsSyndicated(e *core.Entry) bool {
-	syndications, document, err := at.getSyndications(e)
+	feedPostsURIs, documentURI, err := at.getSyndications(e)
 	if err != nil {
 		return false
 	}
-	return len(syndications) > 0 || document != ""
+	return len(feedPostsURIs) > 0 || documentURI != nil
 }
 
-func (at *ATProto) deleteBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, syndications []string) error {
-	for _, urlStr := range syndications {
-		recordKey, err := at.blueskySyndicationToPostId(urlStr)
-		if err != nil {
-			return err
-		}
-
-		err = at.deleteBlueskyPost(ctx, xrpcc, recordKey)
+func (at *ATProto) deleteBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, uris []syntax.ATURI) error {
+	for _, uri := range uris {
+		err := at.deleteBlueskyPost(ctx, xrpcc, uri.RecordKey().String())
 		if err != nil {
 			return err
 		}
@@ -147,16 +161,11 @@ func (at *ATProto) deleteBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, s
 	return nil
 }
 
-func (at *ATProto) getBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, syndications []string) ([]*blueskyPost, error) {
+func (at *ATProto) getBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, uris []syntax.ATURI) ([]*blueskyPost, error) {
 	posts := []*blueskyPost{}
 
-	for _, urlStr := range syndications {
-		recordKey, err := at.blueskySyndicationToPostId(urlStr)
-		if err != nil {
-			return nil, err
-		}
-
-		post, err := at.getBlueskyPost(ctx, xrpcc, recordKey)
+	for _, uri := range uris {
+		post, err := at.getBlueskyPost(ctx, xrpcc, uri.RecordKey().String())
 		if err != nil {
 			return nil, err
 		}
@@ -192,39 +201,43 @@ func (at *ATProto) getBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, synd
 	return posts, nil
 }
 
-func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) ([]string, []string, error) {
-	syndications, document, err := at.getSyndications(e)
+func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) error {
+	feedPostsURIs, documentURI, err := at.getSyndications(e)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	client, err := at.getClient(ctx)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	if e.Deleted() || e.Draft {
-		if document != "" {
-			err = at.deleteStandardDocument(ctx, client, document)
+		if documentURI != nil {
+			err = at.deleteStandardDocument(ctx, client, *documentURI)
 			if err != nil {
-				return nil, nil, err
+				return err
 			}
 
-			delete(e.Other, documentField)
+			e.Syndications = lo.Without(e.Syndications, documentURI.String())
 		}
 
 		// TODO: should use posts and delete them in order? Or doesn't it matter?
-		err = at.deleteBlueskyPosts(ctx, client, syndications)
+		err = at.deleteBlueskyPosts(ctx, client, feedPostsURIs)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
-		return syndications, nil, nil
+		e.Syndications = lo.Without(e.Syndications, lo.Map(feedPostsURIs, func(uri syntax.ATURI, i int) string {
+			return uri.String()
+		})...)
+
+		return nil
 	}
 
-	posts, err := at.getBlueskyPosts(ctx, client, syndications)
+	posts, err := at.getBlueskyPosts(ctx, client, feedPostsURIs)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	if lo.Contains(e.Categories, "writings") {
@@ -234,7 +247,7 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 			// TODO: be able to handle multiple posts for a single writing entry.
 			// Can happen if they were manually syndicated.
 			if len(posts) != 1 {
-				return nil, nil, errors.New("multiple Bluesky posts found for a single writing entry, which is not supported")
+				return errors.New("multiple Bluesky posts found for a single writing entry, which is not supported")
 			}
 
 			// TODO: We don't support updating Bluesky posts yet. It'd be great
@@ -243,36 +256,44 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		} else {
 			post, err = at.createPublishBlueskyPost(ctx, client, e, sctx)
 			if err != nil {
-				return nil, nil, err
+				return err
 			}
+
+			e.Syndications = append(e.Syndications, post.uri)
 		}
 
 		// In contrary to the Bluesky posts, we can always upsert the standard.site document.
-		document, err := at.upsertStandardDocument(ctx, client, document, e, post)
+		documentUriStr, err := at.upsertStandardDocument(ctx, client, documentURI, e, post)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
-		e.Other[documentField] = document
-		return syndications, []string{post.syndication}, nil
+		if documentURI == nil {
+			// Only add the syndication if we didn't have a documentURI before, otherwise it means we already had the syndication and we just updated the record.
+			e.Syndications = append(e.Syndications, documentUriStr)
+		}
+
+		return nil
 	}
 
 	if lo.Contains(e.Categories, "photos") {
 		if len(posts) > 0 {
 			// TODO: We don't support updating Bluesky posts yet. It'd be great
 			// if we could still check if they are correct or not and update in any case.
-			return nil, nil, nil
+			return nil
 		}
 
 		posts, err := at.createPublishBlueskyPostThread(ctx, client, e, sctx)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
-		return nil, lo.Map(posts, func(post *blueskyPost, i int) string {
-			return post.syndication
-		}), nil
+		e.Syndications = append(e.Syndications, lo.Map(posts, func(post *blueskyPost, i int) string {
+			return post.uri
+		})...)
+
+		return nil
 	}
 
-	return nil, nil, errors.New("atproto syndication only supports writings and photos categories")
+	return errors.New("atproto syndication only supports writings and photos categories")
 }
