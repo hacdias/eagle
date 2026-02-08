@@ -91,8 +91,7 @@ func (m *Mastodon) extractID(urlStr string) (mastodon.ID, error) {
 }
 
 func (m *Mastodon) getSyndication(e *core.Entry) (string, mastodon.ID, error) {
-	syndications := typed.New(e.Other).Strings(server.SyndicationField)
-	for _, urlStr := range syndications {
+	for _, urlStr := range e.Syndications {
 		if strings.HasPrefix(urlStr, m.client.Config.Server) {
 			id, err := m.extractID(urlStr)
 			return urlStr, id, err

@@ -179,10 +179,8 @@ type Webmentions struct {
 }
 
 type Micropub struct {
-	ChannelsTaxonomy   string
-	CategoriesTaxonomy string
-	Properties         []string
-	PostTypes          []micropub.PostType
+	Properties []string
+	PostTypes  []micropub.PostType
 }
 
 type Telegram struct {
@@ -201,9 +199,8 @@ type BunnyCDN struct {
 }
 
 type Meilisearch struct {
-	Endpoint   string
-	Key        string
-	Taxonomies []string
+	Endpoint string
+	Key      string
 }
 
 type ImgProxy struct {

@@ -88,7 +88,7 @@ func (s *Server) initBolt() error {
 func (s *Server) initMeilisearch() error {
 	var err error
 	if s.c.Meilisearch != nil {
-		s.meilisearch, err = meilisearch.NewMeilisearch(s.c.Meilisearch.Endpoint, s.c.Meilisearch.Key, s.c.Meilisearch.Taxonomies, s.core)
+		s.meilisearch, err = meilisearch.NewMeilisearch(s.c.Meilisearch.Endpoint, s.c.Meilisearch.Key, s.core)
 	}
 	return err
 }

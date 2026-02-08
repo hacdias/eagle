@@ -46,7 +46,7 @@ func (m *IndieNews) Syndication() micropub.Syndication {
 }
 
 func (m *IndieNews) IsSyndicated(e *core.Entry) bool {
-	return slices.Contains(typed.New(e.Other).Strings(server.SyndicationField), m.url)
+	return slices.Contains(e.Syndications, m.url)
 }
 
 func (m *IndieNews) Syndicate(ctx context.Context, e *core.Entry, _ *server.SyndicationContext) ([]string, []string, error) {

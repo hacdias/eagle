@@ -71,8 +71,8 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		}
 	}
 
-	if tags := e.Taxonomy("tags"); len(tags) > 0 {
-		record["tags"] = tags
+	if len(e.Tags) > 0 {
+		record["tags"] = e.Tags
 	}
 
 	if textContent := e.TextContent(); textContent != "" {

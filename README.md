@@ -65,7 +65,10 @@ Micropub posts are created following this assumption.
 
 ### Hugo Taxonomies
 
-Eagle assumes that taxonomy pages are the only page lists. The `categories` taxonomy is handled differently. The category page at `/categories/articles/_index.md` is assumed to be published at `/articles/`.
+Eagle assumes the existence of two taxonomies:
+
+- `tags` which are used for search indexing, and used as categories in Micropub. Pages are published at `/tags/{tag}/`.
+- `categories`, which are used as channels in Micropub. Pages are published at `/{category}/`.
 
 ### Templates
 

@@ -146,7 +146,7 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 	post := &bsky.FeedPost{
 		CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
 		Text:      e.Title + " " + e.Permalink,
-		Tags:      e.Taxonomy("tags"),
+		Tags:      e.Tags,
 		Embed: &bsky.FeedPost_Embed{
 			EmbedExternal: &bsky.EmbedExternal{
 				External: &bsky.EmbedExternal_External{
@@ -212,7 +212,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 			CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
 			Text:      text,
 			Embed:     &bsky.FeedPost_Embed{},
-			Tags:      e.Taxonomy("tags"),
+			Tags:      e.Tags,
 		}
 
 		embeddingsStart := i * 4

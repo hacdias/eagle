@@ -21,14 +21,12 @@ import (
 
 const (
 	micropubPath = "/micropub"
-
-	SyndicationField = "syndication"
 )
 
 func (s *Server) getMicropubChannels() []micropub.Channel {
-	taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.ChannelsTaxonomy)
+	taxons, err := s.bolt.GetTaxonomy(context.Background(), core.CategoriesTaxonomy)
 	if err != nil {
-		s.log.Errorw("failed to fetch channels taxonomy", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
+		s.log.Errorw("failed to fetch channels taxonomy", "taxonomy", core.CategoriesTaxonomy, "err", err)
 		return nil
 	}
 
@@ -41,9 +39,9 @@ func (s *Server) getMicropubChannels() []micropub.Channel {
 }
 
 func (s *Server) getMicropubCategories() []string {
-	taxons, err := s.bolt.GetTaxonomy(context.Background(), s.c.Micropub.CategoriesTaxonomy)
+	taxons, err := s.bolt.GetTaxonomy(context.Background(), core.TagsTaxonomy)
 	if err != nil {
-		s.log.Errorw("failed to fetch categories taxonomy", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
+		s.log.Errorw("failed to fetch categories taxonomy", "taxonomy", core.TagsTaxonomy, "err", err)
 		return nil
 	}
 
@@ -67,13 +65,8 @@ func (s *Server) makeMicropub() http.Handler {
 		}))
 	}
 
-	if s.c.Micropub.ChannelsTaxonomy != "" {
-		options = append(options, micropub.WithGetChannels(s.getMicropubChannels))
-	}
-
-	if s.c.Micropub.CategoriesTaxonomy != "" {
-		options = append(options, micropub.WithGetCategories(s.getMicropubCategories))
-	}
+	options = append(options, micropub.WithGetChannels(s.getMicropubChannels))
+	options = append(options, micropub.WithGetCategories(s.getMicropubCategories))
 
 	if s.media != nil {
 		options = append(options, micropub.WithMediaEndpoint(s.c.AbsoluteURL(micropubMediaPath)))
@@ -125,9 +118,7 @@ func (m *micropubServer) Create(req *micropub.Request) (string, error) {
 		return "", fmt.Errorf("%w: name is missing", micropub.ErrBadRequest)
 	}
 
-	if m.s.c.Micropub.ChannelsTaxonomy != "" {
-		e.Other[m.s.c.Micropub.ChannelsTaxonomy], _ = getRequestChannels(req)
-	}
+	e.Categories, _ = getRequestChannels(req)
 
 	err = m.s.saveEntryWithHooks(e, req, nil)
 	if err != nil {
@@ -147,11 +138,8 @@ func (m *micropubServer) Update(req *micropub.Request) (string, error) {
 			return err, false
 		}
 
-		if m.s.c.Micropub.ChannelsTaxonomy != "" {
-			channels, set := getRequestChannels(req)
-			if set {
-				e.Other[m.s.c.Micropub.ChannelsTaxonomy] = channels
-			}
+		if channels, set := getRequestChannels(req); set {
+			e.Categories = channels
 		}
 
 		err = m.updateEntryWithProps(e, mf2)
@@ -263,15 +251,12 @@ func (m *micropubServer) entryToMF2(e *core.Entry) map[string]any {
 		})
 	}
 
-	if m.s.c.Micropub.CategoriesTaxonomy != "" {
-		taxons := e.Taxonomy(m.s.c.Micropub.CategoriesTaxonomy)
-		if len(taxons) != 0 {
-			properties["category"] = e.Taxonomy(m.s.c.Micropub.CategoriesTaxonomy)
-		}
+	if len(e.Tags) != 0 {
+		properties["category"] = e.Tags
 	}
 
-	if m.s.c.Micropub.ChannelsTaxonomy != "" {
-		properties["mp-channel"] = e.Taxonomy(m.s.c.Micropub.ChannelsTaxonomy)
+	if len(e.Categories) != 0 {
+		properties["mp-channel"] = e.Categories
 	}
 
 	return Deflatten(map[string]any{
@@ -353,14 +338,12 @@ func (m *micropubServer) updateEntryWithProps(e *core.Entry, newProps map[string
 		delete(properties, "post-status")
 	}
 
-	if m.s.c.Micropub.CategoriesTaxonomy != "" {
-		if categories, ok := properties.StringsIf("category"); ok && len(categories) > 0 {
-			e.Other[m.s.c.Micropub.CategoriesTaxonomy] = categories
-			delete(properties, "category")
-		} else if category, ok := properties.StringIf("category"); ok && category != "" {
-			e.Other[m.s.c.Micropub.CategoriesTaxonomy] = []string{category}
-			delete(properties, "category")
-		}
+	if categories, ok := properties.StringsIf("category"); ok && len(categories) > 0 {
+		e.Tags = categories
+		delete(properties, "category")
+	} else if category, ok := properties.StringIf("category"); ok && category != "" {
+		e.Tags = []string{category}
+		delete(properties, "category")
 	}
 
 	err := m.updateEntryWithPhotos(e, properties)

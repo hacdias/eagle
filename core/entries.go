@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/maze"
 	"gopkg.in/yaml.v3"
@@ -21,8 +20,9 @@ import (
 const (
 	moreSeparator = "<!--more-->"
 
-	postsSection       = "posts"
-	categoriesTaxonomy = "categories"
+	PostsSection       = "posts"
+	CategoriesTaxonomy = "categories"
+	TagsTaxonomy       = "tags"
 )
 
 // TODO: update to match https://aaronparecki.com/2017/02/25/9/day-67-image-alt-text
@@ -44,6 +44,9 @@ type FrontMatter struct {
 	NoWebmentions bool           `yaml:"noWebmentions,omitempty"`
 	Photos        []Photo        `yaml:"photos,omitempty"`
 	Location      *maze.Location `yaml:"location,omitempty"`
+	Categories    []string       `yaml:"categories,omitempty"`
+	Tags          []string       `yaml:"tags,omitempty"`
+	Syndications  []string       `yaml:"syndication,omitempty"`
 	Other         map[string]any `yaml:",inline"`
 }
 
@@ -73,10 +76,6 @@ func (e *Entry) Summary() string {
 	} else {
 		return content
 	}
-}
-
-func (e *Entry) Taxonomy(taxonomy string) []string {
-	return typed.New(e.Other).Strings(taxonomy)
 }
 
 func (e *Entry) String() (string, error) {
@@ -148,7 +147,7 @@ func NewPostID(slug string, t time.Time) string {
 		t = time.Now()
 	}
 
-	return fmt.Sprintf("/%s/%04d/%02d/%02d/%s/", postsSection, t.Year(), t.Month(), t.Day(), slug)
+	return fmt.Sprintf("/%s/%04d/%02d/%02d/%s/", PostsSection, t.Year(), t.Month(), t.Day(), slug)
 }
 
 func (co *Core) NewBlankEntry(id string) *Entry {
@@ -197,13 +196,13 @@ func (co *Core) GetEntryByPermalink(permalink string) (*Entry, error) {
 	parts := splitID(id)
 
 	if len(parts) == 1 {
-		if e, err := co.GetEntry(path.Join(categoriesTaxonomy, parts[0])); err == nil {
+		if e, err := co.GetEntry(path.Join(CategoriesTaxonomy, parts[0])); err == nil {
 			return e, nil
 		} else if !errors.Is(err, os.ErrNotExist) {
 			return nil, err
 		}
 	} else if len(parts) >= 5 {
-		if e, err := co.GetEntry(postsSection + id); err == nil {
+		if e, err := co.GetEntry(PostsSection + id); err == nil {
 			return e, nil
 		} else if !errors.Is(err, os.ErrNotExist) {
 			return nil, err
@@ -347,10 +346,10 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *urlpkg.URL {
 	url := co.BaseURL()
 	parts := splitID(id)
 
-	if len(parts) >= 5 && parts[0] == postsSection && !fr.Date.IsZero() {
+	if len(parts) >= 5 && parts[0] == PostsSection && !fr.Date.IsZero() {
 		// Path format: /posts/YYYY/MM/DD/slug/
 		url.Path = "/" + strings.Join(parts[1:], "/") + "/"
-	} else if len(parts) == 2 && parts[0] == categoriesTaxonomy {
+	} else if len(parts) == 2 && parts[0] == CategoriesTaxonomy {
 		// Path format: /categories/slug/
 		url.Path = "/" + parts[1] + "/"
 	} else {

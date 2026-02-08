@@ -118,9 +118,7 @@ func (at *ATProto) getClient(ctx context.Context) (*xrpc.Client, error) {
 }
 
 func (at *ATProto) getSyndications(e *core.Entry) ([]string, string, error) {
-	syndications := typed.New(e.Other).Strings(server.SyndicationField)
-
-	return lo.Filter(syndications, func(urlStr string, i int) bool {
+	return lo.Filter(e.Syndications, func(urlStr string, i int) bool {
 		return strings.HasPrefix(urlStr, appUrl)
 	}), typed.New(e.Other).String(documentField), nil
 }
@@ -229,10 +227,7 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		return nil, nil, err
 	}
 
-	// TODO: make this less specific to my personal website. Not sure how.
-	categories := e.Taxonomy("categories")
-
-	if lo.Contains(categories, "writings") {
+	if lo.Contains(e.Categories, "writings") {
 		var post *blueskyPost
 
 		if len(posts) > 0 {
@@ -262,7 +257,7 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		return syndications, []string{post.syndication}, nil
 	}
 
-	if lo.Contains(categories, "photos") {
+	if lo.Contains(e.Categories, "photos") {
 		if len(posts) > 0 {
 			// TODO: We don't support updating Bluesky posts yet. It'd be great
 			// if we could still check if they are correct or not and update in any case.

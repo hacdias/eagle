@@ -257,32 +257,24 @@ func (s *Server) indexAll() {
 
 		start := time.Now()
 
-		if s.c.Micropub.CategoriesTaxonomy != "" {
-			err = s.indexAllTaxonomies(entries, s.c.Micropub.CategoriesTaxonomy)
-			if err != nil {
-				s.log.Errorw("failed to index all taxonomies", "taxonomy", s.c.Micropub.CategoriesTaxonomy, "err", err)
-			}
+		tags := []string{}
+		categories := []string{}
+
+		for _, e := range entries {
+			tags = append(tags, e.Tags...)
+			categories = append(categories, e.Categories...)
 		}
 
-		if s.c.Micropub.ChannelsTaxonomy != "" {
-			err = s.indexAllTaxonomies(entries, s.c.Micropub.ChannelsTaxonomy)
-			if err != nil {
-				s.log.Errorw("failed to index all taxonomies", "taxonomy", s.c.Micropub.ChannelsTaxonomy, "err", err)
-			}
+		err = errors.Join(
+			s.bolt.AddTaxonomy(context.Background(), core.TagsTaxonomy, tags...),
+			s.bolt.AddTaxonomy(context.Background(), core.CategoriesTaxonomy, categories...),
+		)
+		if err != nil {
+			s.log.Errorw("failed to index all taxonomies", "err", err)
 		}
 
 		s.log.Infof("bolt taxonomies update took %dms", time.Since(start).Milliseconds())
 	}
-}
-
-func (s *Server) indexAllTaxonomies(ee core.Entries, taxonomy string) error {
-	taxons := []string{}
-
-	for _, e := range ee {
-		taxons = append(taxons, e.Taxonomy(taxonomy)...)
-	}
-
-	return s.bolt.AddTaxonomy(context.Background(), taxonomy, taxons...)
 }
 
 func (s *Server) withRecoverer(next http.Handler) http.Handler {

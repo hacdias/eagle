@@ -45,10 +45,6 @@ webmentions:
 
 # Optional Micropub configuration. Disabled otherwise.
 micropub:
-  # Which of your Hugo taxonomy is Micropub channels. Disabled if not set.
-  channelsTaxonomy: categories
-  # Which of your Hugo taxonomies is Micropub categories. Disabled if not set.
-  categoriesTaxonomy: tags
   # Allowed Micropub properties. An incoming request will be refused if unknown
   # properties are included. The following properties are always allowed: published,
   # updated, content, name, summary, post-status, category.
@@ -77,10 +73,6 @@ bunnycdn:
 meilisearch:
   endpoint: myUrl
   key: myKey
-  # The name of the taxonomies to index for search.
-  taxonomies:
-  - tags
-  - categories
 
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
