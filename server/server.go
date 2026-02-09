@@ -21,6 +21,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/maypok86/otter/v2"
 	"github.com/robfig/cron/v3"
+	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/services/database"
@@ -325,7 +326,19 @@ func (s *Server) syncStorage() {
 		return
 	}
 
-	// TODO: detect if redirects and gone have changed, reload.
+	if lo.ContainsBy(changedFiles, func(f core.ModifiedFile) bool { return f.Filename == core.RedirectsFile }) {
+		err = s.loadRedirects()
+		if err != nil {
+			s.log.Errorw("failed to update redirects", "err", err)
+		}
+	}
+
+	if lo.ContainsBy(changedFiles, func(f core.ModifiedFile) bool { return f.Filename == core.GoneFile }) {
+		err = s.loadGone()
+		if err != nil {
+			s.log.Errorw("failed to update gone", "err", err)
+		}
+	}
 
 	modifiedEntries := s.entriesFromModifiedFiles(changedFiles)
 	deletedEntries := []*core.Entry{}
@@ -350,6 +363,9 @@ func (s *Server) syncStorage() {
 			previousLinks[e.Permalink] = links
 		}
 	}
+
+	s.log.Infow("detected deleted entries", "n", len(deletedEntries))
+	s.log.Infow("detected updated entries", "n", len(updatedEntries))
 
 	// Sync meilisearch.
 	if s.meilisearch != nil {
