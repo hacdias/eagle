@@ -15,7 +15,12 @@ const (
 	GoneFile      = "gone"
 )
 
-func (co *Core) Sync() ([]string, error) {
+type ModifiedFile struct {
+	Filename string
+	Content  string
+}
+
+func (co *Core) Sync() ([]ModifiedFile, error) {
 	return co.sourceSync.Sync()
 }
 

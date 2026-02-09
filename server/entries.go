@@ -188,7 +188,7 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 	return nil
 }
 
-func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, oldTargets []string, skipBuild bool) {
+func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, previousLinks []string, skipBuild bool) {
 	s.log.Debugw("post save entry hooks", "id", e.ID)
 
 	// Syndications
@@ -234,7 +234,7 @@ func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, oldTargets 
 		return
 	}
 
-	err := s.core.SendWebmentions(e, oldTargets...)
+	err := s.core.SendWebmentions(e, previousLinks...)
 	if err != nil {
 		s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
 	}

@@ -219,14 +219,8 @@ func (co *Core) GetEntryByPermalink(permalink string) (*Entry, error) {
 	return co.GetEntry(id)
 }
 
-func (co *Core) GetEntry(id string) (*Entry, error) {
-	filename := co.EntryFilenameFromID(id)
-	raw, err := co.sourceFS.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	e, err := co.parseEntry(id, string(raw))
+func (co *Core) GetEntryFromContent(id string, content string) (*Entry, error) {
+	e, err := co.parseEntry(id, string(content))
 	if err != nil {
 		return nil, err
 	}
@@ -250,6 +244,16 @@ func (co *Core) GetEntry(id string) (*Entry, error) {
 	}
 
 	return e, nil
+}
+
+func (co *Core) GetEntry(id string) (*Entry, error) {
+	filename := co.EntryFilenameFromID(id)
+	content, err := co.sourceFS.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return co.GetEntryFromContent(id, string(content))
 }
 
 func (co *Core) GetEntries(includeList bool) (Entries, error) {

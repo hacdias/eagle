@@ -11,7 +11,7 @@ import (
 )
 
 type fsSync interface {
-	Sync() (updated []string, err error)
+	Sync() (modified []ModifiedFile, err error)
 	Persist(message string, filename ...string) error
 }
 
@@ -21,8 +21,8 @@ func (g *noopGit) Persist(message string, file ...string) error {
 	return nil
 }
 
-func (g *noopGit) Sync() ([]string, error) {
-	return []string{}, nil
+func (g *noopGit) Sync() ([]ModifiedFile, error) {
+	return []ModifiedFile{}, nil
 }
 
 var nothingToCommit = []byte("nothing to commit, working tree clean")
@@ -79,7 +79,7 @@ func (g *git) hasStaged() bool {
 	return err != nil
 }
 
-func (g *git) Sync() ([]string, error) {
+func (g *git) Sync() ([]ModifiedFile, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -155,7 +155,18 @@ func (g *git) currentCommit() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-func (g *git) changedFiles(since string) ([]string, error) {
+func (g *git) fileContent(filename, commit string) (string, error) {
+	cmd := exec.Command("git", "show", fmt.Sprintf("%s:%s", commit, filename))
+	cmd.Dir = g.dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
+}
+
+func (g *git) changedFiles(since string) ([]ModifiedFile, error) {
 	cmd := exec.Command("git", "show", "--name-only", "--format=tformat:", since+"...HEAD")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
@@ -164,12 +175,20 @@ func (g *git) changedFiles(since string) ([]string, error) {
 	}
 
 	rawFiles := strings.Split(string(out), "\n")
-	files := []string{}
+	files := []ModifiedFile{}
 
 	for _, file := range rawFiles {
 		file = strings.TrimSpace(file)
 		if file != "" {
-			files = append(files, file)
+			content, err := g.fileContent(file, since)
+			if err != nil {
+				return nil, err
+			}
+
+			files = append(files, ModifiedFile{
+				Filename: file,
+				Content:  content,
+			})
 		}
 	}
 

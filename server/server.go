@@ -21,7 +21,6 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/maypok86/otter/v2"
 	"github.com/robfig/cron/v3"
-	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/services/database"
@@ -328,66 +327,104 @@ func (s *Server) syncStorage() {
 
 	// TODO: detect if redirects and gone have changed, reload.
 
-	ids := idsFromChangedFiles(changedFiles)
-	ee := core.Entries{}
+	modifiedEntries := s.entriesFromModifiedFiles(changedFiles)
+	deletedEntries := []*core.Entry{}
+	updatedEntries := []*core.Entry{}
 	previousLinks := map[string][]string{}
-	buildClean := false
 
-	for _, id := range ids {
-		e, err := s.core.GetEntry(id)
+	// Detect update and deleted entries
+	for _, modifiedEntry := range modifiedEntries {
+		e, err := s.core.GetEntry(modifiedEntry.ID)
 		if os.IsNotExist(err) {
-			if s.meilisearch != nil {
-				_ = s.meilisearch.Remove(id)
-			}
-			buildClean = true
-			continue
+			// Properly mark as expired so that post save hooks know it
+			modifiedEntry.ExpiryDate = time.Now()
+			deletedEntries = append(deletedEntries, modifiedEntry)
 		} else if err != nil {
-			s.log.Errorw("failed to open entry to update", "id", id, "err", err)
+			s.log.Errorw("failed to open entry to update", "id", modifiedEntry.ID, "err", err)
 			continue
 		} else {
-			ee = append(ee, e)
+			updatedEntries = append(updatedEntries, e)
+		}
 
-			// Attempt to collect links that were in the entries before the updates.
-			targets, err := s.core.GetEntryLinks(e, true)
-			if err == nil {
-				previousLinks[e.Permalink] = targets
-			}
+		if links, err := s.core.GetEntryLinks(modifiedEntry, true); err == nil {
+			previousLinks[e.Permalink] = links
 		}
 	}
 
 	// Sync meilisearch.
 	if s.meilisearch != nil {
-		err = s.meilisearch.Add(ee...)
+		for _, deletedEntry := range deletedEntries {
+			err = s.meilisearch.Remove(deletedEntry.ID)
+			if err != nil {
+				s.log.Errorw("failed to remove entry from meilisearch", "id", deletedEntry.ID, "err", err)
+			}
+		}
+
+		err = s.meilisearch.Add(updatedEntries...)
 		if err != nil {
 			s.log.Errorw("failed to add entries to meilisearch", "err", err)
 		}
 	}
 
-	s.build(buildClean)
+	s.build(len(deletedEntries) > 0)
 
-	if len(ids) > 10 {
+	// For deleted entries, run syndication and send webmentions so that the
+	// syndications are removed and the webmention targets are notified of the deletion.
+	for _, e := range deletedEntries {
+		s.Syndicate(e, nil)
+
+		err := s.core.SendWebmentions(e, previousLinks[e.Permalink]...)
+		if err != nil {
+			s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
+		}
+
+		time.Sleep(time.Second)
+	}
+
+	if len(updatedEntries) > 10 {
 		s.log.Warn("not running post save hooks due to high quantity of changed entries")
 		return
 	}
 
-	for _, e := range ee {
+	for _, e := range updatedEntries {
 		s.postSaveEntry(e, nil, previousLinks[e.Permalink], true)
+		time.Sleep(time.Second)
 	}
 }
 
-func idsFromChangedFiles(changedFiles []string) []string {
-	ids := []string{}
-	for _, file := range changedFiles {
-		if !strings.HasPrefix(file, core.ContentDirectory) {
+func (s *Server) entriesFromModifiedFiles(modifiedFiles []core.ModifiedFile) []*core.Entry {
+	var ee []*core.Entry
+
+	for _, modifiedFile := range modifiedFiles {
+		parts := strings.FieldsFunc(modifiedFile.Filename, func(r rune) bool {
+			return filepath.Separator == r
+		})
+
+		if len(parts) <= 1 {
 			continue
 		}
 
-		id := strings.TrimPrefix(file, core.ContentDirectory)
-		id = filepath.Dir(id)
-		ids = append(ids, id)
+		if parts[0] != core.ContentDirectory {
+			continue
+		}
+
+		lastElement := parts[len(parts)-1]
+		if lastElement != "index.md" && lastElement != "_index.md" {
+			continue
+		}
+
+		id := filepath.Join(parts[1 : len(parts)-1]...)
+
+		e, err := s.core.GetEntryFromContent(id, modifiedFile.Content)
+		if err != nil {
+			s.log.Errorw("failed to get entry from content for changed file", "id", id, "err", err)
+			continue
+		}
+
+		ee = append(ee, e)
 	}
-	ids = lo.Uniq(ids)
-	return ids
+
+	return ee
 }
 
 func (s *Server) build(clean bool) {
