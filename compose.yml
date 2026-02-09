@@ -1,0 +1,24 @@
+services:
+  meilisearch:
+      container_name: meilisearch
+      image: getmeili/meilisearch:v1.35
+      ports:
+        - "7700:7700"
+      environment:
+        - MEILI_ENV=development
+  imgproxy:
+    container_name: imgproxy
+    image: darthsim/imgproxy:v3
+    ports:
+      - "8085:8080"
+    environment:
+      - IMGPROXY_LOCAL_FILESYSTEM_ROOT=/data/
+      - IMGPROXY_JPEG_PROGRESSIVE=true
+      - IMGPROXY_AUTO_ROTATE=true
+      - IMGPROXY_STRIP_METADATA=true
+      - IMGPROXY_STRIP_COLOR_PROFILE=true
+      - IMGPROXY_ALLOWED_SOURCES=local://
+      - IMGPROXY_BASE_URL=local:///
+      - IMGPROXY_MAX_SRC_RESOLUTION=50
+    volumes:
+      - ./testing/imgproxy:/data
