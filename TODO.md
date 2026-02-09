@@ -27,6 +27,9 @@
   - [ ] Add custom icon
 - [ ] Keep an eye on:
   - [ ] https://popfeed.social's lexicons for watches (movies, series), readings, perhaps music
-    - [ ] Listen on events (possible) and automatically update website?
+  - [ ] https://bookhive.buzz/
+  - [ ] https://teal.fm/, https://rocksky.app/
+  - [ ] https://recipe.exchange/lexicons/
   - [ ] https://dropanchor.app's lexicons for Swarm-like check-ins
+  - [ ] Listen on events (possible) and automatically update website?
 - [ ] See way to enable auto POSSE'ing without manually triggering it every time
