@@ -83,8 +83,8 @@ func (co *Core) DeleteWebmention(id, sourceOrURL string) error {
 	})
 }
 
-func (co *Core) SendWebmentions(permalink string, otherTargets ...string) error {
-	targets, err := co.GetEntryLinks(permalink, true)
+func (co *Core) SendWebmentions(e *Entry, otherTargets ...string) error {
+	targets, err := co.GetEntryLinks(e, true)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -99,7 +99,7 @@ func (co *Core) SendWebmentions(permalink string, otherTargets ...string) error 
 			continue
 		}
 
-		wmErr := co.sendWebmention(permalink, target)
+		wmErr := co.sendWebmention(e.Permalink, target)
 		if wmErr != nil && !errors.Is(wmErr, webmention.ErrNoEndpointFound) {
 			wmErr = fmt.Errorf("send webmention error %s: %w", target, wmErr)
 			err = errors.Join(err, wmErr)

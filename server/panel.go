@@ -231,7 +231,14 @@ func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) panelPostWebmention(w http.ResponseWriter, r *http.Request) {
 	permalink := r.Form.Get("webmention")
-	err := s.core.SendWebmentions(permalink)
+
+	e, err := s.core.GetEntryByPermalink(permalink)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by permalink: %w", err))
+		return
+	}
+
+	err = s.core.SendWebmentions(e)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return

@@ -348,7 +348,7 @@ func (s *Server) syncStorage() {
 			ee = append(ee, e)
 
 			// Attempt to collect links that were in the entries before the updates.
-			targets, err := s.core.GetEntryLinks(e.Permalink, true)
+			targets, err := s.core.GetEntryLinks(e, true)
 			if err == nil {
 				previousLinks[e.Permalink] = targets
 			}

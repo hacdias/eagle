@@ -234,7 +234,7 @@ func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, oldTargets 
 		return
 	}
 
-	err := s.core.SendWebmentions(e.Permalink, oldTargets...)
+	err := s.core.SendWebmentions(e, oldTargets...)
 	if err != nil {
 		s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
 	}

@@ -182,12 +182,13 @@ func (m *micropubServer) Undelete(url string) error {
 }
 
 func (m *micropubServer) update(permalink string, req *micropub.Request, update func(e *core.Entry) (error, bool)) error {
-	targets, _ := m.s.core.GetEntryLinks(permalink, true)
 
 	e, err := m.s.core.GetEntryByPermalink(permalink)
 	if err != nil {
 		return err
 	}
+
+	targets, _ := m.s.core.GetEntryLinks(e, true)
 
 	err, modified := update(e)
 	if err != nil {

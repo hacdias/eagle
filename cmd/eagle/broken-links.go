@@ -67,7 +67,7 @@ var brokenLinksCmd = &cobra.Command{
 		}
 
 		for _, e := range ee {
-			markdownURLs, err := co.GetEntryLinks(e.Permalink, true)
+			markdownURLs, err := co.GetEntryLinks(e, true)
 			if err != nil {
 				continue
 			}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	urlpkg "net/url"
 	"os"
 	"path"
@@ -11,10 +12,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/text"
+	"github.com/yuin/goldmark/util"
 	"go.hacdias.com/maze"
 	"go.yaml.in/yaml/v4"
-	"willnorris.com/go/webmention"
 )
 
 const (
@@ -359,43 +366,69 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *urlpkg.URL {
 	return url
 }
 
-// GetEntryLinks gets the links found in the HTML rendered version of the entry.
-// This uses the latest available build to check for the links. Entry must have
-// .h-entry and .e-content classes.
-func (co *Core) GetEntryLinks(permalink string, withSyndications bool) ([]string, error) {
-	html, err := co.entryHTML(permalink)
-	if err != nil {
-		return nil, err
+// GetEntryLinks gets the links found in the content of the entry. This parses
+// the Markdown content and the syndications to check for links. This is used
+//
+// Previously, the HTML output was inspected in order to do this. However, I feel
+// like using the Markdown itself is cleaner. Any other mentions besides what's
+// in the content itself are probably not worth considering for the purposes
+// of usage of this function.
+func (co *Core) GetEntryLinks(e *Entry, withSyndications bool) ([]string, error) {
+	p := goldmark.DefaultParser()
+	p.AddOptions(parser.WithInlineParsers(
+		util.Prioritized(extension.NewLinkifyParser(), 999),
+	))
+
+	source := []byte(e.Content)
+	n := p.Parse(text.NewReader(source))
+
+	var links []string
+	if bookmark := typed.Typed(e.Other).String("bookmark-of"); bookmark != "" {
+		links = append(links, bookmark)
 	}
 
-	selector := ".h-entry .e-content a, .h-entry .h-cite a, .h-entry a.h-cite"
+	// Add syndications when requested
 	if withSyndications {
-		selector += ", .h-entry .u-syndication a, .h-entry a.u-syndication"
+		links = append(links, e.Syndications...)
 	}
 
-	targets, err := webmention.DiscoverLinksFromReader(bytes.NewBuffer(html), permalink, selector)
-	if err != nil {
-		return nil, err
-	}
-
-	targets = (lo.Filter(targets, func(target string, _ int) bool {
-		url, err := urlpkg.Parse(target)
-		if err != nil {
-			return false
+	// Walk down that runway... 💅
+	err := ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		switch n.Kind() {
+		case ast.KindLink:
+			n := n.(*ast.Link)
+			v := util.URLEscape(n.Destination, true)
+			links = append(links, string(v))
+		case ast.KindAutoLink:
+			n := n.(*ast.AutoLink)
+			v := n.URL(source)
+			v = util.URLEscape(v, true)
+			links = append(links, string(v))
 		}
 
-		return url.Scheme == "http" || url.Scheme == "https"
-	}))
-
-	return lo.Uniq(targets), nil
-}
-
-func (co *Core) entryHTML(permalink string) ([]byte, error) {
-	url, err := urlpkg.Parse(permalink)
+		return ast.WalkContinue, nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	filename := filepath.Join(co.buildName, url.Path, "index.html")
-	return co.buildFS.ReadFile(filename)
+	// Ensure links are absolute and filter out non HTTP(s) links
+	links = lo.Reduce(links, func(links []string, link string, index int) []string {
+		u, err := url.Parse(link)
+		if err != nil {
+			return links
+		}
+
+		if strings.HasPrefix(link, "/") {
+			u = co.BaseURL().ResolveReference(u)
+		}
+
+		if u.Scheme == "http" || u.Scheme == "https" {
+			links = append(links, u.String())
+		}
+
+		return links
+	}, []string{})
+
+	return lo.Uniq(links), nil
 }
