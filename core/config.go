@@ -17,13 +17,13 @@ type Config struct {
 }
 
 // ParseConfig parses the configuration from the default files and paths.
-func ParseConfig() (*Config, error) {
+func ParseConfig(baseURL string) (*Config, error) {
 	serverConfig, err := parseServerConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	siteConfig, err := parseSiteConfig(serverConfig.SourceDirectory)
+	siteConfig, err := parseSiteConfig(serverConfig.SourceDirectory, baseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +34,30 @@ func ParseConfig() (*Config, error) {
 	}, nil
 }
 
+func (c *Config) ID() string {
+	return c.Site.BaseURL + "/"
+}
+
+func (c *Config) resolvedURL(refStr string) *url.URL {
+	ref, _ := url.Parse(refStr)
+	base, _ := url.Parse(c.Site.BaseURL)
+	return base.ResolveReference(ref)
+}
+
+func (c *Config) AbsoluteURL(refStr string) string {
+	resolved := c.resolvedURL(refStr)
+	if resolved == nil {
+		return ""
+	}
+	return resolved.String()
+}
+
 type ServerConfig struct {
 	Development     bool
 	SourceDirectory string
 	PublicDirectory string
 	DataDirectory   string
 	Port            int
-	BaseURL         string // TODO: maybe use the one from [SiteConfig].
 	TokensSecret    string
 	WebhookSecret   string
 	Tor             bool
@@ -106,16 +123,6 @@ func (c *ServerConfig) validate() error {
 		return fmt.Errorf("config: Port should be positive number or 0")
 	}
 
-	baseUrl, err := url.Parse(c.BaseURL)
-	if err != nil {
-		return err
-	}
-	baseUrl.Path = ""
-
-	if baseUrl.String() != c.BaseURL {
-		return fmt.Errorf("config: BaseURL should be %s", baseUrl.String())
-	}
-
 	err = c.Login.validate()
 	if err != nil {
 		return err
@@ -127,24 +134,6 @@ func (c *ServerConfig) validate() error {
 	}
 
 	return nil
-}
-
-func (c *ServerConfig) ID() string {
-	return c.BaseURL + "/"
-}
-
-func (c *ServerConfig) resolvedURL(refStr string) *url.URL {
-	ref, _ := url.Parse(refStr)
-	base, _ := url.Parse(c.BaseURL)
-	return base.ResolveReference(ref)
-}
-
-func (c *ServerConfig) AbsoluteURL(refStr string) string {
-	resolved := c.resolvedURL(refStr)
-	if resolved == nil {
-		return ""
-	}
-	return resolved.String()
 }
 
 type Login struct {
@@ -209,6 +198,7 @@ type ImgProxy struct {
 }
 
 type SiteConfig struct {
+	BaseURL      string
 	Title        string
 	LanguageCode string
 	Taxonomies   map[string]string
@@ -228,7 +218,7 @@ type SiteConfig struct {
 	}
 }
 
-func parseSiteConfig(dir string) (*SiteConfig, error) {
+func parseSiteConfig(dir string, baseURL string) (*SiteConfig, error) {
 	v := viper.New()
 	v.SetConfigName("config")
 	v.AddConfigPath(dir)
@@ -244,6 +234,10 @@ func parseSiteConfig(dir string) (*SiteConfig, error) {
 		return nil, err
 	}
 
+	if baseURL != "" {
+		conf.BaseURL = baseURL
+	}
+
 	err = conf.validate()
 	if err != nil {
 		return nil, err
@@ -256,6 +250,18 @@ func (c *SiteConfig) validate() error {
 	if c.Pagination.PagerSize < 1 {
 		return errors.New("hugo config: .Pagination.PagerSize must be larger than 1")
 	}
+
+	baseUrl, err := url.Parse(c.BaseURL)
+	if err != nil {
+		return err
+	}
+	baseUrl.Path = ""
+
+	if baseUrl.String() != strings.TrimSuffix(c.BaseURL, "/") {
+		return fmt.Errorf("config: BaseURL should be %s", baseUrl.String())
+	}
+	// BaseURL is always without trailing slash.
+	c.BaseURL = baseUrl.String()
 
 	return nil
 }

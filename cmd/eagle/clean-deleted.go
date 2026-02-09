@@ -15,7 +15,7 @@ func init() {
 var cleanDeletedCmd = &cobra.Command{
 	Use: "clean-deleted",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := core.ParseConfig()
+		c, err := core.ParseConfig("")
 		if err != nil {
 			return err
 		}

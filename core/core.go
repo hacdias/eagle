@@ -44,11 +44,10 @@ func NewCore(cfg *Config) (*Core, error) {
 		},
 	}
 
-	baseURL, err := url.Parse(cfg.BaseURL)
+	baseURL, err := url.Parse(cfg.Site.BaseURL)
 	if err != nil {
 		return nil, err
 	}
-
 	co.baseURL = baseURL
 
 	if cfg.Development {

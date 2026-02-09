@@ -93,6 +93,10 @@ Then, the Hugo website must have a `eagle` directory containing the following te
 
 At the moment, it is best to check the source code to see what variables are available in each template.
 
+### Other Assumptions
+
+- The website is served at the domain's root.
+
 ## License
 
 MIT © Henrique Dias

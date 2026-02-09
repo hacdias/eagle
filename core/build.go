@@ -57,7 +57,7 @@ func (co *Core) Build(cleanBuildDirectory bool) error {
 	args := []string{
 		"--minify",
 		"--destination", destination,
-		"--baseURL", co.cfg.BaseURL,
+		"--baseURL", co.cfg.Site.BaseURL,
 		"--environment", "eagle",
 	}
 

@@ -15,7 +15,7 @@ func init() {
 var cleanRedirectsCmd = &cobra.Command{
 	Use: "clean-redirects",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := core.ParseConfig()
+		c, err := core.ParseConfig("")
 		if err != nil {
 			return err
 		}

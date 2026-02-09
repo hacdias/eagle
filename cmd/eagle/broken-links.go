@@ -16,7 +16,7 @@ func init() {
 var brokenLinksCmd = &cobra.Command{
 	Use: "broken-links",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := core.ParseConfig()
+		c, err := core.ParseConfig("")
 		if err != nil {
 			return err
 		}
@@ -69,11 +69,11 @@ var brokenLinksCmd = &cobra.Command{
 		for _, e := range ee {
 			markdownURLs, err := co.GetEntryLinks(e.Permalink, true)
 			if err != nil {
-				return err
+				continue
 			}
 			brokenLinks := []string{}
 			for _, urlStr := range markdownURLs {
-				if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.BaseURL) {
+				if !strings.HasPrefix(urlStr, "/") && !strings.HasPrefix(urlStr, c.Site.BaseURL) {
 					continue
 				}
 				url, err := urlpkg.Parse(urlStr)

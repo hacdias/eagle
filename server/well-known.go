@@ -26,18 +26,18 @@ type webFingerLink struct {
 }
 
 func (s *Server) makeWellKnownWebFingerGet() http.HandlerFunc {
-	url, _ := urlpkg.Parse(s.c.BaseURL)
+	url, _ := urlpkg.Parse(s.c.Site.BaseURL)
 
 	webFinger := &webFinger{
 		Subject: fmt.Sprintf("acct:%s@%s", s.c.Site.Params.Author.Handle, url.Host),
 		Aliases: []string{
-			s.c.BaseURL,
+			s.c.Site.BaseURL,
 		},
 		Links: []webFingerLink{
 			{
 				Rel:  "http://webfinger.net/rel/profile-page",
 				Type: "text/html",
-				Href: s.c.BaseURL,
+				Href: s.c.Site.BaseURL,
 			},
 		},
 	}

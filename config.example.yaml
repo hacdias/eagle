@@ -11,8 +11,6 @@ publicDirectory: /app/public
 dataDirectory: /app/data
 # The port to listen on.
 port: 8080
-# The base URL from which the website is served.
-baseUrl: "http://localhost:8080"
 # The secret to protect JWT tokens.
 tokensSecret: SecureSecret
 # Optional GitHub (https://docs.github.com/) webhook secret to update the source repository.
@@ -69,11 +67,6 @@ bunnycdn:
   key: someBunnySecret
   base: someBunnyBase
 
-# Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
-meilisearch:
-  endpoint: myUrl
-  key: myKey
-
 # Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
 # Sizes are hardcoded for now.
 imgproxy:
@@ -81,6 +74,11 @@ imgproxy:
   directory:
   # ImgProxy endpoint
   endpoint:
+
+# Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
+meilisearch:
+  endpoint: myUrl
+  key: myKey
 
 plugins:
   # Optional Miniflux (https://miniflux.app) integration for blogroll data generation.
@@ -93,6 +91,7 @@ plugins:
 
   # Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
   # Runs every day automatically, can be triggered through dashboard.
+  # TODO: remove?
   linkding:
     endpoint: myUrl
     key: myKey

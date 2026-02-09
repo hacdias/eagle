@@ -12,12 +12,21 @@ import (
 	"go.hacdias.com/eagle/server"
 )
 
+func init() {
+	rootCmd.Flags().String("baseURL", "", "override Hugo's configuration baseURL")
+}
+
 var rootCmd = &cobra.Command{
 	Use:               "eagle",
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	Short:             "Eagle is a website CMS",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		c, err := core.ParseConfig()
+		baseURLOverride, err := cmd.Flags().GetString("baseURL")
+		if err != nil {
+			return err
+		}
+
+		c, err := core.ParseConfig(baseURLOverride)
 		if err != nil {
 			return err
 		}
