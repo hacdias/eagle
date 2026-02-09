@@ -11,11 +11,6 @@
   - [ ] Do not forget to add to `grant_types_supported`
 - [ ] Way of revoking existing token (store in Bolt)
 
-## Panel
-
-- [ ] Way to trigger syndication
-- [ ] Way to trigger other actions
-
 ## ATProto
 
 - [ ] Reuse authentication

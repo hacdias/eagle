@@ -12,7 +12,7 @@
 {{ end }}
 </div>
 
-{{ if .ActionSuccess }}
+{{ if eq .Success "action" }}
   <p>
     <strong>✅ Success!</strong>
   </p>
@@ -37,6 +37,31 @@
   height: {{ .Height }}{{end }}</pre>
 {{ end }}
 
+<h2>Syndicate</h2>
+
+<form method='POST'>
+  <input type='url' name='syndication' placeholder='Post permalink...' />
+
+  {{ if gt (len .Syndications) 0 }}
+    <fieldset>
+      <legend>Syndication Targets</legend>
+      <ol class='options-list'>
+        {{ range .Syndications }}
+          <li><label><input type='checkbox' name='syndications' value='{{ .UID }}' /> {{ .Name }}</label></li>
+        {{ end }}
+      </ol>
+    </fieldset>
+  {{ end }}
+
+  <button>Syndicate</button>
+</form>
+
+{{ if eq .Success "syndication" }}
+  <p>
+    <strong>✅ Success!</strong>
+  </p>
+{{ end }}
+
 <h2>Send Webmention</h2>
 
 <form method='POST'>
@@ -44,7 +69,7 @@
   <button>Send</button>
 </form>
 
-{{ if .WebmentionsSuccess }}
+{{ if eq .Success "webmention" }}
   <p>
     <strong>✅ Success!</strong>
   </p>

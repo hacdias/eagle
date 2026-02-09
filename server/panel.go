@@ -16,6 +16,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
+	"go.hacdias.com/indielib/micropub"
 )
 
 const (
@@ -27,13 +28,13 @@ const (
 )
 
 type panelPage struct {
-	Title              string
-	Actions            []string
-	ActionSuccess      bool
-	Token              string
-	MediaLocation      string
-	MediaPhoto         *core.Photo
-	WebmentionsSuccess bool
+	Title         string
+	Actions       []string
+	Syndications  []micropub.Syndication
+	Success       string
+	Token         string
+	MediaLocation string
+	MediaPhoto    *core.Photo
 }
 
 func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
@@ -198,8 +199,11 @@ func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 	if r.Form.Get("action") != "" {
 		s.panelPostAction(w, r)
 		return
-	} else if wm := r.Form.Get("webmention"); wm != "" {
+	} else if r.Form.Get("webmention") != "" {
 		s.panelPostWebmention(w, r)
+		return
+	} else if r.Form.Get("syndication") != "" {
+		s.panelPostSyndicate(w, r)
 		return
 	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
 		s.panelPostUpload(w, r)
@@ -211,13 +215,11 @@ func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 	actions := r.Form["action"]
-	data := &panelPage{}
 
 	var err error
 	for _, actionName := range actions {
 		if fn, ok := s.actions[actionName]; ok {
 			err = errors.Join(err, fn())
-			data.ActionSuccess = true
 		}
 	}
 	if err != nil {
@@ -226,7 +228,7 @@ func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go s.build(false)
-	s.servePanel(w, r, data)
+	http.Redirect(w, r, r.URL.Path+"?success=action", http.StatusSeeOther)
 }
 
 func (s *Server) panelPostWebmention(w http.ResponseWriter, r *http.Request) {
@@ -244,7 +246,21 @@ func (s *Server) panelPostWebmention(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.servePanel(w, r, &panelPage{WebmentionsSuccess: true})
+	http.Redirect(w, r, r.URL.Path+"?success=webmention", http.StatusSeeOther)
+}
+
+func (s *Server) panelPostSyndicate(w http.ResponseWriter, r *http.Request) {
+	permalink := r.Form.Get("syndication")
+	syndicators := r.Form["syndications"]
+
+	e, err := s.core.GetEntryByPermalink(permalink)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by permalink: %w", err))
+		return
+	}
+
+	s.Syndicate(e, syndicators)
+	http.Redirect(w, r, r.URL.Path+"?success=syndication", http.StatusSeeOther)
 }
 
 func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
@@ -297,6 +313,8 @@ func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
 func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
 	data.Title = "Panel"
 	data.Actions = s.getActions()
+	data.Syndications = s.getMicropubSyndications()
+	data.Success = r.URL.Query().Get("success")
 	s.panelTemplate(w, r, http.StatusOK, panelTemplate, data)
 }
 
