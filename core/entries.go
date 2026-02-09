@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net/url"
 	urlpkg "net/url"
 	"os"
 	"path"
@@ -418,17 +417,17 @@ func (co *Core) GetEntryLinks(e *Entry, withSyndications bool) ([]string, error)
 
 	// Ensure links are absolute and filter out non HTTP(s) links
 	links = lo.Reduce(links, func(links []string, link string, index int) []string {
-		u, err := url.Parse(link)
+		url, err := urlpkg.Parse(link)
 		if err != nil {
 			return links
 		}
 
 		if strings.HasPrefix(link, "/") {
-			u = co.BaseURL().ResolveReference(u)
+			url = co.BaseURL().ResolveReference(url)
 		}
 
-		if u.Scheme == "http" || u.Scheme == "https" {
-			links = append(links, u.String())
+		if url.Scheme == "http" || url.Scheme == "https" {
+			links = append(links, url.String())
 		}
 
 		return links
