@@ -43,14 +43,11 @@
   <input type='url' name='syndication' placeholder='Post permalink...' />
 
   {{ if gt (len .Syndications) 0 }}
-    <fieldset>
-      <legend>Syndication Targets</legend>
-      <ol class='options-list'>
-        {{ range .Syndications }}
-          <li><label><input type='checkbox' name='syndications' value='{{ .UID }}' /> {{ .Name }}</label></li>
-        {{ end }}
-      </ol>
-    </fieldset>
+    <ol class='options-list horizontal'>
+      {{ range .Syndications }}
+        <li><label><input type='checkbox' name='syndications' value='{{ .UID }}' /> {{ .Name }}</label></li>
+      {{ end }}
+    </ol>
   {{ end }}
 
   <button>Syndicate</button>

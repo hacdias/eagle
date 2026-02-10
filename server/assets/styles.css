@@ -9,6 +9,7 @@ body {
   background: #fffcf2;
   font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
     helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+  margin-bottom: 3rem;
 }
 
 a {
@@ -107,8 +108,19 @@ ul.options-list {
   margin: 0.5rem 0;
 }
 
-.options-list label * {
-  margin: 0 !important;
-  width: auto !important;
-  display: inline !important;
+.options-list label input {
+  margin: 0;
+  width: auto;
+  display: inline;
+}
+
+.options-list.horizontal {
+  display: flex;
+  padding-left: 0;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.options-list.horizontal li {
+  margin-right: 1rem;
 }
