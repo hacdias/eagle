@@ -22,6 +22,7 @@ type blueskyPost struct {
 }
 
 func (at *ATProto) deleteBlueskyPost(ctx context.Context, client *xrpc.Client, recordKey string) error {
+	at.log.Infow("deleting app.bsky.feed.post", "rkey", recordKey)
 	return deleteRecord(ctx, client, "app.bsky.feed.post", recordKey)
 }
 

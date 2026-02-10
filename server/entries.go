@@ -109,8 +109,6 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 }
 
 func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
-	s.log.Infow("syndicating entry", "id", e.ID, "syndicators", syndicators)
-
 	// Get the syndication context
 	syndicationContext, err := s.getEntrySyndicationContext(e)
 	if err != nil {
@@ -126,6 +124,7 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 	}
 
 	syndicators = lo.Uniq(syndicators)
+	s.log.Infow("syndicating entry", "id", e.ID, "syndicators", syndicators)
 
 	// Do the actual syndication
 	for _, name := range syndicators {

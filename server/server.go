@@ -387,6 +387,7 @@ func (s *Server) syncStorage() {
 	// For deleted entries, run syndication and send webmentions so that the
 	// syndications are removed and the webmention targets are notified of the deletion.
 	for _, e := range deletedEntries {
+		s.log.Infow("deleted entry", "entry", e)
 		s.Syndicate(e, nil)
 
 		err := s.core.SendWebmentions(e, previousLinks[e.Permalink]...)

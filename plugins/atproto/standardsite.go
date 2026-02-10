@@ -84,6 +84,7 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
+	at.log.Infow("upserting site.standard.document", "rkey", recordKey, "record", record)
 	documentUriStr, err := upsertRecord(ctx, client, "site.standard.document", recordKey, record)
 	if err != nil {
 		return "", fmt.Errorf("failed to upsert site.standard.document record: %w", err)
@@ -94,7 +95,8 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 }
 
 func (at *ATProto) deleteStandardDocument(ctx context.Context, client *xrpc.Client, uri syntax.ATURI) error {
-	return deleteRecord(ctx, client, "site.standard.publication", uri.RecordKey().String())
+	at.log.Infow("deleting site.standard.document", "rkey", uri.RecordKey().String())
+	return deleteRecord(ctx, client, "site.standard.document", uri.RecordKey().String())
 }
 
 func (at *ATProto) HandlerRoute() string {
