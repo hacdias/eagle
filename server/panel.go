@@ -14,6 +14,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/samber/lo/mutable"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
 	"go.hacdias.com/indielib/micropub"
@@ -71,6 +72,11 @@ func (s *Server) panelBrowserGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.panelError(w, r, http.StatusBadRequest, err)
 		return
+	}
+
+	// Bonus: reverse the order in the posts directory to have the latest at the top.
+	if strings.HasPrefix(filename, path.Join("/", core.ContentDirectory, core.PostsSection)) {
+		mutable.Reverse(infos)
 	}
 
 	s.panelTemplate(w, r, http.StatusOK, panelBrowserTemplate, &browserPage{

@@ -5,7 +5,6 @@
 
 ## Panel
 
-- [ ] browse link to posts and sort from most recebnt to oldest, maybe option?
 - [ ] Syndicate: add extra field for "status" iwht character count: that way I can customize what goes in.
 
 ## IndieAuth
