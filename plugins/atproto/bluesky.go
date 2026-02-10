@@ -137,6 +137,7 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 		post.Embed.EmbedExternal.External.Thumb = blob
 	}
 
+	at.log.Infow("creating app.bsky.feed.post", "record", post)
 	record, err := createBlueskyRecord(ctx, client, "app.bsky.feed.post", client.Auth.Did, &util.LexiconTypeDecoder{Val: post})
 	if err != nil {
 		return nil, err
@@ -200,6 +201,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 			}
 		}
 
+		at.log.Infow("creating app.bsky.feed.post", "record", post)
 		record, err := createBlueskyRecord(ctx, xrpcc, "app.bsky.feed.post", xrpcc.Auth.Did, &util.LexiconTypeDecoder{Val: post})
 		if err != nil {
 			return nil, err
