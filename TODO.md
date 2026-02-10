@@ -1,8 +1,12 @@
 # Eagle
 
 - [ ] Monitor external links for 404s, and replace with Web Archive when possible
-- [ ] Maybe rely on Goldmark ast parsing for webmentions detection? tests
-  - [ ] For deleted posts see if can run `git` command for latest version of certain file
+- [ ] Command to check if site.standard.document is consistent with the current website.
+
+## Panel
+
+- [ ] browse link to posts and sort from most recebnt to oldest, maybe option?
+- [ ] Syndicate: add extra field for "status" iwht character count: that way I can customize what goes in.
 
 ## IndieAuth
 
