@@ -52,7 +52,7 @@ func (l *Locations) PostSaveHook(e *core.Entry) error {
 		return nil
 	}
 
-	if e.Location == nil {
+	if e.Location == nil || e.Deleted() {
 		return nil
 	}
 

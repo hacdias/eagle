@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"runtime/debug"
 	"sort"
 	"strconv"
@@ -340,69 +341,39 @@ func (s *Server) syncStorage() {
 		}
 	}
 
-	modifiedEntries := s.entriesFromModifiedFiles(changedFiles)
-	deletedEntries := []*core.Entry{}
-	updatedEntries := []*core.Entry{}
+	previousEntries := s.entriesFromModifiedFiles(changedFiles)
 	previousLinks := map[string][]string{}
+	entriesToProcess := []*core.Entry{}
+	cleanBuild := false
 
 	// Detect update and deleted entries
-	for _, modifiedEntry := range modifiedEntries {
-		e, err := s.core.GetEntry(modifiedEntry.ID)
+	for _, previousEntry := range previousEntries {
+		e, err := s.core.GetEntry(previousEntry.ID)
 		if os.IsNotExist(err) {
-			// Properly mark as expired so that post save hooks know it
-			modifiedEntry.ExpiryDate = time.Now()
-			deletedEntries = append(deletedEntries, modifiedEntry)
+			// Entry has been deleted
+			cleanBuild = true
+			previousEntry.NoFileSystem = true
+			entriesToProcess = append(entriesToProcess, previousEntry)
 		} else if err != nil {
-			s.log.Errorw("failed to open entry to update", "id", modifiedEntry.ID, "err", err)
+			s.log.Errorw("failed to open entry to update", "id", previousEntry.ID, "err", err)
 			continue
 		} else {
-			updatedEntries = append(updatedEntries, e)
-		}
-
-		if links, err := s.core.GetEntryLinks(modifiedEntry, true); err == nil {
-			previousLinks[modifiedEntry.Permalink] = links
-		}
-	}
-
-	s.log.Infow("detected deleted entries", "n", len(deletedEntries))
-	s.log.Infow("detected updated entries", "n", len(updatedEntries))
-
-	// Sync meilisearch.
-	if s.meilisearch != nil {
-		for _, deletedEntry := range deletedEntries {
-			err = s.meilisearch.Remove(deletedEntry.ID)
-			if err != nil {
-				s.log.Errorw("failed to remove entry from meilisearch", "id", deletedEntry.ID, "err", err)
+			// Entry has been updated. Ignore updates if only minor changes have been
+			// made (e.g., frontend fields resorted).
+			if !reflect.DeepEqual(e, previousEntry) {
+				entriesToProcess = append(entriesToProcess, e)
 			}
 		}
 
-		err = s.meilisearch.Add(updatedEntries...)
-		if err != nil {
-			s.log.Errorw("failed to add entries to meilisearch", "err", err)
+		if links, err := s.core.GetEntryLinks(previousEntry, true); err == nil {
+			previousLinks[previousEntry.Permalink] = links
 		}
 	}
 
-	s.build(len(deletedEntries) > 0)
+	s.log.Infow("detected entries to handle", "n", len(entriesToProcess))
+	s.build(cleanBuild)
 
-	// For deleted entries, run syndication and send webmentions so that the
-	// syndications are removed and the webmention targets are notified of the deletion.
-	for _, e := range deletedEntries {
-		s.Syndicate(e, nil)
-
-		err := s.core.SendWebmentions(e, previousLinks[e.Permalink]...)
-		if err != nil {
-			s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
-		}
-
-		time.Sleep(time.Second)
-	}
-
-	if len(updatedEntries) > 10 {
-		s.log.Warn("not running post save hooks due to high quantity of changed entries")
-		return
-	}
-
-	for _, e := range updatedEntries {
+	for _, e := range entriesToProcess {
 		s.postSaveEntry(e, nil, previousLinks[e.Permalink], true)
 		time.Sleep(time.Second)
 	}

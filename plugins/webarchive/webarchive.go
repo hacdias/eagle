@@ -46,6 +46,10 @@ func (wa *WebArchive) PreSaveHook(*core.Entry) error {
 }
 
 func (wa *WebArchive) PostSaveHook(e *core.Entry) error {
+	if e.Deleted() {
+		return nil
+	}
+
 	var errs error
 
 	other := typed.New(e.Other)

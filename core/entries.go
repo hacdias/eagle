@@ -63,9 +63,17 @@ type Entry struct {
 	Permalink    string
 	RelPermalink string
 	Content      string
+
+	// NoFileSystem is true if the [Entry] has been deleted and no longer
+	// present in the File System. This allows preventing saving this entry.
+	NoFileSystem bool
 }
 
 func (e *Entry) Deleted() bool {
+	if e.NoFileSystem {
+		return true
+	}
+
 	if e.ExpiryDate.IsZero() {
 		return false
 	}
@@ -290,6 +298,10 @@ func (co *Core) GetEntries(includeList bool) (Entries, error) {
 }
 
 func (co *Core) SaveEntry(e *Entry) error {
+	if e.NoFileSystem {
+		return nil
+	}
+
 	filename := co.EntryFilenameFromID(e.ID)
 	err := co.sourceFS.MkdirAll(filepath.Dir(filename), 0777)
 	if err != nil {
