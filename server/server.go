@@ -360,7 +360,7 @@ func (s *Server) syncStorage() {
 		}
 
 		if links, err := s.core.GetEntryLinks(modifiedEntry, true); err == nil {
-			previousLinks[e.Permalink] = links
+			previousLinks[modifiedEntry.Permalink] = links
 		}
 	}
 
