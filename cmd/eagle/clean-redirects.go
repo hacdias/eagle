@@ -42,7 +42,7 @@ var cleanRedirectsCmd = &cobra.Command{
 		for src := range redirects {
 			redirects[src] = resolveRedirect(src)
 
-			_, err := fs.GetEntry(redirects[src])
+			_, err := fs.GetEntryByPermalink(redirects[src])
 			if os.IsNotExist(err) {
 				delete(redirects, src)
 			}
