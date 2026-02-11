@@ -91,6 +91,10 @@ fieldset {
   padding: 0.5rem;
 }
 
+fieldset fieldset {
+  margin: 0.5rem 0;
+}
+
 legend {
   background-color: #000;
   color: #fff;

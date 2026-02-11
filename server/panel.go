@@ -345,13 +345,16 @@ func (s *Server) panelNewGet(w http.ResponseWriter, r *http.Request) {
 }
 
 type newRequest struct {
-	Title       string   `form:"title"`
-	Slug        string   `form:"slug"`
-	Content     string   `form:"content"`
-	Category    string   `form:"category"`
-	Tags        []string `form:"tags"`
-	Location    string   `form:"location"`
-	Photos      []string `form:"photos"`
+	Title    string   `form:"title"`
+	Slug     string   `form:"slug"`
+	Content  string   `form:"content"`
+	Category string   `form:"category"`
+	Tags     []string `form:"tags"`
+	Location string   `form:"location"`
+	Photos   []struct {
+		URL   string `form:"url"`
+		Title string `form:"title"`
+	} `form:"photos"`
 	Syndicators []string `form:"syndicators"`
 
 	// TODO
@@ -405,7 +408,8 @@ func (s *Server) panelNewPost(w http.ResponseWriter, r *http.Request) {
 
 		for _, p := range req.Photos {
 			e.Photos = append(e.Photos, core.Photo{
-				URL: p,
+				URL:   p.URL,
+				Title: p.Title,
 			})
 		}
 	}
@@ -594,12 +598,7 @@ func (s *Server) panelCachePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filename := fmt.Sprintf("cache:%x%s", sha256.Sum256(file), ext)
-	_, added := s.mediaCache.Set(filename, file)
-	if !added {
-		s.panelError(w, r, http.StatusBadRequest, errors.New("failed to add file to cache"))
-		return
-	}
-
+	s.mediaCache.Set(filename, file)
 	_, _ = w.Write([]byte(filename))
 }
 

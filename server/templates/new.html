@@ -29,6 +29,18 @@
   padding: 0.25rem;
   border: 0;
 }
+
+#photos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-gap: 0.5rem;
+}
+
+#photos-list img {
+  object-fit: cover;
+  width: 100%;
+  height: 10rem;
+}
 </style>
 
 <h2>New Post</h2>
@@ -56,7 +68,7 @@
 
   <fieldset id='photos'>
     <legend>Photos</legend>
-
+    <div id='photos-list'></div>
     <input type="file" id="photos-input" accept="image/*" style="display: none" />
     <button type='button' id='photos-add-button'>Upload Photo</button>
   </fieldset>

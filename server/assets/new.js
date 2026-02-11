@@ -2,6 +2,7 @@ const locationInput = document.querySelector("input[name='location']")
 const locationUpdateButton = document.getElementById('location-update-button')
 const photosInput = document.getElementById('photos-input')
 const photosAddButton = document.getElementById('photos-add-button')
+const photosList = document.getElementById('photos-list')
 const tagInput = document.getElementById('tag-input')
 
 function updateLocation() {
@@ -23,6 +24,46 @@ function updateLocation() {
       }
     },
   )
+}
+
+function reindexPhotos() {
+  const fieldsets = photosList.querySelectorAll('fieldset')
+  fieldsets.forEach((fieldset, index) => {
+    const urlInput = fieldset.querySelector('input[type="hidden"]')
+    const titleInput = fieldset.querySelector('input[type="text"]')
+    urlInput.name = `photos[${index}].url`
+    titleInput.name = `photos[${index}].title`
+  })
+}
+
+function createPhotoFieldset(file, url) {
+  const fieldset = document.createElement('fieldset')
+
+  const urlInput = document.createElement('input')
+  urlInput.type = 'hidden'
+  urlInput.value = url
+
+  const preview = document.createElement('img')
+  preview.src = window.URL.createObjectURL(file)
+
+  const titleInput = document.createElement('input')
+  titleInput.type = 'text'
+  titleInput.placeholder = 'Title'
+
+  const removeButton = document.createElement('button')
+  removeButton.type = 'button'
+  removeButton.textContent = 'Remove'
+  removeButton.addEventListener('click', () => {
+    fieldset.remove()
+    reindexPhotos()
+  })
+
+  fieldset.appendChild(preview)
+  fieldset.appendChild(urlInput)
+  fieldset.appendChild(titleInput)
+  fieldset.appendChild(removeButton)
+
+  return fieldset
 }
 
 photosAddButton.addEventListener('click', () => {
@@ -49,14 +90,12 @@ photosInput.addEventListener('change', async () => {
     return
   }
 
-  const value = await response.text()
+  const url = await response.text()
+  const fieldset = createPhotoFieldset(files[0], url)
+  photosList.appendChild(fieldset)
+  reindexPhotos()
 
-  const input = document.createElement('input')
-  input.name = 'photos'
-  input.type = 'text'
-  input.value = value
-
-  document.getElementById('photos').insertBefore(input, photosAddButton)
+  photosInput.value = ''
 })
 
 locationUpdateButton.addEventListener('click', updateLocation)

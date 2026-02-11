@@ -6,7 +6,6 @@
 
 ## Panel
 
-- [ ] Add way of adding Alt/Title to photo while creating post.
 - [ ] Syndicate: add extra field for "status" with character count: that way I can customize what goes in.
 
 ## IndieAuth
