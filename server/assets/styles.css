@@ -38,18 +38,15 @@ a {
 nav {
   display: flex;
   margin: 1rem 0 3rem;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  color: var(--accent);
+  font-weight: bold;
 }
 
 nav > a {
-  margin-right: 0.5rem;
   padding: 0.25rem;
-  display: block;
-  border: 1px solid var(--accent);
-  border-radius: 5px;
-  cursor: pointer;
   text-decoration: none;
-  color: var(--accent);
-  font-weight: bold;
 }
 
 nav > a:last-of-type {
