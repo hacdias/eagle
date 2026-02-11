@@ -258,7 +258,7 @@ func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
 			s.Default = false
 			return s
 		})
-	} else if !errors.Is(err, os.ErrNotExist) {
+	} else if err != nil && !errors.Is(err, os.ErrNotExist) && !errors.Is(err, core.ErrIgnoredEntry) {
 		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by filename: %w", err))
 		return
 	}
@@ -292,7 +292,7 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 
 	req.Content = string(normalizeLineEndings([]byte(req.Content)))
 
-	if oldEntry, err := s.core.GetEntryByFilename(filename); err == nil {
+	if oldEntry, err := s.core.GetEntryByFilename(filename); err == nil && oldEntry.IsPost() {
 		previousLinks, _ := s.core.GetEntryLinks(oldEntry, true)
 
 		e, err := s.core.GetEntryFromContent(oldEntry.ID, req.Content)
@@ -310,7 +310,7 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
-	} else if !errors.Is(err, os.ErrNotExist) {
+	} else if err != nil && !errors.Is(err, os.ErrNotExist) && !errors.Is(err, core.ErrIgnoredEntry) {
 		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by filename: %w", err))
 		return
 	}

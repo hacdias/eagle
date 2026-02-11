@@ -182,8 +182,8 @@ func (co *Core) NewBlankEntry(id string) *Entry {
 	return e
 }
 
-// errIgnoredEntry is a locally used error to indicate this an errIgnoredEntry.
-var errIgnoredEntry error = errors.New("ignored entry")
+// ErrIgnoredEntry indicates this is an ignored entry (e.g. not built).
+var ErrIgnoredEntry error = errors.New("ignored entry")
 
 func (co *Core) GetEntryByFilename(filename string) (*Entry, error) {
 	filename = strings.TrimPrefix(filename, "/")
@@ -245,7 +245,7 @@ func (co *Core) GetEntryFromContent(id string, content string) (*Entry, error) {
 	if v, ok := e.Other["build"]; ok {
 		if m, ok := v.(map[string]any); ok {
 			if m["render"] == "never" {
-				return nil, errIgnoredEntry
+				return nil, ErrIgnoredEntry
 			}
 		}
 	}
@@ -289,7 +289,7 @@ func (co *Core) GetEntries(includeList bool) (Entries, error) {
 
 		e, err := co.GetEntry(id)
 		if err != nil {
-			if errors.Is(err, errIgnoredEntry) {
+			if errors.Is(err, ErrIgnoredEntry) {
 				return nil
 			}
 			return err
