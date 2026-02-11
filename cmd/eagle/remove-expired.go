@@ -9,11 +9,11 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(cleanDeletedCmd)
+	rootCmd.AddCommand(removeExpiredCmd)
 }
 
-var cleanDeletedCmd = &cobra.Command{
-	Use: "clean-deleted",
+var removeExpiredCmd = &cobra.Command{
+	Use: "remove-expired",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		c, err := core.ParseConfig("")
 		if err != nil {
