@@ -57,6 +57,7 @@ type Photo struct {
 
 type SyndicationContext struct {
 	Thumbnail *Photo
+	Status    string
 	Photos    []*Photo
 }
 

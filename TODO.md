@@ -4,10 +4,6 @@
 - [ ] Command to check for consistency with AT Protocol
 - [ ] SQLite instead of Bolt
 
-## Panel
-
-- [ ] Syndicate: add extra field for "status" with character count: that way I can customize what goes in.
-
 ## IndieAuth
 
 - [ ] Implement OAuth 2.0 refresh tokens
@@ -26,7 +22,6 @@
     - [ ] Double check if all conforms
   - [ ] Validate records against schema on publishing
 - [ ] `app.bsky.feed.post` integration
-  - [ ] Support for custom status instead of title + link for long form
   - [ ] Validate records against schema on publishing
 - [ ] Integrations Eagle --> AT Protocol
   - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons

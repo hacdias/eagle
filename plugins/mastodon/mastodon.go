@@ -163,12 +163,16 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		}
 	}
 
-	statuses := e.Statuses(m.maximumCharacters, 1, len(e.Photos) > len(toot.MediaIDs))
-	if len(statuses) != 1 {
-		return fmt.Errorf("expected 1 status, got %d", len(statuses))
+	if sctx.Status != "" {
+		toot.Status = sctx.Status
+	} else {
+		statuses := e.Statuses(m.maximumCharacters, 1, len(e.Photos) > len(toot.MediaIDs))
+		if len(statuses) != 1 {
+			return fmt.Errorf("expected 1 status, got %d", len(statuses))
+		}
+		toot.Status = statuses[0]
 	}
 
-	toot.Status = statuses[0]
 	var status *mastodon.Status
 	if id != "" {
 		status, err = m.client.UpdateStatus(ctx, &toot, id)

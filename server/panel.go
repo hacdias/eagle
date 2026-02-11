@@ -267,10 +267,9 @@ func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
 }
 
 type editRequest struct {
-	Content     string   `form:"content"`
-	Syndicators []string `form:"syndicators"`
-	// TODO
-	// SyndicationStatus string   `form:"syndication-status"`
+	Content           string   `form:"content"`
+	Syndicators       []string `form:"syndicators"`
+	SyndicationStatus string   `form:"syndication-status"`
 }
 
 func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
@@ -303,8 +302,9 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		err = s.saveEntryWithHooks(e, postSaveEntryOptions{
-			syndicators:   req.Syndicators,
-			previousLinks: previousLinks,
+			syndicators:       req.Syndicators,
+			syndicationStatus: req.SyndicationStatus,
+			previousLinks:     previousLinks,
 		})
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
@@ -355,10 +355,8 @@ type newRequest struct {
 		URL   string `form:"url"`
 		Title string `form:"title"`
 	} `form:"photos"`
-	Syndicators []string `form:"syndicators"`
-
-	// TODO
-	// SyndicationStatus string   `form:"syndication-status"`
+	Syndicators       []string `form:"syndicators"`
+	SyndicationStatus string   `form:"syndication-status"`
 }
 
 func (s *Server) panelNewPost(w http.ResponseWriter, r *http.Request) {
@@ -431,7 +429,8 @@ func (s *Server) panelNewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.saveEntryWithHooks(e, postSaveEntryOptions{
-		syndicators: req.Syndicators,
+		syndicators:       req.Syndicators,
+		syndicationStatus: req.SyndicationStatus,
 	})
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)

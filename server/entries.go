@@ -67,7 +67,7 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 	return ctx, nil
 }
 
-func (s *Server) syndicate(e *core.Entry, syndicators []string) {
+func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) {
 	if !e.IsPost() {
 		return
 	}
@@ -78,6 +78,7 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string) {
 		s.log.Errorw("failed to get syndication context", "entry", e.ID, "err", err)
 		return
 	}
+	syndicationContext.Status = status
 
 	// Include syndicators that have already been used for this post
 	for name, syndicator := range s.syndicators {
@@ -151,16 +152,17 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 }
 
 type postSaveEntryOptions struct {
-	skipBuild     bool
-	syndicators   []string
-	previousLinks []string
+	skipBuild         bool
+	syndicators       []string
+	syndicationStatus string
+	previousLinks     []string
 }
 
 func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 	s.log.Infow("post save entry hooks", "id", e.ID)
 
 	// Syndications
-	s.syndicate(e, options.syndicators)
+	s.syndicate(e, options.syndicators, options.syndicationStatus)
 
 	// Post-save hooks
 	for name, plugin := range s.plugins {
