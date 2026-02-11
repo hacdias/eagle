@@ -20,11 +20,6 @@
 
 <h2>Upload File</h2>
 
-<form method='POST' enctype='multipart/form-data'>
-  <input required type='file' name='file' />
-  <button>Upload</button>
-</form>
-
 {{ with .MediaLocation }}
   <pre>{{ . }}</pre>
 {{ else with .MediaPhoto }}
@@ -36,5 +31,10 @@
   width: {{ .Width }}
   height: {{ .Height }}{{end }}</pre>
 {{ end }}
+
+<form method='POST' enctype='multipart/form-data'>
+  <input required type='file' name='file' />
+  <button>Upload</button>
+</form>
 
 {{ template "_footer.html" . }}

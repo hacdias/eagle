@@ -1,3 +1,21 @@
+:root {
+  --background: #fffcf2;
+  --input-background: white;
+  --text: #272727;
+  --accent: #000000;
+  --accent-text: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #212121;
+    --input-background: #000;
+    --text: #FDFCFA;
+    --accent: #fffcf2;
+    --accent-text: black;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -6,7 +24,8 @@ body {
   width: 95%;
   max-width: 45rem;
   margin: 0 auto;
-  background: #fffcf2;
+  background: var(--background);
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui,
     helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
   margin-bottom: 3rem;
@@ -23,6 +42,14 @@ nav {
 
 nav > a {
   margin-right: 0.5rem;
+  padding: 0.25rem;
+  display: block;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: bold;
 }
 
 nav > a:last-of-type {
@@ -31,14 +58,18 @@ nav > a:last-of-type {
 }
 
 nav > a[aria-current="page"] {
-  font-weight: bold;
+  background: var(--accent);
+  color: var(--accent-text);
 }
 
 pre {
   word-break: break-all;
   white-space: break-spaces;
-  background: rgba(0,0,0,0.05);
   padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid var(--accent);
+  color: var(--accent-text);
+  background: var(--accent);
 }
 
 input,
@@ -49,9 +80,10 @@ button {
   margin: 0.5rem 0;
   display: block;
   width: 100%;
-  border: 1px solid black;
-  border-radius: 0;
-  color: black;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  color: var(--text);
+  background: var(--background);
   outline: 0;
   min-width: 0;
 }
@@ -59,7 +91,7 @@ button {
 input,
 select,
 textarea {
-  background: white;
+  background: var(--input-background);
 }
 
 input:focus,
@@ -74,11 +106,17 @@ textarea {
 
 button {
   cursor: pointer;
-  background: darkgray;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: bold;
+  font-size: 0.9rem;
+  width: auto;
+  margin-left: auto;
 }
 
 button:hover {
-  background: gray;
+  outline-offset: 1px;
+  outline: 2px solid var(--accent);
 }
 
 fieldset,
@@ -87,7 +125,8 @@ fieldset,
 }
 
 fieldset {
-  border: 1px solid black;
+  border: 1px dotted var(--accent);
+  border-radius: 5px;
   padding: 0.5rem;
 }
 
@@ -96,9 +135,9 @@ fieldset fieldset {
 }
 
 legend {
-  background-color: #000;
-  color: #fff;
-  padding: 0.25rem;
+  color: var(--accent);
+  padding: 0 0.25rem;
+  font-weight: bold;
 }
 
 ol.options-list,
