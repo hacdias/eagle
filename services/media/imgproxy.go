@@ -1,4 +1,4 @@
-package imgproxy
+package media
 
 import (
 	"bytes"
@@ -11,6 +11,10 @@ import (
 
 	"github.com/spf13/afero"
 	"go.hacdias.com/eagle/core"
+)
+
+var (
+	_ Transformer = &ImgProxy{}
 )
 
 type ImgProxy struct {

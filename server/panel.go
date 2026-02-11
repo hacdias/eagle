@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -11,35 +12,111 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/samber/lo"
 	"github.com/samber/lo/mutable"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
 	"go.hacdias.com/indielib/micropub"
+	"go.hacdias.com/maze"
+
+	"github.com/go-playground/form/v4"
 )
 
 const (
 	panelPath         = "/panel"
-	panelMentionsPtah = panelPath + "/mentions"
-	panelTokensPath   = panelPath + "/tokens"
 	panelBrowsePath   = panelPath + "/browse"
 	panelEditPath     = panelPath + "/edit"
+	panelNewPath      = panelPath + "/new"
+	panelMentionsPtah = panelPath + "/mentions"
+	panelTokensPath   = panelPath + "/tokens"
+	panelCachePath    = panelPath + "/cache"
 )
+
+func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
+	data.Title = "Panel"
+	data.Actions = s.getActions()
+	data.Success = r.URL.Query().Get("success")
+	s.panelTemplate(w, r, http.StatusOK, panelTemplate, data)
+}
+
+func (s *Server) getSyndicators() []Syndicator {
+	syndicators := []Syndicator{}
+	for _, syndicator := range s.syndicators {
+		syndicators = append(syndicators, syndicator.Syndicator())
+	}
+
+	return syndicators
+}
 
 type panelPage struct {
 	Title         string
 	Actions       []string
-	Syndications  []micropub.Syndication
 	Success       string
-	Token         string
 	MediaLocation string
 	MediaPhoto    *core.Photo
 }
 
 func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {
 	s.servePanel(w, r, &panelPage{})
+}
+
+func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	if r.Form.Get("action") != "" {
+		s.panelPostAction(w, r)
+		return
+	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
+		s.panelPostUpload(w, r)
+		return
+	}
+
+	s.panelGet(w, r)
+}
+
+func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
+	actions := r.Form["action"]
+
+	var err error
+	for _, actionName := range actions {
+		if fn, ok := s.actions[actionName]; ok {
+			err = errors.Join(err, fn())
+		}
+	}
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	go s.build(false)
+	http.Redirect(w, r, r.URL.Path+"?success=action", http.StatusSeeOther)
+}
+
+func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
+	file, filename, ext, err := parseMediaRequest(w, r)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	mediaLocation, mediaPhoto, err := s.media.UploadMedia(filename, ext, bytes.NewReader(file))
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.servePanel(w, r, &panelPage{
+		MediaLocation: mediaLocation,
+		MediaPhoto:    mediaPhoto,
+	})
 }
 
 type browserPage struct {
@@ -116,12 +193,14 @@ func (s *Server) panelBrowserPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, panelBrowsePath+path.Clean(filename), http.StatusSeeOther)
 }
 
-type editorPage struct {
-	Title   string
-	Success bool
-	New     bool
-	Path    string
-	Content string
+type editPage struct {
+	Title       string
+	Success     bool
+	New         bool
+	Path        string
+	Content     string
+	IsEntry     bool
+	Syndicators []Syndicator
 }
 
 func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +209,7 @@ func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
 	info, err := s.core.Stat(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			s.panelTemplate(w, r, http.StatusOK, panelEditorTemplate, &editorPage{
+			s.panelTemplate(w, r, http.StatusOK, panelEditorTemplate, &editPage{
 				Title:   "Editor",
 				New:     true,
 				Path:    filename,
@@ -166,12 +245,32 @@ func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.panelTemplate(w, r, http.StatusOK, panelEditorTemplate, &editorPage{
+	pageData := &editPage{
 		Title:   "Editor",
 		Success: r.URL.Query().Get("success") == "true",
 		Path:    filename,
 		Content: data,
-	})
+	}
+
+	if e, err := s.core.GetEntryByFilename(filename); err == nil && e.IsPost() {
+		pageData.IsEntry = true
+		pageData.Syndicators = lo.Map(s.getSyndicators(), func(s Syndicator, _ int) Syndicator {
+			s.Default = false
+			return s
+		})
+	} else if !errors.Is(err, os.ErrNotExist) {
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by filename: %w", err))
+		return
+	}
+
+	s.panelTemplate(w, r, http.StatusOK, panelEditorTemplate, pageData)
+}
+
+type editRequest struct {
+	Content     string   `form:"content"`
+	Syndicators []string `form:"syndicators"`
+	// TODO
+	// SyndicationStatus string   `form:"syndication-status"`
 }
 
 func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
@@ -183,10 +282,40 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	content := []byte(r.FormValue("content"))
-	content = normalizeLineEndings(content)
+	var req editRequest
 
-	err = s.core.WriteFile(filename, content, "editor: update "+filename)
+	decoder := form.NewDecoder()
+	err = decoder.Decode(&req, r.Form)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	req.Content = string(normalizeLineEndings([]byte(req.Content)))
+
+	if oldEntry, err := s.core.GetEntryByFilename(filename); err == nil {
+		previousLinks, _ := s.core.GetEntryLinks(oldEntry, true)
+
+		e, err := s.core.GetEntryFromContent(oldEntry.ID, req.Content)
+		if err != nil {
+			s.panelError(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		err = s.saveEntryWithHooks(e, postSaveEntryOptions{
+			syndicators:   req.Syndicators,
+			previousLinks: previousLinks,
+		})
+		if err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by filename: %w", err))
+		return
+	}
+
+	err = s.core.WriteFile(filename, []byte(req.Content), "editor: update "+filename)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
@@ -195,133 +324,158 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, r.URL.Path+"?success=true", http.StatusSeeOther)
 }
 
-func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
+type newPage struct {
+	Title       string
+	Categories  []micropub.Channel
+	Syndicators []Syndicator
+}
+
+func (s *Server) panelNewGet(w http.ResponseWriter, r *http.Request) {
+	s.panelTemplate(w, r, http.StatusOK, panelNewTemplate, &newPage{
+		Title:       "New",
+		Syndicators: s.getSyndicators(),
+		Categories: []micropub.Channel{
+			// TODO: these could perhaps be defined in the config. Then, we could
+			// also set one as "long-form" and use that value in plugins/atproto
+			// for syndication instead of hardcoding.
+			{UID: "writings", Name: "Writings"},
+			{UID: "photos", Name: "Photos"},
+		},
+	})
+}
+
+type newRequest struct {
+	Title       string   `form:"title"`
+	Slug        string   `form:"slug"`
+	Content     string   `form:"content"`
+	Category    string   `form:"category"`
+	Tags        []string `form:"tags"`
+	Location    string   `form:"location"`
+	Photos      []string `form:"photos"`
+	Syndicators []string `form:"syndicators"`
+
+	// TODO
+	// SyndicationStatus string   `form:"syndication-status"`
+}
+
+func (s *Server) panelNewPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	if r.Form.Get("action") != "" {
-		s.panelPostAction(w, r)
-		return
-	} else if r.Form.Get("webmention") != "" {
-		s.panelPostWebmention(w, r)
-		return
-	} else if r.Form.Get("syndication") != "" {
-		s.panelPostSyndicate(w, r)
-		return
-	} else if err := r.ParseMultipartForm(20 << 20); err == nil {
-		s.panelPostUpload(w, r)
-		return
-	}
+	var req newRequest
 
-	s.panelGet(w, r)
-}
-
-func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
-	actions := r.Form["action"]
-
-	var err error
-	for _, actionName := range actions {
-		if fn, ok := s.actions[actionName]; ok {
-			err = errors.Join(err, fn())
-		}
-	}
-	if err != nil {
-		s.panelError(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	go s.build(false)
-	http.Redirect(w, r, r.URL.Path+"?success=action", http.StatusSeeOther)
-}
-
-func (s *Server) panelPostWebmention(w http.ResponseWriter, r *http.Request) {
-	permalink := r.Form.Get("webmention")
-
-	e, err := s.core.GetEntryByPermalink(permalink)
-	if err != nil {
-		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by permalink: %w", err))
-		return
-	}
-
-	err = s.core.SendWebmentions(e)
-	if err != nil {
-		s.panelError(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	http.Redirect(w, r, r.URL.Path+"?success=webmention", http.StatusSeeOther)
-}
-
-func (s *Server) panelPostSyndicate(w http.ResponseWriter, r *http.Request) {
-	permalink := r.Form.Get("syndication")
-	syndicators := r.Form["syndications"]
-
-	e, err := s.core.GetEntryByPermalink(permalink)
-	if err != nil {
-		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by permalink: %w", err))
-		return
-	}
-
-	s.Syndicate(e, syndicators)
-	http.Redirect(w, r, r.URL.Path+"?success=syndication", http.StatusSeeOther)
-}
-
-func (s *Server) panelPostUpload(w http.ResponseWriter, r *http.Request) {
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		s.panelError(w, r, http.StatusBadRequest, err)
-		return
-	}
-	defer func() {
-		_ = file.Close()
-	}()
-
-	raw, err := io.ReadAll(file)
+	decoder := form.NewDecoder()
+	err = decoder.Decode(&req, r.Form)
 	if err != nil {
 		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
-	ext := filepath.Ext(header.Filename)
-	if ext == "" {
-		// NOTE: I'm not using http.DetectContentType because it depends
-		// on OS specific mime type registries. Thus, it was being unreliable
-		// on different OSes.
-		contentType := header.Header.Get("Content-Type")
-		mime := mimetype.Lookup(contentType)
-		if mime.Is("application/octet-stream") {
-			mime = mimetype.Detect(raw)
+	if req.Title == "" || req.Slug == "" || req.Content == "" || req.Category == "" {
+		s.panelError(w, r, http.StatusBadRequest, errors.New("title, slug, content and category are required"))
+		return
+	}
+
+	id := core.NewPostID(req.Slug, time.Now())
+	var e *core.Entry
+
+	if strings.HasPrefix(req.Content, "---") {
+		e, err = s.core.GetEntryFromContent(id, req.Content)
+		if err != nil {
+			s.panelError(w, r, http.StatusBadRequest, err)
+			return
+		}
+	} else {
+		e = s.core.NewBlankEntry(id)
+		e.Content = req.Content
+	}
+
+	e.Title = req.Title
+	e.Categories = []string{req.Category}
+	e.Tags = req.Tags
+
+	if len(req.Photos) > 0 {
+		if len(e.Photos) != 0 {
+			s.panelError(w, r, http.StatusBadRequest, errors.New("cannot specify photos in form when entry already has photos in content"))
+			return
 		}
 
-		if mime == nil {
+		for _, p := range req.Photos {
+			e.Photos = append(e.Photos, core.Photo{
+				URL: p,
+			})
+		}
+	}
+
+	if req.Location != "" {
+		parsedLocation, err := maze.ParseLocation(req.Location)
+		if err != nil {
 			s.panelError(w, r, http.StatusBadRequest, err)
 			return
 		}
 
-		ext = mime.Extension()
+		e.Location = parsedLocation
 	}
 
-	mediaLocation, mediaPhoto, err := s.media.UploadMedia(strings.TrimSuffix(header.Filename, ext), ext, bytes.NewReader(raw))
+	err = s.updateEntryWithPhotos(e)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	s.servePanel(w, r, &panelPage{
-		MediaLocation: mediaLocation,
-		MediaPhoto:    mediaPhoto,
+	err = s.saveEntryWithHooks(e, postSaveEntryOptions{
+		syndicators: req.Syndicators,
 	})
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	http.Redirect(w, r, e.Permalink, http.StatusSeeOther)
 }
 
-func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
-	data.Title = "Panel"
-	data.Actions = s.getActions()
-	data.Syndications = s.getMicropubSyndications()
-	data.Success = r.URL.Query().Get("success")
-	s.panelTemplate(w, r, http.StatusOK, panelTemplate, data)
+func (s *Server) updateEntryWithPhotos(e *core.Entry) error {
+	// Define prefix for the photos that will be uploaded
+	parts := strings.Split(strings.TrimSuffix(e.ID, "/"), "/")
+	slug := parts[len(parts)-1]
+	prefix := fmt.Sprintf("%04d-%02d-%02d-%s", e.Date.Year(), e.Date.Month(), e.Date.Day(), slug)
+
+	for i := range e.Photos {
+		url := e.Photos[i].URL
+
+		if strings.HasPrefix(url, "cache:") {
+			data, ok := s.mediaCache.GetIfPresent(url)
+			if !ok {
+				return fmt.Errorf("photo %q not found in cache", url)
+			}
+
+			filename := prefix
+			if len(e.Photos) > 1 {
+				filename += fmt.Sprintf("-%02d", i+1)
+			}
+
+			ext := filepath.Ext(url)
+			location, photo, err := s.media.UploadMedia(filename, ext, bytes.NewBuffer(data))
+			if err != nil {
+				return fmt.Errorf("failed to upload photo: %w", err)
+			}
+
+			if photo != nil {
+				e.Photos[i].URL = photo.URL
+				e.Photos[i].Width = photo.Width
+				e.Photos[i].Height = photo.Height
+			} else {
+				e.Photos[i].URL = location
+			}
+
+			s.mediaCache.Invalidate(url)
+		}
+	}
+
+	return nil
 }
 
 type mentionsPage struct {
@@ -432,10 +586,70 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, data)
 }
 
+func (s *Server) panelCachePost(w http.ResponseWriter, r *http.Request) {
+	file, _, ext, err := parseMediaRequest(w, r)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	filename := fmt.Sprintf("cache:%x%s", sha256.Sum256(file), ext)
+	_, added := s.mediaCache.Set(filename, file)
+	if !added {
+		s.panelError(w, r, http.StatusBadRequest, errors.New("failed to add file to cache"))
+		return
+	}
+
+	_, _ = w.Write([]byte(filename))
+}
+
 func normalizeLineEndings(d []byte) []byte {
 	// replace CR LF \r\n (windows) with LF \n (unix)
 	d = bytes.ReplaceAll(d, []byte{13, 10}, []byte{10})
 	// replace CF \r (mac) with LF \n (unix)
 	d = bytes.ReplaceAll(d, []byte{13}, []byte{10})
 	return d
+}
+
+func parseMediaRequest(w http.ResponseWriter, r *http.Request) ([]byte, string, string, error) {
+	r.Body = http.MaxBytesReader(w, r.Body, 20<<20)
+
+	err := r.ParseMultipartForm(20 << 20)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		return nil, "", "", err
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	raw, err := io.ReadAll(file)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	ext := filepath.Ext(header.Filename)
+	filename := strings.TrimSuffix(header.Filename, filepath.Ext(header.Filename))
+	if ext == "" {
+		// NOTE: I'm not using http.DetectContentType because it depends
+		// on OS specific mime type registries. Thus, it was being unreliable
+		// on different OSes.
+		contentType := header.Header.Get("Content-Type")
+		mime := mimetype.Lookup(contentType)
+		if mime.Is("application/octet-stream") {
+			mime = mimetype.Detect(raw)
+		}
+
+		if mime == nil {
+			return nil, "", "", errors.New("cannot deduce mimetype")
+		}
+
+		ext = mime.Extension()
+	}
+
+	return raw, filename, ext, nil
 }

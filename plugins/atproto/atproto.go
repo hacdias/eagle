@@ -15,7 +15,6 @@ import (
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
-	"go.hacdias.com/indielib/micropub"
 	"go.uber.org/zap"
 )
 
@@ -84,10 +83,11 @@ func (at *ATProto) init(co *core.Core) error {
 	return at.initStandardPublication(ctx, xrpcc, co)
 }
 
-func (at *ATProto) Syndication() micropub.Syndication {
-	return micropub.Syndication{
-		UID:  "atproto",
-		Name: "ATProto",
+func (at *ATProto) Syndicator() server.Syndicator {
+	return server.Syndicator{
+		UID:     "atproto",
+		Name:    "ATProto",
+		Default: true,
 	}
 }
 

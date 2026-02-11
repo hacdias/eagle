@@ -82,6 +82,9 @@ func (s *Server) makeRouter() http.Handler {
 			r.Post(panelBrowsePath+"*", s.panelBrowserPost)
 			r.Get(panelEditPath+"*", s.panelEditGet)
 			r.Post(panelEditPath+"*", s.panelEditPost)
+			r.Get(panelNewPath, s.panelNewGet)
+			r.Post(panelNewPath, s.panelNewPost)
+			r.Post(panelCachePath, s.panelCachePost)
 		})
 	})
 
@@ -93,14 +96,6 @@ func (s *Server) makeRouter() http.Handler {
 		// IndieAuth Server (Part III)
 		r.Get(tokenPath, s.tokenGet) // Backwards compatible token verification endpoint
 		r.Get(userInfoPath, s.userInfoGet)
-
-		// Micropub
-		if s.c.Micropub != nil {
-			r.Handle(micropubPath, s.makeMicropub())
-			if s.media != nil {
-				r.Handle(micropubMediaPath, s.makeMicropubMedia())
-			}
-		}
 	})
 
 	// Do not server Hugo's 404.html as 200 OK.

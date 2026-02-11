@@ -112,3 +112,14 @@ func TestEntryStatus(t *testing.T) {
 		assert.Equal(t, tt.expected, statuses, "failed for title: %s", tt.title)
 	}
 }
+
+func TestEntryIsPost(t *testing.T) {
+	assert.True(t, (&Entry{
+		FrontMatter: FrontMatter{},
+		ID:          "/posts/2026/01/01/test-entry/",
+	}).IsPost())
+	assert.False(t, (&Entry{
+		FrontMatter: FrontMatter{},
+		ID:          "/about/",
+	}).IsPost())
+}

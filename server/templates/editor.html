@@ -11,6 +11,11 @@
 
 <form method='post'>
   <textarea name='content' style='min-height: 50vh'>{{ .Content }}</textarea>
+
+  {{ if .IsEntry }}
+    {{ template "_syndicators.html" .Syndicators }}
+  {{ end }}
+
   <button>Save</button>
 </form>
 

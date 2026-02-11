@@ -8,7 +8,6 @@ import (
 	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
-	"go.hacdias.com/indielib/micropub"
 )
 
 var (
@@ -38,8 +37,8 @@ func NewIndieNews(co *core.Core, configMap map[string]any) (server.Plugin, error
 	}, nil
 }
 
-func (m *IndieNews) Syndication() micropub.Syndication {
-	return micropub.Syndication{
+func (m *IndieNews) Syndicator() server.Syndicator {
+	return server.Syndicator{
 		UID:  "indienews",
 		Name: "IndieNews",
 	}

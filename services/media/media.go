@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
@@ -56,17 +57,33 @@ var widths = []Width{
 }
 
 type Media struct {
-	log         *zap.SugaredLogger
-	httpClient  *http.Client
-	Storage     Storage
+	log        *zap.SugaredLogger
+	httpClient *http.Client
+
+	storage     Storage
 	Transformer Transformer
 }
 
-func NewMedia(storage Storage, transformer Transformer) *Media {
+func NewMedia(conf *core.Media) *Media {
+	var (
+		storage     Storage
+		transformer Transformer
+	)
+
+	if conf.Storage.FileSystem != nil {
+		storage = NewFileSystem(conf.Storage.FileSystem)
+	} else if conf.Storage.Bunny != nil {
+		storage = NewBunny(conf.Storage.Bunny)
+	}
+
+	if conf.Transformer.ImgProxy != nil {
+		transformer = NewImgProxy(conf.Transformer.ImgProxy)
+	}
+
 	m := &Media{
 		log:         log.S().Named("media"),
 		httpClient:  &http.Client{Timeout: 2 * time.Minute},
-		Storage:     storage,
+		storage:     storage,
 		Transformer: transformer,
 	}
 
@@ -83,7 +100,7 @@ func (m *Media) UploadMedia(filename, ext string, reader io.Reader) (string, *co
 }
 
 func (m *Media) upload(filename, ext string, data []byte) (string, *core.Photo, error) {
-	if m.Storage == nil {
+	if m.storage == nil {
 		return "", nil, errors.New("media is not implemented")
 	}
 
@@ -101,7 +118,7 @@ func (m *Media) upload(filename, ext string, data []byte) (string, *core.Photo, 
 		ext = ".jpeg"
 	}
 
-	s, err := m.Storage.UploadMedia(filename+ext, bytes.NewBuffer(data))
+	s, err := m.storage.UploadMedia(filename+ext, bytes.NewBuffer(data))
 	return s, nil, err
 }
 
@@ -137,12 +154,12 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 			}
 		}
 
-		_, err = m.Storage.UploadMedia(filename+".jpeg", reader)
+		_, err = m.storage.UploadMedia(filename+".jpeg", reader)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		_, err := m.Storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
+		_, err := m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +171,7 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 					return nil, err
 				}
 
-				_, err = m.Storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
+				_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
 				if err != nil {
 					return nil, err
 				}
@@ -180,6 +197,47 @@ func (m *Media) GetImageURL(urlStr string, format Format, width Width) (string, 
 		return urlStr, nil
 	}
 
-	urlStr = fmt.Sprintf("%s/image/%d/%s.%s", m.Storage.BaseURL(), width, u.Opaque, format)
+	urlStr = fmt.Sprintf("%s/image/%d/%s.%s", m.storage.BaseURL(), width, u.Opaque, format)
 	return urlStr, nil
+}
+
+func (m *Media) GetImage(url string) ([]byte, string, error) {
+	photoUrl, err := m.GetImageURL(url, FormatJPEG, Width1800)
+	if err != nil {
+		return nil, "", err
+	}
+
+	res, err := http.Get(photoUrl)
+	if err != nil {
+		return nil, "", err
+	}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, "", err
+	}
+
+	err = res.Body.Close()
+	if err != nil {
+		return nil, "", err
+	}
+
+	if len(data) > 1000000 {
+		reader, err := m.Transformer.Transform(bytes.NewReader(data), "jpeg", 1800, 80, 1000000)
+		if err != nil {
+			return nil, "", err
+		}
+
+		data, err = io.ReadAll(reader)
+		if err != nil {
+			return nil, "", err
+		}
+	}
+
+	mime := mimetype.Detect(data)
+	if mime == nil {
+		return nil, "", fmt.Errorf("cannot detect mimetype of %s", url)
+	}
+
+	return data, mime.String(), nil
 }

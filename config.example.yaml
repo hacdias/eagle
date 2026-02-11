@@ -61,19 +61,27 @@ notifications:
     token: TelegramToken
     chatId: TelegramChat
 
-# Optional BunnyCDN (https://bunny.net) credentials used for the media upload.
-bunnycdn:
-  zone: someBunnyZone
-  key: someBunnySecret
-  base: someBunnyBase
+# Media configuration
+media:
+  storage:
+    # Filesystem integration for testing purposes.
+    filesystem:
+      directory: ./testing/storage
+      base: http://localhost:8045
 
-# Optional ImgProxy (https://imgproxy.net/) integration for image resizing.
-# Sizes are hardcoded for now.
-imgproxy:
-  # Temporary directory shared between Eagle and ImgProxy
-  directory:
-  # ImgProxy endpoint
-  endpoint:
+    # BunnyCDN (https://bunny.net) credentials for production.
+    bunnycdn:
+      zone: someBunnyZone
+      key: someBunnySecret
+      base: someBunnyBase
+
+  transformer:
+    # ImgProxy (https://imgproxy.net/) integration for image resizing.
+    imgproxy:
+      # Temporary directory shared between Eagle and ImgProxy
+      directory:
+      # ImgProxy endpoint
+      endpoint:
 
 # Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
 meilisearch:
@@ -91,7 +99,6 @@ plugins:
 
   # Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
   # Runs every day automatically, can be triggered through dashboard.
-  # TODO: remove?
   linkding:
     endpoint: myUrl
     key: myKey

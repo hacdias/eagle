@@ -3,13 +3,11 @@ package database
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/gob"
 	"errors"
 
 	"github.com/google/uuid"
 	bolt "go.etcd.io/bbolt"
-	bolterrors "go.etcd.io/bbolt/errors"
 	"go.hacdias.com/eagle/core"
 )
 
@@ -98,115 +96,5 @@ func (b *Database) DeleteMention(ctx context.Context, id string) error {
 		}
 
 		return b.Delete([]byte(id))
-	})
-}
-
-func (b *Database) AddTaxonomy(ctx context.Context, taxonomy string, taxons ...string) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("taxonomies"))
-		if err != nil {
-			return err
-		}
-
-		b, err = b.CreateBucketIfNotExists([]byte(taxonomy))
-		if err != nil {
-			return err
-		}
-
-		for _, taxon := range taxons {
-			v := b.Get([]byte(taxon))
-			if v == nil {
-				err = b.Put([]byte(taxon), binary.AppendVarint(nil, 1))
-			} else {
-				count, n := binary.Varint(v)
-				if n <= 0 {
-					return errors.New("could not read")
-				}
-
-				err = b.Put([]byte(taxon), binary.AppendVarint(nil, count+1))
-			}
-
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-}
-
-func (b *Database) GetTaxonomy(ctx context.Context, taxonomy string) ([]string, error) {
-	var taxons []string
-
-	return taxons, b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("taxonomies"))
-		if b == nil {
-			return nil
-		}
-
-		b = b.Bucket([]byte(taxonomy))
-		if b == nil {
-			return nil
-		}
-
-		c := b.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			count, n := binary.Varint(v)
-			if n <= 0 {
-				return errors.New("could not read")
-			}
-
-			if count > 0 {
-				taxons = append(taxons, string(k))
-			}
-		}
-		return nil
-	})
-}
-
-func (b *Database) DeleteTaxonomy(ctx context.Context, taxonomy string, taxons ...string) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("taxonomies"))
-		if err != nil {
-			return err
-		}
-
-		b, err = b.CreateBucketIfNotExists([]byte(taxonomy))
-		if err != nil {
-			return err
-		}
-
-		for _, taxon := range taxons {
-			v := b.Get([]byte(taxon))
-			if v != nil {
-				count, n := binary.Varint(v)
-				if n <= 0 {
-					return errors.New("could not read")
-				}
-
-				count = count - 1
-				if count <= 0 {
-					err = b.Delete([]byte(taxon))
-				} else {
-					err = b.Put([]byte(taxon), binary.AppendVarint(nil, count))
-				}
-
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		return nil
-	})
-}
-
-func (b *Database) ResetTaxonomies(ctx context.Context) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
-		err := tx.DeleteBucket([]byte("taxonomies"))
-		if errors.Is(err, bolterrors.ErrBucketNotFound) {
-			return nil
-		}
-		return err
 	})
 }

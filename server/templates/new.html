@@ -1,0 +1,77 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "new" }}
+
+<style>
+#tags {
+  padding: 0.25rem;
+  margin: 0.5rem 0;
+  width: 100%;
+  border: 1px solid black;
+  border-radius: 0;
+  color: black;
+  outline: 0;
+  min-width: 0;
+  background: white;
+  display: flex;
+}
+
+#tags span {
+  background-color: #000;
+  color: #fff;
+  padding: 0.25rem;
+  margin-right: 0.25rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#tags #tag-input {
+  margin: 0;
+  padding: 0.25rem;
+  border: 0;
+}
+</style>
+
+<h2>New Post</h2>
+
+<form method='post'>
+  <input name='title' placeholder='The Wise Words' required />
+  <input name='slug' placeholder='wise-words' required />
+  <textarea name='content' style='min-height: 50vh' placeholder='Once upon a time...' required></textarea>
+
+  <fieldset>
+    <legend>Tags</legend>
+    <div id='tags'>
+      <input type='text' placeholder='New tag...' id='tag-input' />
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Category</legend>
+    <ol class='options-list horizontal'>
+      {{ range .Categories }}
+        <li><label><input type='radio' name='category' value='{{ .UID }}' /> {{ .Name }}</label></li>
+      {{ end }}
+    </ol>
+  </fieldset>
+
+  <fieldset id='photos'>
+    <legend>Photos</legend>
+
+    <input type="file" id="photos-input" accept="image/*" style="display: none" />
+    <button type='button' id='photos-add-button'>Upload Photo</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Location</legend>
+    <input name='location' placeholder='Location' placeholder='geo:...' />
+    <button type='button' id='location-update-button'>Refresh</button>
+  </fieldset>
+
+  {{ template "_syndicators.html" .Syndicators }}
+
+  <button>Create</button>
+</form>
+
+<script type="module" src="/panel/assets/new.js"></script>
+
+{{ template "_footer.html" . }}

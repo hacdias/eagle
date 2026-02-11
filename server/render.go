@@ -23,6 +23,7 @@ const (
 	panelMentionsTemplate string = "mentions.html"
 	panelTokensTemplate   string = "tokens.html"
 	panelEditorTemplate   string = "editor.html"
+	panelNewTemplate      string = "new.html"
 	panelBrowserTemplate  string = "browser.html"
 )
 

@@ -5,67 +5,16 @@ import (
 	"context"
 	"fmt"
 	"image"
-	"io"
-	"net/http"
 	"sort"
 
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
-	"go.hacdias.com/eagle/services/media"
-	"go.hacdias.com/indielib/micropub"
 )
-
-func (s *Server) getPhoto(url string) (*Photo, error) {
-	photoUrl, err := s.media.GetImageURL(url, media.FormatJPEG, media.Width1800)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := http.Get(photoUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	err = res.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) > 1000000 {
-		if s.media != nil && s.media.Transformer != nil {
-			reader, err := s.media.Transformer.Transform(bytes.NewReader(data), "jpeg", 1800, 80, 1000000)
-			if err != nil {
-				return nil, err
-			}
-
-			data, err = io.ReadAll(reader)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	mime := mimetype.Detect(data)
-	if mime == nil {
-		return nil, fmt.Errorf("cannot detect mimetype of %s", url)
-	}
-
-	return &Photo{
-		Data:     data,
-		MimeType: mime.String(),
-	}, nil
-}
 
 func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext, error) {
 	ctx := &SyndicationContext{}
@@ -74,13 +23,18 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 
 	// Get the first 4 photos from the entry
 	for _, p := range e.Photos {
-		photo, err := s.getPhoto(p.URL)
+		data, mimetype, err := s.media.GetImage(p.URL)
 		if err != nil {
 			return nil, err
 		}
-		photo.Title = p.Title
-		photo.Width = p.Width
-		photo.Height = p.Height
+
+		photo := &Photo{
+			Data:     data,
+			MimeType: mimetype,
+			Title:    p.Title,
+			Width:    p.Width,
+			Height:   p.Height,
+		}
 
 		if p.URL == thumbnailStr {
 			ctx.Thumbnail = photo
@@ -91,9 +45,14 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 
 	if ctx.Thumbnail == nil && thumbnailStr != "" {
 		var err error
-		ctx.Thumbnail, err = s.getPhoto(thumbnailStr)
+		data, mimetype, err := s.media.GetImage(thumbnailStr)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get thumbnail: %w", err)
+		}
+
+		ctx.Thumbnail = &Photo{
+			Data:     data,
+			MimeType: mimetype,
 		}
 
 		config, _, err := image.DecodeConfig(bytes.NewReader(ctx.Thumbnail.Data))
@@ -108,7 +67,11 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 	return ctx, nil
 }
 
-func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
+func (s *Server) syndicate(e *core.Entry, syndicators []string) {
+	if !e.IsPost() {
+		return
+	}
+
 	// Get the syndication context
 	syndicationContext, err := s.getEntrySyndicationContext(e)
 	if err != nil {
@@ -149,7 +112,7 @@ func (s *Server) Syndicate(e *core.Entry, syndicators []string) {
 	s.log.Infow("syndicated entry", "id", e.ID)
 }
 
-func (s *Server) saveEntryWithHooks(e *core.Entry, req *micropub.Request, oldTargets []string) error {
+func (s *Server) saveEntryWithHooks(e *core.Entry, options postSaveEntryOptions) error {
 	err := s.preSaveEntry(e)
 	if err != nil {
 		return err
@@ -165,7 +128,7 @@ func (s *Server) saveEntryWithHooks(e *core.Entry, req *micropub.Request, oldTar
 		return err
 	}
 
-	go s.postSaveEntry(e, req, oldTargets, false)
+	go s.postSaveEntry(e, options)
 	return nil
 }
 
@@ -187,15 +150,17 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 	return nil
 }
 
-func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, previousLinks []string, skipBuild bool) {
+type postSaveEntryOptions struct {
+	skipBuild     bool
+	syndicators   []string
+	previousLinks []string
+}
+
+func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 	s.log.Infow("post save entry hooks", "id", e.ID)
 
 	// Syndications
-	var syndicateTo []string
-	if req != nil {
-		syndicateTo, _ = getRequestSyndicateTo(req)
-	}
-	s.Syndicate(e, syndicateTo)
+	s.syndicate(e, options.syndicators)
 
 	// Post-save hooks
 	for name, plugin := range s.plugins {
@@ -224,16 +189,11 @@ func (s *Server) postSaveEntry(e *core.Entry, req *micropub.Request, previousLin
 	}
 
 	// Rebuild
-	if !skipBuild && !e.Deleted() && !e.Draft {
+	if !options.skipBuild && !e.Deleted() && !e.Draft {
 		s.build(false)
 	}
 
-	// No further action for drafts or no webmentions
-	if e.Draft || e.NoWebmentions {
-		return
-	}
-
-	err := s.core.SendWebmentions(e, previousLinks...)
+	err := s.core.SendWebmentions(e, options.previousLinks...)
 	if err != nil {
 		s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
 	}

@@ -13,7 +13,6 @@ import (
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
-	"go.hacdias.com/indielib/micropub"
 	"go.uber.org/zap"
 )
 
@@ -70,8 +69,8 @@ func NewMastodon(co *core.Core, configMap map[string]any) (server.Plugin, error)
 	}, nil
 }
 
-func (m *Mastodon) Syndication() micropub.Syndication {
-	return micropub.Syndication{
+func (m *Mastodon) Syndicator() server.Syndicator {
+	return server.Syndicator{
 		UID:  "mastodon",
 		Name: "Mastodon",
 	}

@@ -8,32 +8,11 @@ import (
 	"time"
 
 	"github.com/maypok86/otter/v2"
-	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
-	"go.hacdias.com/eagle/services/bunny"
 	"go.hacdias.com/eagle/services/database"
-	"go.hacdias.com/eagle/services/imgproxy"
-	"go.hacdias.com/eagle/services/media"
 	"go.hacdias.com/eagle/services/meilisearch"
 	"go.hacdias.com/eagle/services/telegram"
 )
-
-func initMedia(c *core.Config) *media.Media {
-	var (
-		storage     media.Storage
-		transformer media.Transformer
-	)
-	if c.BunnyCDN != nil {
-		storage = bunny.NewBunny(c.BunnyCDN)
-	}
-	if c.ImgProxy != nil {
-		transformer = imgproxy.NewImgProxy(c.ImgProxy)
-	}
-	if storage != nil {
-		return media.NewMedia(storage, transformer)
-	}
-	return nil
-}
 
 func (s *Server) initMediaCache() error {
 	cache, err := otter.New(&otter.Options[string, []byte]{
@@ -116,7 +95,7 @@ func (s *Server) initSyndicators() error {
 			continue
 		}
 
-		config := syndicationPlugin.Syndication()
+		config := syndicationPlugin.Syndicator()
 		s.syndicators[config.UID] = syndicationPlugin
 	}
 	return nil

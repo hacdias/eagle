@@ -1,33 +1,39 @@
 # Eagle
 
-- [ ] Monitor external links for 404s, and replace with Web Archive when possible
-- [ ] Command to check if site.standard.document is consistent with the current website.
+- [ ] Monitor external links for 404s, and replace with Web Archive'd when possible. Perhaps via slow running cron job with queue
+- [ ] Command to check for consistency with AT Protocol
+- [ ] SQLite instead of Bolt
 
 ## Panel
 
-- [ ] Syndicate: add extra field for "status" iwht character count: that way I can customize what goes in.
+- [ ] Add way of adding Alt/Title to photo while creating post.
+- [ ] Syndicate: add extra field for "status" with character count: that way I can customize what goes in.
 
 ## IndieAuth
 
 - [ ] Implement OAuth 2.0 refresh tokens
   - [ ] https://indieauth.spec.indieweb.org/#refresh-tokens
   - [ ] Do not forget to add to `grant_types_supported`
-- [ ] Way of revoking existing token (store in Bolt)
+- [ ] Keep all sessions on database, remove expired on cron job, allow for revoking session
 
 ## ATProto
 
-- [ ] Reuse authentication
-- [ ] `site.standard.document`
-  - [ ] Define `content` based on https://leaflet.pub's lexicons (can use Goldmark as parser with custom renderer)
-- [ ] `site.standard.publication`
-  - [ ] Upsert asynchronously
-  - [ ] Add custom theme
-  - [ ] Add custom icon
-- [ ] Keep an eye on:
-  - [ ] https://popfeed.social's lexicons for watches (movies, series), readings, perhaps music
-  - [ ] https://bookhive.buzz/
-  - [ ] https://teal.fm/, https://rocksky.app/
-  - [ ] https://recipe.exchange/lexicons/
-  - [ ] https://dropanchor.app's lexicons for Swarm-like check-ins
-  - [ ] Listen on events (possible) and automatically update website?
-- [ ] See way to enable auto POSSE'ing without manually triggering it every time
+- [ ] `site.standard` integration (https://standard.site/)
+  - [ ] `site.standard.publication`
+    - [ ] Upsert asynchronously
+    - [ ] Support for custom theme
+    - [ ] Support for custom icon
+  - [ ] `site.standard.document`
+    - [ ] Double check if all conforms
+  - [ ] Validate records against schema on publishing
+- [ ] `app.bsky.feed.post` integration
+  - [ ] Support for custom status instead of title + link for long form
+  - [ ] Validate records against schema on publishing
+- [ ] Integrations Eagle --> AT Protocol
+  - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons
+  - [ ] Readings with Popfeed.social or Bookhive.buzz
+    - NOTE: Popfeed allows tracking a lot more of Readings that maybe would give better UX for me. Potentially make this an inverse integration.
+- [ ] Integration AT Protocol --> Eagle via jetstream listening:
+  - [ ] Watches: movies, tv shows, (live performances)
+  - [ ] Bookmarks
+  - [ ] Readings: see note above

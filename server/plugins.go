@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"go.hacdias.com/eagle/core"
-	"go.hacdias.com/indielib/micropub"
 )
 
 type PluginInitializer func(co *core.Core, config map[string]any) (Plugin, error)
@@ -61,8 +60,14 @@ type SyndicationContext struct {
 	Photos    []*Photo
 }
 
+type Syndicator struct {
+	UID     string
+	Name    string
+	Default bool
+}
+
 type SyndicationPlugin interface {
-	Syndication() micropub.Syndication
+	Syndicator() Syndicator
 	IsSyndicated(*core.Entry) bool
 	Syndicate(context.Context, *core.Entry, *SyndicationContext) error
 }

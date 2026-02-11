@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
-	"go.hacdias.com/indielib/micropub"
 )
 
 type Config struct {
@@ -65,11 +64,9 @@ type ServerConfig struct {
 	Login         Login
 	Comments      Comments
 	Webmentions   Webmentions
-	Micropub      *Micropub
 	Notifications Notifications
-	BunnyCDN      *BunnyCDN
+	Media         Media
 	Meilisearch   *Meilisearch
-	ImgProxy      *ImgProxy
 	Plugins       map[string]map[string]any
 }
 
@@ -133,6 +130,11 @@ func (c *ServerConfig) validate() error {
 		return err
 	}
 
+	err = c.Media.validate()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -167,11 +169,6 @@ type Webmentions struct {
 	Secret string
 }
 
-type Micropub struct {
-	Properties []string
-	PostTypes  []micropub.PostType
-}
-
 type Telegram struct {
 	Token  string
 	ChatID int64
@@ -181,20 +178,48 @@ type Notifications struct {
 	Telegram *Telegram
 }
 
-type BunnyCDN struct {
+type FileSystem struct {
+	Base      string
+	Directory string
+}
+
+type Bunny struct {
 	Zone string
 	Key  string
 	Base string
 }
 
-type Meilisearch struct {
-	Endpoint string
-	Key      string
-}
-
 type ImgProxy struct {
 	Directory string
 	Endpoint  string
+}
+
+type Media struct {
+	Storage struct {
+		Bunny      *Bunny
+		FileSystem *FileSystem
+	}
+
+	Transformer struct {
+		ImgProxy *ImgProxy
+	}
+}
+
+func (m *Media) validate() error {
+	if m.Storage.Bunny != nil && m.Storage.FileSystem != nil {
+		return errors.New("config: Media.Storage can only have one of BunnyCDN or FileSystem")
+	}
+
+	if m.Transformer.ImgProxy == nil {
+		return errors.New("config: Media.Transformer.ImgProxy is required")
+	}
+
+	return nil
+}
+
+type Meilisearch struct {
+	Endpoint string
+	Key      string
 }
 
 type SiteConfig struct {

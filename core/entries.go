@@ -6,7 +6,6 @@ import (
 	"fmt"
 	urlpkg "net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -40,20 +39,19 @@ type Photo struct {
 }
 
 type FrontMatter struct {
-	Title         string         `yaml:"title,omitempty"`
-	Description   string         `yaml:"description,omitempty"`
-	Draft         bool           `yaml:"draft,omitempty"`
-	Date          time.Time      `yaml:"date,omitempty"`
-	Lastmod       time.Time      `yaml:"lastmod,omitempty"`
-	ExpiryDate    time.Time      `yaml:"expiryDate,omitempty"`
-	NoIndex       bool           `yaml:"noIndex,omitempty"`
-	NoWebmentions bool           `yaml:"noWebmentions,omitempty"`
-	Photos        []Photo        `yaml:"photos,omitempty"`
-	Location      *maze.Location `yaml:"location,omitempty"`
-	Categories    []string       `yaml:"categories,omitempty"`
-	Tags          []string       `yaml:"tags,omitempty"`
-	Syndications  []string       `yaml:"syndication,omitempty"`
-	Other         map[string]any `yaml:",inline"`
+	Title        string         `yaml:"title,omitempty"`
+	Description  string         `yaml:"description,omitempty"`
+	Draft        bool           `yaml:"draft,omitempty"`
+	Date         time.Time      `yaml:"date,omitempty"`
+	LastMod      time.Time      `yaml:"lastmod,omitempty"`
+	ExpiryDate   time.Time      `yaml:"expiryDate,omitempty"`
+	NoIndex      bool           `yaml:"noIndex,omitempty"`
+	Photos       []Photo        `yaml:"photos,omitempty"`
+	Location     *maze.Location `yaml:"location,omitempty"`
+	Categories   []string       `yaml:"categories,omitempty"`
+	Tags         []string       `yaml:"tags,omitempty"`
+	Syndications []string       `yaml:"syndication,omitempty"`
+	Other        map[string]any `yaml:",inline"`
 }
 
 type Entry struct {
@@ -154,6 +152,10 @@ func (e *Entry) Statuses(maximumCharacters, maximumPosts int, forcePermalink boo
 	return statuses
 }
 
+func (e *Entry) IsPost() bool {
+	return strings.HasPrefix(e.ID, "/"+PostsSection+"/")
+}
+
 type Entries []*Entry
 
 func NewPostID(slug string, t time.Time) string {
@@ -209,13 +211,7 @@ func (co *Core) GetEntryByPermalink(permalink string) (*Entry, error) {
 	id := cleanID(url.Path)
 	parts := splitID(id)
 
-	if len(parts) == 1 {
-		if e, err := co.GetEntry(path.Join(CategoriesTaxonomy, parts[0])); err == nil {
-			return e, nil
-		} else if !errors.Is(err, os.ErrNotExist) {
-			return nil, err
-		}
-	} else if len(parts) >= 4 {
+	if len(parts) >= 4 {
 		if e, err := co.GetEntry(PostsSection + id); err == nil {
 			return e, nil
 		} else if !errors.Is(err, os.ErrNotExist) {
@@ -223,7 +219,19 @@ func (co *Core) GetEntryByPermalink(permalink string) (*Entry, error) {
 		}
 	}
 
-	return co.GetEntry(id)
+	if e, err := co.GetEntry(id); err == nil {
+		return e, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+
+	if e, err := co.GetEntry(CategoriesTaxonomy + id); err == nil {
+		return e, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+
+	return nil, os.ErrNotExist
 }
 
 func (co *Core) GetEntryFromContent(id string, content string) (*Entry, error) {

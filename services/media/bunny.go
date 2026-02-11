@@ -1,4 +1,4 @@
-package bunny
+package media
 
 import (
 	"errors"
@@ -10,12 +10,16 @@ import (
 	"go.hacdias.com/eagle/core"
 )
 
+var (
+	_ Storage = &Bunny{}
+)
+
 type Bunny struct {
 	httpClient *http.Client
-	conf       *core.BunnyCDN
+	conf       *core.Bunny
 }
 
-func NewBunny(conf *core.BunnyCDN) *Bunny {
+func NewBunny(conf *core.Bunny) *Bunny {
 	return &Bunny{
 		conf: conf,
 		httpClient: &http.Client{

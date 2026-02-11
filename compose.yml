@@ -1,11 +1,19 @@
 services:
+  caddy:
+    container_name: caddy
+    image: caddy
+    ports:
+      - "8045:8045"
+    volumes:
+      - ./testing/storage:/www
+    command: "caddy file-server --browse --root /www --listen :8045"
   meilisearch:
-      container_name: meilisearch
-      image: getmeili/meilisearch:v1.35
-      ports:
-        - "7700:7700"
-      environment:
-        - MEILI_ENV=development
+    container_name: meilisearch
+    image: getmeili/meilisearch:v1.35
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_ENV=development
   imgproxy:
     container_name: imgproxy
     image: darthsim/imgproxy:v3

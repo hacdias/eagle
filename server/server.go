@@ -96,7 +96,7 @@ func NewServer(c *core.Config) (*Server, error) {
 
 		servers: map[string]*http.Server{},
 		core:    co,
-		media:   initMedia(c),
+		media:   media.NewMedia(&c.Media),
 	}
 
 	co.BuildHook = s.buildHook
@@ -226,7 +226,7 @@ func (s *Server) loadGone() error {
 }
 
 func (s *Server) indexAll() {
-	if s.meilisearch == nil && s.c.Micropub == nil {
+	if s.meilisearch == nil {
 		return
 	}
 
@@ -248,33 +248,6 @@ func (s *Server) indexAll() {
 			s.log.Errorw("failed to add to meilisearch index", "err", err)
 		}
 		s.log.Infof("meilisearch update took %dms", time.Since(start).Milliseconds())
-	}
-
-	if s.c.Micropub != nil {
-		err := s.bolt.ResetTaxonomies(context.Background())
-		if err != nil {
-			s.log.Errorw("failed to reset taxonomies", "err", err)
-		}
-
-		start := time.Now()
-
-		tags := []string{}
-		categories := []string{}
-
-		for _, e := range entries {
-			tags = append(tags, e.Tags...)
-			categories = append(categories, e.Categories...)
-		}
-
-		err = errors.Join(
-			s.bolt.AddTaxonomy(context.Background(), core.TagsTaxonomy, tags...),
-			s.bolt.AddTaxonomy(context.Background(), core.CategoriesTaxonomy, categories...),
-		)
-		if err != nil {
-			s.log.Errorw("failed to index all taxonomies", "err", err)
-		}
-
-		s.log.Infof("bolt taxonomies update took %dms", time.Since(start).Milliseconds())
 	}
 }
 
@@ -374,7 +347,10 @@ func (s *Server) syncStorage() {
 	s.build(cleanBuild)
 
 	for _, e := range entriesToProcess {
-		s.postSaveEntry(e, nil, previousLinks[e.Permalink], true)
+		s.postSaveEntry(e, postSaveEntryOptions{
+			skipBuild:     true,
+			previousLinks: previousLinks[e.Permalink],
+		})
 		time.Sleep(time.Second)
 	}
 }

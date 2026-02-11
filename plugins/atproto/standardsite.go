@@ -80,7 +80,7 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		record["description"] = summary
 	}
 
-	if !e.Lastmod.IsZero() {
+	if !e.LastMod.IsZero() {
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
