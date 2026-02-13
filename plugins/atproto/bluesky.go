@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
@@ -175,14 +176,17 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 
 	posts := []*blueskyPost{}
 	for i := 0; i < postsNeeded; i++ {
-
 		text := ""
 		if i < len(statuses) {
 			text = statuses[i]
 		}
 
+		// NOTE: weird issues with posts having the same createdAt
+		// https://github.com/bluesky-social/atproto/issues/3027
+		createdAt := e.Date.Add(time.Duration(i) * time.Second).Format(syntax.AtprotoDatetimeLayout)
+
 		post := &bsky.FeedPost{
-			CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
+			CreatedAt: createdAt,
 			Text:      text,
 			Embed:     &bsky.FeedPost_Embed{},
 			Tags:      e.Tags,
