@@ -96,29 +96,29 @@ func (g *git) Sync() ([]ModifiedFile, error) {
 
 		err := g.commit(message)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to commit staged: %w", err)
 		}
 		g.messages = nil
 	}
 
 	oldCommit, err := g.currentCommit()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get current commit: %w", err)
 	}
 
 	err = g.pull()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to pull: %w", err)
 	}
 
 	err = g.push()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to push: %w", err)
 	}
 
 	changedFiles, err := g.changedFiles(oldCommit)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get changed files: %w", err)
 	}
 
 	return changedFiles, nil
