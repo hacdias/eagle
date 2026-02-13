@@ -376,6 +376,10 @@ func (s *Server) entriesFromModifiedFiles(modifiedFiles []core.ModifiedFile) []*
 			continue
 		}
 
+		if modifiedFile.Content == "" {
+			continue
+		}
+
 		id := filepath.Join(parts[1 : len(parts)-1]...)
 
 		e, err := s.core.GetEntryFromContent(id, modifiedFile.Content)

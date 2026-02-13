@@ -160,6 +160,10 @@ func (g *git) fileContent(filename, commit string) (string, error) {
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		if bytes.Contains(out, []byte("exists on disk, but not in")) {
+			return "", nil
+		}
+
 		return "", fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 
