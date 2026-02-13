@@ -314,7 +314,7 @@ func (s *Server) syncStorage() {
 		}
 	}
 
-	previousEntries := s.entriesFromModifiedFiles(changedFiles)
+	previousEntries, newIds := s.entriesFromModifiedFiles(changedFiles)
 	previousLinks := map[string][]string{}
 	entriesToProcess := []*core.Entry{}
 	cleanBuild := false
@@ -343,6 +343,16 @@ func (s *Server) syncStorage() {
 		}
 	}
 
+	// Detect new entries
+	for _, newId := range newIds {
+		e, err := s.core.GetEntry(newId)
+		if err != nil {
+			s.log.Errorw("failed to open new entry", "id", newId, "err", err)
+			continue
+		}
+		entriesToProcess = append(entriesToProcess, e)
+	}
+
 	s.log.Infow("detected entries to handle", "n", len(entriesToProcess))
 	s.build(cleanBuild)
 
@@ -355,8 +365,9 @@ func (s *Server) syncStorage() {
 	}
 }
 
-func (s *Server) entriesFromModifiedFiles(modifiedFiles []core.ModifiedFile) []*core.Entry {
+func (s *Server) entriesFromModifiedFiles(modifiedFiles []core.ModifiedFile) ([]*core.Entry, []string) {
 	var ee []*core.Entry
+	var newEntries []string
 
 	for _, modifiedFile := range modifiedFiles {
 		parts := strings.FieldsFunc(modifiedFile.Filename, func(r rune) bool {
@@ -376,11 +387,12 @@ func (s *Server) entriesFromModifiedFiles(modifiedFiles []core.ModifiedFile) []*
 			continue
 		}
 
+		id := filepath.Join(parts[1 : len(parts)-1]...)
+
 		if modifiedFile.Content == "" {
+			newEntries = append(newEntries, id)
 			continue
 		}
-
-		id := filepath.Join(parts[1 : len(parts)-1]...)
 
 		e, err := s.core.GetEntryFromContent(id, modifiedFile.Content)
 		if err != nil {
@@ -391,7 +403,7 @@ func (s *Server) entriesFromModifiedFiles(modifiedFiles []core.ModifiedFile) []*
 		ee = append(ee, e)
 	}
 
-	return ee
+	return ee, newEntries
 }
 
 func (s *Server) build(clean bool) {
