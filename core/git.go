@@ -149,7 +149,7 @@ func (g *git) currentCommit() (string, error) {
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 
 	return strings.TrimSpace(string(out)), nil
@@ -160,7 +160,7 @@ func (g *git) fileContent(filename, commit string) (string, error) {
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 
 	return strings.TrimSpace(string(out)), nil
@@ -171,7 +171,7 @@ func (g *git) changedFiles(since string) ([]ModifiedFile, error) {
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 
 	rawFiles := strings.Split(string(out), "\n")
