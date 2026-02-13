@@ -207,7 +207,11 @@ type Media struct {
 
 func (m *Media) validate() error {
 	if m.Storage.Bunny != nil && m.Storage.FileSystem != nil {
-		return errors.New("config: Media.Storage can only have one of BunnyCDN or FileSystem")
+		return errors.New("config: Media.Storage can only have one of Bunny or FileSystem")
+	}
+
+	if m.Storage.Bunny == nil && m.Storage.FileSystem == nil {
+		return errors.New("config: Media.Storage must have one of Bunny or FileSystem")
 	}
 
 	if m.Transformer.ImgProxy == nil {

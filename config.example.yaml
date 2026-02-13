@@ -70,7 +70,7 @@ media:
       base: http://localhost:8045
 
     # BunnyCDN (https://bunny.net) credentials for production.
-    bunnycdn:
+    bunny:
       zone: someBunnyZone
       key: someBunnySecret
       base: someBunnyBase
