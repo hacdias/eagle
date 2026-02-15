@@ -41,19 +41,6 @@ webmentions:
   # Webmention.io (https://webmention.io) secret for incoming webmentions.
   secret: MySecret
 
-# Optional Micropub configuration. Disabled otherwise.
-micropub:
-  # Allowed Micropub properties. An incoming request will be refused if unknown
-  # properties are included. The following properties are always allowed: published,
-  # updated, content, name, summary, post-status, category.
-  properties:
-    - syndication
-    - bookmark-of
-  # Supported post types. All supported if not set.
-  postTypes:
-    - type: bookmark
-      name: Bookmark
-
 # Notifications configuration.
 notifications:
   # Telegram (https://core.telegram.org) credentials for notifications.

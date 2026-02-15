@@ -61,14 +61,12 @@ Eagle assumes a very important `posts` section. This section contains all of you
 
 The post on `/posts/2023/02/10/my-post/index.md` with `2023-02-10` in the `date` frontmatter field is assumed to be published at `/2023/02/10/my-post/`.
 
-Micropub posts are created following this assumption.
-
 ### Hugo Taxonomies
 
 Eagle assumes the existence of two taxonomies:
 
-- `tags` which are used for search indexing, and used as categories in Micropub. Pages are published at `/tags/{tag}/`.
-- `categories`, which are used as channels in Micropub. Pages are published at `/{category}/`.
+- `tags` which are used for search indexing. Pages are published at `/tags/{tag}/`.
+- `categories`, which are post categories. Pages are published at `/{category}/`.
 
 ### Templates
 
