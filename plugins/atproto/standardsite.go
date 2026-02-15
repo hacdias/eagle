@@ -13,8 +13,8 @@ import (
 	"go.hacdias.com/eagle/server"
 )
 
-func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Client, co *core.Core) error {
-	at.log.Infow("repository information found", "did", xrpcc.Auth.Did)
+func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Client, co *core.Core) error {
+	at.log.Infow("repository information found", "did", client.Auth.Did)
 
 	record := map[string]any{
 		"$type": "site.standard.publication",
@@ -29,7 +29,7 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 		record["description"] = co.SiteConfig().Params.Site.Description
 	}
 
-	uri, err := putRecord(ctx, xrpcc, "site.standard.publication", at.publicationRecordKey, record)
+	uri, err := putRecord(ctx, client, "site.standard.publication", at.publicationRecordKey, record)
 	if err != nil {
 		return err
 	}

@@ -75,12 +75,12 @@ func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 func (at *ATProto) init(co *core.Core) error {
 	ctx := context.Background()
 
-	xrpcc, err := at.getClient(ctx)
+	client, err := at.getClient(ctx)
 	if err != nil {
 		return err
 	}
 
-	return at.initStandardPublication(ctx, xrpcc, co)
+	return at.initStandardPublication(ctx, client, co)
 }
 
 func (at *ATProto) Syndicator() server.Syndicator {
@@ -150,9 +150,9 @@ func (at *ATProto) IsSyndicated(e *core.Entry) bool {
 	return len(feedPostsURIs) > 0 || documentURI != nil
 }
 
-func (at *ATProto) deleteBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, uris []syntax.ATURI) error {
+func (at *ATProto) deleteBlueskyPosts(ctx context.Context, client *xrpc.Client, uris []syntax.ATURI) error {
 	for _, uri := range uris {
-		err := at.deleteBlueskyPost(ctx, xrpcc, uri.RecordKey().String())
+		err := at.deleteBlueskyPost(ctx, client, uri.RecordKey().String())
 		if err != nil {
 			return err
 		}
@@ -161,11 +161,11 @@ func (at *ATProto) deleteBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, u
 	return nil
 }
 
-func (at *ATProto) getBlueskyPosts(ctx context.Context, xrpcc *xrpc.Client, uris []syntax.ATURI) ([]*blueskyPost, error) {
+func (at *ATProto) getBlueskyPosts(ctx context.Context, client *xrpc.Client, uris []syntax.ATURI) ([]*blueskyPost, error) {
 	posts := []*blueskyPost{}
 
 	for _, uri := range uris {
-		post, err := at.getBlueskyPost(ctx, xrpcc, uri.RecordKey().String())
+		post, err := at.getBlueskyPost(ctx, client, uri.RecordKey().String())
 		if err != nil {
 			return nil, err
 		}

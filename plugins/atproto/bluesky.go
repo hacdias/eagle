@@ -103,15 +103,6 @@ func detectPermalinkFacet(post *bsky.FeedPost, permalinkStr string) {
 	}
 }
 
-func createBlueskyRecord(ctx context.Context, client *xrpc.Client, collection, repo string, record *util.LexiconTypeDecoder) (*atproto.RepoCreateRecord_Output, error) {
-	// TODO: generate sortable TID based on create date for old posts?
-	return atproto.RepoCreateRecord(ctx, client, &atproto.RepoCreateRecord_Input{
-		Collection: collection,
-		Repo:       repo,
-		Record:     record,
-	})
-}
-
 func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext) (*blueskyPost, error) {
 	post := &bsky.FeedPost{
 		CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
@@ -142,8 +133,17 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 		post.Embed.EmbedExternal.External.Thumb = blob
 	}
 
+	// Generate record key based on the entry's date. Ensures sortability.
+	recordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
+
 	at.log.Infow("creating app.bsky.feed.post", "record", post)
-	record, err := createBlueskyRecord(ctx, client, "app.bsky.feed.post", client.Auth.Did, &util.LexiconTypeDecoder{Val: post})
+	record, err := atproto.RepoCreateRecord(ctx, client, &atproto.RepoCreateRecord_Input{
+		Collection: "app.bsky.feed.post",
+		Repo:       client.Auth.Did,
+		Record:     &util.LexiconTypeDecoder{Val: post},
+		Rkey:       &recordKey,
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 	}, nil
 }
 
-func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext) ([]*blueskyPost, error) {
+func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext) ([]*blueskyPost, error) {
 	// Infer how many posts needed from photos count
 	postsNeeded := 1
 	if len(sctx.Photos) > 0 {
@@ -169,7 +169,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 		statuses = e.Statuses(maximumCharacters, postsNeeded, false)
 	}
 
-	embeddings, err := at.uploadBlueskyPhotos(ctx, xrpcc, sctx.Photos)
+	embeddings, err := at.uploadBlueskyPhotos(ctx, client, sctx.Photos)
 	if err != nil {
 		return nil, err
 	}
@@ -184,6 +184,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 		// NOTE: weird issues with posts having the same createdAt
 		// https://github.com/bluesky-social/atproto/issues/3027
 		createdAt := e.Date.Add(time.Duration(i) * time.Second).Format(syntax.AtprotoDatetimeLayout)
+		recordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
 
 		post := &bsky.FeedPost{
 			CreatedAt: createdAt,
@@ -215,7 +216,13 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, xrpcc *xr
 		}
 
 		at.log.Infow("creating app.bsky.feed.post", "record", post)
-		record, err := createBlueskyRecord(ctx, xrpcc, "app.bsky.feed.post", xrpcc.Auth.Did, &util.LexiconTypeDecoder{Val: post})
+		record, err := atproto.RepoCreateRecord(ctx, client, &atproto.RepoCreateRecord_Input{
+			Collection: "app.bsky.feed.post",
+			Repo:       client.Auth.Did,
+			Record:     &util.LexiconTypeDecoder{Val: post},
+			Rkey:       &recordKey,
+		})
+
 		if err != nil {
 			return nil, err
 		}
