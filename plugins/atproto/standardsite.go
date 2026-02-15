@@ -29,7 +29,7 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 		record["description"] = co.SiteConfig().Params.Site.Description
 	}
 
-	uri, err := upsertRecord(ctx, xrpcc, "site.standard.publication", at.publicationRecordKey, record)
+	uri, err := putRecord(ctx, xrpcc, "site.standard.publication", at.publicationRecordKey, record)
 	if err != nil {
 		return err
 	}
@@ -40,11 +40,6 @@ func (at *ATProto) initStandardPublication(ctx context.Context, xrpcc *xrpc.Clie
 }
 
 func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentUri *syntax.ATURI, e *core.Entry, post *blueskyPost) (string, error) {
-	recordKey := ""
-	if documentUri != nil {
-		recordKey = documentUri.RecordKey().String()
-	}
-
 	// https://standard.site/
 	record := map[string]any{
 		"$type":       "site.standard.document",
@@ -84,8 +79,21 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		record["updatedAt"] = e.Date.Format(time.RFC3339)
 	}
 
-	at.log.Infow("upserting site.standard.document", "rkey", recordKey, "record", record)
-	documentUriStr, err := upsertRecord(ctx, client, "site.standard.document", recordKey, record)
+	var (
+		documentUriStr string
+		err            error
+	)
+
+	if documentUri == nil {
+		// Generate record key based on the entry's date. Ensures sortability.
+		recordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
+		at.log.Infow("creating site.standard.document", "rkey", recordKey, "record", record)
+		documentUriStr, err = createRecord(ctx, client, "site.standard.document", &recordKey, record)
+	} else {
+		recordKey := documentUri.RecordKey().String()
+		at.log.Infow("updating site.standard.document", "rkey", recordKey, "record", record)
+		documentUriStr, err = putRecord(ctx, client, "site.standard.document", recordKey, record)
+	}
 	if err != nil {
 		return "", fmt.Errorf("failed to upsert site.standard.document record: %w", err)
 	}

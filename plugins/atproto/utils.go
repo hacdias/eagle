@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"math/rand/v2"
 	"reflect"
 
 	"github.com/bluesky-social/indigo/api/agnostic"
@@ -12,6 +13,8 @@ import (
 	"github.com/bluesky-social/indigo/xrpc"
 	"go.hacdias.com/eagle/server"
 )
+
+var clockId = uint(rand.Uint64())
 
 func uploadPhoto(ctx context.Context, client *xrpc.Client, photo *server.Photo) (*lexutil.LexBlob, error) {
 	resp, err := atproto.RepoUploadBlob(ctx, client, bytes.NewReader(photo.Data))
@@ -36,21 +39,21 @@ func deleteRecord(ctx context.Context, client *xrpc.Client, collection, recordKe
 	return err
 }
 
-func upsertRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string, record map[string]any) (string, error) {
-	// Create if there's no recordKey known
-	if recordKey == "" {
-		result, err := agnostic.RepoCreateRecord(ctx, client, &agnostic.RepoCreateRecord_Input{
-			Collection: collection,
-			Repo:       client.Auth.Did,
-			Record:     record,
-		})
-		if err != nil {
-			return "", err
-		}
-
-		return result.Uri, nil
+func createRecord(ctx context.Context, client *xrpc.Client, collection string, recordKey *string, record map[string]any) (string, error) {
+	result, err := agnostic.RepoCreateRecord(ctx, client, &agnostic.RepoCreateRecord_Input{
+		Collection: collection,
+		Repo:       client.Auth.Did,
+		Record:     record,
+		Rkey:       recordKey,
+	})
+	if err != nil {
+		return "", err
 	}
 
+	return result.Uri, nil
+}
+
+func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string, record map[string]any) (string, error) {
 	// Check if the record exists and is the same, if so, return the existing URI
 	if result, err := agnostic.RepoGetRecord(ctx, client, "", collection, client.Auth.Did, recordKey); err == nil {
 		var currentRecord map[string]any

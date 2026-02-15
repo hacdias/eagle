@@ -104,12 +104,12 @@ func detectPermalinkFacet(post *bsky.FeedPost, permalinkStr string) {
 }
 
 func createBlueskyRecord(ctx context.Context, client *xrpc.Client, collection, repo string, record *util.LexiconTypeDecoder) (*atproto.RepoCreateRecord_Output, error) {
+	// TODO: generate sortable TID based on create date for old posts?
 	return atproto.RepoCreateRecord(ctx, client, &atproto.RepoCreateRecord_Input{
 		Collection: collection,
 		Repo:       repo,
 		Record:     record,
 	})
-
 }
 
 func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext) (*blueskyPost, error) {

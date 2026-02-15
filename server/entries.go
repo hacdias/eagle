@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"image"
 	"sort"
@@ -67,16 +68,15 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 	return ctx, nil
 }
 
-func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) {
+func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) error {
 	if !e.IsPost() {
-		return
+		return nil
 	}
 
 	// Get the syndication context
 	syndicationContext, err := s.getEntrySyndicationContext(e)
 	if err != nil {
-		s.log.Errorw("failed to get syndication context", "entry", e.ID, "err", err)
-		return
+		return fmt.Errorf("failed to get syndication context: %w", err)
 	}
 	syndicationContext.Status = status
 
@@ -87,6 +87,8 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) {
 		}
 	}
 
+	var errs error
+
 	syndicators = lo.Uniq(syndicators)
 	s.log.Infow("syndicating entry", "id", e.ID, "syndicators", syndicators)
 
@@ -95,7 +97,7 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) {
 		if syndicator, ok := s.syndicators[name]; ok {
 			err := syndicator.Syndicate(context.Background(), e, syndicationContext)
 			if err != nil {
-				s.log.Errorw("failed to syndicate", "entry", e.ID, "syndicator", name, "err", err)
+				errs = errors.Join(errs, fmt.Errorf("failed to syndicate %s to %s: %w", e.ID, name, err))
 				continue
 			}
 		}
@@ -107,10 +109,10 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) {
 
 	err = s.core.SaveEntry(e)
 	if err != nil {
-		s.log.Errorw("failed save entry", "id", e.ID, "err", err)
+		errs = errors.Join(errs, fmt.Errorf("failed to save entry after syndication: %w", err))
 	}
-
 	s.log.Infow("syndicated entry", "id", e.ID)
+	return errs
 }
 
 func (s *Server) saveEntryWithHooks(e *core.Entry, options postSaveEntryOptions) error {
@@ -162,7 +164,10 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 	s.log.Infow("post save entry hooks", "id", e.ID)
 
 	// Syndications
-	s.syndicate(e, options.syndicators, options.syndicationStatus)
+	err := s.syndicate(e, options.syndicators, options.syndicationStatus)
+	if err != nil {
+		s.log.Errorw("errors occurred while syndicating", "id", e.ID, "err", err)
+	}
 
 	// Post-save hooks
 	for name, plugin := range s.plugins {
@@ -195,7 +200,7 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 		s.build(false)
 	}
 
-	err := s.core.SendWebmentions(e, options.previousLinks...)
+	err = s.core.SendWebmentions(e, options.previousLinks...)
 	if err != nil {
 		s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
 	}
