@@ -1,6 +1,6 @@
 FROM golang:1.25-alpine3.22 AS build
 
-ENV HUGO_VERSION=v0.155.1
+ENV HUGO_VERSION=v0.156.0
 RUN apk update && \
     apk add --no-cache git gcc g++ musl-dev && \
     go install github.com/magefile/mage@latest
