@@ -164,7 +164,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	}
 
 	if sctx.Status != "" {
-		toot.Status = sctx.Status
+		toot.Status = sctx.Status + " " + e.Permalink
 	} else {
 		statuses := e.Statuses(m.maximumCharacters, 1, len(e.Photos) > len(toot.MediaIDs))
 		if len(statuses) != 1 {
