@@ -116,6 +116,9 @@ plugins:
     # Standard.site publication record key.
     publicationRecordKey: yourPublicationRecordKey
 
+    # Optional alpha.arabica.social integration
+    arabicaFilename: data/coffee.json
+
   # Optional IndieNews integration for post syndication.
   indienews:
     language: en

@@ -21,6 +21,7 @@ import (
 var (
 	_ server.SyndicationPlugin = &ATProto{}
 	_ server.HandlerPlugin     = &ATProto{}
+	_ server.CronPlugin        = &ATProto{}
 )
 
 const (
@@ -34,13 +35,18 @@ func init() {
 }
 
 type ATProto struct {
+	core       *core.Core
 	log        *zap.SugaredLogger
 	identifier string
 	password   string
 	userAgent  string
 
+	// site.standard
 	publicationRecordKey string
 	publicationUri       string
+
+	// alpha.arabica.social
+	arabicaFilename string
 }
 
 func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) {
@@ -62,11 +68,13 @@ func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 	}
 
 	at := &ATProto{
+		core:                 co,
 		userAgent:            fmt.Sprintf("eagle/%s", co.BaseURL().String()),
 		identifier:           identifier,
 		password:             password,
 		log:                  log.S().Named("atproto"),
 		publicationRecordKey: publicationRecordKey,
+		arabicaFilename:      config.String("arabicafilename"),
 	}
 
 	return at, at.init(co)
@@ -296,4 +304,8 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	}
 
 	return errors.New("atproto syndication only supports writings and photos categories")
+}
+
+func (at *ATProto) DailyCron() error {
+	return at.UpdateCoffee(context.Background())
 }

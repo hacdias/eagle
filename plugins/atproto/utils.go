@@ -53,6 +53,26 @@ func createRecord(ctx context.Context, client *xrpc.Client, collection string, r
 	return result.Uri, nil
 }
 
+func listRecords(ctx context.Context, client *xrpc.Client, collection string) ([]*agnostic.RepoListRecords_Record, error) {
+	records := []*agnostic.RepoListRecords_Record{}
+	cursor := ""
+
+	for {
+		resp, err := agnostic.RepoListRecords(ctx, client, collection, cursor, 100, client.Auth.Did, false)
+		if err != nil {
+			return nil, err
+		}
+		records = append(records, resp.Records...)
+		if resp.Cursor != nil && *resp.Cursor != "" {
+			cursor = *resp.Cursor
+		} else {
+			break
+		}
+	}
+
+	return records, nil
+}
+
 func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string, record map[string]any) (string, error) {
 	// Check if the record exists and is the same, if so, return the existing URI
 	if result, err := agnostic.RepoGetRecord(ctx, client, "", collection, client.Auth.Did, recordKey); err == nil {
