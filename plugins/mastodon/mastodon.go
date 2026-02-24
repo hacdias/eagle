@@ -146,21 +146,14 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		}
 	}
 
-	toot := mastodon.Toot{
-		Visibility: mastodon.VisibilityPublic,
+	if id != "" {
+		// Existing Mastodon posts are not updated to avoid overwriting custom posts.
+		return nil
 	}
 
-	if id == "" {
-		toot.MediaIDs = m.uploadPhotos(ctx, sctx.Photos)
-	} else {
-		status, err := m.client.GetStatus(ctx, id)
-		if err != nil {
-			return err
-		}
-
-		for _, attachment := range status.MediaAttachments {
-			toot.MediaIDs = append(toot.MediaIDs, attachment.ID)
-		}
+	toot := mastodon.Toot{
+		Visibility: mastodon.VisibilityPublic,
+		MediaIDs:   m.uploadPhotos(ctx, sctx.Photos),
 	}
 
 	if sctx.Status != "" {
