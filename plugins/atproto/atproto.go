@@ -230,7 +230,6 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 			e.Syndications = lo.Without(e.Syndications, documentURI.String())
 		}
 
-		// TODO: should use posts and delete them in order? Or doesn't it matter?
 		err = at.deleteBlueskyPosts(ctx, client, feedPostsURIs)
 		if err != nil {
 			return err
@@ -252,14 +251,9 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		var post *blueskyPost
 
 		if len(posts) > 0 {
-			// TODO: be able to handle multiple posts for a single writing entry.
-			// Can happen if they were manually syndicated.
-			if len(posts) != 1 {
-				return errors.New("multiple Bluesky posts found for a single writing entry, which is not supported")
-			}
-
-			// TODO: We don't support updating Bluesky posts yet. It'd be great
-			// if we could still check if they are correct or not and update in any case.
+			// Existing Bluesky posts are not updated to avoid overwriting custom posts.
+			// First post (root of thread) is selected to be linked on the standard.site
+			// document.
 			post = posts[0]
 		} else {
 			post, err = at.createPublishBlueskyPost(ctx, client, e, sctx)
@@ -270,7 +264,8 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 			e.Syndications = append(e.Syndications, post.uri)
 		}
 
-		// In contrary to the Bluesky posts, we can always upsert the standard.site document.
+		// Upsert standard.site document to ensure that it is up to date (tags, content,
+		// link to Bluesky post, etc).
 		documentUriStr, err := at.upsertStandardDocument(ctx, client, documentURI, e, post)
 		if err != nil {
 			return err
@@ -286,8 +281,7 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 
 	if lo.Contains(e.Categories, "photos") {
 		if len(posts) > 0 {
-			// TODO: We don't support updating Bluesky posts yet. It'd be great
-			// if we could still check if they are correct or not and update in any case.
+			// Existing Bluesky posts are not updated to avoid overwriting custom posts.
 			return nil
 		}
 
