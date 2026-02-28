@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/lestrrat-go/jwx/v3/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -112,13 +112,17 @@ func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := jwtauth.FromContext(r.Context())
-		valid := err == nil && token != nil && jwt.Validate(token) == nil && token.Subject() == sessionSubject
-		ctx := r.Context()
-
-		if valid {
-			ctx = context.WithValue(r.Context(), loggedInContextKey, true)
+		if err != nil || token == nil {
+			next.ServeHTTP(w, r)
+			return
 		}
 
+		if subject, _ := token.Subject(); subject != sessionSubject {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), loggedInContextKey, true)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
