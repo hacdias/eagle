@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/samber/lo"
 	"go.hacdias.com/indielib/indieauth"
 )
@@ -159,8 +159,17 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 	token, _, err := jwtauth.FromContext(r.Context())
-	isValid := err == nil && token != nil && jwt.Validate(token) == nil && token.Subject() == tokenSubject
-	if !isValid {
+
+	if err != nil || token == nil || jwt.Validate(token) != nil {
+		s.serveJSON(w, http.StatusOK, map[string]any{
+			"active": false,
+		})
+		return
+	}
+
+	issuedAt, _ := token.IssuedAt()
+	subject, _ := token.Subject()
+	if subject != tokenSubject || !issuedAt.IsZero() {
 		s.serveJSON(w, http.StatusOK, map[string]any{
 			"active": false,
 		})
@@ -172,10 +181,10 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		"me":        s.c.ID(),
 		"client_id": getString(token, "client_id"),
 		"scope":     getString(token, "scope"),
-		"iat":       token.IssuedAt().Unix(),
+		"iat":       issuedAt.Unix(),
 	}
 
-	exp := token.Expiration()
+	exp, _ := token.Expiration()
 	if !exp.IsZero() && exp.Unix() != 0 {
 		info["exp"] = exp.Unix()
 	}
@@ -196,7 +205,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if token.Subject() != authCodeSubject {
+	if subject, _ := token.Subject(); subject != authCodeSubject {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "token has invalid subject")
 		return
 	}
@@ -303,22 +312,29 @@ func (s *Server) generateToken(client, scope string, expiry time.Duration) (stri
 }
 
 func getString(token jwt.Token, prop string) string {
-	v, ok := token.Get(prop)
-	if !ok {
+	if !token.Has(prop) {
 		return ""
 	}
-	vv, ok := v.(string)
-	if !ok {
+
+	var v string
+
+	err := token.Get(prop, &v)
+	if err != nil {
 		return ""
 	}
-	return vv
+
+	return v
 }
 
 func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := jwtauth.FromContext(r.Context())
-		isValid := err == nil && token != nil && jwt.Validate(token) == nil && token.Subject() == tokenSubject
-		if !isValid {
+		if err != nil || token == nil {
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
+			return
+		}
+
+		if subject, _ := token.Subject(); subject != tokenSubject {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
 		}
