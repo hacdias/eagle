@@ -39,6 +39,7 @@ type arabicaBean struct {
 	Closed      bool   `json:"closed"`
 	Origin      string `json:"origin"`
 	Process     string `json:"process"`
+	Variety     string `json:"variety"`
 	CreatedAt   string `json:"createdAt"`
 	RoastLevel  string `json:"roastLevel"`
 	RoasterRef  string `json:"roasterRef"`
@@ -112,11 +113,6 @@ func fetchAndProcessArabicaData(ctx context.Context, client *xrpc.Client) ([]cof
 
 		description := strings.Split(bean.Description, "\n")
 
-		variety, _ := lo.Find(description, func(v string) bool {
-			return strings.HasPrefix(v, "Variety:")
-		})
-		variety = strings.TrimSpace(strings.TrimPrefix(variety, "Variety:"))
-
 		elevation, _ := lo.Find(description, func(v string) bool {
 			return strings.HasPrefix(v, "Elevation:")
 		})
@@ -144,7 +140,7 @@ func fetchAndProcessArabicaData(ctx context.Context, client *xrpc.Client) ([]cof
 			Origin:    bean.Origin,
 			Process:   bean.Process,
 			Roast:     bean.RoastLevel,
-			Variety:   variety,
+			Variety:   bean.Variety,
 			Elevation: elevation,
 			Date:      date.Format(time.DateOnly),
 			Rating:    rating,
