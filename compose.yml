@@ -9,7 +9,7 @@ services:
     command: "caddy file-server --browse --root /www --listen :8045"
   meilisearch:
     container_name: meilisearch
-    image: getmeili/meilisearch:v1.35
+    image: getmeili/meilisearch:v1.36
     ports:
       - "7700:7700"
     environment:
