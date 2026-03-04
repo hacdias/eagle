@@ -113,8 +113,16 @@ plugins:
     identifier: yourUsernameIdentifier
     password: yourAppSpecificPassword
 
-    # Standard.site publication record key.
-    publicationRecordKey: yourPublicationRecordKey
+    # Standard.site configuration
+    standardSite:
+      recordKey: yourPublicationRecordKey
+      preferences:
+        showInDiscover: true
+      basicTheme:
+        background: [255, 255, 255]
+        foreground: [0, 0, 0]
+        accent: [0, 0, 0]
+        accentForeground: [255, 255, 255]
 
     # Optional alpha.arabica.social integration
     arabicaFilename: data/coffee.json

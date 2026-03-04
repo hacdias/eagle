@@ -10,7 +10,7 @@ import (
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/bluesky-social/indigo/xrpc"
-	"github.com/karlseguin/typed"
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
@@ -34,6 +34,13 @@ func init() {
 	server.RegisterPlugin("atproto", NewATProto)
 }
 
+type atprotoConfig struct {
+	Identifier      string
+	Password        string
+	ArabicaFilename string
+	StandardSite    standardSite
+}
+
 type ATProto struct {
 	core       *core.Core
 	log        *zap.SugaredLogger
@@ -42,39 +49,41 @@ type ATProto struct {
 	userAgent  string
 
 	// site.standard
-	publicationRecordKey string
-	publicationUri       string
+	standardSite               standardSite
+	standardSitePublicationUri string
 
 	// alpha.arabica.social
 	arabicaFilename string
 }
 
 func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) {
-	config := typed.New(configMap)
+	var config atprotoConfig
 
-	identifier := config.String("identifier")
-	if identifier == "" {
+	err := mapstructure.Decode(configMap, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	if config.Identifier == "" {
 		return nil, errors.New("identifier missing")
 	}
 
-	password := config.String("password")
-	if password == "" {
+	if config.Password == "" {
 		return nil, errors.New("password missing")
 	}
 
-	publicationRecordKey := config.String("publicationrecordkey")
-	if publicationRecordKey == "" {
-		return nil, errors.New("publicationRecordKey missing")
+	if config.StandardSite.RecordKey == "" {
+		return nil, errors.New("standardSite.recordKey missing")
 	}
 
 	at := &ATProto{
-		core:                 co,
-		userAgent:            fmt.Sprintf("eagle/%s", co.BaseURL().String()),
-		identifier:           identifier,
-		password:             password,
-		log:                  log.S().Named("atproto"),
-		publicationRecordKey: publicationRecordKey,
-		arabicaFilename:      config.String("arabicafilename"),
+		core:            co,
+		userAgent:       fmt.Sprintf("eagle/%s", co.BaseURL().String()),
+		identifier:      config.Identifier,
+		password:        config.Password,
+		log:             log.S().Named("atproto"),
+		standardSite:    config.StandardSite,
+		arabicaFilename: config.ArabicaFilename,
 	}
 
 	return at, at.init(co)

@@ -13,6 +13,21 @@ import (
 	"go.hacdias.com/eagle/server"
 )
 
+type standardSiteBasicTheme struct {
+	Background       [3]int
+	Foreground       [3]int
+	Accent           [3]int
+	AccentForeground [3]int
+}
+
+type standardSite struct {
+	RecordKey   string
+	Preferences struct {
+		ShowInDiscover bool
+	}
+	BasicTheme *standardSiteBasicTheme
+}
+
 func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Client, co *core.Core) error {
 	at.log.Infow("repository information found", "did", client.Auth.Did)
 
@@ -21,21 +36,51 @@ func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Cli
 		"url":   strings.TrimSuffix(co.BaseURL().String(), "/"),
 		"name":  co.SiteConfig().Title,
 		"preferences": map[string]any{
-			"showInDiscover": true,
+			"showInDiscover": at.standardSite.Preferences.ShowInDiscover,
 		},
+	}
+
+	if at.standardSite.BasicTheme != nil {
+		record["basicTheme"] = map[string]any{
+			"$type": "site.standard.theme.basic",
+			"background": map[string]any{
+				"$type": "site.standard.theme.color#rgb",
+				"r":     at.standardSite.BasicTheme.Background[0],
+				"g":     at.standardSite.BasicTheme.Background[1],
+				"b":     at.standardSite.BasicTheme.Background[2],
+			},
+			"foreground": map[string]any{
+				"$type": "site.standard.theme.color#rgb",
+				"r":     at.standardSite.BasicTheme.Foreground[0],
+				"g":     at.standardSite.BasicTheme.Foreground[1],
+				"b":     at.standardSite.BasicTheme.Foreground[2],
+			},
+			"accent": map[string]any{
+				"$type": "site.standard.theme.color#rgb",
+				"r":     at.standardSite.BasicTheme.Accent[0],
+				"g":     at.standardSite.BasicTheme.Accent[1],
+				"b":     at.standardSite.BasicTheme.Accent[2],
+			},
+			"accentForeground": map[string]any{
+				"$type": "site.standard.theme.color#rgb",
+				"r":     at.standardSite.BasicTheme.AccentForeground[0],
+				"g":     at.standardSite.BasicTheme.AccentForeground[1],
+				"b":     at.standardSite.BasicTheme.AccentForeground[2],
+			},
+		}
 	}
 
 	if co.SiteConfig().Params.Site.Description != "" {
 		record["description"] = co.SiteConfig().Params.Site.Description
 	}
 
-	uri, err := putRecord(ctx, client, "site.standard.publication", at.publicationRecordKey, record)
+	uri, err := putRecord(ctx, client, "site.standard.publication", at.standardSite.RecordKey, record)
 	if err != nil {
 		return err
 	}
 
 	at.log.Infow("publication record upserted", "uri", uri)
-	at.publicationUri = uri
+	at.standardSitePublicationUri = uri
 	return nil
 }
 
@@ -43,7 +88,7 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 	// https://standard.site/
 	record := map[string]any{
 		"$type":       "site.standard.document",
-		"site":        at.publicationUri,
+		"site":        at.standardSitePublicationUri,
 		"path":        e.RelPermalink,
 		"title":       e.Title,
 		"publishedAt": e.Date.Format(time.RFC3339),
@@ -112,7 +157,7 @@ func (at *ATProto) HandlerRoute() string {
 }
 
 func (at *ATProto) Handler(w http.ResponseWriter, r *http.Request, utils *server.PluginWebUtilities) {
-	_, _ = w.Write([]byte(at.publicationUri))
+	_, _ = w.Write([]byte(at.standardSitePublicationUri))
 }
 
 const wellKnownStandardPublication = "/.well-known/site.standard.publication"
