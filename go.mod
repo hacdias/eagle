@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/bluesky-social/indigo v0.0.0-20260306175734-0a0222838944
+	github.com/bluesky-social/indigo v0.0.0-20260308004230-c55a189a51a9
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.13
 	github.com/go-chi/chi/v5 v5.2.5
