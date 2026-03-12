@@ -1,24 +1,82 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "tokens" }}
 
-<h2>Generate Token</h2>
+<h2>Sessions</h2>
 
-<form id='token' method='post'>
-  <input type='hidden' name='token' value='true' />
-  <input required type='url' name='client_id' placeholder='Client ID'>
-  <input required type='text' name='scope' placeholder='Scope'>
-  <select name='expiry'>
-    <option value='' disabled selected hidden>Expiry</option>
-    <option value='7'>1 Week</option>
-    <option value='90'>3 Months</option>
-    <option value='180'>6 Months</option>
-    <option value='0'>Infinity</option>
-  </select>
-  <button>Submit</button>
-</form>
+{{ if .Sessions }}
+  <form method='post'>
+    <input type='hidden' name='action' value='revoke-all-sessions' />
+    <button>Revoke All Sessions</button>
+  </form>
 
-{{ with .Token }}
-  <pre>{{ . }}</pre>
+  <table>
+    <thead>
+      <tr>
+        <th>Created</th>
+        <th>Expires</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Sessions }}
+      <tr>
+        <td>{{ .Created.Format "2006-01-02" }}</td>
+        <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
+        <td>
+          <form method='post'>
+            <input type='hidden' name='action' value='revoke-session' />
+            <input type='hidden' name='id' value='{{ .ID }}' />
+            <button>Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+{{ else }}
+  <p>No active sessions.</p>
+{{ end }}
+
+<h2>IndieAuth Tokens</h2>
+
+<a href='/panel/tokens/new'>New Token</a>
+
+{{ if .Tokens }}
+  <form method='post'>
+    <input type='hidden' name='action' value='revoke-all-tokens' />
+    <button>Revoke All Tokens</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Scope</th>
+        <th>Created</th>
+        <th>Expires</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Tokens }}
+      <tr>
+        <td>{{ .ClientID }}</td>
+        <td>{{ .Scope }}</td>
+        <td>{{ .Created.Format "2006-01-02" }}</td>
+        <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
+        <td>
+          <form method='post'>
+            <input type='hidden' name='action' value='revoke' />
+            <input type='hidden' name='id' value='{{ .ID }}' />
+            <button>Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+{{ else }}
+  <p>No active tokens.</p>
 {{ end }}
 
 {{ template "_footer.html" . }}

@@ -6,13 +6,13 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-chi/jwtauth/v5"
-	"github.com/lestrrat-go/jwx/v3/jwt"
+	"github.com/google/uuid"
+	"go.hacdias.com/eagle/services/database"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	sessionSubject     string     = "Eagle Session 2"
+	sessionCookieName             = "session"
 	loggedInContextKey contextKey = "logged-in"
 
 	loginPath  = "/panel/login"
@@ -59,12 +59,12 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(time.Hour * 24 * 7)
 
-	_, signed, err := s.jwtAuth.Encode(map[string]any{
-		jwt.SubjectKey:    sessionSubject,
-		jwt.IssuedAtKey:   time.Now().Unix(),
-		jwt.ExpirationKey: expiration,
-	})
-	if err != nil {
+	session := &database.Session{
+		ID:      uuid.New().String(),
+		Expiry:  expiration,
+		Created: time.Now(),
+	}
+	if err := s.bolt.AddSession(r.Context(), session); err != nil {
 		s.panelTemplate(w, r, http.StatusInternalServerError, panelLoginTemplate, &loginPage{
 			Title: "Login",
 			Error: err.Error(),
@@ -72,17 +72,15 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    string(signed),
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    session.ID,
 		Expires:  expiration,
 		Secure:   r.URL.Scheme == "https",
 		HttpOnly: true,
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
-	}
-
-	http.SetCookie(w, cookie)
+	})
 
 	redirect := r.URL.Query().Get("redirect")
 	if redirect == "" {
@@ -93,31 +91,44 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
-	cookie := http.Cookie{
-		Name:     "jwt",
+	cookie, err := r.Cookie(sessionCookieName)
+	if err == nil && cookie.Value != "" {
+		_ = s.bolt.DeleteSession(r.Context(), cookie.Value)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
 		Value:    "",
 		MaxAge:   -1,
 		Secure:   r.URL.Scheme == "https",
 		Path:     "/",
 		HttpOnly: true,
+	})
+
+	redirect := r.URL.Query().Get("redirect")
+	if redirect == "" {
+		redirect = "/"
 	}
-	http.SetCookie(w, &cookie)
-	if redirect := r.URL.Query().Get("redirect"); redirect != "" {
-		http.Redirect(w, r, redirect, http.StatusSeeOther)
-	} else {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	}
+
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
 }
 
 func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, _, err := jwtauth.FromContext(r.Context())
-		if err != nil || token == nil {
+		cookie, err := r.Cookie(sessionCookieName)
+		if err != nil || cookie.Value == "" {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		if subject, _ := token.Subject(); subject != sessionSubject {
+		session, err := s.bolt.GetSession(r.Context(), cookie.Value)
+		if err != nil || session == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if time.Now().After(session.Expiry) {
+			_ = s.bolt.DeleteSession(r.Context(), cookie.Value)
 			next.ServeHTTP(w, r)
 			return
 		}

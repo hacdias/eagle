@@ -55,7 +55,6 @@ func (s *Server) makeRouter() http.Handler {
 
 	// Panel Pages
 	r.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(s.jwtAuth))
 		r.Use(s.withLoggedIn)
 
 		// Login
@@ -78,6 +77,8 @@ func (s *Server) makeRouter() http.Handler {
 			r.Post(panelMentionsPtah, s.panelMentionsPost)
 			r.Get(panelTokensPath, s.panelTokensGet)
 			r.Post(panelTokensPath, s.panelTokensPost)
+			r.Get(panelNewTokenPath, s.panelNewTokenGet)
+			r.Post(panelNewTokenPath, s.panelNewTokenPost)
 			r.Get(panelBrowsePath+"*", s.panelBrowserGet)
 			r.Post(panelBrowsePath+"*", s.panelBrowserPost)
 			r.Get(panelEditPath+"*", s.panelEditGet)

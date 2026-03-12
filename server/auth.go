@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/samber/lo"
+	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/indielib/indieauth"
 )
 
@@ -150,6 +152,14 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 	if r.Form.Get("action") == "revoke" {
 		// NOTE: this is kept for backwards compatibility with prior versions
 		// of IndieAuth specification. Revocation endpoints are now separate.
+		tokenStr := r.Form.Get("token")
+		if tokenStr != "" {
+			if tok, err := jwtauth.VerifyToken(s.jwtAuth, tokenStr); err == nil && tok != nil {
+				if jti, ok := tok.JwtID(); ok && jti != "" {
+					_ = s.bolt.DeleteToken(r.Context(), jti)
+				}
+			}
+		}
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -173,6 +183,18 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		s.serveJSON(w, http.StatusOK, map[string]any{
 			"active": false,
 		})
+		return
+	}
+
+	jti, ok := token.JwtID()
+	if !ok || jti == "" {
+		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
+		return
+	}
+
+	found, err := s.bolt.HasToken(r.Context(), jti)
+	if err != nil || !found {
+		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
 		return
 	}
 
@@ -235,7 +257,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "expiry param is not a valid number")
 		}
 
-		signed, err := s.generateToken(authRequest.ClientID, scope, expiry)
+		signed, err := s.generateToken(r.Context(), authRequest.ClientID, scope, expiry)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 			return
@@ -295,20 +317,39 @@ func handleExpiry(expiry string) (time.Duration, error) {
 	return time.Hour * 24 * time.Duration(days), nil
 }
 
-func (s *Server) generateToken(client, scope string, expiry time.Duration) (string, error) {
+func (s *Server) generateToken(ctx context.Context, client, scope string, expiry time.Duration) (string, error) {
+	jti := uuid.New().String()
+
 	claims := map[string]any{
 		jwt.SubjectKey:  tokenSubject,
 		jwt.IssuedAtKey: time.Now().Unix(),
+		jwt.JwtIDKey:    jti,
 		"client_id":     client,
 		"scope":         scope,
 	}
 
+	var expiresAt time.Time
 	if expiry > 0 {
-		claims[jwt.ExpirationKey] = time.Now().Add(expiry)
+		expiresAt = time.Now().Add(expiry)
+		claims[jwt.ExpirationKey] = expiresAt
 	}
 
 	_, signed, err := s.jwtAuth.Encode(claims)
-	return signed, err
+	if err != nil {
+		return "", err
+	}
+
+	if err := s.bolt.AddToken(ctx, &database.Token{
+		ID:       jti,
+		ClientID: client,
+		Scope:    scope,
+		Expiry:   expiresAt,
+		Created:  time.Now(),
+	}); err != nil {
+		return "", err
+	}
+
+	return signed, nil
 }
 
 func getString(token jwt.Token, prop string) string {
@@ -335,6 +376,18 @@ func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 		}
 
 		if subject, _ := token.Subject(); subject != tokenSubject {
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
+			return
+		}
+
+		jti, ok := token.JwtID()
+		if !ok || jti == "" {
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
+			return
+		}
+
+		found, err := s.bolt.HasToken(r.Context(), jti)
+		if err != nil || !found {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
 		}

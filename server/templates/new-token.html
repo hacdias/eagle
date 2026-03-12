@@ -1,0 +1,27 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "tokens" }}
+
+<h2>New Token</h2>
+
+{{ with .Error }}
+  <p>{{ . }}</p>
+{{ end }}
+
+{{ with .Token }}
+  <pre>{{ . }}</pre>
+{{ else }}
+  <form method='post'>
+    <input type='url' required name='client_id' placeholder='Client ID'>
+    <input type='text' required name='scope' placeholder='Scope'>
+    <select name='expiry'>
+      <option value='' disabled selected hidden>Expiry</option>
+      <option value='7'>1 Week</option>
+      <option value='90'>3 Months</option>
+      <option value='180'>6 Months</option>
+      <option value='0'>Infinity</option>
+    </select>
+    <button>Generate</button>
+  </form>
+{{ end }}
+
+{{ template "_footer.html" . }}
