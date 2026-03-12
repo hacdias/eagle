@@ -73,8 +73,8 @@ func (s *Server) makeRouter() http.Handler {
 			// Panel
 			r.Get(panelPath, s.panelGet)
 			r.Post(panelPath, s.panelPost)
-			r.Get(panelMentionsPtah, s.panelMentionsGet)
-			r.Post(panelMentionsPtah, s.panelMentionsPost)
+			r.Get(panelMentionsPath, s.panelMentionsGet)
+			r.Post(panelMentionsPath, s.panelMentionsPost)
 			r.Get(panelTokensPath, s.panelTokensGet)
 			r.Post(panelTokensPath, s.panelTokensPost)
 			r.Get(panelNewTokenPath, s.panelNewTokenGet)

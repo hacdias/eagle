@@ -32,7 +32,7 @@ const (
 	panelBrowsePath   = panelPath + "/browse"
 	panelEditPath     = panelPath + "/edit"
 	panelNewPath      = panelPath + "/new"
-	panelMentionsPtah = panelPath + "/mentions"
+	panelMentionsPath = panelPath + "/mentions"
 	panelTokensPath   = panelPath + "/tokens"
 	panelNewTokenPath = panelTokensPath + "/new"
 	panelCachePath    = panelPath + "/cache"

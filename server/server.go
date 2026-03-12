@@ -236,19 +236,18 @@ func (s *Server) indexAll() {
 		return
 	}
 
-	if s.meilisearch != nil {
-		err := s.meilisearch.ResetIndex()
-		if err != nil {
-			s.log.Errorw("failed to reset meilisearch index", "err", err)
-		}
-
-		start := time.Now()
-		err = s.meilisearch.Add(entries...)
-		if err != nil {
-			s.log.Errorw("failed to add to meilisearch index", "err", err)
-		}
-		s.log.Infof("meilisearch update took %dms", time.Since(start).Milliseconds())
+	err = s.meilisearch.ResetIndex()
+	if err != nil {
+		s.log.Errorw("failed to reset meilisearch index", "err", err)
 	}
+
+	start := time.Now()
+	err = s.meilisearch.Add(entries...)
+	if err != nil {
+		s.log.Errorw("failed to add to meilisearch index", "err", err)
+	}
+	s.log.Infof("meilisearch update took %dms", time.Since(start).Milliseconds())
+
 }
 
 func (s *Server) withRecoverer(next http.Handler) http.Handler {
