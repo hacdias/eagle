@@ -37,26 +37,9 @@
   <p>No active sessions.</p>
 {{ end }}
 
-<h2>Generate IndieAuth Token</h2>
-
-<form method='post'>
-  <input type='url' required name='client_id' placeholder='Client ID'>
-  <input type='text' required name='scope' placeholder='Scope'>
-  <select name='expiry'>
-    <option value='' disabled selected hidden>Expiry</option>
-    <option value='7'>1 Week</option>
-    <option value='90'>3 Months</option>
-    <option value='180'>6 Months</option>
-    <option value='0'>Infinity</option>
-  </select>
-  <button>Generate</button>
-</form>
-
-{{ with .Token }}
-  <pre>{{ . }}</pre>
-{{ end }}
-
 <h2>IndieAuth Tokens</h2>
+
+<a href='/panel/tokens/new'>New Token</a>
 
 {{ if .Tokens }}
   <form method='post'>

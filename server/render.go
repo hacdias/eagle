@@ -22,6 +22,7 @@ const (
 	panelLoginTemplate    string = "login.html"
 	panelMentionsTemplate string = "mentions.html"
 	panelTokensTemplate   string = "tokens.html"
+	panelNewTokenTemplate string = "new-token.html"
 	panelEditorTemplate   string = "editor.html"
 	panelNewTemplate      string = "new.html"
 	panelBrowserTemplate  string = "browser.html"
