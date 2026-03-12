@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/url"
@@ -163,6 +164,14 @@ func (s *Server) initCron() error {
 		}
 
 		s.syncStorage()
+
+		if err := s.bolt.DeleteExpiredSessions(context.Background()); err != nil {
+			s.log.Errorw("failed to delete expired sessions", "err", err)
+		}
+
+		if err := s.bolt.DeleteExpiredTokens(context.Background()); err != nil {
+			s.log.Errorw("failed to delete expired tokens", "err", err)
+		}
 	})
 	return err
 }

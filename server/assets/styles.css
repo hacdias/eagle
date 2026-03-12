@@ -164,3 +164,24 @@ ul.options-list {
 .options-list.horizontal li {
   margin-right: 1rem;
 }
+
+table {
+  width: 100%;
+  margin: 1rem 0;
+  overflow: auto;
+  border-collapse: collapse;
+}
+
+table thead {
+  font-weight: bold;
+}
+
+table th,
+table td {
+  padding: 0.25rem 1rem;
+  border: 1px solid var(--accent);
+}
+
+table tr {
+  border-top: 1px solid var(--accent);
+}

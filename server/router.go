@@ -55,7 +55,6 @@ func (s *Server) makeRouter() http.Handler {
 
 	// Panel Pages
 	r.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(s.jwtAuth))
 		r.Use(s.withLoggedIn)
 
 		// Login

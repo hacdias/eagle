@@ -19,6 +19,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/samber/lo/mutable"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/indielib/indieauth"
 	"go.hacdias.com/indielib/micropub"
 	"go.hacdias.com/maze"
@@ -544,13 +545,27 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 }
 
 type tokenPage struct {
-	Title string
-	Token string
+	Title    string
+	Token    string
+	Sessions []*database.Session
+	Tokens   []*database.Token
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
+	sessions, err := s.bolt.GetSessions(r.Context())
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+	tokens, err := s.bolt.GetTokens(r.Context())
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
 	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, &tokenPage{
-		Title: "Tokens",
+		Title:    "Tokens",
+		Sessions: sessions,
+		Tokens:   tokens,
 	})
 }
 
@@ -561,32 +576,110 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &tokenPage{
-		Title: "Tokens",
-	}
+	switch r.Form.Get("action") {
+	case "revoke-session":
+		id := r.Form.Get("id")
+		if id == "" {
+			s.panelError(w, r, http.StatusBadRequest, errors.New("missing session id"))
+			return
+		}
 
-	clientID := r.Form.Get("client_id")
-	scope := r.Form.Get("scope")
-	expiry, err := handleExpiry(r.Form.Get("expiry"))
-	if err != nil {
-		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
-		return
-	}
+		cookie, _ := r.Cookie(sessionCookieName)
+		isOwnSession := cookie != nil && cookie.Value == id
 
-	if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
-		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
-		return
-	}
+		if err := s.bolt.DeleteSession(r.Context(), id); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
 
-	signed, err := s.generateToken(clientID, scope, expiry)
-	if err == nil {
-		data.Token = signed
-	} else {
-		s.panelError(w, r, http.StatusInternalServerError, err)
-		return
-	}
+		if isOwnSession {
+			http.SetCookie(w, &http.Cookie{
+				Name:     sessionCookieName,
+				Value:    "",
+				MaxAge:   -1,
+				Secure:   r.URL.Scheme == "https",
+				Path:     "/",
+				HttpOnly: true,
+			})
+			http.Redirect(w, r, loginPath, http.StatusSeeOther)
+			return
+		}
 
-	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, data)
+		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
+
+	case "revoke-all-sessions":
+		if err := s.bolt.DeleteAllSessions(r.Context()); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:     sessionCookieName,
+			Value:    "",
+			MaxAge:   -1,
+			Secure:   r.URL.Scheme == "https",
+			Path:     "/",
+			HttpOnly: true,
+		})
+		http.Redirect(w, r, loginPath, http.StatusSeeOther)
+
+	case "revoke":
+		id := r.Form.Get("id")
+		if id == "" {
+			s.panelError(w, r, http.StatusBadRequest, errors.New("missing token id"))
+			return
+		}
+		if err := s.bolt.DeleteToken(r.Context(), id); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
+
+	case "revoke-all-tokens":
+		if err := s.bolt.DeleteAllTokens(r.Context()); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
+
+	default:
+		// Generate a new IndieAuth token.
+		clientID := r.Form.Get("client_id")
+		scope := r.Form.Get("scope")
+		expiry, err := handleExpiry(r.Form.Get("expiry"))
+		if err != nil {
+			s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("expiry param is invalid: %w", err))
+			return
+		}
+
+		if err := indieauth.IsValidClientIdentifier(clientID); err != nil {
+			s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("invalid client_id: %w", err))
+			return
+		}
+
+		signed, err := s.generateToken(r.Context(), clientID, scope, expiry)
+		if err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		sessions, err := s.bolt.GetSessions(r.Context())
+		if err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		tokens, err := s.bolt.GetTokens(r.Context())
+		if err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, &tokenPage{
+			Title:    "Tokens",
+			Token:    signed,
+			Sessions: sessions,
+			Tokens:   tokens,
+		})
+	}
 }
 
 func (s *Server) panelCachePost(w http.ResponseWriter, r *http.Request) {
