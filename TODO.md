@@ -1,22 +1,19 @@
 # Eagle
 
+- [ ] SQLite instead of Bolt
 - [ ] Monitor external links for 404s, and replace with Web Archive'd when possible. Perhaps via slow running cron job with queue
 - [ ] Command to check for consistency with AT Protocol
-- [ ] SQLite instead of Bolt
 
 ## IndieAuth
 
 - [ ] Implement OAuth 2.0 refresh tokens
   - [ ] https://indieauth.spec.indieweb.org/#refresh-tokens
   - [ ] Do not forget to add to `grant_types_supported`
-- [ ] Keep all sessions on database, remove expired on cron job, allow for revoking session
 
 ## ATProto
 
 - [ ] `site.standard` integration (https://standard.site/)
   - [ ] `site.standard.publication`
-    - [ ] Upsert asynchronously
-    - [ ] Support for custom theme
     - [ ] Support for custom icon
 - [ ] Integrations Eagle --> AT Protocol
   - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons
