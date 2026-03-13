@@ -2,6 +2,7 @@ package database
 
 import (
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/log"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -11,7 +12,9 @@ type Database struct {
 }
 
 func NewDatabase(path string) (*Database, error) {
-	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{
+		Logger: log.NewGormLogger(),
+	})
 	if err != nil {
 		return nil, err
 	}
