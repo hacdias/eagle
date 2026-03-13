@@ -165,10 +165,6 @@ func (s *Server) initCron() error {
 
 		s.syncStorage()
 
-		if err := s.db.DeleteExpiredSessions(context.Background()); err != nil {
-			s.log.Errorw("failed to delete expired sessions", "err", err)
-		}
-
 		if err := s.db.DeleteExpiredTokens(context.Background()); err != nil {
 			s.log.Errorw("failed to delete expired tokens", "err", err)
 		}

@@ -19,7 +19,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/samber/lo/mutable"
 	"go.hacdias.com/eagle/core"
-	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/indielib/indieauth"
 	"go.hacdias.com/indielib/micropub"
 	"go.hacdias.com/maze"
@@ -546,99 +545,75 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 }
 
 type tokenPage struct {
-	Title    string
-	Sessions []*database.Session
-	Tokens   []*database.Token
+	Title         string
+	Sessions      []*core.Token
+	Tokens        []*core.Token
+	RefreshTokens []*core.Token
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
-	sessions, err := s.db.GetSessions(r.Context())
+	sessions, err := s.db.GetTokensByType(r.Context(), core.TokenTypeSession)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
-	tokens, err := s.db.GetTokens(r.Context())
+
+	tokens, err := s.db.GetTokensByType(r.Context(), core.TokenTypeAccess)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
+
+	refreshTokens, err := s.db.GetTokensByType(r.Context(), core.TokenTypeRefresh)
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
 	s.panelTemplate(w, r, http.StatusOK, panelTokensTemplate, &tokenPage{
-		Title:    "Tokens",
-		Sessions: sessions,
-		Tokens:   tokens,
+		Title:         "Tokens",
+		Sessions:      sessions,
+		Tokens:        tokens,
+		RefreshTokens: refreshTokens,
 	})
 }
 
 func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
+	if err := r.ParseForm(); err != nil {
 		s.panelError(w, r, http.StatusBadRequest, err)
 		return
 	}
 
 	switch r.Form.Get("action") {
-	case "revoke-session":
-		id := r.Form.Get("id")
-		if id == "" {
-			s.panelError(w, r, http.StatusBadRequest, errors.New("missing session id"))
-			return
-		}
-
-		cookie, _ := r.Cookie(sessionCookieName)
-		isOwnSession := cookie != nil && cookie.Value == id
-
-		if err := s.db.DeleteSession(r.Context(), id); err != nil {
-			s.panelError(w, r, http.StatusInternalServerError, err)
-			return
-		}
-
-		if isOwnSession {
-			http.SetCookie(w, &http.Cookie{
-				Name:     sessionCookieName,
-				Value:    "",
-				MaxAge:   -1,
-				Secure:   r.URL.Scheme == "https",
-				Path:     "/",
-				HttpOnly: true,
-			})
-			http.Redirect(w, r, loginPath, http.StatusSeeOther)
-			return
-		}
-
-		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
-
-	case "revoke-all-sessions":
-		if err := s.db.DeleteAllSessions(r.Context()); err != nil {
-			s.panelError(w, r, http.StatusInternalServerError, err)
-			return
-		}
-		http.SetCookie(w, &http.Cookie{
-			Name:     sessionCookieName,
-			Value:    "",
-			MaxAge:   -1,
-			Secure:   r.URL.Scheme == "https",
-			Path:     "/",
-			HttpOnly: true,
-		})
-		http.Redirect(w, r, loginPath, http.StatusSeeOther)
-
 	case "revoke":
 		id := r.Form.Get("id")
 		if id == "" {
-			s.panelError(w, r, http.StatusBadRequest, errors.New("missing token id"))
+			s.panelError(w, r, http.StatusBadRequest, errors.New("missing id"))
 			return
 		}
+
 		if err := s.db.DeleteToken(r.Context(), id); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
+
 		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
 
-	case "revoke-all-tokens":
-		if err := s.db.DeleteAllTokens(r.Context()); err != nil {
+	case "revoke-all":
+		tokenType := core.TokenType(r.Form.Get("type"))
+
+		switch tokenType {
+		case core.TokenTypeSession, core.TokenTypeAccess, core.TokenTypeRefresh:
+		default:
+			s.panelError(w, r, http.StatusBadRequest, errors.New("invalid type"))
+			return
+		}
+
+		if err := s.db.DeleteAllTokensByType(r.Context(), tokenType); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
+
 		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
 
 	default:

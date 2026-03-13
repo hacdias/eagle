@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/jwtauth/v5"
 	"go.hacdias.com/eagle/log"
 )
 
@@ -91,7 +90,6 @@ func (s *Server) makeRouter() http.Handler {
 
 	// IndieAuth-protected Pages
 	r.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(s.jwtAuth))
 		r.Use(s.mustIndieAuth)
 
 		// IndieAuth Server (Part III)

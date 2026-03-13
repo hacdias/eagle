@@ -1,14 +1,10 @@
 package database
 
 import (
-	"errors"
-
 	"go.hacdias.com/eagle/core"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
-
-var ErrNotFound = errors.New("not found")
 
 type Database struct {
 	db *gorm.DB
@@ -20,7 +16,7 @@ func NewDatabase(path string) (*Database, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&Session{}, &Token{}, &core.Mention{})
+	err = db.AutoMigrate(&core.Token{}, &core.Mention{})
 	if err != nil {
 		return nil, err
 	}

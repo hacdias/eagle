@@ -16,9 +16,8 @@ const (
 type Mention struct {
 	xray.Post `gorm:"embedded"`
 	Source    string `json:"source,omitempty"`
-
-	ID      string `json:"-" gorm:"primaryKey"`
-	EntryID string `json:"-"`
+	ID        string `json:"-"`
+	EntryID   string `json:"-"`
 }
 
 func (m *Mention) IsInteraction() bool {

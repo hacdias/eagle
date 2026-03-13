@@ -5,7 +5,8 @@
 
 {{ if .Sessions }}
   <form method='post'>
-    <input type='hidden' name='action' value='revoke-all-sessions' />
+    <input type='hidden' name='action' value='revoke-all' />
+    <input type='hidden' name='type' value='session' />
     <button>Revoke All Sessions</button>
   </form>
 
@@ -24,7 +25,7 @@
         <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
         <td>
           <form method='post'>
-            <input type='hidden' name='action' value='revoke-session' />
+            <input type='hidden' name='action' value='revoke' />
             <input type='hidden' name='id' value='{{ .ID }}' />
             <button>Revoke</button>
           </form>
@@ -43,7 +44,8 @@
 
 {{ if .Tokens }}
   <form method='post'>
-    <input type='hidden' name='action' value='revoke-all-tokens' />
+    <input type='hidden' name='action' value='revoke-all' />
+    <input type='hidden' name='type' value='access' />
     <button>Revoke All Tokens</button>
   </form>
 
@@ -77,6 +79,48 @@
   </table>
 {{ else }}
   <p>No active tokens.</p>
+{{ end }}
+
+
+<h2>Refresh Tokens</h2>
+
+{{ if .RefreshTokens }}
+  <form method='post'>
+    <input type='hidden' name='action' value='revoke-all' />
+    <input type='hidden' name='type' value='refresh' />
+    <button>Revoke All Refresh Tokens</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Scope</th>
+        <th>Created</th>
+        <th>Expires</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .RefreshTokens }}
+      <tr>
+        <td>{{ .ClientID }}</td>
+        <td>{{ .Scope }}</td>
+        <td>{{ .Created.Format "2006-01-02" }}</td>
+        <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
+        <td>
+          <form method='post'>
+            <input type='hidden' name='action' value='revoke' />
+            <input type='hidden' name='id' value='{{ .ID }}' />
+            <button>Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+{{ else }}
+  <p>No active refresh tokens.</p>
 {{ end }}
 
 {{ template "_footer.html" . }}
