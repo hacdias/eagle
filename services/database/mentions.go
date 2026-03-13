@@ -1,81 +1,34 @@
 package database
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"errors"
 
 	"github.com/google/uuid"
-	bolt "go.etcd.io/bbolt"
 	"go.hacdias.com/eagle/core"
+	"gorm.io/gorm"
 )
 
-func (b *Database) AddMention(ctx context.Context, mention *core.Mention) error {
+func (d *Database) AddMention(ctx context.Context, mention *core.Mention) error {
 	mention.ID = uuid.New().String()
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(mention)
-	if err != nil {
-		return err
-	}
-
-	return b.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("mentions"))
-		if err != nil {
-			return err
-		}
-
-		return b.Put([]byte(mention.ID), buf.Bytes())
-	})
+	return d.db.WithContext(ctx).Create(mention).Error
 }
 
-func (b *Database) GetMentions(ctx context.Context) ([]*core.Mention, error) {
+func (d *Database) GetMentions(ctx context.Context) ([]*core.Mention, error) {
 	var mentions []*core.Mention
-
-	return mentions, b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("mentions"))
-		if b == nil {
-			return nil
-		}
-
-		return b.ForEach(func(k, v []byte) error {
-			var mention *core.Mention
-			err := gob.NewDecoder(bytes.NewReader(v)).Decode(&mention)
-			if err != nil {
-				return err
-			}
-
-			mentions = append(mentions, mention)
-			return nil
-		})
-	})
+	err := d.db.WithContext(ctx).Find(&mentions).Error
+	return mentions, err
 }
 
-func (b *Database) GetMention(ctx context.Context, id string) (*core.Mention, error) {
-	var mention *core.Mention
-
-	return mention, b.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("mentions"))
-		if b == nil {
-			return errors.New("mention does not exist")
-		}
-
-		v := b.Get([]byte(id))
-		if v == nil {
-			return errors.New("mention does not exist")
-		}
-
-		return gob.NewDecoder(bytes.NewReader(v)).Decode(&mention)
-	})
+func (d *Database) GetMention(ctx context.Context, id string) (*core.Mention, error) {
+	var mention core.Mention
+	err := d.db.WithContext(ctx).First(&mention, "id = ?", id).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("mention does not exist")
+	}
+	return &mention, err
 }
 
-func (b *Database) DeleteMention(ctx context.Context, id string) error {
-	return b.db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("mentions"))
-		if b == nil {
-			return nil
-		}
-
-		return b.Delete([]byte(id))
-	})
+func (d *Database) DeleteMention(ctx context.Context, id string) error {
+	return d.db.WithContext(ctx).Delete(&core.Mention{}, "id = ?", id).Error
 }

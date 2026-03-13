@@ -26,7 +26,6 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/yuin/goldmark v1.7.16
-	go.etcd.io/bbolt v1.4.3
 	go.hacdias.com/indielib v0.5.0
 	go.hacdias.com/maze v0.5.0
 	go.uber.org/zap v1.27.1
@@ -34,6 +33,8 @@ require (
 	golang.org/x/crypto v0.48.0
 	golang.org/x/net v0.51.0
 	gopkg.in/telebot.v3 v3.3.8
+	gorm.io/driver/sqlite v1.6.0
+	gorm.io/gorm v1.31.1
 	miniflux.app/v2 v2.2.17
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
@@ -71,6 +72,8 @@ require (
 	github.com/ipfs/go-log v1.0.5 // indirect
 	github.com/ipfs/go-log/v2 v2.9.1 // indirect
 	github.com/ipfs/go-metrics-interface v0.3.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
 	github.com/lestrrat-go/dsig v1.0.0 // indirect
@@ -79,6 +82,7 @@ require (
 	github.com/lestrrat-go/httprc/v3 v3.0.4 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.1.0 // indirect

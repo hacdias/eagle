@@ -14,10 +14,10 @@ const (
 )
 
 type Mention struct {
-	xray.Post
-	Source string `json:"source,omitempty"`
+	xray.Post `gorm:"embedded"`
+	Source    string `json:"source,omitempty"`
 
-	ID      string `json:"-"`
+	ID      string `json:"-" gorm:"primaryKey"`
 	EntryID string `json:"-"`
 }
 

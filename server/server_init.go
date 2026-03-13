@@ -59,9 +59,9 @@ func (s *Server) initTemplates() error {
 	return nil
 }
 
-func (s *Server) initBolt() error {
+func (s *Server) initDatabase() error {
 	var err error
-	s.bolt, err = database.NewDatabase(filepath.Join(s.c.DataDirectory, "bolt.db"))
+	s.db, err = database.NewDatabase(filepath.Join(s.c.DataDirectory, "eagle.db"))
 	return err
 }
 
@@ -165,11 +165,11 @@ func (s *Server) initCron() error {
 
 		s.syncStorage()
 
-		if err := s.bolt.DeleteExpiredSessions(context.Background()); err != nil {
+		if err := s.db.DeleteExpiredSessions(context.Background()); err != nil {
 			s.log.Errorw("failed to delete expired sessions", "err", err)
 		}
 
-		if err := s.bolt.DeleteExpiredTokens(context.Background()); err != nil {
+		if err := s.db.DeleteExpiredTokens(context.Background()); err != nil {
 			s.log.Errorw("failed to delete expired tokens", "err", err)
 		}
 	})

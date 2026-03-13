@@ -489,7 +489,7 @@ type mentionsPage struct {
 }
 
 func (s *Server) panelMentionsGet(w http.ResponseWriter, r *http.Request) {
-	mentions, err := s.bolt.GetMentions(r.Context())
+	mentions, err := s.db.GetMentions(r.Context())
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting mentions: %w", err))
 		return
@@ -513,7 +513,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "approve":
-		e, err := s.bolt.GetMention(r.Context(), id)
+		e, err := s.db.GetMention(r.Context(), id)
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
@@ -532,7 +532,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 
 		fallthrough
 	case "delete":
-		err := s.bolt.DeleteMention(r.Context(), id)
+		err := s.db.DeleteMention(r.Context(), id)
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
@@ -552,12 +552,12 @@ type tokenPage struct {
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
-	sessions, err := s.bolt.GetSessions(r.Context())
+	sessions, err := s.db.GetSessions(r.Context())
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
-	tokens, err := s.bolt.GetTokens(r.Context())
+	tokens, err := s.db.GetTokens(r.Context())
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
@@ -587,7 +587,7 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 		cookie, _ := r.Cookie(sessionCookieName)
 		isOwnSession := cookie != nil && cookie.Value == id
 
-		if err := s.bolt.DeleteSession(r.Context(), id); err != nil {
+		if err := s.db.DeleteSession(r.Context(), id); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
@@ -608,7 +608,7 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
 
 	case "revoke-all-sessions":
-		if err := s.bolt.DeleteAllSessions(r.Context()); err != nil {
+		if err := s.db.DeleteAllSessions(r.Context()); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
@@ -628,14 +628,14 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 			s.panelError(w, r, http.StatusBadRequest, errors.New("missing token id"))
 			return
 		}
-		if err := s.bolt.DeleteToken(r.Context(), id); err != nil {
+		if err := s.db.DeleteToken(r.Context(), id); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
 		http.Redirect(w, r, panelTokensPath, http.StatusSeeOther)
 
 	case "revoke-all-tokens":
-		if err := s.bolt.DeleteAllTokens(r.Context()); err != nil {
+		if err := s.db.DeleteAllTokens(r.Context()); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}

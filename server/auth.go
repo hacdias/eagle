@@ -156,7 +156,7 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 		if tokenStr != "" {
 			if tok, err := jwtauth.VerifyToken(s.jwtAuth, tokenStr); err == nil && tok != nil {
 				if jti, ok := tok.JwtID(); ok && jti != "" {
-					_ = s.bolt.DeleteToken(r.Context(), jti)
+					_ = s.db.DeleteToken(r.Context(), jti)
 				}
 			}
 		}
@@ -192,7 +192,7 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found, err := s.bolt.HasToken(r.Context(), jti)
+	found, err := s.db.HasToken(r.Context(), jti)
 	if err != nil || !found {
 		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
 		return
@@ -339,7 +339,7 @@ func (s *Server) generateToken(ctx context.Context, client, scope string, expiry
 		return "", err
 	}
 
-	if err := s.bolt.AddToken(ctx, &database.Token{
+	if err := s.db.AddToken(ctx, &database.Token{
 		ID:       jti,
 		ClientID: client,
 		Scope:    scope,
@@ -386,7 +386,7 @@ func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		found, err := s.bolt.HasToken(r.Context(), jti)
+		found, err := s.db.HasToken(r.Context(), jti)
 		if err != nil || !found {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return

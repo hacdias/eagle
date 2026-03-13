@@ -68,7 +68,7 @@ type Server struct {
 	media      *media.Media
 	mediaCache *otter.Cache[string, []byte]
 
-	bolt *database.Database
+	db *database.Database
 
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
@@ -105,7 +105,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initMediaCache(),
 		s.initNotifier(),
 		s.initTemplates(),
-		s.initBolt(),
+		s.initDatabase(),
 		s.initMeilisearch(),
 		s.initPlugins(),
 		s.initSyndicators(),
@@ -195,7 +195,7 @@ func (s *Server) Stop() error {
 		err = errors.Join(err, srv.Shutdown(ctx))
 	}
 
-	return errors.Join(err, s.bolt.Close())
+	return errors.Join(err, s.db.Close())
 }
 
 func (s *Server) getActions() []string {

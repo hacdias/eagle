@@ -64,7 +64,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		Expiry:  expiration,
 		Created: time.Now(),
 	}
-	if err := s.bolt.AddSession(r.Context(), session); err != nil {
+	if err := s.db.AddSession(r.Context(), session); err != nil {
 		s.panelTemplate(w, r, http.StatusInternalServerError, panelLoginTemplate, &loginPage{
 			Title: "Login",
 			Error: err.Error(),
@@ -93,7 +93,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err == nil && cookie.Value != "" {
-		_ = s.bolt.DeleteSession(r.Context(), cookie.Value)
+		_ = s.db.DeleteSession(r.Context(), cookie.Value)
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -121,14 +121,14 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 			return
 		}
 
-		session, err := s.bolt.GetSession(r.Context(), cookie.Value)
+		session, err := s.db.GetSession(r.Context(), cookie.Value)
 		if err != nil || session == nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		if time.Now().After(session.Expiry) {
-			_ = s.bolt.DeleteSession(r.Context(), cookie.Value)
+			_ = s.db.DeleteSession(r.Context(), cookie.Value)
 			next.ServeHTTP(w, r)
 			return
 		}

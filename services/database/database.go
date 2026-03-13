@@ -3,26 +3,35 @@ package database
 import (
 	"errors"
 
-	bolt "go.etcd.io/bbolt"
+	"go.hacdias.com/eagle/core"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var ErrNotFound = errors.New("not found")
 
 type Database struct {
-	db *bolt.DB
+	db *gorm.DB
 }
 
 func NewDatabase(path string) (*Database, error) {
-	db, err := bolt.Open(path, 0666, nil)
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
-	return &Database{
-		db: db,
-	}, nil
+	err = db.AutoMigrate(&Session{}, &Token{}, &core.Mention{})
+	if err != nil {
+		return nil, err
+	}
+
+	return &Database{db: db}, nil
 }
 
-func (b *Database) Close() error {
-	return b.db.Close()
+func (d *Database) Close() error {
+	sqlDB, err := d.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }
