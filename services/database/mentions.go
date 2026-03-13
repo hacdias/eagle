@@ -3,12 +3,10 @@ package database
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"go.hacdias.com/eagle/core"
 )
 
 func (d *Database) CreateMention(ctx context.Context, mention *core.Mention) error {
-	mention.ID = uuid.New().String()
 	return d.db.WithContext(ctx).Create(mention).Error
 }
 

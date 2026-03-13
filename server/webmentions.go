@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/xray"
@@ -72,6 +73,7 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	s.log.Infow("received comment entry", "name", name, "website", website, "content", content)
 
 	err = s.db.CreateMention(r.Context(), &core.Mention{
+		ID: uuid.New().String(),
 		Post: xray.Post{
 			Author:    name,
 			AuthorURL: website,
@@ -135,6 +137,7 @@ func (s *Server) handleWebmention(payload *webmentionPayload) {
 	}
 
 	mention := &core.Mention{
+		ID:      uuid.New().String(),
 		Post:    *xray.Parse(payload.Post),
 		EntryID: e.ID,
 	}
