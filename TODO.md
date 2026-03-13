@@ -2,6 +2,9 @@
 
 - [ ] SQLite instead of Bolt
 - [ ] Monitor external links for 404s, and replace with Web Archive'd when possible. Perhaps via slow running cron job with queue
+  - [ ] After saving post for the **first time**, links should be queued so that they are archived at the **moment** the post is created (PostSaveHook integration?)
+  - [ ] Cronjob to periodically check for 404s
+- [ ] Webmention integration without relying on Webmention.io
 - [ ] Command to check for consistency with AT Protocol
 
 ## IndieAuth
@@ -13,8 +16,7 @@
 ## ATProto
 
 - [ ] `site.standard` integration (https://standard.site/)
-  - [ ] `site.standard.publication`
-    - [ ] Support for custom icon
+  - [ ] Custom icon
 - [ ] Integrations Eagle --> AT Protocol
   - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons
   - [ ] Readings with Popfeed.social or Bookhive.buzz
