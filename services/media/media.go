@@ -211,13 +211,16 @@ func (m *Media) GetImage(url string) ([]byte, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, res.Body)
+		_ = res.Body.Close()
+	}()
 
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, "", err
+	if res.StatusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("failed to fetch image %s: status %d", photoUrl, res.StatusCode)
 	}
 
-	err = res.Body.Close()
+	data, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, "", err
 	}

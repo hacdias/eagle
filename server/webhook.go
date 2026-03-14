@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -35,7 +36,14 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 	}
 	expectedMAC := hex.EncodeToString(mac.Sum(nil))
 
-	if !hmac.Equal([]byte(signature[5:]), []byte(expectedMAC)) {
+	const signaturePrefix = "sha1="
+	if !strings.HasPrefix(signature, signaturePrefix) {
+		s.log.Warn("webhook: invalid signature format")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !hmac.Equal([]byte(signature[len(signaturePrefix):]), []byte(expectedMAC)) {
 		s.log.Warn("webhook: forbidden request")
 		w.WriteHeader(http.StatusForbidden)
 		return

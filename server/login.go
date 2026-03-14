@@ -77,7 +77,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		Name:     sessionCookieName,
 		Value:    session.ID,
 		Expires:  expiration,
-		Secure:   r.URL.Scheme == "https",
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 		HttpOnly: true,
 		Path:     "/",
 		SameSite: http.SameSiteLaxMode,
@@ -101,7 +101,7 @@ func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 		Name:     sessionCookieName,
 		Value:    "",
 		MaxAge:   -1,
-		Secure:   r.URL.Scheme == "https",
+		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 		Path:     "/",
 		HttpOnly: true,
 	})

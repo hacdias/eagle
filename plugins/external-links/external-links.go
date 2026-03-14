@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
@@ -30,6 +31,7 @@ type ExternalLinks struct {
 	filename       string
 	ignoredDomains []string
 
+	mu       sync.RWMutex
 	links    linkCollections
 	linksMap map[string]linkCollection
 }
@@ -73,6 +75,9 @@ func (el *ExternalLinks) HandlerRoute() string {
 }
 
 func (el *ExternalLinks) Handler(w http.ResponseWriter, r *http.Request, utils *server.PluginWebUtilities) {
+	el.mu.RLock()
+	defer el.mu.RUnlock()
+
 	domain := r.URL.Query().Get("domain")
 	if domain == "" {
 		utils.JSON(w, http.StatusOK, el.links)
@@ -158,7 +163,7 @@ func (el *ExternalLinks) UpdateExternalLinks() error {
 
 			var ignore bool
 			for _, ignoredDomain := range el.ignoredDomains {
-				if strings.HasSuffix(ignoredDomain, hostname) {
+				if strings.HasSuffix(hostname, ignoredDomain) {
 					ignore = true
 					break
 				}
@@ -213,9 +218,11 @@ func (el *ExternalLinks) UpdateExternalLinks() error {
 		return err
 	}
 
+	el.mu.Lock()
 	el.links = newLinks
 	el.linksMap = newLinks.byDomain()
-	return err
+	el.mu.Unlock()
+	return nil
 }
 
 const wellKnownLinksPath = "/.well-known/links"

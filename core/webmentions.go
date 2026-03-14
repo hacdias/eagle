@@ -127,8 +127,8 @@ func (co *Core) sendWebmention(source, target string) error {
 		return fmt.Errorf("error sending webmention: %w", err)
 	}
 
-	_, _ = io.Copy(io.Discard, res.Body)
 	defer func() {
+		_, _ = io.Copy(io.Discard, res.Body)
 		_ = res.Body.Close()
 	}()
 
