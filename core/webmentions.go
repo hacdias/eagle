@@ -27,7 +27,7 @@ func (co *Core) AddOrUpdateWebmention(id string, mention *Mention, sourceOrURL s
 	isInteraction := mention.IsInteraction()
 
 	return co.UpdateSidecar(e, func(sidecar *Sidecar) (*Sidecar, error) {
-		var mentions []*Mention
+		var mentions []*XRay
 		if isInteraction {
 			mentions = sidecar.Interactions
 		} else {
@@ -37,17 +37,15 @@ func (co *Core) AddOrUpdateWebmention(id string, mention *Mention, sourceOrURL s
 		updated := false
 		for i, m := range mentions {
 			if (m.URL == mention.URL && len(m.URL) != 0) ||
-				(m.Source == mention.Source && len(m.Source) != 0) ||
-				(m.URL == sourceOrURL && len(m.URL) != 0) ||
-				(m.Source == sourceOrURL && len(m.Source) != 0) {
-				mentions[i] = mention
+				(m.URL == sourceOrURL && len(m.URL) != 0) {
+				mentions[i] = &mention.XRay
 				updated = true
 				break
 			}
 		}
 
 		if !updated {
-			mentions = append(mentions, mention)
+			mentions = append(mentions, &mention.XRay)
 		}
 
 		if isInteraction {
@@ -71,12 +69,12 @@ func (co *Core) DeleteWebmention(id, sourceOrURL string) error {
 	}
 
 	return co.UpdateSidecar(e, func(sidecar *Sidecar) (*Sidecar, error) {
-		sidecar.Replies = lo.Filter(sidecar.Replies, func(mention *Mention, _ int) bool {
-			return mention.URL != sourceOrURL && mention.Source != sourceOrURL
+		sidecar.Replies = lo.Filter(sidecar.Replies, func(mention *XRay, _ int) bool {
+			return mention.URL != sourceOrURL
 		})
 
-		sidecar.Interactions = lo.Filter(sidecar.Interactions, func(mention *Mention, _ int) bool {
-			return mention.URL != sourceOrURL && mention.Source != sourceOrURL
+		sidecar.Interactions = lo.Filter(sidecar.Interactions, func(mention *XRay, _ int) bool {
+			return mention.URL != sourceOrURL
 		})
 
 		return sidecar, nil

@@ -63,7 +63,6 @@ type ServerConfig struct {
 
 	Login         Login
 	Comments      Comments
-	Webmentions   Webmentions
 	Notifications Notifications
 	Media         Media
 	Meilisearch   *Meilisearch
@@ -163,10 +162,6 @@ type Comments struct {
 func (c *Comments) validate() error {
 	c.Captcha = strings.ToLower(c.Captcha)
 	return nil
-}
-
-type Webmentions struct {
-	Secret string
 }
 
 type Telegram struct {
