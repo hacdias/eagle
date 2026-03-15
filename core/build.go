@@ -97,5 +97,13 @@ func (co *Core) IsLinkValid(permalink string) (bool, error) {
 	}
 
 	_, err = co.buildFS.Stat(filepath.Join(co.buildName, url.Path, "index.html"))
-	return err == nil, err
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return false, err
 }
