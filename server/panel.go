@@ -35,6 +35,7 @@ const (
 	panelTokensPath   = panelPath + "/tokens"
 	panelNewTokenPath = panelTokensPath + "/new"
 	panelCachePath    = panelPath + "/cache"
+	panelQueuePath    = panelPath + "/queue"
 )
 
 func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
@@ -680,6 +681,52 @@ func (s *Server) panelCachePost(w http.ResponseWriter, r *http.Request) {
 	filename := fmt.Sprintf("cache:%x%s", sha256.Sum256(file), ext)
 	s.mediaCache.Set(filename, file)
 	_, _ = w.Write([]byte(filename))
+}
+
+type queuePage struct {
+	Title   string
+	Active  []*core.QueueItem
+	Failed  []*core.QueueItem
+	Success string
+}
+
+func (s *Server) panelQueueGet(w http.ResponseWriter, r *http.Request) {
+	active, err := s.core.DB().GetActiveQueueItems(r.Context())
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting active queue items: %w", err))
+		return
+	}
+
+	failed, err := s.core.DB().GetFailedQueueItems(r.Context())
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting failed queue items: %w", err))
+		return
+	}
+
+	s.panelTemplate(w, r, http.StatusOK, panelQueueTemplate, &queuePage{
+		Title:   "Queue",
+		Active:  active,
+		Failed:  failed,
+		Success: r.URL.Query().Get("success"),
+	})
+}
+
+func (s *Server) panelQueuePost(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	switch r.Form.Get("action") {
+	case "clear-failed":
+		if err := s.core.DB().DeleteFailedQueueItems(r.Context()); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		http.Redirect(w, r, panelQueuePath+"?success=cleared", http.StatusSeeOther)
+	default:
+		s.panelError(w, r, http.StatusBadRequest, errors.New("invalid action"))
+	}
 }
 
 func normalizeLineEndings(d []byte) []byte {
