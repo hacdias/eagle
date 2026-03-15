@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"sort"
 
-	"go.hacdias.com/eagle/xray"
 	"go.hacdias.com/indielib/microformats"
 )
 
@@ -14,10 +13,9 @@ const (
 )
 
 type Mention struct {
-	xray.Post `gorm:"embedded"`
-	Source    string `json:"source,omitempty"`
-	ID        string `json:"-"`
-	EntryID   string `json:"-"`
+	XRay    `gorm:"embedded"`
+	ID      string `json:"-"`
+	EntryID string `json:"-"`
 }
 
 func (m *Mention) IsInteraction() bool {
@@ -28,15 +26,12 @@ func (m *Mention) IsInteraction() bool {
 }
 
 type Sidecar struct {
-	Context      *xray.Post `json:"context,omitempty"`
-	Replies      []*Mention `json:"replies,omitempty"`
-	Interactions []*Mention `json:"interactions,omitempty"`
+	Replies      []*XRay `json:"replies,omitempty"`
+	Interactions []*XRay `json:"interactions,omitempty"`
 }
 
 func (s *Sidecar) Empty() bool {
-	return s.Context == nil &&
-		len(s.Replies) == 0 &&
-		len(s.Interactions) == 0
+	return len(s.Replies) == 0 && len(s.Interactions) == 0
 }
 
 func (f *Core) getSidecar(entry *Entry) (*Sidecar, string, error) {
@@ -56,11 +51,11 @@ func (f *Core) getSidecar(entry *Entry) (*Sidecar, string, error) {
 	}
 
 	if sidecar.Replies == nil {
-		sidecar.Replies = []*Mention{}
+		sidecar.Replies = []*XRay{}
 	}
 
 	if sidecar.Interactions == nil {
-		sidecar.Interactions = []*Mention{}
+		sidecar.Interactions = []*XRay{}
 	}
 
 	return sidecar, filename, err

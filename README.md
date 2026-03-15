@@ -19,7 +19,7 @@ docker pull ghcr.io/hacdias/eagle:latest
 ## Features
 
 - Single user system.
-- Receive and send [Webmentions](https://webmention.net/). Incoming must be configured via [Webmention.io](https://webmention.io).
+- Receive and send [Webmentions](https://webmention.net/).
 - Comment endpoint, allowing to directly submit comments via the website.
 - [IndieAuth](https://indieauth.spec.indieweb.org/) OAuth server to login elsewhere with your website.
 - Notifications (e.g. from Webmentions) via custom Telegram bot.

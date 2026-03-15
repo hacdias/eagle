@@ -28,9 +28,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Post(webhookPath, s.webhookPost)
 	}
 
-	if s.c.Webmentions.Secret != "" {
-		r.Post(webmentionPath, s.webmentionPost)
-	}
+	r.Post(webmentionPath, s.webmentionPost)
 
 	if s.meilisearch != nil {
 		r.Get(searchPath, s.searchGet)
