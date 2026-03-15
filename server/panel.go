@@ -488,7 +488,7 @@ type mentionsPage struct {
 }
 
 func (s *Server) panelMentionsGet(w http.ResponseWriter, r *http.Request) {
-	mentions, err := s.db.GetMentions(r.Context())
+	mentions, err := s.core.DB().GetMentions(r.Context())
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting mentions: %w", err))
 		return
@@ -512,7 +512,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "approve":
-		e, err := s.db.GetMention(r.Context(), id)
+		e, err := s.core.DB().GetMention(r.Context(), id)
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
@@ -531,7 +531,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 
 		fallthrough
 	case "delete":
-		err := s.db.DeleteMention(r.Context(), id)
+		err := s.core.DB().DeleteMention(r.Context(), id)
 		if err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
@@ -552,19 +552,19 @@ type tokenPage struct {
 }
 
 func (s *Server) panelTokensGet(w http.ResponseWriter, r *http.Request) {
-	sessions, err := s.db.GetTokensByType(r.Context(), core.TokenTypeSession)
+	sessions, err := s.core.DB().GetTokensByType(r.Context(), core.TokenTypeSession)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	tokens, err := s.db.GetTokensByType(r.Context(), core.TokenTypeAccess)
+	tokens, err := s.core.DB().GetTokensByType(r.Context(), core.TokenTypeAccess)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	refreshTokens, err := s.db.GetTokensByType(r.Context(), core.TokenTypeRefresh)
+	refreshTokens, err := s.core.DB().GetTokensByType(r.Context(), core.TokenTypeRefresh)
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
@@ -592,7 +592,7 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := s.db.DeleteToken(r.Context(), id); err != nil {
+		if err := s.core.DB().DeleteToken(r.Context(), id); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
@@ -609,7 +609,7 @@ func (s *Server) panelTokensPost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := s.db.DeleteAllTokensByType(r.Context(), tokenType); err != nil {
+		if err := s.core.DB().DeleteAllTokensByType(r.Context(), tokenType); err != nil {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}

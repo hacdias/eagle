@@ -3,6 +3,7 @@ package core
 import (
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 type Core struct {
 	cfg      *Config
 	baseURL  *url.URL
+	db       *Database
 	wmClient *webmention.Client
 
 	// Source
@@ -24,11 +26,18 @@ type Core struct {
 	buildFS   *afero.Afero // afero around [Config.PublicDirectory]
 	buildName string       // the name of the current build (sub-directory in buildFS)
 	BuildHook func(string) // called when the build directory has changed
+
 }
 
 func NewCore(cfg *Config) (*Core, error) {
+	db, err := newDatabase(filepath.Join(cfg.DataDirectory, "eagle.db"))
+	if err != nil {
+		return nil, err
+	}
+
 	co := &Core{
 		cfg: cfg,
+		db:  db,
 		wmClient: webmention.New(&http.Client{
 			Timeout: time.Minute,
 		}),
@@ -67,4 +76,14 @@ func (co *Core) BaseURL() *url.URL {
 // SiteConfig returns the site configuration.
 func (co *Core) SiteConfig() SiteConfig {
 	return co.cfg.Site
+}
+
+// DB returns the database.
+func (co *Core) DB() *Database {
+	return co.db
+}
+
+// Close closes the database.
+func (co *Core) Close() error {
+	return co.db.Close()
 }

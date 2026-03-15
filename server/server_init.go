@@ -10,7 +10,6 @@ import (
 
 	"github.com/maypok86/otter/v2"
 	"go.hacdias.com/eagle/log"
-	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/eagle/services/meilisearch"
 	"go.hacdias.com/eagle/services/telegram"
 )
@@ -57,12 +56,6 @@ func (s *Server) initTemplates() error {
 
 	s.templates = htmlTemplates
 	return nil
-}
-
-func (s *Server) initDatabase() error {
-	var err error
-	s.db, err = database.NewDatabase(filepath.Join(s.c.DataDirectory, "eagle.db"))
-	return err
 }
 
 func (s *Server) initMeilisearch() error {
@@ -165,7 +158,7 @@ func (s *Server) initCron() error {
 
 		s.syncStorage()
 
-		if err := s.db.DeleteExpiredTokens(context.Background()); err != nil {
+		if err := s.core.DB().DeleteExpiredTokens(context.Background()); err != nil {
 			s.log.Errorw("failed to delete expired tokens", "err", err)
 		}
 	})

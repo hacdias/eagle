@@ -72,7 +72,7 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 
 	s.log.Infow("received comment entry", "name", name, "website", website, "content", content)
 
-	err = s.db.CreateMention(r.Context(), &core.Mention{
+	err = s.core.DB().CreateMention(r.Context(), &core.Mention{
 		ID: uuid.New().String(),
 		Post: xray.Post{
 			Author:    name,
@@ -146,7 +146,7 @@ func (s *Server) handleWebmention(payload *webmentionPayload) {
 		mention.Source = payload.Source
 	}
 
-	err = s.db.CreateMention(context.Background(), mention)
+	err = s.core.DB().CreateMention(context.Background(), mention)
 	if err != nil {
 		s.log.Errorw("failed to add webmention", "target", payload.Target, "err", err)
 	} else {

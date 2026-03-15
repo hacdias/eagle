@@ -153,7 +153,7 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 		// of IndieAuth specification. Revocation endpoints are now separate.
 		tokenID := r.Form.Get("token")
 		if tokenID != "" {
-			_ = s.db.DeleteToken(r.Context(), tokenID)
+			_ = s.core.DB().DeleteToken(r.Context(), tokenID)
 		}
 		w.WriteHeader(http.StatusOK)
 		return
@@ -177,7 +177,7 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := s.db.GetToken(r.Context(), tokenID, core.TokenTypeAccess)
+	token, err := s.core.DB().GetToken(r.Context(), tokenID, core.TokenTypeAccess)
 	if err != nil {
 		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
 		return
@@ -325,7 +325,7 @@ func (s *Server) generateToken(ctx context.Context, client, scope string, expiry
 		expiresAt = time.Now().Add(expiry)
 	}
 
-	return id, s.db.CreateToken(ctx, &core.Token{
+	return id, s.core.DB().CreateToken(ctx, &core.Token{
 		ID:       id,
 		Type:     core.TokenTypeAccess,
 		ClientID: client,
@@ -337,7 +337,7 @@ func (s *Server) generateToken(ctx context.Context, client, scope string, expiry
 
 func (s *Server) generateRefreshToken(ctx context.Context, client, scope string, expiry time.Duration) (string, error) {
 	id := uuid.New().String()
-	return id, s.db.CreateToken(ctx, &core.Token{
+	return id, s.core.DB().CreateToken(ctx, &core.Token{
 		ID:       id,
 		Type:     core.TokenTypeRefresh,
 		ClientID: client,
@@ -354,14 +354,14 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rt, err := s.db.GetToken(r.Context(), tokenID, core.TokenTypeRefresh)
+	rt, err := s.core.DB().GetToken(r.Context(), tokenID, core.TokenTypeRefresh)
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "invalid refresh token")
 		return
 	}
 
 	if rt.Expiry.Before(time.Now()) {
-		_ = s.db.DeleteToken(r.Context(), rt.ID)
+		_ = s.core.DB().DeleteToken(r.Context(), rt.ID)
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "refresh token expired")
 		return
 	}
@@ -386,7 +386,7 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Rotate the refresh token.
-	if err := s.db.DeleteToken(r.Context(), rt.ID); err != nil {
+	if err := s.core.DB().DeleteToken(r.Context(), rt.ID); err != nil {
 		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
 	}
@@ -446,7 +446,7 @@ func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		token, err := s.db.GetToken(r.Context(), tokenID, core.TokenTypeAccess)
+		token, err := s.core.DB().GetToken(r.Context(), tokenID, core.TokenTypeAccess)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return

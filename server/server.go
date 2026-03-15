@@ -25,7 +25,6 @@ import (
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
-	"go.hacdias.com/eagle/services/database"
 	"go.hacdias.com/eagle/services/media"
 	"go.hacdias.com/eagle/services/meilisearch"
 	"go.hacdias.com/indielib/indieauth"
@@ -68,8 +67,6 @@ type Server struct {
 	media      *media.Media
 	mediaCache *otter.Cache[string, []byte]
 
-	db *database.Database
-
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
 	templates    *template.Template
@@ -105,7 +102,6 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initMediaCache(),
 		s.initNotifier(),
 		s.initTemplates(),
-		s.initDatabase(),
 		s.initMeilisearch(),
 		s.initPlugins(),
 		s.initSyndicators(),
@@ -195,7 +191,7 @@ func (s *Server) Stop() error {
 		err = errors.Join(err, srv.Shutdown(ctx))
 	}
 
-	return errors.Join(err, s.db.Close())
+	return errors.Join(err, s.core.Close())
 }
 
 func (s *Server) getActions() []string {

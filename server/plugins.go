@@ -73,6 +73,11 @@ type SyndicationPlugin interface {
 	Syndicate(context.Context, *core.Entry, *SyndicationContext) error
 }
 
+type QueuePlugin interface {
+	QueueItemType() string
+	HandleQueueItem(ctx context.Context, payload []byte) error
+}
+
 var (
 	pluginRegistry = map[string]PluginInitializer{}
 )

@@ -65,7 +65,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		Expiry:  expiration,
 		Created: time.Now(),
 	}
-	if err := s.db.CreateToken(r.Context(), session); err != nil {
+	if err := s.core.DB().CreateToken(r.Context(), session); err != nil {
 		s.panelTemplate(w, r, http.StatusInternalServerError, panelLoginTemplate, &loginPage{
 			Title: "Login",
 			Error: err.Error(),
@@ -94,7 +94,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err == nil && cookie.Value != "" {
-		_ = s.db.DeleteToken(r.Context(), cookie.Value)
+		_ = s.core.DB().DeleteToken(r.Context(), cookie.Value)
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -122,14 +122,14 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 			return
 		}
 
-		session, err := s.db.GetToken(r.Context(), cookie.Value, core.TokenTypeSession)
+		session, err := s.core.DB().GetToken(r.Context(), cookie.Value, core.TokenTypeSession)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		if time.Now().After(session.Expiry) {
-			_ = s.db.DeleteToken(r.Context(), cookie.Value)
+			_ = s.core.DB().DeleteToken(r.Context(), cookie.Value)
 			next.ServeHTTP(w, r)
 			return
 		}
