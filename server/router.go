@@ -85,6 +85,8 @@ func (s *Server) makeRouter() http.Handler {
 			r.Get(panelNewPath, s.panelNewGet)
 			r.Post(panelNewPath, s.panelNewPost)
 			r.Post(panelCachePath, s.panelCachePost)
+			r.Get(panelQueuePath, s.panelQueueGet)
+			r.Post(panelQueuePath, s.panelQueuePost)
 		})
 	})
 

@@ -26,6 +26,7 @@ const (
 	panelEditorTemplate   string = "editor.html"
 	panelNewTemplate      string = "new.html"
 	panelBrowserTemplate  string = "browser.html"
+	panelQueueTemplate    string = "queue.html"
 )
 
 type errorPage struct {

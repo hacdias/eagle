@@ -21,7 +21,7 @@ func newDatabase(path string) (*Database, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&Token{}, &Mention{})
+	err = db.AutoMigrate(&Token{}, &Mention{}, &QueueItem{})
 	if err != nil {
 		return nil, err
 	}
@@ -89,4 +89,44 @@ func (d *Database) GetMentions(ctx context.Context) ([]*Mention, error) {
 
 func (d *Database) DeleteMention(ctx context.Context, id string) error {
 	return d.db.WithContext(ctx).Delete(&Mention{}, "id = ?", id).Error
+}
+
+// Queue methods
+
+func (d *Database) CreateQueueItem(ctx context.Context, item *QueueItem) error {
+	return d.db.WithContext(ctx).Create(item).Error
+}
+
+func (d *Database) GetPendingQueueItems(ctx context.Context, n, maxAttempts int, retryAfter time.Time) ([]*QueueItem, error) {
+	var items []*QueueItem
+	err := d.db.WithContext(ctx).
+		Where("attempts < ? AND (last_attempt IS NULL OR last_attempt <= ?)", maxAttempts, retryAfter).
+		Order("created asc").
+		Limit(n).
+		Find(&items).Error
+	return items, err
+}
+
+func (d *Database) UpdateQueueItem(ctx context.Context, item *QueueItem) error {
+	return d.db.WithContext(ctx).Save(item).Error
+}
+
+func (d *Database) DeleteQueueItem(ctx context.Context, id string) error {
+	return d.db.WithContext(ctx).Delete(&QueueItem{}, "id = ?", id).Error
+}
+
+func (d *Database) GetFailedQueueItems(ctx context.Context) ([]*QueueItem, error) {
+	var items []*QueueItem
+	err := d.db.WithContext(ctx).Where("attempts >= ?", 3).Order("created asc").Find(&items).Error
+	return items, err
+}
+
+func (d *Database) GetActiveQueueItems(ctx context.Context) ([]*QueueItem, error) {
+	var items []*QueueItem
+	err := d.db.WithContext(ctx).Where("attempts < ?", 3).Order("created asc").Find(&items).Error
+	return items, err
+}
+
+func (d *Database) DeleteFailedQueueItems(ctx context.Context) error {
+	return d.db.WithContext(ctx).Where("attempts >= ?", 3).Delete(&QueueItem{}).Error
 }

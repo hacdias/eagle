@@ -81,6 +81,17 @@ func (s *Server) initPlugins() error {
 	return nil
 }
 
+func (s *Server) initQueuePlugins() error {
+	for _, plugin := range s.plugins {
+		queuePlugin, ok := plugin.(QueuePlugin)
+		if !ok {
+			continue
+		}
+		s.core.Queue().Register(queuePlugin.QueueItemType(), queuePlugin.HandleQueueItem)
+	}
+	return nil
+}
+
 func (s *Server) initSyndicators() error {
 	s.syndicators = map[string]SyndicationPlugin{}
 	for _, plugin := range s.plugins {

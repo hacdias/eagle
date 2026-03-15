@@ -1,0 +1,67 @@
+{{ template "_header.html" . }}
+{{ template "_navigation.html" "queue" }}
+
+{{ if eq .Success "cleared" }}
+  <p><strong>✅ Failed jobs cleared.</strong></p>
+{{ end }}
+
+<h2>Active Jobs</h2>
+
+{{ if eq (len .Active) 0 }}
+  <p>No active jobs in the queue.</p>
+{{ else }}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Attempts</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Active }}
+        <tr>
+          <td>{{ .ID }}</td>
+          <td>{{ .Type }}</td>
+          <td>{{ .Attempts }}</td>
+          <td>{{ .Created }}</td>
+        </tr>
+      {{ end }}
+    </tbody>
+  </table>
+{{ end }}
+
+<h2>Failed Jobs</h2>
+
+{{ if eq (len .Failed) 0 }}
+  <p>No failed jobs.</p>
+{{ else }}
+  <form method='POST'>
+    <input type='hidden' name='action' value='clear-failed' />
+    <button style='background: orangered'>Clear All Failed Jobs</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Error</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Failed }}
+        <tr>
+          <td>{{ .ID }}</td>
+          <td>{{ .Type }}</td>
+          <td>{{ .FailedReason }}</td>
+          <td>{{ .Created }}</td>
+        </tr>
+      {{ end }}
+    </tbody>
+  </table>
+{{ end }}
+
+{{ template "_footer.html" . }}

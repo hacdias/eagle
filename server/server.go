@@ -54,6 +54,7 @@ type Server struct {
 	plugins     map[string]Plugin
 	syndicators map[string]SyndicationPlugin
 	cron        *cron.Cron
+	queueCancel context.CancelFunc
 
 	redirects map[string]string
 	gone      map[string]bool
@@ -104,6 +105,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initTemplates(),
 		s.initMeilisearch(),
 		s.initPlugins(),
+		s.initQueuePlugins(),
 		s.initSyndicators(),
 		s.initActions(),
 		s.initCron(),
@@ -118,6 +120,10 @@ func (s *Server) Start() error {
 	go func() {
 		s.indexAll()
 	}()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	s.queueCancel = cancel
+	go s.core.Queue().Run(ctx)
 
 	// Make sure we have a built version to serve
 	should, err := s.core.ShouldBuild()
@@ -180,6 +186,8 @@ func (s *Server) startServer(errCh chan error, h http.Handler) error {
 }
 
 func (s *Server) Stop() error {
+	s.queueCancel()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
