@@ -105,7 +105,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initTemplates(),
 		s.initMeilisearch(),
 		s.initPlugins(),
-		s.initQueuePlugins(),
+		s.initQueue(),
 		s.initSyndicators(),
 		s.initActions(),
 		s.initCron(),

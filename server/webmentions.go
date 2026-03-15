@@ -1,10 +1,12 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -13,12 +15,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"go.hacdias.com/eagle/core"
-	"go.hacdias.com/eagle/xray"
+	"willnorris.com/go/webmention"
 )
 
 const (
-	webmentionPath = "/webmention"
-	commentsPath   = "/comments"
+	webmentionPath      = "/webmention"
+	commentsPath        = "/comments"
+	queueTypeWebmention = "webmention"
+
+	webmentionHTTPTimeout = 30 * time.Second
 )
 
 func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +79,7 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 
 	err = s.core.DB().CreateMention(r.Context(), &core.Mention{
 		ID: uuid.New().String(),
-		Post: xray.Post{
+		XRay: core.XRay{
 			Author:    name,
 			AuthorURL: website,
 			Content:   content,
@@ -91,65 +96,147 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, s.c.Comments.Redirect, http.StatusSeeOther)
 }
 
-type webmentionPayload struct {
-	Source  string         `json:"source"`
-	Secret  string         `json:"secret"`
-	Deleted bool           `json:"deleted"`
-	Target  string         `json:"target"`
-	Post    map[string]any `json:"post"`
+type wmPayload struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
 }
 
+// See https://www.w3.org/TR/webmention/#receiving-webmentions
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
-	payload := &webmentionPayload{}
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "failed to parse form", http.StatusBadRequest)
+		return
+	}
+
+	sourceStr := r.FormValue("source")
+	targetStr := r.FormValue("target")
+
+	if sourceStr == "" || targetStr == "" {
+		http.Error(w, "source and target are required", http.StatusBadRequest)
+		return
+	}
+
+	sourceURL, err := url.Parse(sourceStr)
+	if err != nil || (sourceURL.Scheme != "http" && sourceURL.Scheme != "https") {
+		http.Error(w, "source must be a valid http or https URL", http.StatusBadRequest)
+		return
+	}
+
+	targetURL, err := url.Parse(targetStr)
+	if err != nil || (targetURL.Scheme != "http" && targetURL.Scheme != "https") {
+		http.Error(w, "target must be a valid http or https URL", http.StatusBadRequest)
+		return
+	}
+
+	// Target must be on our domain.
+	baseURL, _ := url.Parse(s.c.Site.BaseURL)
+	if targetURL.Hostname() != baseURL.Hostname() {
+		http.Error(w, "target is not on this site", http.StatusBadRequest)
+		return
+	}
+
+	// Target must resolve to a known entry.
+	_, err = s.core.GetEntryByPermalink(targetStr)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		s.log.Errorw("error decoding webmention", "err", err)
+		http.Error(w, "target not found", http.StatusBadRequest)
 		return
 	}
 
-	if payload.Secret != s.c.Webmentions.Secret {
-		w.WriteHeader(http.StatusForbidden)
+	if err := s.core.Enqueue(r.Context(), queueTypeWebmention, wmPayload{
+		Source: sourceStr,
+		Target: targetStr,
+	}); err != nil {
+		s.log.Errorw("failed to enqueue webmention", "source", sourceStr, "target", targetStr, "err", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	payload.Secret = ""
-	go s.handleWebmention(payload)
-	w.WriteHeader(http.StatusOK)
+	s.log.Infow("webmention enqueued", "source", sourceStr, "target", targetStr)
+	w.WriteHeader(http.StatusAccepted)
 }
 
-func (s *Server) handleWebmention(payload *webmentionPayload) {
-	s.log.Infow("received webmention", "webmention", payload)
-	e, err := s.core.GetEntryByPermalink(payload.Target)
-	if err != nil {
-		s.log.Errorw("failed to get entry for permalink", "target", payload.Target, "err", err)
-		return
+func (s *Server) handleWebmentionQueueItem(ctx context.Context, payload []byte) error {
+	var job wmPayload
+	if err := json.Unmarshal(payload, &job); err != nil {
+		return fmt.Errorf("invalid webmention payload: %w", err)
 	}
 
-	if payload.Deleted {
-		err = s.core.DeleteWebmention(e.ID, payload.Source)
-		if err != nil {
-			s.log.Errorw("failed to delete webmention", "target", payload.Target, "err", err)
-		} else {
-			s.n.Notify(fmt.Sprintf("💬 #mention deleted for %q: %q", e.Permalink, payload.Source))
-		}
-		return
+	s.log.Infow("processing webmention", "source", job.Source, "target", job.Target)
+
+	e, err := s.core.GetEntryByPermalink(job.Target)
+	if err != nil {
+		return fmt.Errorf("target entry not found for %s: %w", job.Target, err)
 	}
+
+	// Fetch the source page.
+	httpClient := &http.Client{Timeout: webmentionHTTPTimeout}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, job.Source, nil)
+	if err != nil {
+		return fmt.Errorf("creating request for source %s: %w", job.Source, err)
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("fetching source %s: %w", job.Source, err)
+	}
+	defer func() {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode == http.StatusGone || resp.StatusCode == http.StatusNotFound {
+		// Source has been deleted — remove any existing mention.
+		if delErr := s.core.DeleteWebmention(e.ID, job.Source); delErr != nil {
+			s.log.Errorw("failed to delete webmention for gone source", "source", job.Source, "err", delErr)
+		} else {
+			s.n.Notify(fmt.Sprintf("💬 #mention deleted for %q: %q", e.Permalink, job.Source))
+		}
+		return nil
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("source %s returned status %d", job.Source, resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 5<<20)) // 5 MB cap
+	if err != nil {
+		return fmt.Errorf("reading source body %s: %w", job.Source, err)
+	}
+
+	links, err := webmention.DiscoverLinksFromReader(bytes.NewReader(body), job.Source, "")
+	if err != nil {
+		return fmt.Errorf("parsing source HTML %s: %w", job.Source, err)
+	}
+
+	target := strings.TrimSuffix(job.Target, "/")
+	contains := false
+	for _, href := range links {
+		if href == target || strings.HasPrefix(href, target+"/") || strings.HasPrefix(href, target+"?") || strings.HasPrefix(href, target+"#") {
+			contains = true
+			break
+		}
+	}
+
+	// Verify source contains a link to target.
+	if !contains {
+		// TODO: permanent error
+		return fmt.Errorf("source %s does not link to target %s", job.Source, job.Target)
+	}
+
+	// Parse microformats from source.
+	sourceURL, _ := url.Parse(job.Source)
+	post := core.ParseXRay(bytes.NewReader(body), sourceURL)
 
 	mention := &core.Mention{
 		ID:      uuid.New().String(),
-		Post:    *xray.Parse(payload.Post),
+		XRay:    *post,
 		EntryID: e.ID,
 	}
 
-	if payload.Source != mention.URL {
-		mention.Source = payload.Source
+	if err := s.core.DB().CreateMention(ctx, mention); err != nil {
+		return fmt.Errorf("storing webmention: %w", err)
 	}
 
-	err = s.core.DB().CreateMention(context.Background(), mention)
-	if err != nil {
-		s.log.Errorw("failed to add webmention", "target", payload.Target, "err", err)
-	} else {
-		s.n.Notify(fmt.Sprintf("💬 #mention pending approval for %q: %q", e.Permalink, payload.Source))
-	}
+	s.n.Notify(fmt.Sprintf("💬 #mention pending approval for %q: %q", e.Permalink, job.Source))
+	return nil
 }
