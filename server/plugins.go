@@ -44,7 +44,7 @@ type CronPlugin interface {
 
 type HookPlugin interface {
 	PreSaveHook(*core.Entry) error
-	PostSaveHook(*core.Entry) error
+	PostSaveHook(e *core.Entry, isNew bool) error
 }
 
 type Photo struct {

@@ -154,6 +154,7 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 }
 
 type postSaveEntryOptions struct {
+	isNew             bool
 	skipBuild         bool
 	syndicators       []string
 	syndicationStatus string
@@ -176,7 +177,7 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 			continue
 		}
 
-		err := hookPlugin.PostSaveHook(e)
+		err := hookPlugin.PostSaveHook(e, options.isNew)
 		if err != nil {
 			s.log.Errorw("plugin post save hook failed", "plugin", name, "err", err)
 		}

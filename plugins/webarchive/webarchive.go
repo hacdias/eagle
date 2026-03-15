@@ -1,7 +1,8 @@
 package webarchive
 
 import (
-	"errors"
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -11,33 +12,27 @@ import (
 )
 
 var (
-	_ server.HookPlugin = &WebArchive{}
+	_ server.HookPlugin  = &WebArchive{}
+	_ server.QueuePlugin = &WebArchive{}
 )
+
+const queueItemType = "webarchive"
 
 func init() {
 	server.RegisterPlugin("webarchive", NewWebArchive)
 }
 
 type WebArchive struct {
-	core   *core.Core
-	fields []string
+	core          *core.Core
+	archiveOnSave bool
 }
 
 func NewWebArchive(co *core.Core, config map[string]any) (server.Plugin, error) {
 	cfg := typed.New(config)
 
-	var fields []string
-	if cfg.String("fields") == "@all" {
-		fields = []string{"bookmark-of"}
-	} else if cfgFields, ok := cfg.StringsIf("fields"); ok {
-		fields = cfgFields
-	} else {
-		return nil, errors.New("fields missing")
-	}
-
 	return &WebArchive{
-		core:   co,
-		fields: fields,
+		core:          co,
+		archiveOnSave: cfg.Bool("archiveonsave"),
 	}, nil
 }
 
@@ -45,38 +40,41 @@ func (wa *WebArchive) PreSaveHook(*core.Entry) error {
 	return nil
 }
 
-func (wa *WebArchive) PostSaveHook(e *core.Entry) error {
-	if e.Deleted() {
+func (wa *WebArchive) PostSaveHook(e *core.Entry, isNew bool) error {
+	if !wa.archiveOnSave || !isNew || e.Deleted() {
 		return nil
 	}
 
-	var errs error
-
-	other := typed.New(e.Other)
-	for _, field := range wa.fields {
-		url := other.String(field)
-		if url == "" {
-			continue
-		}
-
-		if archived := other.String("wa-" + field); archived != "" {
-			continue
-		}
-
-		location, err := webArchive(url)
-		if err != nil {
-			errs = errors.Join(errs, err)
-			continue
-		}
-
-		e.Other["wa-"+field] = location
+	links, err := wa.core.GetEntryLinks(e, false)
+	if err != nil {
+		return fmt.Errorf("failed to get entry links: %w", err)
 	}
 
-	if err := wa.core.SaveEntry(e); err != nil {
-		errs = errors.Join(errs, err)
+	for _, link := range links {
+		_ = wa.core.Enqueue(context.Background(), queueItemType, queueItemPayload{
+			URL: link,
+		})
 	}
 
-	return errs
+	return nil
+}
+
+func (wa *WebArchive) QueueItemType() string {
+	return queueItemType
+}
+
+type queueItemPayload struct {
+	URL string
+}
+
+func (wa *WebArchive) HandleQueueItem(ctx context.Context, payload []byte) error {
+	var p queueItemPayload
+	if err := json.Unmarshal(payload, &p); err != nil {
+		return err
+	}
+
+	_, err := webArchive(p.URL)
+	return err
 }
 
 func webArchive(url string) (string, error) {

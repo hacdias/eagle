@@ -133,9 +133,9 @@ plugins:
 
   # Optional WebArchive integration.
   webarchive:
-    # Which fields should be archived. It is either a string with @all or
-    # an array with the list of fields. @all is equivalent to [bookmark-of].
-    fields: "@all"
+    # When enabled, the WebArchive plugin will archive the links found in the post
+    # content when the entry is created.
+    archiveOnSave: true
 
   # Optional Locations plugin.
   locations:
