@@ -31,7 +31,8 @@ docker pull ghcr.io/hacdias/eagle:latest
 - AT Protocol integrations with [arabica.social](https://arabica.social), [Standard.site](https://standard.site) and Bluesky.
 - Reverse location information for post metadata.
 - Miniflux blogroll integration.
-- Implemented integrations but no longer used: WebArchive, [Linkding](https://linkding.link/), [XRay](https://xray.p3k.io/).
+- WebArchive integration to archive links present in the content of new posts.
+- Implemented integrations but no longer used: [Linkding](https://linkding.link/), [XRay](https://xray.p3k.io/).
 
 ## Configuration and Assumptions
 

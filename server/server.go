@@ -317,9 +317,14 @@ func (s *Server) syncStorage() {
 		}
 	}
 
+	type entryToProcess struct {
+		entry *core.Entry
+		isNew bool
+	}
+
 	previousEntries, newIds := s.entriesFromModifiedFiles(changedFiles)
 	previousLinks := map[string][]string{}
-	entriesToProcess := []*core.Entry{}
+	entriesToProcess := []entryToProcess{}
 	cleanBuild := false
 
 	// Detect update and deleted entries
@@ -329,7 +334,7 @@ func (s *Server) syncStorage() {
 			// Entry has been deleted
 			cleanBuild = true
 			previousEntry.NoFileSystem = true
-			entriesToProcess = append(entriesToProcess, previousEntry)
+			entriesToProcess = append(entriesToProcess, entryToProcess{entry: previousEntry})
 		} else if err != nil {
 			s.log.Errorw("failed to open entry to update", "id", previousEntry.ID, "err", err)
 			continue
@@ -337,7 +342,7 @@ func (s *Server) syncStorage() {
 			// Entry has been updated. Ignore updates if only minor changes have been
 			// made (e.g., frontend fields resorted).
 			if !reflect.DeepEqual(e, previousEntry) {
-				entriesToProcess = append(entriesToProcess, e)
+				entriesToProcess = append(entriesToProcess, entryToProcess{entry: e})
 			}
 		}
 
@@ -353,16 +358,17 @@ func (s *Server) syncStorage() {
 			s.log.Errorw("failed to open new entry", "id", newId, "err", err)
 			continue
 		}
-		entriesToProcess = append(entriesToProcess, e)
+		entriesToProcess = append(entriesToProcess, entryToProcess{entry: e, isNew: true})
 	}
 
 	s.log.Infow("detected entries to handle", "n", len(entriesToProcess))
 	s.build(cleanBuild)
 
-	for _, e := range entriesToProcess {
-		s.postSaveEntry(e, postSaveEntryOptions{
+	for _, item := range entriesToProcess {
+		s.postSaveEntry(item.entry, postSaveEntryOptions{
+			isNew:         item.isNew,
 			skipBuild:     true,
-			previousLinks: previousLinks[e.Permalink],
+			previousLinks: previousLinks[item.entry.Permalink],
 		})
 		time.Sleep(time.Second)
 	}

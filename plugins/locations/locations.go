@@ -47,7 +47,7 @@ func (l *Locations) PreSaveHook(*core.Entry) error {
 	return nil
 }
 
-func (l *Locations) PostSaveHook(e *core.Entry) error {
+func (l *Locations) PostSaveHook(e *core.Entry, _ bool) error {
 	if !l.expand {
 		return nil
 	}

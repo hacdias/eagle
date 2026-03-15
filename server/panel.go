@@ -431,6 +431,7 @@ func (s *Server) panelNewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.saveEntryWithHooks(e, postSaveEntryOptions{
+		isNew:             true,
 		syndicators:       req.Syndicators,
 		syndicationStatus: req.SyndicationStatus,
 	})
