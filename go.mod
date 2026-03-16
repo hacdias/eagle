@@ -3,7 +3,7 @@ module go.hacdias.com/eagle
 go 1.26.0
 
 require (
-	github.com/PuerkitoBio/goquery v1.11.0
+	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/bluesky-social/indigo v0.0.0-20260312173440-9cf6b7ee3c3a
 	github.com/cretz/bine v0.2.0
@@ -35,7 +35,7 @@ require (
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
-	miniflux.app/v2 v2.2.17
+	miniflux.app/v2 v2.2.18
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
@@ -112,7 +112,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/oauth2 v0.35.0 // indirect
+	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
