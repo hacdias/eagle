@@ -59,7 +59,7 @@ baseURL = 'https://example.com/'
 title = 'My Website'
 
 # Used by the location plugin to fetch the location in this language.
-languageCode = 'en'
+locale = 'en'
 
 # Used by Eagle for the search results, in order to match
 # the same used for Hugo when listing posts.

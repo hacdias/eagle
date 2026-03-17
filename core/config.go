@@ -227,11 +227,11 @@ type Meilisearch struct {
 }
 
 type SiteConfig struct {
-	BaseURL      string
-	Title        string
-	LanguageCode string
-	Taxonomies   map[string]string
-	Pagination   struct {
+	BaseURL    string
+	Title      string
+	Locale     string
+	Taxonomies map[string]string
+	Pagination struct {
 		PagerSize int
 	}
 	Params struct {
