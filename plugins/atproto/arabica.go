@@ -7,7 +7,6 @@ import (
 	"os"
 	"reflect"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -40,6 +39,7 @@ type arabicaBean struct {
 	Origin      string `json:"origin"`
 	Process     string `json:"process"`
 	Variety     string `json:"variety"`
+	Rating      int    `json:"rating"`
 	CreatedAt   string `json:"createdAt"`
 	RoastLevel  string `json:"roastLevel"`
 	RoasterRef  string `json:"roasterRef"`
@@ -118,18 +118,6 @@ func fetchAndProcessArabicaData(ctx context.Context, client *xrpc.Client) ([]cof
 		})
 		elevation = strings.TrimSpace(strings.TrimPrefix(elevation, "Elevation:"))
 
-		ratingStr, _ := lo.Find(description, func(v string) bool {
-			return strings.HasPrefix(v, "Rating:")
-		})
-		ratingStr = strings.TrimSpace(strings.TrimPrefix(ratingStr, "Rating:"))
-		var rating int
-		if ratingStr != "" {
-			rating, err = strconv.Atoi(ratingStr)
-			if err != nil {
-				return nil, fmt.Errorf("invalid rating format for bean %s: %w", bean.Name, err)
-			}
-		}
-
 		date, err := time.Parse(time.RFC3339, bean.CreatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("invalid date format for bean %s: %w", bean.Name, err)
@@ -143,7 +131,7 @@ func fetchAndProcessArabicaData(ctx context.Context, client *xrpc.Client) ([]cof
 			Variety:   bean.Variety,
 			Elevation: elevation,
 			Date:      date.Format(time.DateOnly),
-			Rating:    rating,
+			Rating:    bean.Rating,
 			Roaster: coffeeRoaster{
 				Name:     roaster.Name,
 				Location: roaster.Location,
