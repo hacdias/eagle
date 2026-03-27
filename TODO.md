@@ -10,9 +10,10 @@
 - [ ] `site.standard` integration (https://standard.site/)
   - [ ] Custom icon
 - [ ] Integrations Eagle --> AT Protocol
-  - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons
-  - [ ] Readings with Popfeed.social or Bookhive.buzz
-    - NOTE: Popfeed allows tracking a lot more of Readings that maybe would give better UX for me. Potentially make this an inverse integration.
+  - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons / https://kich.io/
+  - [ ] Readings with Bookhive.buzz
+  - [ ] Movies, Shows via Popfeed.social
+  - [ ] Integrate resume with https://sifa.id/p/hacdias.com
 - [ ] Integration AT Protocol --> Eagle via jetstream listening:
   - [ ] Watches: movies, tv shows, (live performances)
   - [ ] Bookmarks
