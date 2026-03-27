@@ -168,6 +168,7 @@ func (s *Server) initCron() error {
 		}
 
 		s.syncStorage()
+		s.build(false)
 
 		if err := s.core.DB().DeleteExpiredTokens(context.Background()); err != nil {
 			s.log.Errorw("failed to delete expired tokens", "err", err)
