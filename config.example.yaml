@@ -110,6 +110,7 @@ plugins:
 
   # Optional Bluesky and Standard.site integration for post syndication.
   atproto:
+    host: https://bsky.social
     identifier: yourUsernameIdentifier
     password: yourAppSpecificPassword
 

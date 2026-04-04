@@ -25,7 +25,6 @@ var (
 )
 
 const (
-	apiUrl            = "https://bsky.social"
 	maximumCharacters = 300
 	maximumPhotos     = 4
 )
@@ -35,6 +34,7 @@ func init() {
 }
 
 type atprotoConfig struct {
+	Host            string
 	Identifier      string
 	Password        string
 	ArabicaFilename string
@@ -44,6 +44,7 @@ type atprotoConfig struct {
 type ATProto struct {
 	core       *core.Core
 	log        *zap.SugaredLogger
+	host       string
 	identifier string
 	password   string
 	userAgent  string
@@ -64,6 +65,10 @@ func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 		return nil, err
 	}
 
+	if config.Host == "" {
+		config.Host = "https://bsky.social"
+	}
+
 	if config.Identifier == "" {
 		return nil, errors.New("identifier missing")
 	}
@@ -79,6 +84,7 @@ func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 	at := &ATProto{
 		core:            co,
 		userAgent:       fmt.Sprintf("eagle/%s", co.BaseURL().String()),
+		host:            config.Host,
 		identifier:      config.Identifier,
 		password:        config.Password,
 		log:             log.S().Named("atproto"),
@@ -110,7 +116,7 @@ func (at *ATProto) Syndicator() server.Syndicator {
 
 func (at *ATProto) getClient(ctx context.Context) (*xrpc.Client, error) {
 	client := &xrpc.Client{
-		Host:      apiUrl,
+		Host:      at.host,
 		UserAgent: &at.userAgent,
 	}
 
