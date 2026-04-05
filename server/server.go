@@ -288,6 +288,7 @@ func (s *Server) withSecurityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Link", `</webmention>; rel="webmention"`)
 		next.ServeHTTP(w, r)
 	})
 }

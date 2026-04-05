@@ -87,6 +87,16 @@ func (d *Database) GetMentions(ctx context.Context) ([]*Mention, error) {
 	return mentions, err
 }
 
+func (d *Database) GetMentionBySourceAndEntry(ctx context.Context, source, entryID string) (*Mention, error) {
+	var mention Mention
+	err := d.db.WithContext(ctx).First(&mention, "source = ? AND entry_id = ?", source, entryID).Error
+	return &mention, err
+}
+
+func (d *Database) UpdateMention(ctx context.Context, mention *Mention) error {
+	return d.db.WithContext(ctx).Save(mention).Error
+}
+
 func (d *Database) DeleteMention(ctx context.Context, id string) error {
 	return d.db.WithContext(ctx).Delete(&Mention{}, "id = ?", id).Error
 }

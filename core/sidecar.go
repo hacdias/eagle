@@ -16,6 +16,7 @@ type Mention struct {
 	XRay    `gorm:"embedded"`
 	ID      string `json:"-"`
 	EntryID string `json:"-"`
+	Source  string `json:"-"` // Original source URL of the webmention.
 }
 
 func (m *Mention) IsInteraction() bool {

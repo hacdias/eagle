@@ -58,8 +58,8 @@ func (co *Core) AddOrUpdateWebmention(id string, mention *Mention, sourceOrURL s
 	})
 }
 
-func (co *Core) DeleteWebmention(id, sourceOrURL string) error {
-	if sourceOrURL == "" {
+func (co *Core) DeleteWebmention(id string, urls ...string) error {
+	if len(urls) == 0 {
 		return nil
 	}
 
@@ -68,15 +68,18 @@ func (co *Core) DeleteWebmention(id, sourceOrURL string) error {
 		return err
 	}
 
+	match := func(mention *XRay, _ int) bool {
+		for _, u := range urls {
+			if u != "" && mention.URL == u {
+				return false
+			}
+		}
+		return true
+	}
+
 	return co.UpdateSidecar(e, func(sidecar *Sidecar) (*Sidecar, error) {
-		sidecar.Replies = lo.Filter(sidecar.Replies, func(mention *XRay, _ int) bool {
-			return mention.URL != sourceOrURL
-		})
-
-		sidecar.Interactions = lo.Filter(sidecar.Interactions, func(mention *XRay, _ int) bool {
-			return mention.URL != sourceOrURL
-		})
-
+		sidecar.Replies = lo.Filter(sidecar.Replies, match)
+		sidecar.Interactions = lo.Filter(sidecar.Interactions, match)
 		return sidecar, nil
 	})
 }
@@ -116,7 +119,7 @@ func (co *Core) sendWebmention(source, target string) error {
 		return fmt.Errorf("error discovering endpoint: %w", err)
 	}
 
-	if isPrivate(endpoint) {
+	if IsPrivateURL(endpoint) {
 		return fmt.Errorf("webmention endpoint is a private address: %s", endpoint)
 	}
 
@@ -133,7 +136,7 @@ func (co *Core) sendWebmention(source, target string) error {
 	return nil
 }
 
-func isPrivate(urlStr string) bool {
+func IsPrivateURL(urlStr string) bool {
 	url, _ := urlpkg.Parse(urlStr)
 	if url == nil {
 		return false

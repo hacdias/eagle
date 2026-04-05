@@ -128,6 +128,12 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Source and target must differ.
+	if sourceStr == targetStr {
+		http.Error(w, "source and target must be different", http.StatusBadRequest)
+		return
+	}
+
 	// Target must be on our domain.
 	baseURL, _ := url.Parse(s.c.Site.BaseURL)
 	if targetURL.Hostname() != baseURL.Hostname() {
@@ -158,22 +164,36 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleWebmentionQueueItem(ctx context.Context, payload []byte) error {
 	var job wmPayload
 	if err := json.Unmarshal(payload, &job); err != nil {
-		return fmt.Errorf("invalid webmention payload: %w", err)
+		return &core.PermanentError{Err: fmt.Errorf("invalid webmention payload: %w", err)}
 	}
 
 	s.log.Infow("processing webmention", "source", job.Source, "target", job.Target)
 
 	e, err := s.core.GetEntryByPermalink(job.Target)
 	if err != nil {
-		return fmt.Errorf("target entry not found for %s: %w", job.Target, err)
+		return &core.PermanentError{Err: fmt.Errorf("target entry not found for %s: %w", job.Target, err)}
+	}
+
+	// Reject private/loopback source URLs to prevent SSRF.
+	if core.IsPrivateURL(job.Source) {
+		return &core.PermanentError{Err: fmt.Errorf("source %s is a private address", job.Source)}
 	}
 
 	// Fetch the source page.
-	httpClient := &http.Client{Timeout: webmentionHTTPTimeout}
+	httpClient := &http.Client{
+		Timeout: webmentionHTTPTimeout,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 20 {
+				return errors.New("too many redirects")
+			}
+			return nil
+		},
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, job.Source, nil)
 	if err != nil {
 		return fmt.Errorf("creating request for source %s: %w", job.Source, err)
 	}
+	req.Header.Set("Accept", "text/html, application/xhtml+xml")
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -219,18 +239,29 @@ func (s *Server) handleWebmentionQueueItem(ctx context.Context, payload []byte) 
 
 	// Verify source contains a link to target.
 	if !contains {
-		// TODO: permanent error
-		return fmt.Errorf("source %s does not link to target %s", job.Source, job.Target)
+		return &core.PermanentError{Err: fmt.Errorf("source %s does not link to target %s", job.Source, job.Target)}
 	}
 
 	// Parse microformats from source.
 	sourceURL, _ := url.Parse(job.Source)
 	post := core.ParseXRay(bytes.NewReader(body), sourceURL)
 
+	// Upsert: update existing mention if one exists for this source+entry.
+	existing, err := s.core.DB().GetMentionBySourceAndEntry(ctx, job.Source, e.ID)
+	if err == nil {
+		existing.XRay = *post
+		if err := s.core.DB().UpdateMention(ctx, existing); err != nil {
+			return fmt.Errorf("updating webmention: %w", err)
+		}
+		s.n.Notify(fmt.Sprintf("💬 #mention updated for %q: %q", e.Permalink, job.Source))
+		return nil
+	}
+
 	mention := &core.Mention{
 		ID:      uuid.New().String(),
 		XRay:    *post,
 		EntryID: e.ID,
+		Source:  job.Source,
 	}
 
 	if err := s.core.DB().CreateMention(ctx, mention); err != nil {
