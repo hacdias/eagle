@@ -35,12 +35,12 @@ require (
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
-	miniflux.app/v2 v2.2.18
+	miniflux.app/v2 v2.2.19
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
 require (
-	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
