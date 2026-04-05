@@ -521,7 +521,7 @@ func (s *Server) panelMentionsPost(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !e.Private {
-			if err := s.core.AddOrUpdateWebmention(e.EntryID, e, ""); err != nil {
+			if err := s.core.AddOrUpdateWebmention(e.EntryID, e, e.Source); err != nil {
 				s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error adding or updating webmention: %w", err))
 				return
 			}

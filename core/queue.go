@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,15 @@ const (
 	queuePollInterval = 30 * time.Second
 	queueRetryDelay   = 10 * time.Minute
 )
+
+// PermanentError wraps an error to indicate that a queue item should not be
+// retried. The queue processor will immediately mark it as permanently failed.
+type PermanentError struct {
+	Err error
+}
+
+func (e *PermanentError) Error() string { return e.Err.Error() }
+func (e *PermanentError) Unwrap() error { return e.Err }
 
 type QueueItem struct {
 	ID           string
@@ -127,6 +137,12 @@ func (q *Queue) processItem(ctx context.Context, item *QueueItem) {
 	item.Attempts++
 	item.LastAttempt = &now
 	item.FailedReason = err.Error()
+
+	// Permanent errors skip retries entirely.
+	var permErr *PermanentError
+	if errors.As(err, &permErr) {
+		item.Attempts = queueMaxAttempts
+	}
 
 	if item.Attempts >= queueMaxAttempts {
 		q.log.Errorw("item permanently failed", "type", item.Type, "id", item.ID)
