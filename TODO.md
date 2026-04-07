@@ -10,11 +10,10 @@
 - [ ] `site.standard` integration (https://standard.site/)
   - [ ] Custom icon
 - [ ] Integrations Eagle --> AT Protocol
-  - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons / https://kich.io/
+  - [ ] Photos with https://grain.social/
+  - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons or https://kich.io/
+  - [ ] Resume with https://sifa.id/p/hacdias.com
+- [ ] Integration AT Protocol --> Eagle (via jetstream listening or cron):
   - [ ] Readings with Bookhive.buzz
   - [ ] Movies, Shows via Popfeed.social
-  - [ ] Integrate resume with https://sifa.id/p/hacdias.com
-- [ ] Integration AT Protocol --> Eagle via jetstream listening:
-  - [ ] Watches: movies, tv shows, (live performances)
   - [ ] Bookmarks
-  - [ ] Readings: see note above
