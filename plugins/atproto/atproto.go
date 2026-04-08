@@ -92,10 +92,10 @@ func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) 
 		arabicaFilename: config.ArabicaFilename,
 	}
 
-	return at, at.init(co)
+	return at, at.init()
 }
 
-func (at *ATProto) init(co *core.Core) error {
+func (at *ATProto) init() error {
 	ctx := context.Background()
 
 	client, err := at.getClient(ctx)
@@ -103,7 +103,7 @@ func (at *ATProto) init(co *core.Core) error {
 		return err
 	}
 
-	return at.initStandardPublication(ctx, client, co)
+	return at.initStandardPublication(ctx, client)
 }
 
 func (at *ATProto) Syndicator() server.Syndicator {

@@ -117,6 +117,7 @@ plugins:
     # Standard.site configuration
     standardSite:
       recordKey: yourPublicationRecordKey
+      icon: static/favicon.png
       preferences:
         showInDiscover: true
       basicTheme:
