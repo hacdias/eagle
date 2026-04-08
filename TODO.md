@@ -7,8 +7,7 @@
 
 ## ATProto
 
-- [ ] `site.standard` integration (https://standard.site/)
-  - [ ] Custom icon
+- [ ] Import Lexicons
 - [ ] Integrations Eagle --> AT Protocol
   - [ ] Photos with https://grain.social/
   - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons or https://kich.io/

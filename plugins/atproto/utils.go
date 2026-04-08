@@ -82,7 +82,21 @@ func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey s
 			return "", err
 		}
 
-		if reflect.DeepEqual(record, currentRecord) {
+		// Normalize new record by marshalling and unmarshalling it, ensuring
+		// that the value types are the same.
+		recordData, err := json.Marshal(record)
+		if err != nil {
+			return "", err
+		}
+
+		var normalizedRecord map[string]any
+		err = json.Unmarshal(recordData, &normalizedRecord)
+		if err != nil {
+			return "", err
+		}
+
+		// Compare
+		if reflect.DeepEqual(normalizedRecord, currentRecord) {
 			return result.Uri, nil
 		}
 	}

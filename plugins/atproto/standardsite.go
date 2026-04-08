@@ -1,14 +1,18 @@
 package atproto
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/atproto/syntax"
+	lexutil "github.com/bluesky-social/indigo/lex/util"
 	"github.com/bluesky-social/indigo/xrpc"
+	"github.com/gabriel-vasile/mimetype"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 )
@@ -22,19 +26,47 @@ type standardSiteBasicTheme struct {
 
 type standardSite struct {
 	RecordKey   string
+	Icon        string
 	Preferences struct {
 		ShowInDiscover bool
 	}
 	BasicTheme *standardSiteBasicTheme
 }
 
-func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Client, co *core.Core) error {
+func (at *ATProto) uploadIcon(ctx context.Context, client *xrpc.Client) (*lexutil.LexBlob, error) {
+	data, err := at.core.ReadFile(at.standardSite.Icon)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read icon file %q: %w", at.standardSite.Icon, err)
+	}
+
+	if len(data) > 1_000_000 {
+		return nil, fmt.Errorf("icon file %q exceeds 1MB limit (%d bytes)", at.standardSite.Icon, len(data))
+	}
+
+	mime := mimetype.Detect(data)
+	if !strings.HasPrefix(mime.String(), "image/") {
+		return nil, fmt.Errorf("icon file %q has non-image mimetype %q", at.standardSite.Icon, mime.String())
+	}
+
+	resp, err := atproto.RepoUploadBlob(ctx, client, bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+
+	return &lexutil.LexBlob{
+		Ref:      resp.Blob.Ref,
+		MimeType: mime.String(),
+		Size:     resp.Blob.Size,
+	}, nil
+}
+
+func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Client) error {
 	at.log.Infow("repository information found", "did", client.Auth.Did)
 
 	record := map[string]any{
 		"$type": "site.standard.publication",
-		"url":   strings.TrimSuffix(co.BaseURL().String(), "/"),
-		"name":  co.SiteConfig().Title,
+		"url":   strings.TrimSuffix(at.core.BaseURL().String(), "/"),
+		"name":  at.core.SiteConfig().Title,
 		"preferences": map[string]any{
 			"showInDiscover": at.standardSite.Preferences.ShowInDiscover,
 		},
@@ -70,8 +102,16 @@ func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Cli
 		}
 	}
 
-	if co.SiteConfig().Params.Site.Description != "" {
-		record["description"] = co.SiteConfig().Params.Site.Description
+	if at.core.SiteConfig().Params.Site.Description != "" {
+		record["description"] = at.core.SiteConfig().Params.Site.Description
+	}
+
+	if at.standardSite.Icon != "" {
+		iconBlob, err := at.uploadIcon(ctx, client)
+		if err != nil {
+			return fmt.Errorf("failed to upload icon: %w", err)
+		}
+		record["icon"] = iconBlob
 	}
 
 	uri, err := putRecord(ctx, client, "site.standard.publication", at.standardSite.RecordKey, record)
