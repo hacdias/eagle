@@ -624,8 +624,10 @@ go.etcd.io/etcd/client/v2 v2.305.4/go.mod h1:Ud+VUwIi9/uQHOMA+4ekToJ12lTxlv0zB/+
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.hacdias.com/indielib v0.5.0 h1:F8vEyBSBlXFJ4jhZMlj8oPcRG0KpU4YhkUehcb6pbUk=
 go.hacdias.com/indielib v0.5.0/go.mod h1:yZaEBvVd1SJx/W0+JxxjddtErHNUF1NND3oKJoPGsEo=
-go.hacdias.com/maze v0.5.0 h1:Q/oBMRlFSgOHvv0ey2o2Z1o3q5czjIQARko+6n4ZtgM=
-go.hacdias.com/maze v0.5.0/go.mod h1:i0ZW/ghxE7ppRaRV4DZIwa80H1lTK66xRmM5RVR7iXE=
+go.hacdias.com/maze v0.6.0 h1:fhOlmKmuPKRWzh8o+fmejDWCCshmiKuaPhre0vqJQGo=
+go.hacdias.com/maze v0.6.0/go.mod h1:i0ZW/ghxE7ppRaRV4DZIwa80H1lTK66xRmM5RVR7iXE=
+go.hacdias.com/maze v0.6.1 h1:oASBgSKixQTMbKUKJibLh4Y3jZXRzbSBghjOKksiJWM=
+go.hacdias.com/maze v0.6.1/go.mod h1:i0ZW/ghxE7ppRaRV4DZIwa80H1lTK66xRmM5RVR7iXE=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=

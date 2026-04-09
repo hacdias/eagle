@@ -6,8 +6,10 @@ import (
 
 	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
+	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
 	"go.hacdias.com/maze"
+	"go.uber.org/zap"
 )
 
 var (
@@ -19,7 +21,7 @@ func init() {
 }
 
 type Locations struct {
-	core     *core.Core
+	log      *zap.SugaredLogger
 	maze     *maze.Maze
 	language string
 	expand   bool
@@ -34,20 +36,16 @@ func NewLocations(co *core.Core, config map[string]any) (server.Plugin, error) {
 	}
 
 	return &Locations{
-		core: co,
 		maze: maze.NewMaze(&http.Client{
 			Timeout: time.Minute,
 		}),
 		language: language,
 		expand:   cfg.Bool("expand"),
+		log:      log.S().Named("locations"),
 	}, nil
 }
 
-func (l *Locations) PreSaveHook(*core.Entry) error {
-	return nil
-}
-
-func (l *Locations) PostSaveHook(e *core.Entry, _ bool) error {
+func (l *Locations) PreSaveHook(e *core.Entry) error {
 	if !l.expand {
 		return nil
 	}
@@ -56,16 +54,26 @@ func (l *Locations) PostSaveHook(e *core.Entry, _ bool) error {
 		return nil
 	}
 
-	hasDetails := e.Location.Country != "" || e.Location.Locality != "" || e.Location.Name != "" || e.Location.ICAO != "" || e.Location.IATA != ""
+	hasDetails := e.Location.Country != "" ||
+		e.Location.CountryCode != "" ||
+		e.Location.Locality != "" ||
+		e.Location.ICAO != "" ||
+		e.Location.IATA != "" ||
+		e.Location.PostalCode != "" ||
+		e.Location.Region != ""
 	if hasDetails {
 		return nil
 	}
 
-	var err error
-	e.Location, err = l.maze.ReverseGeoURI(l.language, e.Location.String())
-	if err != nil {
-		return err
+	if loc, err := l.maze.ReverseGeoURI(l.language, e.Location.String()); err == nil {
+		e.Location = loc
+	} else {
+		l.log.Warnf("failed to fetch location", "entry", e.ID, "err", err)
 	}
 
-	return l.core.SaveEntry(e)
+	return nil
+}
+
+func (l *Locations) PostSaveHook(e *core.Entry, _ bool) error {
+	return nil
 }

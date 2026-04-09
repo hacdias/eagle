@@ -27,7 +27,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/yuin/goldmark v1.8.2
 	go.hacdias.com/indielib v0.5.0
-	go.hacdias.com/maze v0.5.0
+	go.hacdias.com/maze v0.6.1
 	go.uber.org/zap v1.27.1
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/crypto v0.49.0
