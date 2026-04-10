@@ -598,6 +598,8 @@ github.com/subosito/gotenv v1.6.0/go.mod h1:Dk4QP5c2W3ibzajGcXpNraDfq2IrhjMIvMSW
 github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e h1:tD38/4xg4nuQCASJ/JxcvCHNb46w0cdAaJfkzQOO1bA=
 github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e/go.mod h1:krvJ5AY/MjdPkTeRgMYbIDhbbbVvnPQPzsIsDJO8xrY=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
+github.com/uber/h3-go/v4 v4.4.1 h1:O6Vnv1I+tq8f89AnYtb5FcYtK6dBC1X0RePFZ5YW5/U=
+github.com/uber/h3-go/v4 v4.4.1/go.mod h1:19vfSV5HQsnRZev7V0SPmTkVSZErL7/io8M/nx+++30=
 github.com/urfave/cli v1.22.10/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/valyala/fastjson v1.6.10 h1:/yjJg8jaVQdYR3arGxPE2X5z89xrlhS0eGXdv+ADTh4=
 github.com/valyala/fastjson v1.6.10/go.mod h1:e6FubmQouUNP73jtMLmcbxS6ydWIpOfhz34TSfO3JaE=
@@ -624,8 +626,6 @@ go.etcd.io/etcd/client/v2 v2.305.4/go.mod h1:Ud+VUwIi9/uQHOMA+4ekToJ12lTxlv0zB/+
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
 go.hacdias.com/indielib v0.5.0 h1:F8vEyBSBlXFJ4jhZMlj8oPcRG0KpU4YhkUehcb6pbUk=
 go.hacdias.com/indielib v0.5.0/go.mod h1:yZaEBvVd1SJx/W0+JxxjddtErHNUF1NND3oKJoPGsEo=
-go.hacdias.com/maze v0.6.0 h1:fhOlmKmuPKRWzh8o+fmejDWCCshmiKuaPhre0vqJQGo=
-go.hacdias.com/maze v0.6.0/go.mod h1:i0ZW/ghxE7ppRaRV4DZIwa80H1lTK66xRmM5RVR7iXE=
 go.hacdias.com/maze v0.6.1 h1:oASBgSKixQTMbKUKJibLh4Y3jZXRzbSBghjOKksiJWM=
 go.hacdias.com/maze v0.6.1/go.mod h1:i0ZW/ghxE7ppRaRV4DZIwa80H1lTK66xRmM5RVR7iXE=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

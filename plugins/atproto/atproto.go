@@ -138,9 +138,16 @@ func (at *ATProto) getClient(ctx context.Context) (*xrpc.Client, error) {
 	return client, nil
 }
 
-func (at *ATProto) getSyndications(e *core.Entry) ([]syntax.ATURI, *syntax.ATURI, error) {
-	var documentURI *syntax.ATURI
-	feedPostsURIs := []syntax.ATURI{}
+type syndications struct {
+	feedPosts    []syntax.ATURI
+	document     *syntax.ATURI
+	grainGallery *syntax.ATURI
+}
+
+func (at *ATProto) getSyndications(e *core.Entry) (*syndications, error) {
+	s := &syndications{
+		feedPosts: []syntax.ATURI{},
+	}
 
 	for _, syndication := range e.Syndications {
 		if !strings.HasPrefix(syndication, "at://") {
@@ -149,28 +156,28 @@ func (at *ATProto) getSyndications(e *core.Entry) ([]syntax.ATURI, *syntax.ATURI
 
 		uri, err := syntax.ParseATURI(syndication)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		if uri.Collection() == "app.bsky.feed.post" {
-			feedPostsURIs = append(feedPostsURIs, uri)
+		switch uri.Collection() {
+		case "app.bsky.feed.post":
+			s.feedPosts = append(s.feedPosts, uri)
+		case "site.standard.document":
+			s.document = &uri
+		case "social.grain.gallery":
+			s.grainGallery = &uri
 		}
-
-		if uri.Collection() == "site.standard.document" {
-			documentURI = &uri
-		}
-
 	}
 
-	return feedPostsURIs, documentURI, nil
+	return s, nil
 }
 
 func (at *ATProto) IsSyndicated(e *core.Entry) bool {
-	feedPostsURIs, documentURI, err := at.getSyndications(e)
+	s, err := at.getSyndications(e)
 	if err != nil {
 		return false
 	}
-	return len(feedPostsURIs) > 0 || documentURI != nil
+	return len(s.feedPosts) > 0 || s.document != nil || s.grainGallery != nil
 }
 
 func (at *ATProto) deleteBlueskyPosts(ctx context.Context, client *xrpc.Client, uris []syntax.ATURI) error {
@@ -225,7 +232,7 @@ func (at *ATProto) getBlueskyPosts(ctx context.Context, client *xrpc.Client, uri
 }
 
 func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.SyndicationContext) error {
-	feedPostsURIs, documentURI, err := at.getSyndications(e)
+	s, err := at.getSyndications(e)
 	if err != nil {
 		return err
 	}
@@ -236,28 +243,35 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	}
 
 	if e.Deleted() || e.Draft {
-		if documentURI != nil {
-			err = at.deleteStandardDocument(ctx, client, *documentURI)
+		if s.grainGallery != nil {
+			err = at.deleteGrainGallery(ctx, client, *s.grainGallery)
 			if err != nil {
 				return err
 			}
-
-			e.Syndications = lo.Without(e.Syndications, documentURI.String())
+			e.Syndications = lo.Without(e.Syndications, s.grainGallery.String())
 		}
 
-		err = at.deleteBlueskyPosts(ctx, client, feedPostsURIs)
+		if s.document != nil {
+			err = at.deleteStandardDocument(ctx, client, *s.document)
+			if err != nil {
+				return err
+			}
+			e.Syndications = lo.Without(e.Syndications, s.document.String())
+		}
+
+		err = at.deleteBlueskyPosts(ctx, client, s.feedPosts)
 		if err != nil {
 			return err
 		}
 
-		e.Syndications = lo.Without(e.Syndications, lo.Map(feedPostsURIs, func(uri syntax.ATURI, i int) string {
+		e.Syndications = lo.Without(e.Syndications, lo.Map(s.feedPosts, func(uri syntax.ATURI, i int) string {
 			return uri.String()
 		})...)
 
 		return nil
 	}
 
-	posts, err := at.getBlueskyPosts(ctx, client, feedPostsURIs)
+	posts, err := at.getBlueskyPosts(ctx, client, s.feedPosts)
 	if err != nil {
 		return err
 	}
@@ -271,7 +285,15 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 			// document.
 			post = posts[0]
 		} else {
-			post, err = at.createPublishBlueskyPost(ctx, client, e, sctx)
+			var thumbnail *photoBlob
+			if sctx.Thumbnail != nil {
+				thumbnail, err = uploadPhoto(ctx, client, sctx.Thumbnail)
+				if err != nil {
+					return err
+				}
+			}
+
+			post, err = at.createPublishBlueskyPost(ctx, client, e, sctx, thumbnail)
 			if err != nil {
 				return err
 			}
@@ -281,12 +303,12 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 
 		// Upsert standard.site document to ensure that it is up to date (tags, content,
 		// link to Bluesky post, etc).
-		documentUriStr, err := at.upsertStandardDocument(ctx, client, documentURI, e, post)
+		documentUriStr, err := at.upsertStandardDocument(ctx, client, s.document, e, post)
 		if err != nil {
 			return err
 		}
 
-		if documentURI == nil {
+		if s.document == nil {
 			// Only add the syndication if we didn't have a documentURI before, otherwise it means we already had the syndication and we just updated the record.
 			e.Syndications = append(e.Syndications, documentUriStr)
 		}
@@ -295,19 +317,37 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	}
 
 	if lo.Contains(e.Categories, "photos") {
+		// Get photos photos: either extract from existing posts or upload fresh.
+		var photos []*photoBlob
 		if len(posts) > 0 {
-			// Existing Bluesky posts are not updated to avoid overwriting custom posts.
-			return nil
+			photos = blueskyPostToPhotoBlobs(posts)
+		} else {
+			photos, err = uploadPhotos(ctx, client, sctx.Photos)
+			if err != nil {
+				return err
+			}
 		}
 
-		posts, err := at.createPublishBlueskyPostThread(ctx, client, e, sctx)
-		if err != nil {
-			return err
+		// Create Bluesky thread if it doesn't exist yet.
+		if len(posts) == 0 {
+			newPosts, err := at.createPublishBlueskyPostThread(ctx, client, e, sctx, photos)
+			if err != nil {
+				return err
+			}
+
+			e.Syndications = append(e.Syndications, lo.Map(newPosts, func(post *blueskyPost, i int) string {
+				return post.uri
+			})...)
 		}
 
-		e.Syndications = append(e.Syndications, lo.Map(posts, func(post *blueskyPost, i int) string {
-			return post.uri
-		})...)
+		// Create Grain gallery if it doesn't exist yet.
+		if s.grainGallery == nil {
+			galleryURI, err := at.createGrainGallery(ctx, client, e, photos)
+			if err != nil {
+				return err
+			}
+			e.Syndications = append(e.Syndications, galleryURI)
+		}
 
 		return nil
 	}
