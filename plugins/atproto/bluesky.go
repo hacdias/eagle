@@ -27,33 +27,6 @@ func (at *ATProto) deleteBlueskyPost(ctx context.Context, client *xrpc.Client, r
 	return deleteRecord(ctx, client, "app.bsky.feed.post", recordKey)
 }
 
-func (at *ATProto) uploadBlueskyPhotos(ctx context.Context, client *xrpc.Client, photos []*server.Photo) ([]*bsky.EmbedImages_Image, error) {
-	embeddings := []*bsky.EmbedImages_Image{}
-
-	for _, photo := range photos {
-		blob, err := uploadPhoto(ctx, client, photo)
-		if err != nil {
-			return nil, err
-		}
-
-		embedding := &bsky.EmbedImages_Image{
-			Image: blob,
-			Alt:   photo.Title,
-		}
-
-		if photo.Width > 0 && photo.Height > 0 {
-			embedding.AspectRatio = &bsky.EmbedDefs_AspectRatio{
-				Width:  int64(photo.Width),
-				Height: int64(photo.Height),
-			}
-		}
-
-		embeddings = append(embeddings, embedding)
-	}
-
-	return embeddings, nil
-}
-
 func (at *ATProto) getBlueskyPost(ctx context.Context, client *xrpc.Client, recordKey string) (*blueskyPost, error) {
 	response, err := atproto.RepoGetRecord(ctx, client, "", "app.bsky.feed.post", client.Auth.Did, recordKey)
 	if err != nil {
@@ -103,7 +76,7 @@ func detectPermalinkFacet(post *bsky.FeedPost, permalinkStr string) {
 	}
 }
 
-func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext) (*blueskyPost, error) {
+func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext, thumbnail *photoBlob) (*blueskyPost, error) {
 	post := &bsky.FeedPost{
 		CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
 		Text:      e.Title + " " + e.Permalink,
@@ -125,12 +98,8 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 
 	detectPermalinkFacet(post, e.Permalink)
 
-	if sctx.Thumbnail != nil {
-		blob, err := uploadPhoto(ctx, client, sctx.Thumbnail)
-		if err != nil {
-			return nil, err
-		}
-		post.Embed.EmbedExternal.External.Thumb = blob
+	if thumbnail != nil {
+		post.Embed.EmbedExternal.External.Thumb = thumbnail.blob
 	}
 
 	// Generate record key based on the entry's date. Ensures sortability.
@@ -155,11 +124,11 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 	}, nil
 }
 
-func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext) ([]*blueskyPost, error) {
+func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext, photos []*photoBlob) ([]*blueskyPost, error) {
 	// Infer how many posts needed from photos count
 	postsNeeded := 1
-	if len(sctx.Photos) > 0 {
-		postsNeeded = int(math.Ceil(float64(len(sctx.Photos)) / maximumPhotos))
+	if len(photos) > 0 {
+		postsNeeded = int(math.Ceil(float64(len(photos)) / maximumPhotos))
 	}
 
 	var statuses []string
@@ -169,10 +138,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *x
 		statuses = e.Statuses(maximumCharacters, postsNeeded, false)
 	}
 
-	embeddings, err := at.uploadBlueskyPhotos(ctx, client, sctx.Photos)
-	if err != nil {
-		return nil, err
-	}
+	embeddings := uploadedPhotoBlobsToEmbeddings(photos)
 
 	posts := []*blueskyPost{}
 	for i := 0; i < postsNeeded; i++ {

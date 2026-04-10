@@ -9,10 +9,13 @@
 
 - [ ] Import Lexicons
 - [ ] Integrations Eagle --> AT Protocol
-  - [ ] Photos with https://grain.social/
   - [ ] Recipes (/tags/recipe) with https://recipe.exchange/lexicons or https://kich.io/
   - [ ] Resume with https://sifa.id/p/hacdias.com
 - [ ] Integration AT Protocol --> Eagle (via jetstream listening or cron):
   - [ ] Readings with Bookhive.buzz
   - [ ] Movies, Shows via Popfeed.social
   - [ ] Bookmarks
+- [ ] Grain Integration
+  - [ ] EXIF information, it'd be nice to also display this on the blog
+  - [ ] Link gallery to Bluesky post
+  - [ ] Delete gallery when deleting post
