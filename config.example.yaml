@@ -36,11 +36,6 @@ comments:
   # Think about something they know about you: your name, last name, etc.
   captcha: John
 
-# Webmentions configuration.
-webmentions:
-  # Webmention.io (https://webmention.io) secret for incoming webmentions.
-  secret: MySecret
-
 # Notifications configuration.
 notifications:
   # Telegram (https://core.telegram.org) credentials for notifications.
