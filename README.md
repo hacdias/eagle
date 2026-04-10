@@ -28,7 +28,7 @@ docker pull ghcr.io/hacdias/eagle:latest
 - Serve the website as a TOR onion service.
 - [MeiliSearch](https://www.meilisearch.com/) integration for website search.
 - [POSSE](https://indieweb.org/POSSE) to Mastodon, Bluesky and IndieNews.
-- AT Protocol integrations with [arabica.social](https://arabica.social), [Standard.site](https://standard.site) and Bluesky.
+- AT Protocol integrations with [arabica.social](https://arabica.social), [Standard.site](https://standard.site), Bluesky and [Grain](https://grain.social).
 - Reverse location information for post metadata.
 - Miniflux blogroll integration.
 - WebArchive integration to archive links present in the content of new posts.
