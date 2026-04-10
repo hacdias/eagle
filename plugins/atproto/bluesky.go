@@ -183,11 +183,11 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *x
 
 		// NOTE: weird issues with posts having the same createdAt
 		// https://github.com/bluesky-social/atproto/issues/3027
-		createdAt := e.Date.Add(time.Duration(i) * time.Second).Format(syntax.AtprotoDatetimeLayout)
-		recordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
+		createdAt := e.Date.Add(time.Duration(i) * time.Second)
+		recordKey := syntax.NewTID(createdAt.UnixMicro(), clockId).String()
 
 		post := &bsky.FeedPost{
-			CreatedAt: createdAt,
+			CreatedAt: createdAt.Format(syntax.AtprotoDatetimeLayout),
 			Text:      text,
 			Embed:     &bsky.FeedPost_Embed{},
 			Tags:      e.Tags,
