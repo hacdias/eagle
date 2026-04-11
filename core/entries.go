@@ -30,7 +30,6 @@ const (
 	TagsTaxonomy       = "tags"
 )
 
-// TODO: update to match https://aaronparecki.com/2017/02/25/9/day-67-image-alt-text
 type Photo struct {
 	URL    string `yaml:"url,omitempty"`
 	Title  string `yaml:"title,omitempty"`
