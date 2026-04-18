@@ -17,7 +17,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.13
 	github.com/mattn/go-mastodon v0.0.11
 	github.com/maypok86/otter/v2 v2.3.0
-	github.com/meilisearch/meilisearch-go v0.36.1
+	github.com/meilisearch/meilisearch-go v0.36.2
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.53.0
