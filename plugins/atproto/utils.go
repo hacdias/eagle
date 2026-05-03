@@ -30,13 +30,18 @@ func uploadPhoto(ctx context.Context, client *xrpc.Client, photo *server.Photo) 
 		return nil, err
 	}
 
+	alt := photo.Alt
+	if alt == "" {
+		alt = photo.Title
+	}
+
 	return &photoBlob{
 		blob: &lexutil.LexBlob{
 			Ref:      resp.Blob.Ref,
 			MimeType: photo.MimeType,
 			Size:     resp.Blob.Size,
 		},
-		alt:    photo.Title,
+		alt:    alt,
 		width:  photo.Width,
 		height: photo.Height,
 	}, nil

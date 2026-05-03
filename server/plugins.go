@@ -50,6 +50,7 @@ type HookPlugin interface {
 type Photo struct {
 	Data     []byte
 	Title    string
+	Alt      string
 	MimeType string
 	Width    int
 	Height   int

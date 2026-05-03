@@ -33,6 +33,7 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 			Data:     data,
 			MimeType: mimetype,
 			Title:    p.Title,
+			Alt:      p.Alt,
 			Width:    p.Width,
 			Height:   p.Height,
 		}

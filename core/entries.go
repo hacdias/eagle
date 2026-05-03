@@ -33,6 +33,7 @@ const (
 type Photo struct {
 	URL    string `yaml:"url,omitempty"`
 	Title  string `yaml:"title,omitempty"`
+	Alt    string `yaml:"alt,omitempty"`
 	Width  int    `yaml:"width,omitempty"`
 	Height int    `yaml:"height,omitempty"`
 }
