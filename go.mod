@@ -29,7 +29,7 @@ require (
 	github.com/yuin/goldmark v1.8.2
 	go.hacdias.com/indielib v0.5.0
 	go.hacdias.com/maze v0.6.1
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/crypto v0.50.0
 	golang.org/x/net v0.53.0
