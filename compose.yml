@@ -16,7 +16,7 @@ services:
       - MEILI_ENV=development
   imgproxy:
     container_name: imgproxy
-    image: darthsim/imgproxy:v3
+    image: darthsim/imgproxy:v4
     ports:
       - "8085:8080"
     environment:
