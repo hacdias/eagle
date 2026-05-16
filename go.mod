@@ -36,7 +36,7 @@ require (
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
-	miniflux.app/v2 v2.2.19
+	miniflux.app/v2 v2.3.0
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
