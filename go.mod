@@ -17,7 +17,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.1.1
 	github.com/mattn/go-mastodon v0.0.11
 	github.com/maypok86/otter/v2 v2.3.0
-	github.com/meilisearch/meilisearch-go v0.36.2
+	github.com/meilisearch/meilisearch-go v0.36.3
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.53.0
@@ -25,7 +25,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/uber/h3-go/v4 v4.4.1
+	github.com/uber/h3-go/v4 v4.5.0
 	github.com/yuin/goldmark v1.8.2
 	go.hacdias.com/indielib v0.5.0
 	go.hacdias.com/maze v0.6.1
@@ -36,7 +36,7 @@ require (
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.1
-	miniflux.app/v2 v2.3.0
+	miniflux.app/v2 v2.3.1
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
