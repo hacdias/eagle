@@ -72,7 +72,7 @@ func deleteRecord(ctx context.Context, client *xrpc.Client, collection, recordKe
 	return err
 }
 
-func createRecord(ctx context.Context, client *xrpc.Client, collection string, recordKey *string, record map[string]any) (string, error) {
+func createRecord(ctx context.Context, client *xrpc.Client, collection string, recordKey *string, record map[string]any) (*atproto.RepoStrongRef, error) {
 	result, err := agnostic.RepoCreateRecord(ctx, client, &agnostic.RepoCreateRecord_Input{
 		Collection: collection,
 		Repo:       client.Auth.Did,
@@ -80,10 +80,13 @@ func createRecord(ctx context.Context, client *xrpc.Client, collection string, r
 		Rkey:       recordKey,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return result.Uri, nil
+	return &atproto.RepoStrongRef{
+		Uri: result.Uri,
+		Cid: result.Cid,
+	}, nil
 }
 
 func listRecords(ctx context.Context, client *xrpc.Client, collection string) ([]*agnostic.RepoListRecords_Record, error) {
@@ -106,31 +109,34 @@ func listRecords(ctx context.Context, client *xrpc.Client, collection string) ([
 	return records, nil
 }
 
-func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string, record map[string]any) (string, error) {
+func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string, record map[string]any) (*atproto.RepoStrongRef, error) {
 	// Check if the record exists and is the same, if so, return the existing URI
 	if result, err := agnostic.RepoGetRecord(ctx, client, "", collection, client.Auth.Did, recordKey); err == nil {
 		var currentRecord map[string]any
 		err = json.Unmarshal(*result.Value, &currentRecord)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		// Normalize new record by marshalling and unmarshalling it, ensuring
 		// that the value types are the same.
 		recordData, err := json.Marshal(record)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		var normalizedRecord map[string]any
 		err = json.Unmarshal(recordData, &normalizedRecord)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		// Compare
 		if reflect.DeepEqual(normalizedRecord, currentRecord) {
-			return result.Uri, nil
+			return &atproto.RepoStrongRef{
+				Uri: result.Uri,
+				Cid: *result.Cid,
+			}, nil
 		}
 	}
 
@@ -142,10 +148,13 @@ func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey s
 		Record:     record,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return result.Uri, nil
+	return &atproto.RepoStrongRef{
+		Uri: result.Uri,
+		Cid: result.Cid,
+	}, nil
 }
 
 func blueskyPostToPhotoBlobs(posts []*blueskyPost) []*photoBlob {

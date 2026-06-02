@@ -51,7 +51,7 @@ type ATProto struct {
 
 	// site.standard
 	standardSite               standardSite
-	standardSitePublicationUri string
+	standardSitePublicationRef *atproto.RepoStrongRef
 
 	// alpha.arabica.social
 	arabicaFilename string
@@ -278,13 +278,21 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 
 	if lo.Contains(e.Categories, "writings") {
 		var post *blueskyPost
-
 		if len(posts) > 0 {
 			// Existing Bluesky posts are not updated to avoid overwriting custom posts.
 			// First post (root of thread) is selected to be linked on the standard.site
 			// document.
 			post = posts[0]
-		} else {
+		}
+
+		// Upsert standard.site document to ensure that it exists before creating Bluesky post.
+		documentRef, err := at.upsertStandardDocument(ctx, client, s.document, e, post)
+		if err != nil {
+			return err
+		}
+
+		// Create Bluesky post when it doesn't exist
+		if post == nil {
 			var thumbnail *photoBlob
 			if sctx.Thumbnail != nil {
 				thumbnail, err = uploadPhoto(ctx, client, sctx.Thumbnail)
@@ -293,7 +301,18 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 				}
 			}
 
-			post, err = at.createPublishBlueskyPost(ctx, client, e, sctx, thumbnail)
+			siteStandardReferences := []*atproto.RepoStrongRef{
+				documentRef,
+				at.standardSitePublicationRef,
+			}
+
+			post, err = at.createPublishBlueskyPost(ctx, client, e, sctx, thumbnail, siteStandardReferences)
+			if err != nil {
+				return err
+			}
+
+			// Upsert standard.site document to ensure it includes reference to Bluesky post.
+			documentRef, err = at.upsertStandardDocument(ctx, client, s.document, e, post)
 			if err != nil {
 				return err
 			}
@@ -301,16 +320,9 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 			e.Syndications = append(e.Syndications, post.uri)
 		}
 
-		// Upsert standard.site document to ensure that it is up to date (tags, content,
-		// link to Bluesky post, etc).
-		documentUriStr, err := at.upsertStandardDocument(ctx, client, s.document, e, post)
-		if err != nil {
-			return err
-		}
-
 		if s.document == nil {
 			// Only add the syndication if we didn't have a documentURI before, otherwise it means we already had the syndication and we just updated the record.
-			e.Syndications = append(e.Syndications, documentUriStr)
+			e.Syndications = append(e.Syndications, documentRef.Uri)
 		}
 
 		return nil

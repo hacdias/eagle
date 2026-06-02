@@ -90,11 +90,11 @@ func (at *ATProto) createGrainGallery(ctx context.Context, client *xrpc.Client, 
 	}
 
 	galleryRecordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
-	galleryURI, err := createRecord(ctx, client, "social.grain.gallery", &galleryRecordKey, galleryRecord)
+	galleryRecordRef, err := createRecord(ctx, client, "social.grain.gallery", &galleryRecordKey, galleryRecord)
 	if err != nil {
 		return "", fmt.Errorf("failed to create social.grain.gallery: %w", err)
 	}
-	at.log.Infow("created social.grain.gallery", "uri", galleryURI)
+	at.log.Infow("created social.grain.gallery", "uri", galleryRecordRef.Uri)
 
 	// 2. Create photo records.
 	photoURIs := make([]string, 0, len(photos))
@@ -115,12 +115,12 @@ func (at *ATProto) createGrainGallery(ctx context.Context, client *xrpc.Client, 
 			photoRecord["alt"] = photo.alt
 		}
 
-		photoURI, err := createRecord(ctx, client, "social.grain.photo", &recordKey, photoRecord)
+		photoRecordRef, err := createRecord(ctx, client, "social.grain.photo", &recordKey, photoRecord)
 		if err != nil {
 			return "", fmt.Errorf("failed to create social.grain.photo: %w", err)
 		}
-		at.log.Infow("created social.grain.photo", "uri", photoURI)
-		photoURIs = append(photoURIs, photoURI)
+		at.log.Infow("created social.grain.photo", "uri", photoRecordRef.Uri)
+		photoURIs = append(photoURIs, photoRecordRef.Uri)
 	}
 
 	// 3. Create gallery item records linking photos to the gallery.
@@ -130,7 +130,7 @@ func (at *ATProto) createGrainGallery(ctx context.Context, client *xrpc.Client, 
 
 		itemRecord := map[string]any{
 			"$type":     "social.grain.gallery.item",
-			"gallery":   galleryURI,
+			"gallery":   galleryRecordRef.Uri,
 			"item":      photoURI,
 			"position":  i,
 			"createdAt": createdAt.Format(syntax.AtprotoDatetimeLayout),
@@ -143,7 +143,7 @@ func (at *ATProto) createGrainGallery(ctx context.Context, client *xrpc.Client, 
 		at.log.Infow("created social.grain.gallery.item", "uri", itemURI)
 	}
 
-	return galleryURI, nil
+	return galleryRecordRef.Uri, nil
 }
 
 func (at *ATProto) deleteGrainGallery(ctx context.Context, client *xrpc.Client, uri syntax.ATURI) error {

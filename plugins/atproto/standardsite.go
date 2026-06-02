@@ -114,21 +114,21 @@ func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Cli
 		record["icon"] = iconBlob
 	}
 
-	uri, err := putRecord(ctx, client, "site.standard.publication", at.standardSite.RecordKey, record)
+	ref, err := putRecord(ctx, client, "site.standard.publication", at.standardSite.RecordKey, record)
 	if err != nil {
 		return err
 	}
 
-	at.log.Infow("publication record upserted", "uri", uri)
-	at.standardSitePublicationUri = uri
+	at.log.Infow("publication record upserted", "uri", ref.Uri)
+	at.standardSitePublicationRef = ref
 	return nil
 }
 
-func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentUri *syntax.ATURI, e *core.Entry, post *blueskyPost) (string, error) {
+func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentUri *syntax.ATURI, e *core.Entry, post *blueskyPost) (*atproto.RepoStrongRef, error) {
 	// https://standard.site/
 	record := map[string]any{
 		"$type":       "site.standard.document",
-		"site":        at.standardSitePublicationUri,
+		"site":        at.standardSitePublicationRef.Uri,
 		"path":        e.RelPermalink,
 		"title":       e.Title,
 		"publishedAt": e.Date.Format(time.RFC3339),
@@ -165,26 +165,25 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 	}
 
 	var (
-		documentUriStr string
-		err            error
+		documentRef *atproto.RepoStrongRef
+		err         error
 	)
 
 	if documentUri == nil {
 		// Generate record key based on the entry's date. Ensures sortability.
 		recordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
 		at.log.Infow("creating site.standard.document", "rkey", recordKey, "record", record)
-		documentUriStr, err = createRecord(ctx, client, "site.standard.document", &recordKey, record)
+		documentRef, err = createRecord(ctx, client, "site.standard.document", &recordKey, record)
 	} else {
 		recordKey := documentUri.RecordKey().String()
 		at.log.Infow("updating site.standard.document", "rkey", recordKey, "record", record)
-		documentUriStr, err = putRecord(ctx, client, "site.standard.document", recordKey, record)
+		documentRef, err = putRecord(ctx, client, "site.standard.document", recordKey, record)
 	}
 	if err != nil {
-		return "", fmt.Errorf("failed to upsert site.standard.document record: %w", err)
+		return nil, fmt.Errorf("failed to upsert site.standard.document record: %w", err)
 	}
 
-	return documentUriStr, nil
-
+	return documentRef, nil
 }
 
 func (at *ATProto) deleteStandardDocument(ctx context.Context, client *xrpc.Client, uri syntax.ATURI) error {
@@ -197,7 +196,7 @@ func (at *ATProto) HandlerRoute() string {
 }
 
 func (at *ATProto) Handler(w http.ResponseWriter, r *http.Request, utils *server.PluginWebUtilities) {
-	_, _ = w.Write([]byte(at.standardSitePublicationUri))
+	_, _ = w.Write([]byte(at.standardSitePublicationRef.Uri))
 }
 
 const wellKnownStandardPublication = "/.well-known/site.standard.publication"

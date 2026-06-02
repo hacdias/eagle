@@ -76,7 +76,7 @@ func detectPermalinkFacet(post *bsky.FeedPost, permalinkStr string) {
 	}
 }
 
-func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext, thumbnail *photoBlob) (*blueskyPost, error) {
+func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext, thumbnail *photoBlob, associatedRefs []*atproto.RepoStrongRef) (*blueskyPost, error) {
 	post := &bsky.FeedPost{
 		CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
 		Text:      e.Title + " " + e.Permalink,
@@ -84,9 +84,10 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 		Embed: &bsky.FeedPost_Embed{
 			EmbedExternal: &bsky.EmbedExternal{
 				External: &bsky.EmbedExternal_External{
-					Uri:         e.Permalink,
-					Title:       e.Title,
-					Description: e.Summary(),
+					Uri:            e.Permalink,
+					Title:          e.Title,
+					Description:    e.Summary(),
+					AssociatedRefs: associatedRefs,
 				},
 			},
 		},
