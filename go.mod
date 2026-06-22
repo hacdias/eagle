@@ -30,7 +30,7 @@ require (
 	go.hacdias.com/indielib v0.5.0
 	go.hacdias.com/maze v0.6.1
 	go.uber.org/zap v1.28.0
-	go.yaml.in/yaml/v4 v4.0.0-rc.5
+	go.yaml.in/yaml/v4 v4.0.0-rc.6
 	golang.org/x/crypto v0.53.0
 	golang.org/x/net v0.56.0
 	gopkg.in/telebot.v3 v3.3.8
