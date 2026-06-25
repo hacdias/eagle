@@ -22,6 +22,11 @@ type blueskyPost struct {
 	uri string
 }
 
+const (
+	maximumBlueskyPostCharacters = 300
+	maximumBlueskyGalleryImages  = 10
+)
+
 func (at *ATProto) deleteBlueskyPost(ctx context.Context, client *xrpc.Client, recordKey string) error {
 	at.log.Infow("deleting app.bsky.feed.post", "rkey", recordKey)
 	return deleteRecord(ctx, client, "app.bsky.feed.post", recordKey)
@@ -129,14 +134,14 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *x
 	// Infer how many posts needed from photos count
 	postsNeeded := 1
 	if len(photos) > 0 {
-		postsNeeded = int(math.Ceil(float64(len(photos)) / maximumPhotos))
+		postsNeeded = int(math.Ceil(float64(len(photos)) / maximumBlueskyGalleryImages))
 	}
 
 	var statuses []string
 	if sctx.Status != "" {
 		statuses = []string{sctx.Status}
 	} else {
-		statuses = e.Statuses(maximumCharacters, postsNeeded, false)
+		statuses = e.Statuses(maximumBlueskyPostCharacters, postsNeeded, false)
 	}
 
 	embeddings := uploadedPhotoBlobsToEmbeddings(photos)
@@ -163,8 +168,8 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *x
 		embeddingsStart := i * 4
 		embeddingsEnd := min((i+1)*4, len(embeddings))
 
-		post.Embed.EmbedImages = &bsky.EmbedImages{
-			Images: embeddings[embeddingsStart:embeddingsEnd],
+		post.Embed.EmbedGallery = &bsky.EmbedGallery{
+			Items: embeddings[embeddingsStart:embeddingsEnd],
 		}
 
 		detectPermalinkFacet(post, e.Permalink)

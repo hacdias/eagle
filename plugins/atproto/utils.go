@@ -178,15 +178,17 @@ func blueskyPostToPhotoBlobs(posts []*blueskyPost) []*photoBlob {
 	return photos
 }
 
-func uploadedPhotoBlobsToEmbeddings(photos []*photoBlob) []*bsky.EmbedImages_Image {
-	embeddings := make([]*bsky.EmbedImages_Image, 0, len(photos))
+func uploadedPhotoBlobsToEmbeddings(photos []*photoBlob) []*bsky.EmbedGallery_Items_Elem {
+	embeddings := make([]*bsky.EmbedGallery_Items_Elem, 0, len(photos))
 	for _, photo := range photos {
-		embedding := &bsky.EmbedImages_Image{
-			Image: photo.blob,
-			Alt:   photo.alt,
+		embedding := &bsky.EmbedGallery_Items_Elem{
+			EmbedGallery_Image: &bsky.EmbedGallery_Image{
+				Image: photo.blob,
+				Alt:   photo.alt,
+			},
 		}
 		if photo.width > 0 && photo.height > 0 {
-			embedding.AspectRatio = &bsky.EmbedDefs_AspectRatio{
+			embedding.EmbedGallery_Image.AspectRatio = &bsky.EmbedDefs_AspectRatio{
 				Width:  int64(photo.width),
 				Height: int64(photo.height),
 			}

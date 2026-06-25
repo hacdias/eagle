@@ -24,11 +24,6 @@ var (
 	_ server.CronPlugin        = &ATProto{}
 )
 
-const (
-	maximumCharacters = 300
-	maximumPhotos     = 4
-)
-
 func init() {
 	server.RegisterPlugin("atproto", NewATProto)
 }
