@@ -124,7 +124,7 @@ func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Cli
 	return nil
 }
 
-func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentUri *syntax.ATURI, e *core.Entry, post *blueskyPost) (*atproto.RepoStrongRef, error) {
+func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentURI *syntax.ATURI, e *core.Entry, post *blueskyPost) (*atproto.RepoStrongRef, error) {
 	// https://standard.site/
 	record := map[string]any{
 		"$type":       "site.standard.document",
@@ -169,13 +169,13 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 		err         error
 	)
 
-	if documentUri == nil {
+	if documentURI == nil {
 		// Generate record key based on the entry's date. Ensures sortability.
 		recordKey := syntax.NewTID(e.Date.UnixMicro(), clockId).String()
 		at.log.Infow("creating site.standard.document", "rkey", recordKey, "record", record)
 		documentRef, err = createRecord(ctx, client, "site.standard.document", &recordKey, record)
 	} else {
-		recordKey := documentUri.RecordKey().String()
+		recordKey := documentURI.RecordKey().String()
 		at.log.Infow("updating site.standard.document", "rkey", recordKey, "record", record)
 		documentRef, err = putRecord(ctx, client, "site.standard.document", recordKey, record)
 	}

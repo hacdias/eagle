@@ -307,7 +307,12 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 			}
 
 			// Upsert standard.site document to ensure it includes reference to Bluesky post.
-			documentRef, err = at.upsertStandardDocument(ctx, client, s.document, e, post)
+			documentURI, err := syntax.ParseATURI(documentRef.Uri)
+			if err != nil {
+				return err
+			}
+
+			documentRef, err = at.upsertStandardDocument(ctx, client, &documentURI, e, post)
 			if err != nil {
 				return err
 			}
