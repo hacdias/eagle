@@ -7,7 +7,7 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/bluesky-social/indigo v0.0.0-20260629160527-dfe5578fd537
 	github.com/cretz/bine v0.2.0
-	github.com/gabriel-vasile/mimetype v1.4.13
+	github.com/gabriel-vasile/mimetype v1.4.15
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-chi/jwtauth/v5 v5.4.0
 	github.com/go-playground/form/v4 v4.3.0
@@ -36,7 +36,7 @@ require (
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
-	miniflux.app/v2 v2.3.2
+	miniflux.app/v2 v2.3.3
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
