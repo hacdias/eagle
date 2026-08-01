@@ -14,7 +14,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
-	github.com/lestrrat-go/jwx/v3 v3.1.1
+	github.com/lestrrat-go/jwx/v3 v3.2.0
 	github.com/mattn/go-mastodon v0.0.13
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/meilisearch/meilisearch-go v0.36.3
@@ -26,7 +26,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/uber/h3-go/v4 v4.5.0
-	github.com/yuin/goldmark v1.8.4
+	github.com/yuin/goldmark v1.8.5
 	go.hacdias.com/indielib v0.5.0
 	go.hacdias.com/maze v0.6.1
 	go.uber.org/zap v1.28.0
