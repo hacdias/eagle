@@ -10,11 +10,11 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.15
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/go-chi/jwtauth/v5 v5.4.0
-	github.com/go-playground/form/v4 v4.3.0
+	github.com/go-playground/form/v4 v4.3.1
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
-	github.com/lestrrat-go/jwx/v3 v3.2.0
+	github.com/lestrrat-go/jwx/v3 v3.3.0
 	github.com/mattn/go-mastodon v0.0.13
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/meilisearch/meilisearch-go v0.36.3
@@ -26,12 +26,12 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	github.com/uber/h3-go/v4 v4.5.0
-	github.com/yuin/goldmark v1.8.5
+	github.com/yuin/goldmark v1.8.6
 	go.hacdias.com/indielib v0.5.0
 	go.hacdias.com/maze v0.6.1
 	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/net v0.58.0
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
@@ -76,7 +76,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
-	github.com/lestrrat-go/dsig v1.3.0 // indirect
+	github.com/lestrrat-go/dsig v1.4.0 // indirect
 	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.6 // indirect
