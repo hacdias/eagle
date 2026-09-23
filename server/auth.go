@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v3/jwt"
+	"github.com/lestrrat-go/jwx/v4/jwt"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
