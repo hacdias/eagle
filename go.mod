@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/bluesky-social/indigo v0.0.0-20260903211445-41278964ec8e
+	github.com/bluesky-social/indigo v0.0.0-20260925062619-162dca49278b
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.15
 	github.com/go-chi/chi/v5 v5.3.2
@@ -49,7 +49,7 @@ require (
 	github.com/earthboundkid/versioninfo/v2 v2.24.1 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -105,9 +105,9 @@ require (
 	github.com/whyrusleeping/cbor-gen v0.3.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0 // indirect
-	go.opentelemetry.io/otel v1.44.0 // indirect
-	go.opentelemetry.io/otel/metric v1.44.0 // indirect
-	go.opentelemetry.io/otel/trace v1.44.0 // indirect
+	go.opentelemetry.io/otel v1.45.0 // indirect
+	go.opentelemetry.io/otel/metric v1.45.0 // indirect
+	go.opentelemetry.io/otel/trace v1.45.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
