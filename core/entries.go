@@ -12,12 +12,10 @@ import (
 
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/ast"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/text"
-	"github.com/yuin/goldmark/util"
+	"github.com/yuin/goldmark/v2/ast"
+	"github.com/yuin/goldmark/v2/extension"
+	"github.com/yuin/goldmark/v2/parser"
+	"github.com/yuin/goldmark/v2/util"
 	"go.hacdias.com/maze"
 	"go.yaml.in/yaml/v4"
 )
@@ -397,13 +395,10 @@ func (co *Core) entryPermalinkFromID(id string, fr *FrontMatter) *urlpkg.URL {
 // in the content itself are probably not worth considering for the purposes
 // of usage of this function.
 func (co *Core) GetEntryLinks(e *Entry, withSyndications bool) ([]string, error) {
-	p := goldmark.DefaultParser()
-	p.AddOptions(parser.WithInlineParsers(
-		util.Prioritized(extension.NewLinkifyParser(), 999),
-	))
+	p := parser.New(parser.WithExtensions(extension.NewLinkifyParser()))
 
 	source := []byte(e.Content)
-	n := p.Parse(text.NewReader(source))
+	n := p.Parse(source)
 
 	var links []string
 	if bookmark := typed.Typed(e.Other).String("bookmark-of"); bookmark != "" {
@@ -420,13 +415,10 @@ func (co *Core) GetEntryLinks(e *Entry, withSyndications bool) ([]string, error)
 		switch n.Kind() {
 		case ast.KindLink:
 			n := n.(*ast.Link)
-			v := util.URLEscape(n.Destination, true)
-			links = append(links, string(v))
+			links = append(links, urlEscape(n.Destination.Value(source)))
 		case ast.KindAutoLink:
 			n := n.(*ast.AutoLink)
-			v := n.URL(source)
-			v = util.URLEscape(v, true)
-			links = append(links, string(v))
+			links = append(links, urlEscape(n.Destination.Value(source)))
 		}
 
 		return ast.WalkContinue, nil
@@ -454,4 +446,10 @@ func (co *Core) GetEntryLinks(e *Entry, withSyndications bool) ([]string, error)
 	}, []string{})
 
 	return lo.Uniq(links), nil
+}
+
+// urlEscape percent-encodes the URL. goldmark's [util.URLEscape] also escapes
+// "&" as "&amp;" for HTML output, which is undone here.
+func urlEscape(v string) string {
+	return strings.ReplaceAll(string(util.URLEscape([]byte(v))), "&amp;", "&")
 }
