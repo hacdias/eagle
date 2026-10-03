@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-chi/jwtauth/v5"
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v3/jwt"
+	"github.com/lestrrat-go/jwx/v4/jwa"
+	"github.com/lestrrat-go/jwx/v4/jwt"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
@@ -84,24 +84,30 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, signed, err := s.jwtAuth.Encode(map[string]any{
-		jwt.SubjectKey:          authCodeSubject,
-		jwt.IssuedAtKey:         time.Now().Unix(),
-		jwt.ExpirationKey:       time.Now().Add(time.Minute * 5),
-		"scope":                 strings.Join(req.Scopes, " "),
-		"expiry":                r.Form.Get("expiry"),
-		"client_id":             req.ClientID,
-		"redirect_uri":          req.RedirectURI,
-		"code_challenge":        req.CodeChallenge,
-		"code_challenge_method": req.CodeChallengeMethod,
-	})
+	token, err := jwt.NewBuilder().
+		Subject(authCodeSubject).
+		IssuedAt(time.Now()).
+		Expiration(time.Now().Add(time.Minute*5)).
+		Claim("scope", strings.Join(req.Scopes, " ")).
+		Claim("expiry", r.Form.Get("expiry")).
+		Claim("client_id", req.ClientID).
+		Claim("redirect_uri", req.RedirectURI).
+		Claim("code_challenge", req.CodeChallenge).
+		Claim("code_challenge_method", req.CodeChallengeMethod).
+		Build()
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, err)
+		return
+	}
+
+	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), s.jwtKey))
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	query := urlpkg.Values{}
-	query.Set("code", signed)
+	query.Set("code", string(signed))
 	query.Set("state", req.State)
 	query.Set("iss", s.c.ID())
 
@@ -210,7 +216,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	}
 
 	code := r.Form.Get("code")
-	token, err := jwtauth.VerifyToken(s.jwtAuth, code)
+	token, err := jwt.ParseString(code, jwt.WithKey(jwa.HS256(), s.jwtKey))
 	if err != nil {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
@@ -416,17 +422,7 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 }
 
 func getString(token jwt.Token, prop string) string {
-	if !token.Has(prop) {
-		return ""
-	}
-
-	var v string
-
-	err := token.Get(prop, &v)
-	if err != nil {
-		return ""
-	}
-
+	v, _ := jwt.Get[string](token, prop)
 	return v
 }
 

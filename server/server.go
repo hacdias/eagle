@@ -19,7 +19,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-chi/jwtauth/v5"
 	"github.com/maypok86/otter/v2"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
@@ -49,7 +48,7 @@ type Server struct {
 
 	log         *zap.SugaredLogger
 	ias         *indieauth.Server
-	jwtAuth     *jwtauth.JWTAuth
+	jwtKey      []byte
 	actions     map[string]func() error
 	plugins     map[string]Plugin
 	syndicators map[string]SyndicationPlugin
@@ -84,7 +83,7 @@ func NewServer(c *core.Config) (*Server, error) {
 
 		log:     log.S().Named("server"),
 		ias:     indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtAuth: jwtauth.New("HS256", []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))), nil),
+		jwtKey:  []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))),
 		actions: map[string]func() error{},
 
 		cron: cron.New(),
