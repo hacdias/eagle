@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/bluesky-social/indigo v0.0.0-20261008210153-5568a3799fb6
+	github.com/bluesky-social/indigo v0.0.0-20261013190618-3beb6e491b79
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.15
 	github.com/go-chi/chi/v5 v5.3.2
