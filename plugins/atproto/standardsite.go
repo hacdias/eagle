@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/bluesky-social/indigo/api/atproto"
+	"github.com/bluesky-social/indigo/atproto/atclient"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	lexutil "github.com/bluesky-social/indigo/lex/util"
-	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/gabriel-vasile/mimetype"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
@@ -33,7 +33,7 @@ type standardSite struct {
 	BasicTheme *standardSiteBasicTheme
 }
 
-func (at *ATProto) uploadIcon(ctx context.Context, client *xrpc.Client) (*lexutil.LexBlob, error) {
+func (at *ATProto) uploadIcon(ctx context.Context, client *atclient.APIClient) (*lexutil.LexBlob, error) {
 	data, err := at.core.ReadFile(at.standardSite.Icon)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read icon file %q: %w", at.standardSite.Icon, err)
@@ -60,8 +60,8 @@ func (at *ATProto) uploadIcon(ctx context.Context, client *xrpc.Client) (*lexuti
 	}, nil
 }
 
-func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Client) error {
-	at.log.Infow("repository information found", "did", client.Auth.Did)
+func (at *ATProto) initStandardPublication(ctx context.Context, client *atclient.APIClient) error {
+	at.log.Infow("repository information found", "did", client.AccountDID.String())
 
 	record := map[string]any{
 		"$type": "site.standard.publication",
@@ -124,7 +124,7 @@ func (at *ATProto) initStandardPublication(ctx context.Context, client *xrpc.Cli
 	return nil
 }
 
-func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Client, documentURI *syntax.ATURI, e *core.Entry, post *blueskyPost) (*atproto.RepoStrongRef, error) {
+func (at *ATProto) upsertStandardDocument(ctx context.Context, client *atclient.APIClient, documentURI *syntax.ATURI, e *core.Entry, post *blueskyPost) (*atproto.RepoStrongRef, error) {
 	// https://standard.site/
 	record := map[string]any{
 		"$type":       "site.standard.document",
@@ -186,7 +186,7 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *xrpc.Clie
 	return documentRef, nil
 }
 
-func (at *ATProto) deleteStandardDocument(ctx context.Context, client *xrpc.Client, uri syntax.ATURI) error {
+func (at *ATProto) deleteStandardDocument(ctx context.Context, client *atclient.APIClient, uri syntax.ATURI) error {
 	at.log.Infow("deleting site.standard.document", "rkey", uri.RecordKey().String())
 	return deleteRecord(ctx, client, "site.standard.document", uri.RecordKey().String())
 }

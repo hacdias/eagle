@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bluesky-social/indigo/xrpc"
+	"github.com/bluesky-social/indigo/atproto/atclient"
 	"github.com/samber/lo"
 )
 
@@ -54,7 +54,7 @@ type arabicaRoaster struct {
 	CreatedAt string `json:"createdAt"`
 }
 
-func getArabicaBeans(ctx context.Context, client *xrpc.Client) ([]*arabicaBean, error) {
+func getArabicaBeans(ctx context.Context, client *atclient.APIClient) ([]*arabicaBean, error) {
 	beanRecords, err := listRecords(ctx, client, "social.arabica.alpha.bean")
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func getArabicaBeans(ctx context.Context, client *xrpc.Client) ([]*arabicaBean, 
 	return beans, nil
 }
 
-func getArabicaRoasters(ctx context.Context, client *xrpc.Client) (map[string]*arabicaRoaster, error) {
+func getArabicaRoasters(ctx context.Context, client *atclient.APIClient) (map[string]*arabicaRoaster, error) {
 	roasterRecords, err := listRecords(ctx, client, "social.arabica.alpha.roaster")
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func getArabicaRoasters(ctx context.Context, client *xrpc.Client) (map[string]*a
 	return roasters, nil
 }
 
-func fetchAndProcessArabicaData(ctx context.Context, client *xrpc.Client) ([]coffeeBag, error) {
+func fetchAndProcessArabicaData(ctx context.Context, client *atclient.APIClient) ([]coffeeBag, error) {
 	beans, err := getArabicaBeans(ctx, client)
 	if err != nil {
 		return nil, err

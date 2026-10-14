@@ -9,9 +9,9 @@ import (
 
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
+	"github.com/bluesky-social/indigo/atproto/atclient"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	"github.com/bluesky-social/indigo/lex/util"
-	"github.com/bluesky-social/indigo/xrpc"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 )
@@ -27,13 +27,13 @@ const (
 	maximumBlueskyGalleryImages  = 10
 )
 
-func (at *ATProto) deleteBlueskyPost(ctx context.Context, client *xrpc.Client, recordKey string) error {
+func (at *ATProto) deleteBlueskyPost(ctx context.Context, client *atclient.APIClient, recordKey string) error {
 	at.log.Infow("deleting app.bsky.feed.post", "rkey", recordKey)
 	return deleteRecord(ctx, client, "app.bsky.feed.post", recordKey)
 }
 
-func (at *ATProto) getBlueskyPost(ctx context.Context, client *xrpc.Client, recordKey string) (*blueskyPost, error) {
-	response, err := atproto.RepoGetRecord(ctx, client, "", "app.bsky.feed.post", client.Auth.Did, recordKey)
+func (at *ATProto) getBlueskyPost(ctx context.Context, client *atclient.APIClient, recordKey string) (*blueskyPost, error) {
+	response, err := atproto.RepoGetRecord(ctx, client, "", "app.bsky.feed.post", client.AccountDID.String(), recordKey)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func detectPermalinkFacet(post *bsky.FeedPost, permalinkStr string) {
 	}
 }
 
-func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext, thumbnail *photoBlob, associatedRefs []*atproto.RepoStrongRef) (*blueskyPost, error) {
+func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *atclient.APIClient, e *core.Entry, sctx *server.SyndicationContext, thumbnail *photoBlob, associatedRefs []*atproto.RepoStrongRef) (*blueskyPost, error) {
 	post := &bsky.FeedPost{
 		CreatedAt: e.Date.Format(syntax.AtprotoDatetimeLayout),
 		Text:      e.Title + " " + e.Permalink,
@@ -114,7 +114,7 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 	at.log.Infow("creating app.bsky.feed.post", "record", post)
 	record, err := atproto.RepoCreateRecord(ctx, client, &atproto.RepoCreateRecord_Input{
 		Collection: "app.bsky.feed.post",
-		Repo:       client.Auth.Did,
+		Repo:       client.AccountDID.String(),
 		Record:     &util.LexiconTypeDecoder{Val: post},
 		Rkey:       &recordKey,
 	})
@@ -130,7 +130,7 @@ func (at *ATProto) createPublishBlueskyPost(ctx context.Context, client *xrpc.Cl
 	}, nil
 }
 
-func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *xrpc.Client, e *core.Entry, sctx *server.SyndicationContext, photos []*photoBlob) ([]*blueskyPost, error) {
+func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *atclient.APIClient, e *core.Entry, sctx *server.SyndicationContext, photos []*photoBlob) ([]*blueskyPost, error) {
 	// Infer how many posts needed from photos count
 	postsNeeded := 1
 	if len(photos) > 0 {
@@ -190,7 +190,7 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *x
 		at.log.Infow("creating app.bsky.feed.post", "record", post)
 		record, err := atproto.RepoCreateRecord(ctx, client, &atproto.RepoCreateRecord_Input{
 			Collection: "app.bsky.feed.post",
-			Repo:       client.Auth.Did,
+			Repo:       client.AccountDID.String(),
 			Record:     &util.LexiconTypeDecoder{Val: post},
 			Rkey:       &recordKey,
 		})

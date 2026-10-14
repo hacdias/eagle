@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/bluesky-social/indigo/api/atproto"
+	"github.com/bluesky-social/indigo/atproto/atclient"
 	"github.com/bluesky-social/indigo/atproto/syntax"
-	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
@@ -109,27 +109,13 @@ func (at *ATProto) Syndicator() server.Syndicator {
 	}
 }
 
-func (at *ATProto) getClient(ctx context.Context) (*xrpc.Client, error) {
-	client := &xrpc.Client{
-		Host:      at.host,
-		UserAgent: &at.userAgent,
-	}
-
-	sess, err := atproto.ServerCreateSession(context.Background(), client, &atproto.ServerCreateSession_Input{
-		Identifier: at.identifier,
-		Password:   at.password,
-	})
+func (at *ATProto) getClient(ctx context.Context) (*atclient.APIClient, error) {
+	client, err := atclient.LoginWithPasswordHost(ctx, at.host, at.identifier, at.password, "", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	client.Auth = &xrpc.AuthInfo{
-		AccessJwt:  sess.AccessJwt,
-		RefreshJwt: sess.RefreshJwt,
-		Handle:     sess.Handle,
-		Did:        sess.Did,
-	}
-
+	client.Headers.Set("User-Agent", at.userAgent)
 	return client, nil
 }
 
@@ -175,7 +161,7 @@ func (at *ATProto) IsSyndicated(e *core.Entry) bool {
 	return len(s.feedPosts) > 0 || s.document != nil || s.grainGallery != nil
 }
 
-func (at *ATProto) deleteBlueskyPosts(ctx context.Context, client *xrpc.Client, uris []syntax.ATURI) error {
+func (at *ATProto) deleteBlueskyPosts(ctx context.Context, client *atclient.APIClient, uris []syntax.ATURI) error {
 	for _, uri := range uris {
 		err := at.deleteBlueskyPost(ctx, client, uri.RecordKey().String())
 		if err != nil {
@@ -186,7 +172,7 @@ func (at *ATProto) deleteBlueskyPosts(ctx context.Context, client *xrpc.Client, 
 	return nil
 }
 
-func (at *ATProto) getBlueskyPosts(ctx context.Context, client *xrpc.Client, uris []syntax.ATURI) ([]*blueskyPost, error) {
+func (at *ATProto) getBlueskyPosts(ctx context.Context, client *atclient.APIClient, uris []syntax.ATURI) ([]*blueskyPost, error) {
 	posts := []*blueskyPost{}
 
 	for _, uri := range uris {

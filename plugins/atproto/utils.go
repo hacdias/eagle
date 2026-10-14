@@ -10,8 +10,8 @@ import (
 	"github.com/bluesky-social/indigo/api/agnostic"
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/api/bsky"
+	"github.com/bluesky-social/indigo/atproto/atclient"
 	lexutil "github.com/bluesky-social/indigo/lex/util"
-	"github.com/bluesky-social/indigo/xrpc"
 	"go.hacdias.com/eagle/server"
 )
 
@@ -24,7 +24,7 @@ type photoBlob struct {
 	height int
 }
 
-func uploadPhoto(ctx context.Context, client *xrpc.Client, photo *server.Photo) (*photoBlob, error) {
+func uploadPhoto(ctx context.Context, client *atclient.APIClient, photo *server.Photo) (*photoBlob, error) {
 	resp, err := atproto.RepoUploadBlob(ctx, client, bytes.NewReader(photo.Data))
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func uploadPhoto(ctx context.Context, client *xrpc.Client, photo *server.Photo) 
 	}, nil
 }
 
-func uploadPhotos(ctx context.Context, client *xrpc.Client, photos []*server.Photo) ([]*photoBlob, error) {
+func uploadPhotos(ctx context.Context, client *atclient.APIClient, photos []*server.Photo) ([]*photoBlob, error) {
 	uploaded := make([]*photoBlob, 0, len(photos))
 
 	for _, photo := range photos {
@@ -62,20 +62,20 @@ func uploadPhotos(ctx context.Context, client *xrpc.Client, photos []*server.Pho
 	return uploaded, nil
 }
 
-func deleteRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string) error {
+func deleteRecord(ctx context.Context, client *atclient.APIClient, collection, recordKey string) error {
 	_, err := atproto.RepoDeleteRecord(ctx, client, &atproto.RepoDeleteRecord_Input{
 		Collection: collection,
-		Repo:       client.Auth.Did,
+		Repo:       client.AccountDID.String(),
 		Rkey:       recordKey,
 	})
 
 	return err
 }
 
-func createRecord(ctx context.Context, client *xrpc.Client, collection string, recordKey *string, record map[string]any) (*atproto.RepoStrongRef, error) {
+func createRecord(ctx context.Context, client *atclient.APIClient, collection string, recordKey *string, record map[string]any) (*atproto.RepoStrongRef, error) {
 	result, err := agnostic.RepoCreateRecord(ctx, client, &agnostic.RepoCreateRecord_Input{
 		Collection: collection,
-		Repo:       client.Auth.Did,
+		Repo:       client.AccountDID.String(),
 		Record:     record,
 		Rkey:       recordKey,
 	})
@@ -89,12 +89,12 @@ func createRecord(ctx context.Context, client *xrpc.Client, collection string, r
 	}, nil
 }
 
-func listRecords(ctx context.Context, client *xrpc.Client, collection string) ([]*agnostic.RepoListRecords_Record, error) {
+func listRecords(ctx context.Context, client *atclient.APIClient, collection string) ([]*agnostic.RepoListRecords_Record, error) {
 	records := []*agnostic.RepoListRecords_Record{}
 	cursor := ""
 
 	for {
-		resp, err := agnostic.RepoListRecords(ctx, client, collection, cursor, 100, client.Auth.Did, false)
+		resp, err := agnostic.RepoListRecords(ctx, client, collection, cursor, 100, client.AccountDID.String(), false)
 		if err != nil {
 			return nil, err
 		}
@@ -109,9 +109,9 @@ func listRecords(ctx context.Context, client *xrpc.Client, collection string) ([
 	return records, nil
 }
 
-func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey string, record map[string]any) (*atproto.RepoStrongRef, error) {
+func putRecord(ctx context.Context, client *atclient.APIClient, collection, recordKey string, record map[string]any) (*atproto.RepoStrongRef, error) {
 	// Check if the record exists and is the same, if so, return the existing URI
-	if result, err := agnostic.RepoGetRecord(ctx, client, "", collection, client.Auth.Did, recordKey); err == nil {
+	if result, err := agnostic.RepoGetRecord(ctx, client, "", collection, client.AccountDID.String(), recordKey); err == nil {
 		var currentRecord map[string]any
 		err = json.Unmarshal(*result.Value, &currentRecord)
 		if err != nil {
@@ -143,7 +143,7 @@ func putRecord(ctx context.Context, client *xrpc.Client, collection, recordKey s
 	// Otherwise, update the record
 	result, err := agnostic.RepoPutRecord(ctx, client, &agnostic.RepoPutRecord_Input{
 		Collection: collection,
-		Repo:       client.Auth.Did,
+		Repo:       client.AccountDID.String(),
 		Rkey:       recordKey,
 		Record:     record,
 	})

@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bluesky-social/indigo/atproto/atclient"
 	"github.com/bluesky-social/indigo/atproto/syntax"
-	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/uber/h3-go/v4"
 	"go.hacdias.com/eagle/core"
 )
 
-func (at *ATProto) createGrainGallery(ctx context.Context, client *xrpc.Client, e *core.Entry, photos []*photoBlob) (string, error) {
+func (at *ATProto) createGrainGallery(ctx context.Context, client *atclient.APIClient, e *core.Entry, photos []*photoBlob) (string, error) {
 	for i, photo := range photos {
 		if photo.width <= 0 || photo.height <= 0 {
 			return "", fmt.Errorf("photo %d has invalid dimensions (%dx%d): grain requires aspectRatio with minimum 1", i, photo.width, photo.height)
@@ -146,7 +146,7 @@ func (at *ATProto) createGrainGallery(ctx context.Context, client *xrpc.Client, 
 	return galleryRecordRef.Uri, nil
 }
 
-func (at *ATProto) deleteGrainGallery(ctx context.Context, client *xrpc.Client, uri syntax.ATURI) error {
+func (at *ATProto) deleteGrainGallery(ctx context.Context, client *atclient.APIClient, uri syntax.ATURI) error {
 	// TODO: Implement deletion of the gallery record, photo records, and gallery item records.
 	// Maybe see if delete gallery xrpc method on grain.social becomes specified?
 	return errors.New("not implemented")
