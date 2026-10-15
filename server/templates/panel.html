@@ -18,6 +18,29 @@
   </p>
 {{ end }}
 
+{{ with .Scheduled }}
+  <h2>Scheduled Entries</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>ID</th>
+        <th>Syndicators</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range . }}
+        <tr>
+          <td>{{ .Date.Local.Format "2006-01-02 15:04" }}</td>
+          <td><a href='{{ .EditURL }}'>{{ .ID }}</a></td>
+          <td>{{ range $i, $s := .Syndicators }}{{ if $i }}, {{ end }}{{ $s }}{{ end }}</td>
+        </tr>
+      {{ end }}
+    </tbody>
+  </table>
+{{ end }}
+
 <h2>Upload File</h2>
 
 {{ with .MediaLocation }}

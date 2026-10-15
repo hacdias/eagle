@@ -42,6 +42,19 @@ func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelP
 	data.Title = "Panel"
 	data.Actions = s.getActions()
 	data.Success = r.URL.Query().Get("success")
+
+	entries, err := s.core.DB().GetScheduledEntries(r.Context())
+	if err != nil {
+		s.panelError(w, r, http.StatusInternalServerError, fmt.Errorf("error getting scheduled entries: %w", err))
+		return
+	}
+	for _, scheduled := range entries {
+		data.Scheduled = append(data.Scheduled, panelScheduledEntry{
+			ScheduledEntry: scheduled,
+			EditURL:        path.Join(panelEditPath, s.core.EntryFilenameFromID(scheduled.ID)),
+		})
+	}
+
 	s.panelTemplate(w, r, http.StatusOK, panelTemplate, data)
 }
 
@@ -54,12 +67,18 @@ func (s *Server) getSyndicators() []Syndicator {
 	return syndicators
 }
 
+type panelScheduledEntry struct {
+	*core.ScheduledEntry
+	EditURL string
+}
+
 type panelPage struct {
 	Title         string
 	Actions       []string
 	Success       string
 	MediaLocation string
 	MediaPhoto    *core.Photo
+	Scheduled     []panelScheduledEntry
 }
 
 func (s *Server) panelGet(w http.ResponseWriter, r *http.Request) {

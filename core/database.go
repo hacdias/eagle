@@ -21,7 +21,7 @@ func newDatabase(path string) (*Database, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&Token{}, &Mention{}, &QueueItem{})
+	err = db.AutoMigrate(&Token{}, &Mention{}, &QueueItem{}, &ScheduledEntry{})
 	if err != nil {
 		return nil, err
 	}
@@ -129,4 +129,34 @@ func (d *Database) GetActiveQueueItems(ctx context.Context) ([]*QueueItem, error
 
 func (d *Database) DeleteFailedQueueItems(ctx context.Context) error {
 	return d.db.WithContext(ctx).Where("attempts >= ?", 3).Delete(&QueueItem{}).Error
+}
+
+// Scheduled entry methods
+
+func (d *Database) GetScheduledEntry(ctx context.Context, id string) (*ScheduledEntry, error) {
+	var entry ScheduledEntry
+	err := d.db.WithContext(ctx).First(&entry, "id = ?", id).Error
+	return &entry, err
+}
+
+func (d *Database) SaveScheduledEntry(ctx context.Context, entry *ScheduledEntry) error {
+	// Dates are stored in UTC so that they can be compared as strings by SQLite.
+	entry.Date = entry.Date.UTC()
+	return d.db.WithContext(ctx).Save(entry).Error
+}
+
+func (d *Database) DeleteScheduledEntry(ctx context.Context, id string) error {
+	return d.db.WithContext(ctx).Delete(&ScheduledEntry{}, "id = ?", id).Error
+}
+
+func (d *Database) GetScheduledEntries(ctx context.Context) ([]*ScheduledEntry, error) {
+	var entries []*ScheduledEntry
+	err := d.db.WithContext(ctx).Order("date asc").Find(&entries).Error
+	return entries, err
+}
+
+func (d *Database) GetDueScheduledEntries(ctx context.Context, now time.Time) ([]*ScheduledEntry, error) {
+	var entries []*ScheduledEntry
+	err := d.db.WithContext(ctx).Where("date <= ?", now.UTC()).Order("date asc").Find(&entries).Error
+	return entries, err
 }

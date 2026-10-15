@@ -457,3 +457,10 @@ func (co *Core) GetEntryLinks(e *Entry, withSyndications bool) ([]string, error)
 func urlEscape(v string) string {
 	return strings.ReplaceAll(string(util.URLEscape([]byte(v))), "&amp;", "&")
 }
+
+type ScheduledEntry struct {
+	ID                string
+	Date              time.Time `gorm:"index"`
+	Syndicators       []string  `gorm:"serializer:json"`
+	SyndicationStatus string
+}

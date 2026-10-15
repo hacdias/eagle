@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"os"
 	"sort"
+	"time"
 
 	_ "image/gif"
 	_ "image/jpeg"
@@ -15,6 +17,7 @@ import (
 	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
+	"gorm.io/gorm"
 )
 
 func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext, error) {
@@ -166,7 +169,8 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 	s.log.Infow("post save entry hooks", "id", e.ID)
 
 	// Syndications
-	err := s.syndicate(e, options.syndicators, options.syndicationStatus)
+	syndicators, syndicationStatus := s.updateSchedule(e, options.syndicators, options.syndicationStatus)
+	err := s.syndicate(e, syndicators, syndicationStatus)
 	if err != nil {
 		s.log.Errorw("errors occurred while syndicating", "id", e.ID, "err", err)
 	}
@@ -205,5 +209,99 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 	err = s.core.SendWebmentions(e, options.previousLinks...)
 	if err != nil {
 		s.log.Errorw("failed to send webmentions", "id", e.ID, "err", err)
+	}
+}
+
+func (s *Server) updateSchedule(e *core.Entry, syndicators []string, status string) ([]string, string) {
+	ctx := context.Background()
+	db := s.core.DB()
+
+	scheduled, err := db.GetScheduledEntry(ctx, e.ID)
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			s.log.Errorw("failed to get scheduled entry", "id", e.ID, "err", err)
+		}
+		scheduled = nil
+	}
+
+	switch {
+	case e.Deleted() || e.Draft:
+		if scheduled != nil {
+			err = db.DeleteScheduledEntry(ctx, e.ID)
+			if err != nil {
+				s.log.Errorw("failed to delete scheduled entry", "id", e.ID, "err", err)
+			}
+		}
+		return nil, ""
+	case e.Future():
+		if scheduled == nil {
+			scheduled = &core.ScheduledEntry{ID: e.ID}
+		}
+		scheduled.Date = e.Date
+		scheduled.Syndicators = append(scheduled.Syndicators, syndicators...)
+		// Existing syndications are deleted by syndicate. Re-create them once the
+		// entry is published.
+		for name, syndicator := range s.syndicators {
+			if syndicator.IsSyndicated(e) {
+				scheduled.Syndicators = append(scheduled.Syndicators, name)
+			}
+		}
+		scheduled.Syndicators = lo.Uniq(scheduled.Syndicators)
+		sort.Strings(scheduled.Syndicators)
+		if status != "" {
+			scheduled.SyndicationStatus = status
+		}
+
+		err = db.SaveScheduledEntry(ctx, scheduled)
+		if err != nil {
+			s.log.Errorw("failed to save scheduled entry", "id", e.ID, "err", err)
+		}
+		return nil, ""
+	default:
+		if scheduled == nil {
+			return syndicators, status
+		}
+
+		err = db.DeleteScheduledEntry(ctx, e.ID)
+		if err != nil {
+			s.log.Errorw("failed to delete scheduled entry", "id", e.ID, "err", err)
+		}
+		if status == "" {
+			status = scheduled.SyndicationStatus
+		}
+		return append(syndicators, scheduled.Syndicators...), status
+	}
+}
+
+func (s *Server) publishScheduled() {
+	entries, err := s.core.DB().GetDueScheduledEntries(context.Background(), time.Now())
+	if err != nil {
+		s.log.Errorw("failed to get due scheduled entries", "err", err)
+		return
+	}
+
+	if len(entries) == 0 {
+		return
+	}
+
+	s.log.Infow("publishing scheduled entries", "n", len(entries))
+	s.build(false)
+
+	for _, scheduled := range entries {
+		e, err := s.core.GetEntry(scheduled.ID)
+		if os.IsNotExist(err) {
+			err = s.core.DB().DeleteScheduledEntry(context.Background(), scheduled.ID)
+			if err != nil {
+				s.log.Errorw("failed to delete scheduled entry", "id", scheduled.ID, "err", err)
+			}
+			continue
+		} else if err != nil {
+			s.log.Errorw("failed to open scheduled entry", "id", scheduled.ID, "err", err)
+			continue
+		}
+
+		// updateSchedule merges the stored syndicators.
+		s.postSaveEntry(e, postSaveEntryOptions{skipBuild: true})
+		time.Sleep(time.Second)
 	}
 }

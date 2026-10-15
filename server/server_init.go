@@ -174,5 +174,10 @@ func (s *Server) initCron() error {
 			s.log.Errorw("failed to delete expired tokens", "err", err)
 		}
 	})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.cron.AddFunc("*/15 * * * *", s.publishScheduled)
 	return err
 }
