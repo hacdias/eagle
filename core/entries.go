@@ -77,6 +77,10 @@ func (e *Entry) Deleted() bool {
 	return e.ExpiryDate.Before(time.Now())
 }
 
+func (e *Entry) Future() bool {
+	return e.Date.After(time.Now())
+}
+
 func (e *Entry) Summary() string {
 	if strings.Contains(e.Content, moreSeparator) {
 		firstPart := strings.Split(e.Content, moreSeparator)[0]

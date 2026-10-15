@@ -135,7 +135,7 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	}
 
 	if id != "" {
-		if e.Deleted() || e.Draft {
+		if e.Deleted() || e.Draft || e.Future() {
 			err = m.client.DeleteStatus(ctx, id)
 			if err != nil {
 				return err

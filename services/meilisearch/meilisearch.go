@@ -78,7 +78,7 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 	docs := []any{}
 
 	for _, e := range ee {
-		if e.Deleted() || e.Draft || e.NoIndex {
+		if e.Deleted() || e.Draft || e.Future() || e.NoIndex {
 			continue
 		}
 

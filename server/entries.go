@@ -198,7 +198,7 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 	}
 
 	// Rebuild
-	if !options.skipBuild && !e.Deleted() && !e.Draft {
+	if !options.skipBuild && !e.Deleted() && !e.Draft && !e.Future() {
 		s.build(false)
 	}
 

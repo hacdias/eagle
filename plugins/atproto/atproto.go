@@ -223,7 +223,7 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		return err
 	}
 
-	if e.Deleted() || e.Draft {
+	if e.Deleted() || e.Draft || e.Future() {
 		if s.grainGallery != nil {
 			err = at.deleteGrainGallery(ctx, client, *s.grainGallery)
 			if err != nil {
