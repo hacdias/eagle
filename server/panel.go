@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -63,6 +64,10 @@ func (s *Server) getSyndicators() []Syndicator {
 	for _, syndicator := range s.syndicators {
 		syndicators = append(syndicators, syndicator.Syndicator())
 	}
+
+	slices.SortFunc(syndicators, func(a, b Syndicator) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 
 	return syndicators
 }
