@@ -6,7 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"time"
 
@@ -14,7 +17,6 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 
-	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"gorm.io/gorm"
@@ -22,8 +24,6 @@ import (
 
 func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext, error) {
 	ctx := &SyndicationContext{}
-
-	thumbnailStr := typed.New(e.Other).String("thumbnail")
 
 	// Get the first 4 photos from the entry
 	for _, p := range e.Photos {
@@ -41,35 +41,60 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 			Height:   p.Height,
 		}
 
-		if p.URL == thumbnailStr {
-			ctx.Thumbnail = photo
-		}
-
 		ctx.Photos = append(ctx.Photos, photo)
 	}
 
-	if ctx.Thumbnail == nil && thumbnailStr != "" {
-		var err error
-		data, mimetype, err := s.media.GetImage(thumbnailStr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get thumbnail: %w", err)
-		}
-
-		ctx.Thumbnail = &Photo{
-			Data:     data,
-			MimeType: mimetype,
-		}
-
-		config, _, err := image.DecodeConfig(bytes.NewReader(ctx.Thumbnail.Data))
-		if err == nil {
-			ctx.Thumbnail.Width = config.Width
-			ctx.Thumbnail.Height = config.Height
-		}
-	} else if len(ctx.Photos) > 0 {
-		ctx.Thumbnail = ctx.Photos[0]
+	thumbnail, err := s.getEntryThumbnail(e)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get thumbnail: %w", err)
 	}
+	ctx.Thumbnail = thumbnail
 
 	return ctx, nil
+}
+
+// getEntryThumbnail returns the og:image of the built entry. It returns nil if
+// the entry is not built, e.g. when it is deleted, or has no og:image.
+func (s *Server) getEntryThumbnail(e *core.Entry) (*Photo, error) {
+	doc, err := s.getDocument(filepath.Join(e.ID, "index.html"))
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	meta := func(property string) string {
+		return doc.Find(fmt.Sprintf("meta[property='%s']", property)).AttrOr("content", "")
+	}
+
+	ogImage := meta("og:image")
+	if ogImage == "" {
+		return nil, nil
+	}
+
+	u, err := url.Parse(ogImage)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := s.staticFs.ReadFile(u.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	thumbnail := &Photo{
+		Data:     data,
+		MimeType: http.DetectContentType(data),
+		Alt:      meta("og:image:alt"),
+	}
+
+	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err == nil {
+		thumbnail.Width = config.Width
+		thumbnail.Height = config.Height
+	}
+
+	return thumbnail, nil
 }
 
 func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) error {
