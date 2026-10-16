@@ -226,7 +226,7 @@ func mcpLogInputSchema[T any]() *jsonschema.Schema {
 		case "pages", "season", "originalSeason":
 			prop.Minimum = jsonschema.Ptr(1.0)
 		case "category":
-			prop.Enum = []any{"musical", "concert", "comedy", "classical", "theater"}
+			prop.Enum = []any{"musical", "concert", "comedy show", "classical", "theater"}
 		}
 	}
 
