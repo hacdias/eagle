@@ -11,6 +11,7 @@ require (
 	github.com/go-chi/chi/v5 v5.4.0
 	github.com/go-playground/form/v4 v4.5.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
+	github.com/google/jsonschema-go v0.4.3
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
 	github.com/lestrrat-go/jwx/v4 v4.5.0
@@ -18,6 +19,7 @@ require (
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/meilisearch/meilisearch-go v0.36.3
 	github.com/microcosm-cc/bluemonday v1.0.27
+	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.53.0
 	github.com/spf13/afero v1.15.0
@@ -26,7 +28,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/uber/h3-go/v4 v4.5.0
 	github.com/yuin/goldmark/v2 v2.1.6
-	go.hacdias.com/indielib v0.5.0
+	go.hacdias.com/indielib v0.6.0
 	go.hacdias.com/maze v0.6.1
 	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
@@ -74,6 +76,8 @@ require (
 	github.com/prometheus/common v0.72.1 // indirect
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
+	github.com/segmentio/asm v1.2.1 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
@@ -81,11 +85,13 @@ require (
 	github.com/tomnomnom/linkheader v0.0.0-20250811210735-e5fe3b51442e // indirect
 	github.com/valyala/fastjson v1.6.10 // indirect
 	github.com/whyrusleeping/cbor-gen v0.3.1 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	gitlab.com/yawning/secp256k1-voi v0.0.0-20230925100816-f2616030848b // indirect
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.16.0 // indirect

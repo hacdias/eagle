@@ -35,14 +35,16 @@ const (
 
 func (s *Server) indieauthGet(w http.ResponseWriter, r *http.Request) {
 	s.serveJSON(w, http.StatusOK, map[string]any{
-		"issuer":                           s.c.ID(),
-		"authorization_endpoint":           s.c.AbsoluteURL(authPath),
-		"token_endpoint":                   s.c.AbsoluteURL(tokenPath),
-		"introspection_endpoint":           s.c.AbsoluteURL(tokenVerifyPath),
-		"userinfo_endpoint":                s.c.AbsoluteURL(userInfoPath),
-		"code_challenge_methods_supported": indieauth.CodeChallengeMethods,
-		"grant_types_supported":            []string{"authorization_code", "refresh_token"},
-		"response_types_supported":         []string{"code"},
+		"issuer":                                s.c.ID(),
+		"authorization_endpoint":                s.c.AbsoluteURL(authPath),
+		"token_endpoint":                        s.c.AbsoluteURL(tokenPath),
+		"introspection_endpoint":                s.c.AbsoluteURL(tokenVerifyPath),
+		"userinfo_endpoint":                     s.c.AbsoluteURL(userInfoPath),
+		"code_challenge_methods_supported":      indieauth.CodeChallengeMethods,
+		"grant_types_supported":                 []string{"authorization_code", "refresh_token"},
+		"response_types_supported":              []string{"code"},
+		"token_endpoint_auth_methods_supported": []string{"none"},
+		"client_id_metadata_document_supported": true,
 	})
 }
 
