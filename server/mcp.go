@@ -55,15 +55,36 @@ func (s *Server) mcpProtectedResourceGet() http.Handler {
 	})
 }
 
+var (
+	mcpReadAnnotations = &mcp.ToolAnnotations{
+		ReadOnlyHint:  true,
+		OpenWorldHint: new(false),
+	}
+
+	// Logging appends a new entry, so repeated calls create duplicates.
+	mcpLogAnnotations = &mcp.ToolAnnotations{
+		DestructiveHint: new(false),
+		OpenWorldHint:   new(false),
+	}
+
+	// Editing replaces all fields of an existing entry.
+	mcpEditAnnotations = &mcp.ToolAnnotations{
+		DestructiveHint: new(true),
+		IdempotentHint:  true,
+		OpenWorldHint:   new(false),
+	}
+)
+
 func (s *Server) initMcp() error {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "Eagle",
-		Version: "0.0.1",
+		Version: "0.0.2",
 	}, nil)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "searchEntries",
 		Description: "Search entries with pagination and query",
+		Annotations: mcpReadAnnotations,
 	}, s.mcpSearchEntries)
 
 	// Get logs
@@ -71,45 +92,53 @@ func (s *Server) initMcp() error {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "getReadingLogs",
 		Description: "Get all reading logs",
+		Annotations: mcpReadAnnotations,
 	}, s.mcpGetReadingLogs)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "getMovieLogs",
 		Description: "Get all movie logs",
+		Annotations: mcpReadAnnotations,
 	}, s.mcpGetMovieLogs)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "getShowLogs",
 		Description: "Get all show logs",
+		Annotations: mcpReadAnnotations,
 	}, s.mcpGetShowLogs)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "getPerformanceLogs",
 		Description: "Get all performance logs",
+		Annotations: mcpReadAnnotations,
 	}, s.mcpGetPerformanceLogs)
 
 	// Append to logs
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "logMovie",
 		Description: "Log a movie",
+		Annotations: mcpLogAnnotations,
 		InputSchema: mcpLogInputSchema[LogMovieParams](),
 	}, s.mcpLogMovie)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "logPerformance",
 		Description: "Log a performance",
+		Annotations: mcpLogAnnotations,
 		InputSchema: mcpPerformanceInputSchema[LogPerformanceParams](),
 	}, s.mcpLogPerformance)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "logReading",
 		Description: "Log a reading",
+		Annotations: mcpLogAnnotations,
 		InputSchema: mcpLogInputSchema[LogReadingParams](),
 	}, s.mcpLogReading)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "logShow",
 		Description: "Log a show",
+		Annotations: mcpLogAnnotations,
 		InputSchema: mcpLogInputSchema[LogShowParams](),
 	}, s.mcpLogShow)
 
@@ -117,24 +146,28 @@ func (s *Server) initMcp() error {
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "editMovieLog",
 		Description: "Edit a logged movie, identified by its original name and date. All fields are replaced",
+		Annotations: mcpEditAnnotations,
 		InputSchema: mcpLogInputSchema[EditMovieLogParams](),
 	}, s.mcpEditMovieLog)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "editPerformanceLog",
 		Description: "Edit a logged performance, identified by its original date and its original name, author, or both. All fields are replaced",
+		Annotations: mcpEditAnnotations,
 		InputSchema: mcpPerformanceInputSchema[EditPerformanceLogParams](),
 	}, s.mcpEditPerformanceLog)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "editReadingLog",
 		Description: "Edit a logged reading, identified by its original name and date. All fields are replaced",
+		Annotations: mcpEditAnnotations,
 		InputSchema: mcpLogInputSchema[EditReadingLogParams](),
 	}, s.mcpEditReadingLog)
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "editShowLog",
 		Description: "Edit a logged show, identified by its original name, date and season. All fields are replaced",
+		Annotations: mcpEditAnnotations,
 		InputSchema: mcpLogInputSchema[EditShowLogParams](),
 	}, s.mcpEditShowLog)
 
