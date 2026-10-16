@@ -22,7 +22,7 @@
       {{ range .Sessions }}
       <tr>
         <td>{{ .Created.Format "2006-01-02" }}</td>
-        <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
+        <td>{{ .Expiry.Format "2006-01-02" }}</td>
         <td>
           <form method='post'>
             <input type='hidden' name='action' value='revoke' />
@@ -65,7 +65,7 @@
         <td>{{ .ClientID }}</td>
         <td>{{ .Scope }}</td>
         <td>{{ .Created.Format "2006-01-02" }}</td>
-        <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
+        <td>{{ .Expiry.Format "2006-01-02" }}</td>
         <td>
           <form method='post'>
             <input type='hidden' name='action' value='revoke' />
@@ -107,7 +107,7 @@
         <td>{{ .ClientID }}</td>
         <td>{{ .Scope }}</td>
         <td>{{ .Created.Format "2006-01-02" }}</td>
-        <td>{{ if .Expiry.IsZero }}Never{{ else }}{{ .Expiry.Format "2006-01-02" }}{{ end }}</td>
+        <td>{{ .Expiry.Format "2006-01-02" }}</td>
         <td>
           <form method='post'>
             <input type='hidden' name='action' value='revoke' />

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	urlpkg "net/url"
 	"strconv"
@@ -189,7 +190,7 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !token.Expiry.IsZero() && token.Expiry.Before(time.Now()) {
+	if token.Expiry.Before(time.Now()) {
 		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
 		return
 	}
@@ -200,10 +201,7 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		"client_id": token.ClientID,
 		"scope":     token.Scope,
 		"iat":       token.Created.Unix(),
-	}
-
-	if !token.Expiry.IsZero() {
-		info["exp"] = token.Expiry.Unix()
+		"exp":       token.Expiry.Unix(),
 	}
 
 	s.serveJSON(w, http.StatusOK, info)
@@ -249,7 +247,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 	if withToken {
 		expiry, err := handleExpiry(getString(token, "expiry"))
 		if err != nil {
-			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "expiry param is not a valid number")
+			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "expiry param is not a positive number")
 			return
 		}
 
@@ -264,15 +262,13 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		at.ExpiresIn = int64(expiry.Seconds())
 		at.Scope = scope
 
-		if expiry > 0 {
-			refreshToken, err := s.generateRefreshToken(r.Context(), authRequest.ClientID, scope, expiry*2)
-			if err != nil {
-				s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
-				return
-			}
-
-			at.RefreshToken = refreshToken
+		refreshToken, err := s.generateRefreshToken(r.Context(), authRequest.ClientID, scope, expiry*2)
+		if err != nil {
+			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
+			return
 		}
+
+		at.RefreshToken = refreshToken
 	}
 
 	at.Profile = s.buildProfile(scope)
@@ -311,13 +307,13 @@ func (s *Server) buildProfile(scope string) *tokenUser {
 }
 
 func handleExpiry(expiry string) (time.Duration, error) {
-	if expiry == "" {
-		expiry = "0"
-	}
-
 	days, err := strconv.Atoi(expiry)
 	if err != nil {
 		return 0, err
+	}
+
+	if days <= 0 {
+		return 0, errors.New("expiry must be positive")
 	}
 
 	return time.Hour * 24 * time.Duration(days), nil
@@ -325,18 +321,12 @@ func handleExpiry(expiry string) (time.Duration, error) {
 
 func (s *Server) generateToken(ctx context.Context, client, scope string, expiry time.Duration) (string, error) {
 	id := uuid.New().String()
-
-	var expiresAt time.Time
-	if expiry > 0 {
-		expiresAt = time.Now().Add(expiry)
-	}
-
 	return id, s.core.DB().CreateToken(ctx, &core.Token{
 		ID:       id,
 		Type:     core.TokenTypeAccess,
 		ClientID: client,
 		Scope:    scope,
-		Expiry:   expiresAt,
+		Expiry:   time.Now().Add(expiry),
 		Created:  time.Now(),
 	})
 }
@@ -448,7 +438,7 @@ func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		if !token.Expiry.IsZero() && token.Expiry.Before(time.Now()) {
+		if token.Expiry.Before(time.Now()) {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "token expired")
 			return
 		}

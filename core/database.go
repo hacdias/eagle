@@ -61,7 +61,7 @@ func (d *Database) DeleteToken(ctx context.Context, id string) error {
 
 func (d *Database) DeleteExpiredTokens(ctx context.Context) error {
 	return d.db.WithContext(ctx).
-		Where("expiry != ? AND expiry < ?", time.Time{}, time.Now()).
+		Where("expiry < ?", time.Now()).
 		Delete(&Token{}).Error
 }
 

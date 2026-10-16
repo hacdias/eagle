@@ -15,6 +15,6 @@ type Token struct {
 	Type     TokenType `gorm:"index"`
 	ClientID string
 	Scope    string
-	Expiry   time.Time // zero means no expiry, only for access tokens
+	Expiry   time.Time
 	Created  time.Time
 }
