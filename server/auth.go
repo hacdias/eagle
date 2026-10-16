@@ -410,6 +410,7 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 		RefreshToken: newRefreshToken,
 		TokenType:    "Bearer",
 		Scope:        scope,
+		ExpiresIn:    int64(accessExpiry.Round(time.Second).Seconds()),
 	})
 }
 
