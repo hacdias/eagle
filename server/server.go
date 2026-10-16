@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/maypok86/otter/v2"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/robfig/cron/v3"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
@@ -70,6 +71,7 @@ type Server struct {
 	staticFsLock sync.RWMutex
 	staticFs     *staticFs
 	templates    *template.Template
+	mcp          *mcp.Server
 }
 
 func NewServer(c *core.Config) (*Server, error) {
@@ -108,6 +110,7 @@ func NewServer(c *core.Config) (*Server, error) {
 		s.initSyndicators(),
 		s.initActions(),
 		s.initCron(),
+		s.initMcp(),
 		s.loadRedirects(),
 		s.loadGone(),
 	)

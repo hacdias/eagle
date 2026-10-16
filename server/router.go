@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.hacdias.com/eagle/log"
 )
 
@@ -51,6 +52,15 @@ func (s *Server) makeRouter() http.Handler {
 
 	// Panel Assets
 	r.Get("/panel/assets*", http.StripPrefix("/panel", http.FileServer(http.FS(panelAssetsFS))).ServeHTTP)
+
+	// MCP Server
+	r.Handle(wellKnownOAuthProtectedResource, s.mcpProtectedResourceGet())
+	r.With(s.mcpAuth).Handle(mcpPath, mcp.NewStreamableHTTPHandler(func(req *http.Request) *mcp.Server {
+		return s.mcp
+	}, &mcp.StreamableHTTPOptions{
+		// In development, Eagle is usually exposed through a tunnel on localhost.
+		DisableLocalhostProtection: s.c.Development,
+	}))
 
 	// Panel Pages
 	r.Group(func(r chi.Router) {
