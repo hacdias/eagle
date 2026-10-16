@@ -2,10 +2,8 @@ package core
 
 import (
 	"bytes"
-	"cmp"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"slices"
 	"time"
 )
@@ -105,18 +103,18 @@ func (co *Core) GetPerformanceLogs() ([]PerformanceLogEntry, error) {
 	return co.getLogs[PerformanceLogEntry](performancesLogPath)
 }
 
-func (co *Core) addLog[T logEntry](path, message string, entry T) error {
+func (co *Core) addLog[T logEntry](path string, entry T) error {
 	logs, err := co.getLogs[T](path)
 	if err != nil {
 		return err
 	}
 
 	logs = append([]T{entry}, logs...)
-	return co.writeLogs(path, message, logs)
+	return co.writeLogs(path, logs)
 }
 
 // editLog replaces the single entry for which match returns true.
-func (co *Core) editLog[T logEntry](path, message string, match func(T) bool, entry T) error {
+func (co *Core) editLog[T logEntry](path string, match func(T) bool, entry T) error {
 	logs, err := co.getLogs[T](path)
 	if err != nil {
 		return err
@@ -137,16 +135,16 @@ func (co *Core) editLog[T logEntry](path, message string, match func(T) bool, en
 	}
 
 	logs[idx] = entry
-	return co.writeLogs(path, message, logs)
+	return co.writeLogs(path, logs)
 }
 
-func (co *Core) writeLogs[T logEntry](path, message string, logs []T) error {
+func (co *Core) writeLogs[T logEntry](path string, logs []T) error {
 	data, err := marshalLogs(logs)
 	if err != nil {
 		return err
 	}
 
-	return co.WriteFile(path, data, message)
+	return co.WriteFile(path, data, "data: update "+path)
 }
 
 func marshalLogs[T logEntry](logs []T) ([]byte, error) {
@@ -161,35 +159,35 @@ func marshalLogs[T logEntry](logs []T) ([]byte, error) {
 }
 
 func (co *Core) AddReadingLog(entry ReadingLogEntry) error {
-	return co.addLog(readingsLogPath, fmt.Sprintf("data: add %s to readings log", entry.Name), entry)
+	return co.addLog(readingsLogPath, entry)
 }
 
 func (co *Core) AddMovieLog(entry MovieLogEntry) error {
-	return co.addLog(moviesLogPath, fmt.Sprintf("data: add %s to movies log", entry.Name), entry)
+	return co.addLog(moviesLogPath, entry)
 }
 
 func (co *Core) AddShowLog(entry ShowLogEntry) error {
-	return co.addLog(showsLogPath, fmt.Sprintf("data: add %s to shows log", entry.Name), entry)
+	return co.addLog(showsLogPath, entry)
 }
 
 func (co *Core) AddPerformanceLog(entry PerformanceLogEntry) error {
-	return co.addLog(performancesLogPath, fmt.Sprintf("data: add %s to performances log", cmp.Or(entry.Name, entry.Author)), entry)
+	return co.addLog(performancesLogPath, entry)
 }
 
 func (co *Core) EditReadingLog(date time.Time, name string, entry ReadingLogEntry) error {
-	return co.editLog(readingsLogPath, fmt.Sprintf("data: edit %s in readings log", entry.Name), func(r ReadingLogEntry) bool {
+	return co.editLog(readingsLogPath, func(r ReadingLogEntry) bool {
 		return r.Date.Equal(date) && r.Name == name
 	}, entry)
 }
 
 func (co *Core) EditMovieLog(date time.Time, name string, entry MovieLogEntry) error {
-	return co.editLog(moviesLogPath, fmt.Sprintf("data: edit %s in movies log", entry.Name), func(m MovieLogEntry) bool {
+	return co.editLog(moviesLogPath, func(m MovieLogEntry) bool {
 		return m.Date.Equal(date) && m.Name == name
 	}, entry)
 }
 
 func (co *Core) EditShowLog(date time.Time, name string, season int, entry ShowLogEntry) error {
-	return co.editLog(showsLogPath, fmt.Sprintf("data: edit %s in shows log", entry.Name), func(s ShowLogEntry) bool {
+	return co.editLog(showsLogPath, func(s ShowLogEntry) bool {
 		return s.Date.Equal(date) && s.Name == name && s.Season == season
 	}, entry)
 }
@@ -202,7 +200,7 @@ func (co *Core) EditPerformanceLog(date time.Time, name, author string, entry Pe
 		return errors.New("name or author is required to identify the performance")
 	}
 
-	return co.editLog(performancesLogPath, fmt.Sprintf("data: edit %s in performances log", cmp.Or(entry.Name, entry.Author)), func(p PerformanceLogEntry) bool {
+	return co.editLog(performancesLogPath, func(p PerformanceLogEntry) bool {
 		return p.Date.Equal(date) && (name == "" || p.Name == name) && (author == "" || p.Author == author)
 	}, entry)
 }
