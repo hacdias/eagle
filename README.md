@@ -19,9 +19,13 @@ docker pull ghcr.io/hacdias/eagle:latest
 ## Features
 
 - Single user system.
+- Admin panel to create, edit and browse entries, moderate mentions, and manage tokens.
+- Scheduled posts.
+- Git integration: commits on save and pulls source updates via GitHub webhook.
 - Receive and send [Webmentions](https://webmention.net/). Incoming must be configured via [Webmention.io](https://webmention.io).
 - Comment endpoint, allowing to directly submit comments via the website.
 - [IndieAuth](https://indieauth.spec.indieweb.org/) OAuth server to login elsewhere with your website.
+- WebFinger and `/.well-known/avatar` endpoints.
 - Notifications (e.g. from Webmentions) via custom Telegram bot.
 - Media storage on [Bunny CDN](https://bunny.net).
 - Media resizing and compression via [ImgProxy](https://imgproxy.net/).
@@ -32,6 +36,8 @@ docker pull ghcr.io/hacdias/eagle:latest
 - Reverse location information for post metadata.
 - Miniflux blogroll integration.
 - WebArchive integration to archive links present in the content of new posts.
+- External links collection, served at `/.well-known/links` and saved as a data file.
+- MCP server for searching entries and managing logs (reading, movies, shows, performances).
 - Implemented integrations but no longer used: [Linkding](https://linkding.link/), [XRay](https://xray.p3k.io/).
 
 ## Configuration and Assumptions
