@@ -67,6 +67,7 @@ func (s *Server) initMcp() error {
 	}, s.mcpSearchEntries)
 
 	// Get logs
+	// TODO: consider adding "after" / "before" query parameters for filtering logs by date.
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "getReadingLogs",
 		Description: "Get all reading logs",
