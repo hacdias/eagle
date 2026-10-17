@@ -141,13 +141,7 @@ func (s *Server) initActions() error {
 			return fmt.Errorf("action %s already registered", actionName)
 		}
 
-		actions[actionName] = func() error {
-			err := actionPlugin.Action()
-			if err != nil {
-				return err
-			}
-			return s.core.Build(false)
-		}
+		actions[actionName] = actionPlugin.Action
 	}
 
 	s.actions = actions

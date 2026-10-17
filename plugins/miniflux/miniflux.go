@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
@@ -35,35 +34,39 @@ type Miniflux struct {
 	ignoredCategories []string
 }
 
-func NewMiniflux(co *core.Core, config map[string]any) (server.Plugin, error) {
-	endpoint := typed.New(config).String("endpoint")
-	if endpoint == "" {
+type minifluxConfig struct {
+	Endpoint          string
+	Key               string
+	Filename          string
+	Opml              string
+	IgnoredCategories []string
+}
+
+func NewMiniflux(co *core.Core, config minifluxConfig) (server.Plugin, error) {
+	if config.Endpoint == "" {
 		return nil, errors.New("miniflux endpoint missing")
 	}
 
-	key := typed.New(config).String("key")
-	if key == "" {
+	if config.Key == "" {
 		return nil, errors.New("miniflux key missing")
 	}
 
-	jsonFilename := typed.New(config).String("filename")
-	if jsonFilename == "" {
+	if config.Filename == "" {
 		return nil, errors.New("miniflux filename missing")
 	}
 
-	opmlFilename := typed.New(config).String("opml")
 	redirectLocation := ""
-	if strings.HasPrefix(opmlFilename, core.ContentDirectory) {
-		redirectLocation = strings.TrimPrefix(opmlFilename, core.ContentDirectory)
+	if strings.HasPrefix(config.Opml, core.ContentDirectory) {
+		redirectLocation = strings.TrimPrefix(config.Opml, core.ContentDirectory)
 	}
 
 	return &Miniflux{
 		core:              co,
-		client:            miniflux.NewClient(endpoint, key),
-		jsonFilename:      jsonFilename,
-		opmlFilename:      opmlFilename,
+		client:            miniflux.NewClient(config.Endpoint, config.Key),
+		jsonFilename:      config.Filename,
+		opmlFilename:      config.Opml,
 		redirectLocation:  redirectLocation,
-		ignoredCategories: typed.New(config).Strings("ignoredcategories"),
+		ignoredCategories: config.IgnoredCategories,
 	}, nil
 }
 

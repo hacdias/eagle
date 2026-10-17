@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.hacdias.com/eagle/server"
@@ -13,7 +12,7 @@ import (
 )
 
 var (
-	_ server.HookPlugin = &Locations{}
+	_ server.PreSaveHookPlugin = &Locations{}
 )
 
 func init() {
@@ -27,9 +26,11 @@ type Locations struct {
 	expand   bool
 }
 
-func NewLocations(co *core.Core, config map[string]any) (server.Plugin, error) {
-	cfg := typed.New(config)
+type locationsConfig struct {
+	Expand bool
+}
 
+func NewLocations(co *core.Core, config locationsConfig) (server.Plugin, error) {
 	language := co.SiteConfig().Locale
 	if language == "" {
 		language = "en"
@@ -40,7 +41,7 @@ func NewLocations(co *core.Core, config map[string]any) (server.Plugin, error) {
 			Timeout: time.Minute,
 		}),
 		language: language,
-		expand:   cfg.Bool("expand"),
+		expand:   config.Expand,
 		log:      log.S().Named("locations"),
 	}, nil
 }
@@ -71,9 +72,5 @@ func (l *Locations) PreSaveHook(e *core.Entry) error {
 		l.log.Warnw("failed to fetch location", "entry", e.ID, "err", err)
 	}
 
-	return nil
-}
-
-func (l *Locations) PostSaveHook(e *core.Entry, _ bool) error {
 	return nil
 }

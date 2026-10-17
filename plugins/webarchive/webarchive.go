@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 )
 
 var (
-	_ server.HookPlugin  = &WebArchive{}
-	_ server.QueuePlugin = &WebArchive{}
+	_ server.PostSaveHookPlugin = &WebArchive{}
+	_ server.QueuePlugin        = &WebArchive{}
 )
 
 const queueItemType = "webarchive"
@@ -27,17 +26,15 @@ type WebArchive struct {
 	archiveOnSave bool
 }
 
-func NewWebArchive(co *core.Core, config map[string]any) (server.Plugin, error) {
-	cfg := typed.New(config)
-
-	return &WebArchive{
-		core:          co,
-		archiveOnSave: cfg.Bool("archiveonsave"),
-	}, nil
+type webArchiveConfig struct {
+	ArchiveOnSave bool
 }
 
-func (wa *WebArchive) PreSaveHook(*core.Entry) error {
-	return nil
+func NewWebArchive(co *core.Core, config webArchiveConfig) (server.Plugin, error) {
+	return &WebArchive{
+		core:          co,
+		archiveOnSave: config.ArchiveOnSave,
+	}, nil
 }
 
 func (wa *WebArchive) PostSaveHook(e *core.Entry, isNew bool) error {

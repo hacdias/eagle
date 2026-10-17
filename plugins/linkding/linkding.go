@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/karlseguin/typed"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
@@ -35,19 +34,22 @@ type Linkding struct {
 	filename   string
 }
 
-func NewLinkding(co *core.Core, config map[string]any) (server.Plugin, error) {
-	endpoint := typed.New(config).String("endpoint")
-	if endpoint == "" {
+type linkdingConfig struct {
+	Endpoint string
+	Key      string
+	Filename string
+}
+
+func NewLinkding(co *core.Core, config linkdingConfig) (server.Plugin, error) {
+	if config.Endpoint == "" {
 		return nil, errors.New("linkding endpoint missing")
 	}
 
-	key := typed.New(config).String("key")
-	if key == "" {
+	if config.Key == "" {
 		return nil, errors.New("linkding key missing")
 	}
 
-	filename := typed.New(config).String("filename")
-	if filename == "" {
+	if config.Filename == "" {
 		return nil, errors.New("linkding filename missing")
 	}
 
@@ -56,9 +58,9 @@ func NewLinkding(co *core.Core, config map[string]any) (server.Plugin, error) {
 		httpClient: &http.Client{
 			Timeout: 2 * time.Minute,
 		},
-		endpoint: strings.TrimSuffix(endpoint, "/"),
-		key:      key,
-		filename: filename,
+		endpoint: strings.TrimSuffix(config.Endpoint, "/"),
+		key:      config.Key,
+		filename: config.Filename,
 	}, nil
 }
 

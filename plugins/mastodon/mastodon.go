@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/karlseguin/typed"
 	"github.com/mattn/go-mastodon"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
@@ -32,40 +31,51 @@ type Mastodon struct {
 	maximumPhotos     int
 }
 
-func NewMastodon(co *core.Core, configMap map[string]any) (server.Plugin, error) {
-	config := typed.New(configMap)
+type mastodonConfig struct {
+	Server            string
+	ClientKey         string
+	ClientSecret      string
+	AccessToken       string
+	MaximumCharacters int
+	MaximumPhotos     int
+}
 
-	server := config.String("server")
-	if server == "" {
+func NewMastodon(co *core.Core, config mastodonConfig) (server.Plugin, error) {
+	if config.Server == "" {
 		return nil, errors.New("server missing")
 	}
 
-	clientKey := config.String("clientkey")
-	if clientKey == "" {
+	if config.ClientKey == "" {
 		return nil, errors.New("clientKey missing")
 	}
 
-	clientSecret := config.String("clientsecret")
-	if clientSecret == "" {
+	if config.ClientSecret == "" {
 		return nil, errors.New("clientSecret missing")
 	}
 
-	accessToken := config.String("accesstoken")
-	if accessToken == "" {
+	if config.AccessToken == "" {
 		return nil, errors.New("accessToken missing")
+	}
+
+	if config.MaximumCharacters == 0 {
+		config.MaximumCharacters = 500
+	}
+
+	if config.MaximumPhotos == 0 {
+		config.MaximumPhotos = 5
 	}
 
 	return &Mastodon{
 		core: co,
 		log:  log.S().Named("mastodon"),
 		client: mastodon.NewClient(&mastodon.Config{
-			Server:       server,
-			ClientID:     clientKey,
-			ClientSecret: clientSecret,
-			AccessToken:  accessToken,
+			Server:       config.Server,
+			ClientID:     config.ClientKey,
+			ClientSecret: config.ClientSecret,
+			AccessToken:  config.AccessToken,
 		}),
-		maximumCharacters: config.IntOr("maximumcharacters", 500),
-		maximumPhotos:     config.IntOr("maximumphotos", 5),
+		maximumCharacters: config.MaximumCharacters,
+		maximumPhotos:     config.MaximumPhotos,
 	}, nil
 }
 

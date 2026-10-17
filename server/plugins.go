@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-viper/mapstructure/v2"
 	"go.hacdias.com/eagle/core"
 )
 
@@ -18,16 +19,13 @@ func (u *PluginWebUtilities) JSON(w http.ResponseWriter, code int, data any) {
 	u.s.serveJSON(w, code, data)
 }
 
-func (u *PluginWebUtilities) ErrorJSON(w http.ResponseWriter, code int, err, errDescription string) {
-	u.s.serveErrorJSON(w, code, err, errDescription)
-}
-
 func (u *PluginWebUtilities) ErrorHTML(w http.ResponseWriter, r *http.Request, code int, reqErr error) {
 	u.s.serveErrorHTML(w, r, code, reqErr)
 }
 
 type Plugin = any
 
+// TODO: support multiple actions per plugin.
 type ActionPlugin interface {
 	ActionName() string
 	Action() error
@@ -42,8 +40,11 @@ type CronPlugin interface {
 	DailyCron() error
 }
 
-type HookPlugin interface {
+type PreSaveHookPlugin interface {
 	PreSaveHook(*core.Entry) error
+}
+
+type PostSaveHookPlugin interface {
 	PostSaveHook(e *core.Entry, isNew bool) error
 }
 
@@ -83,10 +84,19 @@ var (
 	pluginRegistry = map[string]PluginInitializer{}
 )
 
-func RegisterPlugin(name string, pluginInitializer PluginInitializer) {
+// RegisterPlugin registers a plugin whose configuration is decoded into C.
+func RegisterPlugin[C any](name string, init func(co *core.Core, config C) (Plugin, error)) {
 	if _, ok := pluginRegistry[name]; ok {
 		panic(fmt.Sprintf("plugin '%q' is already registered", name))
 	}
 
-	pluginRegistry[name] = pluginInitializer
+	pluginRegistry[name] = func(co *core.Core, configMap map[string]any) (Plugin, error) {
+		var config C
+		err := mapstructure.Decode(configMap, &config)
+		if err != nil {
+			return nil, fmt.Errorf("plugin %s: %w", name, err)
+		}
+
+		return init(co, config)
+	}
 }

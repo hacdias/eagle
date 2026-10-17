@@ -10,7 +10,6 @@ import (
 	"github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/atproto/atclient"
 	"github.com/bluesky-social/indigo/atproto/syntax"
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
@@ -52,14 +51,7 @@ type ATProto struct {
 	arabicaFilename string
 }
 
-func NewATProto(co *core.Core, configMap map[string]any) (server.Plugin, error) {
-	var config atprotoConfig
-
-	err := mapstructure.Decode(configMap, &config)
-	if err != nil {
-		return nil, err
-	}
-
+func NewATProto(co *core.Core, config atprotoConfig) (server.Plugin, error) {
 	if config.Host == "" {
 		config.Host = "https://bsky.social"
 	}

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 	"golang.org/x/net/publicsuffix"
@@ -36,16 +35,20 @@ type ExternalLinks struct {
 	linksMap map[string]linkCollection
 }
 
-func NewExternalLinks(co *core.Core, config map[string]any) (server.Plugin, error) {
-	filename := typed.New(config).String("filename")
-	if filename == "" {
+type externalLinksConfig struct {
+	Filename string
+	Ignored  []string
+}
+
+func NewExternalLinks(co *core.Core, config externalLinksConfig) (server.Plugin, error) {
+	if config.Filename == "" {
 		return nil, errors.New("external-links filename missing")
 	}
 
 	el := &ExternalLinks{
 		core:           co,
-		filename:       filename,
-		ignoredDomains: typed.New(config).Strings("ignored"),
+		filename:       config.Filename,
+		ignoredDomains: config.Ignored,
 	}
 
 	links, err := el.loadDiskLinks()

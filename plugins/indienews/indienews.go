@@ -5,7 +5,6 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/karlseguin/typed"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/server"
 )
@@ -23,17 +22,18 @@ type IndieNews struct {
 	lang string
 }
 
-func NewIndieNews(co *core.Core, configMap map[string]any) (server.Plugin, error) {
-	config := typed.New(configMap)
+type indieNewsConfig struct {
+	Language string
+}
 
-	language := config.String("language")
-	if language == "" {
+func NewIndieNews(co *core.Core, config indieNewsConfig) (server.Plugin, error) {
+	if config.Language == "" {
 		return nil, errors.New("language missing")
 	}
 
 	return &IndieNews{
-		lang: language,
-		url:  "https://news.indieweb.org/" + language,
+		lang: config.Language,
+		url:  "https://news.indieweb.org/" + config.Language,
 	}, nil
 }
 

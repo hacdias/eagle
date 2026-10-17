@@ -168,7 +168,7 @@ func (s *Server) preSaveEntry(e *core.Entry) error {
 	s.log.Infow("pre save entry hooks", "id", e.ID)
 
 	for name, plugin := range s.plugins {
-		hookPlugin, ok := plugin.(HookPlugin)
+		hookPlugin, ok := plugin.(PreSaveHookPlugin)
 		if !ok {
 			continue
 		}
@@ -202,7 +202,7 @@ func (s *Server) postSaveEntry(e *core.Entry, options postSaveEntryOptions) {
 
 	// Post-save hooks
 	for name, plugin := range s.plugins {
-		hookPlugin, ok := plugin.(HookPlugin)
+		hookPlugin, ok := plugin.(PostSaveHookPlugin)
 		if !ok {
 			continue
 		}
