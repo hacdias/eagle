@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-viper/mapstructure/v2"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.hacdias.com/eagle/core"
 )
 
@@ -78,6 +79,10 @@ type SyndicationPlugin interface {
 type QueuePlugin interface {
 	QueueItemType() string
 	HandleQueueItem(ctx context.Context, payload []byte) error
+}
+
+type MCPPlugin interface {
+	RegisterMCPTools(*mcp.Server)
 }
 
 var (
