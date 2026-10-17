@@ -143,3 +143,10 @@ plugins:
   locations:
     # Tries to expand the "location" property into a more detailed object.
     expand: true
+
+  # Optional Logs plugin. Adds MCP tools to get, log and edit the movie, show,
+  # reading and performance logs.
+  logs:
+    # Directory with the movies.json, shows.json, readings.json and
+    # performances.json files.
+    directory: data/logs
