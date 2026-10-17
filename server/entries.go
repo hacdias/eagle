@@ -56,7 +56,7 @@ func (s *Server) getEntrySyndicationContext(e *core.Entry) (*SyndicationContext,
 // getEntryThumbnail returns the og:image of the built entry. It returns nil if
 // the entry is not built, e.g. when it is deleted, or has no og:image.
 func (s *Server) getEntryThumbnail(e *core.Entry) (*Photo, error) {
-	doc, err := s.getDocument(filepath.Join(e.ID, "index.html"))
+	doc, err := s.getDocument(filepath.Join(e.RelPermalink, "index.html"))
 	if os.IsNotExist(err) {
 		return nil, nil
 	} else if err != nil {
