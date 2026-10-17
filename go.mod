@@ -7,7 +7,7 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/bluesky-social/indigo v0.0.0-20261013190618-3beb6e491b79
 	github.com/cretz/bine v0.2.0
-	github.com/gabriel-vasile/mimetype v1.4.15
+	github.com/gabriel-vasile/mimetype v1.4.16
 	github.com/go-chi/chi/v5 v5.5.0
 	github.com/go-playground/form/v4 v4.5.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
