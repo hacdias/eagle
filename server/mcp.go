@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -29,13 +28,8 @@ func (s *Server) mcpAuth(next http.Handler) http.Handler {
 }
 
 func (s *Server) mcpVerifyToken(ctx context.Context, tokenID string, _ *http.Request) (*auth.TokenInfo, error) {
-	token, err := s.core.DB().GetToken(ctx, tokenID, core.TokenTypeAccess)
+	token, err := s.getToken(ctx, tokenID, core.TokenTypeAccess)
 	if err != nil {
-		return nil, auth.ErrInvalidToken
-	}
-
-	if time.Now().After(token.Expiry) {
-		_ = s.core.DB().DeleteToken(ctx, tokenID)
 		return nil, auth.ErrInvalidToken
 	}
 

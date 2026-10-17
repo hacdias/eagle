@@ -122,14 +122,8 @@ func (s *Server) withLoggedIn(next http.Handler) http.Handler {
 			return
 		}
 
-		session, err := s.core.DB().GetToken(r.Context(), cookie.Value, core.TokenTypeSession)
+		_, err = s.getToken(r.Context(), cookie.Value, core.TokenTypeSession)
 		if err != nil {
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		if time.Now().After(session.Expiry) {
-			_ = s.core.DB().DeleteToken(r.Context(), cookie.Value)
 			next.ServeHTTP(w, r)
 			return
 		}

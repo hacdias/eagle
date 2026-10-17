@@ -186,13 +186,8 @@ func (s *Server) tokenVerifyPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := s.core.DB().GetToken(r.Context(), tokenID, core.TokenTypeAccess)
+	token, err := s.getToken(r.Context(), tokenID, core.TokenTypeAccess)
 	if err != nil {
-		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
-		return
-	}
-
-	if token.Expiry.Before(time.Now()) {
 		s.serveJSON(w, http.StatusOK, map[string]any{"active": false})
 		return
 	}
@@ -352,15 +347,12 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rt, err := s.core.DB().GetToken(r.Context(), tokenID, core.TokenTypeRefresh)
-	if err != nil {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "invalid refresh token")
-		return
-	}
-
-	if rt.Expiry.Before(time.Now()) {
-		_ = s.core.DB().DeleteToken(r.Context(), rt.ID)
+	rt, err := s.getToken(r.Context(), tokenID, core.TokenTypeRefresh)
+	if errors.Is(err, errTokenExpired) {
 		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "refresh token expired")
+		return
+	} else if err != nil {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "invalid refresh token")
 		return
 	}
 
@@ -414,6 +406,24 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+var errTokenExpired = errors.New("token expired")
+
+// getToken returns the token with the given ID and type. Expired tokens are
+// deleted, in which case errTokenExpired is returned.
+func (s *Server) getToken(ctx context.Context, id string, tokenType core.TokenType) (*core.Token, error) {
+	token, err := s.core.DB().GetToken(ctx, id, tokenType)
+	if err != nil {
+		return nil, err
+	}
+
+	if time.Now().After(token.Expiry) {
+		_ = s.core.DB().DeleteToken(ctx, id)
+		return nil, errTokenExpired
+	}
+
+	return token, nil
+}
+
 func getString(token jwt.Token, prop string) string {
 	v, _ := jwt.Get[string](token, prop)
 	return v
@@ -435,14 +445,12 @@ func (s *Server) mustAccessToken(next http.Handler) http.Handler {
 			return
 		}
 
-		token, err := s.core.DB().GetToken(r.Context(), tokenID, core.TokenTypeAccess)
-		if err != nil {
-			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
-			return
-		}
-
-		if token.Expiry.Before(time.Now()) {
+		token, err := s.getToken(r.Context(), tokenID, core.TokenTypeAccess)
+		if errors.Is(err, errTokenExpired) {
 			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "token expired")
+			return
+		} else if err != nil {
+			s.serveErrorJSON(w, http.StatusUnauthorized, "invalid_request", "invalid token")
 			return
 		}
 
