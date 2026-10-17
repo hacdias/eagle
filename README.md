@@ -24,7 +24,7 @@ docker pull ghcr.io/hacdias/eagle:latest
 - Git integration: commits on save and pulls source updates via GitHub webhook.
 - Receive and send [Webmentions](https://webmention.net/). Incoming must be configured via [Webmention.io](https://webmention.io).
 - Comment endpoint, allowing to directly submit comments via the website.
-- [IndieAuth](https://indieauth.spec.indieweb.org/) OAuth server to login elsewhere with your website.
+- OAuth 2 authorization server, compatible with [IndieAuth](https://indieauth.spec.indieweb.org/), to login elsewhere with your website and to authorize MCP clients.
 - WebFinger and `/.well-known/avatar` endpoints.
 - Notifications (e.g. from Webmentions) via custom Telegram bot.
 - Media storage on [Bunny CDN](https://bunny.net).

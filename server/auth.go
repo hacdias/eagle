@@ -427,7 +427,7 @@ func bearerToken(r *http.Request) string {
 	return strings.TrimPrefix(auth, "Bearer ")
 }
 
-func (s *Server) mustIndieAuth(next http.Handler) http.Handler {
+func (s *Server) mustAccessToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenID := bearerToken(r)
 		if tokenID == "" {

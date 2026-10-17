@@ -44,7 +44,7 @@ func (s *Server) makeRouter() http.Handler {
 	// TODO: make this customizable. Plugin?
 	r.Get(wellKnownAvatarPath, s.wellKnownAvatarPath)
 
-	// IndieAuth Server (Part I)
+	// OAuth Server (Part I)
 	r.Get(wellKnownOAuthServer, s.indieauthGet)
 	r.Post(authPath, s.authPost)
 	r.Post(tokenPath, s.tokenPost)
@@ -75,7 +75,7 @@ func (s *Server) makeRouter() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(s.mustLoggedIn)
 
-			// IndieAuth Server (Part II)
+			// OAuth Server (Part II)
 			r.Get(authPath, s.authGet)
 			r.Post(authAcceptPath, s.authAcceptPost)
 
@@ -100,11 +100,11 @@ func (s *Server) makeRouter() http.Handler {
 		})
 	})
 
-	// IndieAuth-protected Pages
+	// Access Token-protected Pages
 	r.Group(func(r chi.Router) {
-		r.Use(s.mustIndieAuth)
+		r.Use(s.mustAccessToken)
 
-		// IndieAuth Server (Part III)
+		// OAuth Server (Part III)
 		r.Get(tokenPath, s.tokenGet) // Backwards compatible token verification endpoint
 		r.Get(userInfoPath, s.userInfoGet)
 	})
