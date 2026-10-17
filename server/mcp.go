@@ -81,11 +81,13 @@ func (s *Server) initMcp() error {
 		Version: "0.0.2",
 	}, nil)
 
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "searchEntries",
-		Description: "Search entries with pagination and query",
-		Annotations: mcpReadAnnotations,
-	}, s.mcpSearchEntries)
+	if s.meilisearch != nil {
+		mcp.AddTool(server, &mcp.Tool{
+			Name:        "searchEntries",
+			Description: "Search entries with pagination and query",
+			Annotations: mcpReadAnnotations,
+		}, s.mcpSearchEntries)
+	}
 
 	// Get logs
 	// TODO: consider adding "after" / "before" query parameters for filtering logs by date.

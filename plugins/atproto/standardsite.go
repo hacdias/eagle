@@ -161,7 +161,7 @@ func (at *ATProto) upsertStandardDocument(ctx context.Context, client *atclient.
 	}
 
 	if !e.LastMod.IsZero() {
-		record["updatedAt"] = e.Date.Format(time.RFC3339)
+		record["updatedAt"] = e.LastMod.Format(time.RFC3339)
 	}
 
 	var (

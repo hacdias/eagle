@@ -68,7 +68,7 @@ func (l *Locations) PreSaveHook(e *core.Entry) error {
 	if loc, err := l.maze.ReverseGeoURI(l.language, e.Location.String()); err == nil {
 		e.Location = loc
 	} else {
-		l.log.Warnf("failed to fetch location", "entry", e.ID, "err", err)
+		l.log.Warnw("failed to fetch location", "entry", e.ID, "err", err)
 	}
 
 	return nil

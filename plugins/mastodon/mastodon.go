@@ -166,17 +166,11 @@ func (m *Mastodon) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		toot.Status = statuses[0]
 	}
 
-	var status *mastodon.Status
-	if id != "" {
-		status, err = m.client.UpdateStatus(ctx, &toot, id)
-	} else {
-		status, err = m.client.PostStatus(ctx, &toot)
-	}
+	status, err := m.client.PostStatus(ctx, &toot)
 	if err != nil {
 		return err
 	}
 
-	e.Syndications = lo.Without(e.Syndications, url)
 	e.Syndications = append(e.Syndications, status.URL)
 	return nil
 }

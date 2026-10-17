@@ -96,7 +96,12 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 }
 
 func (ms *Meilisearch) Remove(ids ...string) error {
-	_, err := ms.client.Index(searchIndex).DeleteDocuments(ids, nil)
+	keys := make([]string, len(ids))
+	for i, id := range ids {
+		keys[i] = hex.EncodeToString([]byte(id))
+	}
+
+	_, err := ms.client.Index(searchIndex).DeleteDocuments(keys, nil)
 	return err
 }
 
