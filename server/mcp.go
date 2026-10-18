@@ -65,6 +65,16 @@ func (s *Server) initMcp() error {
 		}, s.mcpSearchEntries)
 	}
 
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "buildWebsite",
+		Description: "Build the website so that changes are published",
+		Annotations: &mcp.ToolAnnotations{
+			DestructiveHint: new(false),
+			IdempotentHint:  true,
+			OpenWorldHint:   new(false),
+		},
+	}, s.mcpBuildWebsite)
+
 	for _, plugin := range s.plugins {
 		mcpPlugin, ok := plugin.(MCPPlugin)
 		if !ok {
@@ -97,4 +107,12 @@ func (s *Server) mcpSearchEntries(ctx context.Context, req *mcp.CallToolRequest,
 	return &mcp.CallToolResult{
 		Content: content,
 	}, nil, nil
+}
+
+type BuildWebsiteParams struct {
+	Clean bool `json:"clean,omitempty" jsonschema:"Build into a new directory, dropping files from removed pages"`
+}
+
+func (s *Server) mcpBuildWebsite(ctx context.Context, req *mcp.CallToolRequest, params *BuildWebsiteParams) (*mcp.CallToolResult, any, error) {
+	return nil, nil, s.core.Build(params.Clean)
 }

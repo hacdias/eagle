@@ -37,7 +37,7 @@ docker pull ghcr.io/hacdias/eagle:latest
 - Miniflux blogroll integration.
 - WebArchive integration to archive links present in the content of new posts.
 - External links collection, served at `/.well-known/links` and saved as a data file.
-- MCP server for searching entries and, through the logs plugin, managing logs (reading, movies, shows, performances).
+- MCP server for searching entries, building the website and, through the logs plugin, managing logs (reading, movies, shows, performances).
 - Implemented integrations but no longer used: [Linkding](https://linkding.link/), [XRay](https://xray.p3k.io/).
 
 ## Configuration and Assumptions
