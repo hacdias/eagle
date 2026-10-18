@@ -2,6 +2,7 @@ package meilisearch
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -12,6 +13,9 @@ import (
 const (
 	searchIndex = "eagle-v1"
 	searchKey   = "idx"
+
+	// maxTags is the maximum number of tags returned by [Meilisearch.Tags].
+	maxTags = 1000
 )
 
 var (
@@ -63,6 +67,19 @@ func NewMeilisearch(host, key string, co *core.Core) (*Meilisearch, error) {
 		return nil, err
 	}
 
+	// Tags must be filterable to be used as a facet.
+	_, err = client.Index(searchIndex).UpdateFilterableAttributes(&[]any{"tags"})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = client.Index(searchIndex).UpdateFaceting(&meilisearch.Faceting{
+		MaxValuesPerFacet: maxTags,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &Meilisearch{
 		client: client,
 		core:   co,
@@ -103,6 +120,30 @@ func (ms *Meilisearch) Remove(ids ...string) error {
 
 	_, err := ms.client.Index(searchIndex).DeleteDocuments(keys, nil)
 	return err
+}
+
+// Tags returns the number of indexed entries per tag.
+func (ms *Meilisearch) Tags() (map[string]int64, error) {
+	res, err := ms.client.Index(searchIndex).Search("", &meilisearch.SearchRequest{
+		// Only the facet distribution is needed. A limit of 0 would be omitted.
+		Limit:                1,
+		AttributesToRetrieve: []string{searchKey},
+		Facets:               []string{"tags"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Tags are omitted from the distribution if no entry has them.
+	facets := struct {
+		Tags map[string]int64 `json:"tags"`
+	}{Tags: map[string]int64{}}
+	err = json.Unmarshal(res.FacetDistribution, &facets)
+	if err != nil {
+		return nil, err
+	}
+
+	return facets.Tags, nil
 }
 
 func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, error) {

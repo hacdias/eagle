@@ -55,14 +55,22 @@ func (s *Server) initMcp() error {
 	}, nil)
 
 	if s.meilisearch != nil {
+		readAnnotations := &mcp.ToolAnnotations{
+			ReadOnlyHint:  true,
+			OpenWorldHint: new(false),
+		}
+
 		mcp.AddTool(server, &mcp.Tool{
 			Name:        "searchEntries",
 			Description: "Search entries with pagination and query",
-			Annotations: &mcp.ToolAnnotations{
-				ReadOnlyHint:  true,
-				OpenWorldHint: new(false),
-			},
+			Annotations: readAnnotations,
 		}, s.mcpSearchEntries)
+
+		mcp.AddTool(server, &mcp.Tool{
+			Name:        "getTags",
+			Description: "Get all tags of the searchable entries, with the number of entries per tag",
+			Annotations: readAnnotations,
+		}, s.mcpGetTags)
 	}
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -115,4 +123,17 @@ type BuildWebsiteParams struct {
 
 func (s *Server) mcpBuildWebsite(ctx context.Context, req *mcp.CallToolRequest, params *BuildWebsiteParams) (*mcp.CallToolResult, any, error) {
 	return nil, nil, s.core.Build(params.Clean)
+}
+
+type mcpTags struct {
+	Tags map[string]int64 `json:"tags" jsonschema:"Number of entries per tag"`
+}
+
+func (s *Server) mcpGetTags(ctx context.Context, req *mcp.CallToolRequest, _ any) (*mcp.CallToolResult, *mcpTags, error) {
+	tags, err := s.meilisearch.Tags()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return nil, &mcpTags{Tags: tags}, nil
 }
