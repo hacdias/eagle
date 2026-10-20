@@ -52,7 +52,10 @@ func (s *Server) initMcp() error {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "Eagle",
 		Version: "0.0.2",
-	}, nil)
+	}, &mcp.ServerOptions{
+		Instructions: "Tools that write data only save the changes: they are not visible on the website until buildWebsite is called. " +
+			"Call buildWebsite after a write or a batch of writes. When planning more than one write, make them all first and call buildWebsite once at the end.",
+	})
 
 	if s.meilisearch != nil {
 		readAnnotations := &mcp.ToolAnnotations{
@@ -75,7 +78,7 @@ func (s *Server) initMcp() error {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "buildWebsite",
-		Description: "Build the website so that changes are published",
+		Description: "Build the website so that changes are published. Changes made by write tools are not visible until this is called. Call it once after a write or a batch of writes, not after each write",
 		Annotations: &mcp.ToolAnnotations{
 			DestructiveHint: new(false),
 			IdempotentHint:  true,
