@@ -326,7 +326,9 @@ func (s *Server) publishScheduled() {
 		}
 
 		// updateSchedule merges the stored syndicators.
-		s.postSaveEntry(e, postSaveEntryOptions{skipBuild: true})
+		s.postSaveEntry(e, postSaveEntryOptions{
+			isNew: true,
+		})
 		time.Sleep(time.Second)
 	}
 }
