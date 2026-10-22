@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	urlpkg "net/url"
@@ -93,16 +92,16 @@ func (e *Entry) Summary() string {
 }
 
 func (e *Entry) String() (string, error) {
-	var buf bytes.Buffer
-	enc := yaml.NewEncoder(&buf)
-	enc.SetIndent(2)
-
-	err := enc.Encode(&e.FrontMatter)
+	fm, err := yaml.Dump(&e.FrontMatter,
+		yaml.WithV3Defaults(),
+		yaml.WithIndent(2),
+		yaml.WithLineWidth(-1),
+	)
 	if err != nil {
 		return "", err
 	}
 
-	text := fmt.Sprintf("---\n%s---\n\n%s\n", buf.String(), strings.TrimSpace(e.Content))
+	text := fmt.Sprintf("---\n%s---\n\n%s\n", fm, strings.TrimSpace(e.Content))
 	text = strings.TrimSpace(text) + "\n"
 	return normalizeNewlines(text), nil
 }
