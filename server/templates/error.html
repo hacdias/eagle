@@ -1,10 +1,12 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "" }}
 
-<h2>{{ .Title }}</h2>
+<main>
+  <h1>{{ .Title }}</h1>
 
-{{ with .Message }}
-  <pre>{{ . }}</pre>
-{{ end }}
+  {{ with .Message }}
+    <pre>{{ . }}</pre>
+  {{ end }}
+</main>
 
 {{ template "_footer.html" . }}

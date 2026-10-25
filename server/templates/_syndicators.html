@@ -1,11 +1,11 @@
+{{ if . }}
 <fieldset>
   <legend>Syndications</legend>
-  {{ if gt (len .) 0 }}
-  <ol class='options-list horizontal'>
+  <ol class='options-list tiles'>
     {{ range . }}
       <li><label><input type='checkbox' name='syndicators' value='{{ .UID }}' {{ if .Default }}checked{{ end }} /> {{ .Name }}</label></li>
     {{ end }}
   </ol>
-  {{ end }}
   <textarea name='syndication-status' maxlength='256' placeholder='Status...'></textarea>
 </fieldset>
+{{ end }}

@@ -1,28 +1,45 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "browser" }}
 
-<h2>Browsing <code>{{ .Path }}</code></h2>
+<main>
+  {{ if ne .Path "/" }}
+    <a class='crumb' href="../">← {{ pathDir .Path }}</a>
+  {{ end }}
 
-{{ if ne .Path "/" }}
-  <p><a href="../">↵ Back</a></p>
-{{ end }}
+  <h1><code>{{ .Path }}</code></h1>
 
-{{ range .Files }}
-  <p><a href="{{ .Name }}">{{ .Name }}</a></p>
-{{ end }}
+  <ul class='files'>
+    {{ range .Files }}
+      <li>
+        <a href="{{ .Name }}">
+          {{ if .IsDir }}
+            <svg viewBox='0 0 24 24' aria-hidden='true'><path d='M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2.5h8.4A1.5 1.5 0 0 1 21 9v8.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z'/></svg>
+          {{ else }}
+            <svg viewBox='0 0 24 24' aria-hidden='true'><path d='M6.5 3h7.5l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5h-10.5a1.5 1.5 0 0 1-1.5-1.5v-15a1.5 1.5 0 0 1 1.5-1.5z'/><path d='M13.5 3v5h5'/></svg>
+          {{ end }}
+          <span>{{ .Name }}</span>
+        </a>
+      </li>
+    {{ end }}
+  </ul>
 
-<h3>New Directory</h3>
+  <div class='create-box'>
+    <form method='post'>
+      <h2 class='label'>New Directory</h2>
+      <div class='input-row'>
+        <input required type='text' name='dirname' placeholder='Directory name...' />
+        <button>Create</button>
+      </div>
+    </form>
 
-<form method='post'>
-  <input required type='text' name='dirname' placeholder='Directory name...' />
-  <button>Create</button>
-</form>
-
-<h3>New File</h3>
-
-<form method='post'>
-  <input required type='text' name='filename' placeholder='File name...' />
-  <button>Create</button>
-</form>
+    <form method='post'>
+      <h2 class='label'>New File</h2>
+      <div class='input-row'>
+        <input required type='text' name='filename' placeholder='File name...' />
+        <button>Create</button>
+      </div>
+    </form>
+  </div>
+</main>
 
 {{ template "_footer.html" . }}

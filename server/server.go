@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/base64"
 	"errors"
+	"html"
 	"html/template"
 	"net"
 	"net/http"
@@ -37,7 +38,10 @@ type contextKey string
 var (
 	//go:embed templates/*.html
 	panelTemplatesFS embed.FS
-	panelTemplates   = template.Must(template.ParseFS(panelTemplatesFS, "templates/*.html"))
+	panelTemplates   = template.Must(template.New("").Funcs(template.FuncMap{
+		"htmlUnescape": html.UnescapeString,
+		"pathDir":      path.Dir,
+	}).ParseFS(panelTemplatesFS, "templates/*.html"))
 
 	//go:embed assets/*
 	panelAssetsFS embed.FS

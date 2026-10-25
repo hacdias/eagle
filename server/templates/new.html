@@ -1,93 +1,50 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "new" }}
 
-<style>
-#tags {
-  padding: 0.25rem;
-  margin: 0.5rem 0;
-  width: 100%;
-  border: 1px solid var(--accent);
-  border-radius: 5px;
-  color: var(--text);
-  outline: 0;
-  min-width: 0;
-  background: var(--input-background);
-  display: flex;
-}
+<main>
+  <h1>New Post</h1>
 
-#tags span {
-  background-color: var(--accent);
-  color: var(--accent-text);
-  padding: 0.25rem;
-  margin-right: 0.25rem;
-  white-space: nowrap;
-  cursor: pointer;
-  border-radius: 5px;
-}
+  <form method='post' class='stack'>
+    <input name='title' class='title-input' placeholder='The Wise Words' required />
+    <input name='slug' class='mono' placeholder='wise-words' required />
+    <textarea name='content' class='content-input' placeholder='Once upon a time...' required></textarea>
 
-#tags #tag-input {
-  margin: 0;
-  padding: 0.25rem;
-  border: 0;
-}
+    <fieldset>
+      <legend>Tags</legend>
+      <div id='tags'>
+        <input type='text' placeholder='New tag...' id='tag-input' />
+      </div>
+    </fieldset>
 
-#photos-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  grid-gap: 0.5rem;
-}
+    <fieldset>
+      <legend>Category</legend>
+      <ol class='options-list tiles'>
+        {{ range .Categories }}
+          <li><label><input type='radio' name='category' value='{{ .UID }}' /> {{ .Name }}</label></li>
+        {{ end }}
+      </ol>
+    </fieldset>
 
-#photos-list fieldset button {
-  width: 100%;
-}
+    <fieldset id='photos'>
+      <legend>Photos</legend>
+      <div id='photos-list'></div>
+      <input type="file" id="photos-input" accept="image/*" style="display: none" />
+      <button type='button' id='photos-add-button' class='btn-secondary'>Add</button>
+    </fieldset>
 
-#photos-list img {
-  object-fit: cover;
-  width: 100%;
-  height: 10rem;
-}
-</style>
+    <fieldset>
+      <legend>Location</legend>
+      <div class='input-row'>
+        <input name='location' class='mono' placeholder='Location' placeholder='geo:...' />
+        <button type='button' id='location-update-button' class='btn-secondary'>Refresh</button>
+      </div>
+    </fieldset>
 
-<h2>New Post</h2>
+    {{ template "_syndicators.html" .Syndicators }}
 
-<form method='post'>
-  <input name='title' placeholder='The Wise Words' required />
-  <input name='slug' placeholder='wise-words' required />
-  <textarea name='content' style='min-height: 50vh' placeholder='Once upon a time...' required></textarea>
-
-  <fieldset>
-    <legend>Tags</legend>
-    <div id='tags'>
-      <input type='text' placeholder='New tag...' id='tag-input' />
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Category</legend>
-    <ol class='options-list horizontal'>
-      {{ range .Categories }}
-        <li><label><input type='radio' name='category' value='{{ .UID }}' /> {{ .Name }}</label></li>
-      {{ end }}
-    </ol>
-  </fieldset>
-
-  <fieldset id='photos'>
-    <legend>Photos</legend>
-    <div id='photos-list'></div>
-    <input type="file" id="photos-input" accept="image/*" style="display: none" />
-    <button type='button' id='photos-add-button'>Add</button>
-  </fieldset>
-
-  <fieldset>
-    <legend>Location</legend>
-    <input name='location' placeholder='Location' placeholder='geo:...' />
-    <button type='button' id='location-update-button'>Refresh</button>
-  </fieldset>
-
-  {{ template "_syndicators.html" .Syndicators }}
-
-  <button>Create</button>
-</form>
+    <button>Create</button>
+  </form>
+</main>
 
 <script>
 const locationInput = document.querySelector("input[name='location']")

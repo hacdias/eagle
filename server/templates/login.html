@@ -1,17 +1,17 @@
 {{ template "_header.html" . }}
 
-<div style='width: 95%; max-width: 20rem; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);'>
-  <h2 style='margin-top: 0'>Login</h2>
+<main class='login'>
+  <h1>Login</h1>
 
   {{ with .Error }}
-    <pre>{{ . }}</pre>
+    <p class='notice error'>{{ . }}</p>
   {{ end }}
 
-  <form method='post'>
+  <form method='post' class='stack'>
     <input required name='username' id='username' type='text' placeholder='Username' />
     <input required name='password' id='password' type='password' placeholder='Password' />
-    <button style='margin-bottom: 0' id='submit'/>Login</button>
+    <button id='submit'>Login</button>
   </form>
-</div>
+</main>
 
 {{ template "_footer.html" . }}

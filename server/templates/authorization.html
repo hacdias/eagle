@@ -1,8 +1,6 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "authorization" }}
 
-<h2>Authorization</h2>
-
 <script>
 function addScope() {
   const scope = window.prompt('Which scope?')
@@ -13,44 +11,48 @@ function addScope() {
 }
 </script>
 
-<form method='post' action='/auth/accept'>
-  <p>You received an authorization request from the following client:</p>
-  <ul>
-    <li><strong>Client:</strong> <code>{{ .Request.ClientID }}</code></li>
-    <li><strong>Redirect:</strong> <code>{{ .Request.RedirectURI }}</code></li>
-    {{ if not .Request.CodeChallenge }}
-      <li><strong>🚨 The client is not using PKCE.</strong></li>
-    {{ end }}
-  </ul>
+<main>
+  <h1>Authorization</h1>
 
-  <fieldset>
-    <legend>Which scopes to be granted?</legend>
-    <ol id='scopes-list' class='options-list'>
-      {{ range .Request.Scopes }}
-        <li><label><input type="checkbox" name="scopes" value="{{ . }}" checked> {{ . }}</label></li>
+  <form method='post' action='/auth/accept' class='stack'>
+    <p>You received an authorization request from the following client:</p>
+    <ul>
+      <li><strong>Client:</strong> <code>{{ .Request.ClientID }}</code></li>
+      <li><strong>Redirect:</strong> <code>{{ .Request.RedirectURI }}</code></li>
+      {{ if not .Request.CodeChallenge }}
+        <li><strong>🚨 The client is not using PKCE.</strong></li>
       {{ end }}
-    </ol>
+    </ul>
 
-    <button type='button' onclick="javascript:addScope();">Add Scope</button>
-  </fieldset>
+    <fieldset>
+      <legend>Which scopes to be granted?</legend>
+      <ol id='scopes-list' class='options-list'>
+        {{ range .Request.Scopes }}
+          <li><label><input type="checkbox" name="scopes" value="{{ . }}" checked> {{ . }}</label></li>
+        {{ end }}
+      </ol>
 
-  <fieldset>
-    <legend>How long should the authorization last?</legend>
-    <ol class='options-list'>
-      <li><label><input type="radio" name="expiry" value="7" checked> 1 Week</label></li>
-      <li><label><input type="radio" name="expiry" value="90"> 3 Months</label></li>
-      <li><label><input type="radio" name="expiry" value="180"> 6 Months</label></li>
-    </ol>
-  </fieldset>
+      <button type='button' class='btn-secondary' onclick="javascript:addScope();">Add Scope</button>
+    </fieldset>
 
-  <input type="hidden" name="response_type" value="code">
-  <input type="hidden" name="redirect_uri" value="{{ .Request.RedirectURI }}">
-  <input type="hidden" name="client_id" value="{{ .Request.ClientID }}">
-  <input type="hidden" name="state" value="{{ .Request.State }}">
-  <input type="hidden" name="code_challenge" value="{{ .Request.CodeChallenge }}">
-  <input type="hidden" name="code_challenge_method" value="{{ .Request.CodeChallengeMethod }}">
+    <fieldset>
+      <legend>How long should the authorization last?</legend>
+      <ol class='options-list'>
+        <li><label><input type="radio" name="expiry" value="7" checked> 1 Week</label></li>
+        <li><label><input type="radio" name="expiry" value="90"> 3 Months</label></li>
+        <li><label><input type="radio" name="expiry" value="180"> 6 Months</label></li>
+      </ol>
+    </fieldset>
 
-  <button id=submit>Accept</button>
-</form>
+    <input type="hidden" name="response_type" value="code">
+    <input type="hidden" name="redirect_uri" value="{{ .Request.RedirectURI }}">
+    <input type="hidden" name="client_id" value="{{ .Request.ClientID }}">
+    <input type="hidden" name="state" value="{{ .Request.State }}">
+    <input type="hidden" name="code_challenge" value="{{ .Request.CodeChallenge }}">
+    <input type="hidden" name="code_challenge_method" value="{{ .Request.CodeChallengeMethod }}">
+
+    <button id=submit>Accept</button>
+  </form>
+</main>
 
 {{ template "_footer.html" . }}

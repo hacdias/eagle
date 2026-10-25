@@ -1,126 +1,116 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "tokens" }}
 
-<h2>Sessions</h2>
+<main>
+  <h1>Tokens</h1>
 
-{{ if .Sessions }}
-  <form method='post'>
-    <input type='hidden' name='action' value='revoke-all' />
-    <input type='hidden' name='type' value='session' />
-    <button>Revoke All Sessions</button>
-  </form>
+  <section>
+    <div class='section-head'>
+      <h2>Sessions</h2>
+      {{ if .Sessions }}
+        <form method='post'>
+          <input type='hidden' name='action' value='revoke-all' />
+          <input type='hidden' name='type' value='session' />
+          <button class='btn-text danger'>Revoke All Sessions</button>
+        </form>
+      {{ end }}
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Created</th>
-        <th>Expires</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range .Sessions }}
-      <tr>
-        <td>{{ .Created.Format "2006-01-02" }}</td>
-        <td>{{ .Expiry.Format "2006-01-02" }}</td>
-        <td>
-          <form method='post'>
+    {{ if .Sessions }}
+      <ul class='list'>
+        {{ range .Sessions }}
+        <li>
+          <div class='row-main meta'>
+            <span class='muted date'>Created {{ .Created.Format "2006-01-02" }}</span>
+            <span class='muted date'>Expires {{ .Expiry.Format "2006-01-02" }}</span>
+          </div>
+          <form method='post' class='row-actions'>
             <input type='hidden' name='action' value='revoke' />
             <input type='hidden' name='id' value='{{ .ID }}' />
-            <button>Revoke</button>
+            <button class='btn-danger'>Revoke</button>
           </form>
-        </td>
-      </tr>
+        </li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <p class='empty'>No active sessions.</p>
+    {{ end }}
+  </section>
+
+  <section>
+    <div class='section-head'>
+      <h2>Access Tokens</h2>
+      <a class='btn' href='/panel/tokens/new'>New Token</a>
+      {{ if .Tokens }}
+        <form method='post'>
+          <input type='hidden' name='action' value='revoke-all' />
+          <input type='hidden' name='type' value='access' />
+          <button class='btn-text danger'>Revoke All Tokens</button>
+        </form>
       {{ end }}
-    </tbody>
-  </table>
-{{ else }}
-  <p>No active sessions.</p>
-{{ end }}
+    </div>
 
-<h2>Access Tokens</h2>
-
-<a href='/panel/tokens/new'>New Token</a>
-
-{{ if .Tokens }}
-  <form method='post'>
-    <input type='hidden' name='action' value='revoke-all' />
-    <input type='hidden' name='type' value='access' />
-    <button>Revoke All Tokens</button>
-  </form>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Client</th>
-        <th>Scope</th>
-        <th>Created</th>
-        <th>Expires</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range .Tokens }}
-      <tr>
-        <td>{{ .ClientID }}</td>
-        <td>{{ .Scope }}</td>
-        <td>{{ .Created.Format "2006-01-02" }}</td>
-        <td>{{ .Expiry.Format "2006-01-02" }}</td>
-        <td>
-          <form method='post'>
+    {{ if .Tokens }}
+      <ul class='list'>
+        {{ range .Tokens }}
+        <li>
+          <div class='row-main'>
+            <span class='mono truncate' title='{{ .ClientID }}'>{{ .ClientID }}</span>
+            <div class='meta'>
+              {{ with .Scope }}<span class='chip'>{{ . }}</span>{{ end }}
+              <span class='muted date'>Created {{ .Created.Format "2006-01-02" }}</span>
+              <span class='muted date'>Expires {{ .Expiry.Format "2006-01-02" }}</span>
+            </div>
+          </div>
+          <form method='post' class='row-actions'>
             <input type='hidden' name='action' value='revoke' />
             <input type='hidden' name='id' value='{{ .ID }}' />
-            <button>Revoke</button>
+            <button class='btn-danger'>Revoke</button>
           </form>
-        </td>
-      </tr>
+        </li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <p class='empty'>No active tokens.</p>
+    {{ end }}
+  </section>
+
+  <section>
+    <div class='section-head'>
+      <h2>Refresh Tokens</h2>
+      {{ if .RefreshTokens }}
+        <form method='post'>
+          <input type='hidden' name='action' value='revoke-all' />
+          <input type='hidden' name='type' value='refresh' />
+          <button class='btn-text danger'>Revoke All Refresh Tokens</button>
+        </form>
       {{ end }}
-    </tbody>
-  </table>
-{{ else }}
-  <p>No active tokens.</p>
-{{ end }}
+    </div>
 
-
-<h2>Refresh Tokens</h2>
-
-{{ if .RefreshTokens }}
-  <form method='post'>
-    <input type='hidden' name='action' value='revoke-all' />
-    <input type='hidden' name='type' value='refresh' />
-    <button>Revoke All Refresh Tokens</button>
-  </form>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Client</th>
-        <th>Scope</th>
-        <th>Created</th>
-        <th>Expires</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range .RefreshTokens }}
-      <tr>
-        <td>{{ .ClientID }}</td>
-        <td>{{ .Scope }}</td>
-        <td>{{ .Created.Format "2006-01-02" }}</td>
-        <td>{{ .Expiry.Format "2006-01-02" }}</td>
-        <td>
-          <form method='post'>
+    {{ if .RefreshTokens }}
+      <ul class='list'>
+        {{ range .RefreshTokens }}
+        <li>
+          <div class='row-main'>
+            <span class='mono truncate' title='{{ .ClientID }}'>{{ .ClientID }}</span>
+            <div class='meta'>
+              {{ with .Scope }}<span class='chip'>{{ . }}</span>{{ end }}
+              <span class='muted date'>Created {{ .Created.Format "2006-01-02" }}</span>
+              <span class='muted date'>Expires {{ .Expiry.Format "2006-01-02" }}</span>
+            </div>
+          </div>
+          <form method='post' class='row-actions'>
             <input type='hidden' name='action' value='revoke' />
             <input type='hidden' name='id' value='{{ .ID }}' />
-            <button>Revoke</button>
+            <button class='btn-danger'>Revoke</button>
           </form>
-        </td>
-      </tr>
-      {{ end }}
-    </tbody>
-  </table>
-{{ else }}
-  <p>No active refresh tokens.</p>
-{{ end }}
+        </li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <p class='empty'>No active refresh tokens.</p>
+    {{ end }}
+  </section>
+</main>
 
 {{ template "_footer.html" . }}

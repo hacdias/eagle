@@ -1,63 +1,70 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "panel" }}
 
-<h2>Quick Actions</h2>
+<main>
+  <h1>Panel</h1>
 
-<div style='display: grid; grid-gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));'>
-{{ range .Actions }}
-  <form method=POST>
-    <input type='hidden' name='action' value='{{ . }}' />
-    <button style='width: 100%; height: 100%; margin: 0'>{{ . }}</button>
-  </form>
-{{ end }}
-</div>
+  <section>
+    <h2>Quick Actions</h2>
 
-{{ if eq .Success "action" }}
-  <p>
-    <strong>✅ Success!</strong>
-  </p>
-{{ end }}
+    <div class='actions'>
+    {{ range .Actions }}
+      <form method=POST>
+        <input type='hidden' name='action' value='{{ . }}' />
+        <button class='btn-secondary'>{{ . }}</button>
+      </form>
+    {{ end }}
+    </div>
 
-{{ with .Scheduled }}
-  <h2>Scheduled Entries</h2>
+    {{ if eq .Success "action" }}
+      <p class='notice'>
+        <strong>✅ Success!</strong>
+      </p>
+    {{ end }}
+  </section>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>ID</th>
-        <th>Syndicators</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range . }}
-        <tr>
-          <td>{{ .Date.Local.Format "2006-01-02 15:04" }}</td>
-          <td><a href='{{ .EditURL }}'>{{ .ID }}</a></td>
-          <td>{{ range $i, $s := .Syndicators }}{{ if $i }}, {{ end }}{{ $s }}{{ end }}</td>
-        </tr>
-      {{ end }}
-    </tbody>
-  </table>
-{{ end }}
+  {{ with .Scheduled }}
+    <section>
+      <h2>Scheduled Entries</h2>
 
-<h2>Upload File</h2>
+      <ul class='list'>
+        {{ range . }}
+          <li class='scheduled'>
+            <span class='muted date'>{{ .Date.Local.Format "2006-01-02 15:04" }}</span>
+            <a class='mono' href='{{ .EditURL }}'>{{ .ID }}</a>
+            {{ with .Syndicators }}
+              <span class='chips'>{{ range . }}<span class='chip'>{{ . }}</span>{{ end }}</span>
+            {{ end }}
+          </li>
+        {{ end }}
+      </ul>
+    </section>
+  {{ end }}
 
-{{ with .MediaLocation }}
-  <pre>{{ . }}</pre>
-{{ else with .MediaPhoto }}
-  <pre>![]({{ .URL }}{{ with .Title }} "{{ . }}"{{ end }}){{ if .Width }}
+  <section>
+    <h2>Upload File</h2>
+
+    <form method='POST' enctype='multipart/form-data' class='upload'>
+      <input required type='file' name='file' />
+      <button>Upload</button>
+    </form>
+
+    {{ with .MediaLocation }}
+      <div class='snippets'>
+        <pre>{{ . }}</pre>
+      </div>
+    {{ else with .MediaPhoto }}
+      <div class='snippets'>
+        <pre>![]({{ .URL }}{{ with .Title }} "{{ . }}"{{ end }}){{ if .Width }}
 {width="{{ .Width }}" height="{{ .Height }}"}{{end }}</pre>
 
-  <pre>- url: "{{ .URL }}"{{ with .Title }}
+        <pre>- url: "{{ .URL }}"{{ with .Title }}
   title: {{ . }}{{ end }}{{ if .Width }}
   width: {{ .Width }}
   height: {{ .Height }}{{end }}</pre>
-{{ end }}
-
-<form method='POST' enctype='multipart/form-data'>
-  <input required type='file' name='file' />
-  <button>Upload</button>
-</form>
+      </div>
+    {{ end }}
+  </section>
+</main>
 
 {{ template "_footer.html" . }}

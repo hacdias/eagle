@@ -1,46 +1,54 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "mentions" }}
 
-<h2>Mentions Moderation</h2>
+<main>
+  <h1>Mentions Moderation</h1>
 
-{{ if eq (len .Mentions) 0 }}
-  <p>🐦‍⬛ No mentions to moderate, still waiting for the raven.</p>
-{{ end }}
-{{ range .Mentions }}
-  <pre>
-    {{- with .EntryID }}<strong>Entry:</strong> {{ . }}<br>{{- end -}}
-    {{- if or .Author .AuthorURL}}<strong>From:</strong>
-      {{- with .Author }} {{ . }}{{ else }} Unknown{{ end -}}
-      {{- with .AuthorURL }} <{{ . }}>{{- end -}}
-      <br>
-    {{- end -}}
-    {{- with .Name }}<strong>Title:</strong> {{ . }}<br>{{- end -}}
-    {{- with .URL }}<strong>URL:</strong> {{ . }}<br>{{- end -}}
-    {{- with .Date }}<strong>Date:</strong> {{ . }}<br>{{- end -}}
-    {{- with .Content }}<strong>Content:</strong> {{ . }}<br>{{- end -}}
-    {{- with .Type }}<strong>Type:</strong> {{ . }}<br>{{- end -}}
-  </pre>
+  {{ with .Mentions }}
+    <ul class='list'>
+      {{ range . }}
+        <li>
+          <div class='row-main mention'>
+            {{ with .EntryID }}<code class='muted small'>{{ . }}</code>{{ end }}
+            <div class='meta'>
+              {{ if or .Author .AuthorURL }}
+                <strong>{{ with .Author }}{{ htmlUnescape . }}{{ else }}Unknown{{ end }}</strong>
+                {{ with .AuthorURL }}<span class='muted mono small'>{{ . }}</span>{{ end }}
+              {{ end }}
+              {{ with .Type }}<span class='chip'>{{ . }}</span>{{ end }}
+              {{ if not .Date.IsZero }}<span class='muted date'>{{ .Date.Local.Format "2006-01-02 15:04" }}</span>{{ end }}
+            </div>
+            {{ with .Name }}<p class='mention-title'>{{ . }}</p>{{ end }}
+            {{ with .Content }}<div class='quote'>{{ htmlUnescape . }}</div>{{ end }}
+            {{ with .URL }}<a class='muted small' href='{{ . }}'>{{ . }}</a>{{ end }}
+          </div>
 
-  {{ if .Private }}
-    <form method='POST'>
-      <input type='hidden' name='id' value='{{ .ID }}' />
-      <input type='hidden' name='action' value='delete' />
-      <button style='background: orangered'>Read</button>
-    </form>
+          <div class='row-actions'>
+            {{ if .Private }}
+              <form method='POST'>
+                <input type='hidden' name='id' value='{{ .ID }}' />
+                <input type='hidden' name='action' value='delete' />
+                <button class='btn-danger'>Read</button>
+              </form>
+            {{ else }}
+              <form method='POST'>
+                <input type='hidden' name='id' value='{{ .ID }}' />
+                <input type='hidden' name='action' value='approve' />
+                <button>Approve</button>
+              </form>
+              <form method='POST'>
+                <input type='hidden' name='id' value='{{ .ID }}' />
+                <input type='hidden' name='action' value='delete' />
+                <button class='btn-danger'>Delete</button>
+              </form>
+            {{ end }}
+          </div>
+        </li>
+      {{ end }}
+    </ul>
   {{ else }}
-    <div class='inline-buttons'>
-      <form method='POST'>
-        <input type='hidden' name='id' value='{{ .ID }}' />
-        <input type='hidden' name='action' value='approve' />
-        <button style='background: lightgreen'>Approve</button>
-      </form>
-      <form method='POST'>
-        <input type='hidden' name='id' value='{{ .ID }}' />
-        <input type='hidden' name='action' value='delete' />
-        <button style='background: orangered'>Delete</button>
-      </form>
-    </div>
+    <p class='empty'>🐦‍⬛ No mentions to moderate, still waiting for the raven.</p>
   {{ end }}
-{{ end }}
+</main>
 
 {{ template "_footer.html" . }}

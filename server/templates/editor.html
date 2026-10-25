@@ -1,22 +1,24 @@
 {{ template "_header.html" . }}
 {{ template "_navigation.html" "editor" }}
 
-<h2>Editing <code>{{ .Path }}</code></h2>
+<main>
+  <h1>Editing <code>{{ .Path }}</code></h1>
 
-{{ if .Success }}
-<p>
-  <strong>✅ Success!</strong>
-</p>
-{{ end }}
-
-<form method='post'>
-  <textarea name='content' style='min-height: 50vh'>{{ .Content }}</textarea>
-
-  {{ if .IsEntry }}
-    {{ template "_syndicators.html" .Syndicators }}
+  {{ if .Success }}
+  <p class='notice'>
+    <strong>✅ Success!</strong>
+  </p>
   {{ end }}
 
-  <button>Save</button>
-</form>
+  <form method='post' class='stack'>
+    <textarea name='content' class='content-input'>{{ .Content }}</textarea>
+
+    {{ if .IsEntry }}
+      {{ template "_syndicators.html" .Syndicators }}
+    {{ end }}
+
+    <button>Save</button>
+  </form>
+</main>
 
 {{ template "_footer.html" . }}
