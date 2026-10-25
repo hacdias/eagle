@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,7 +46,8 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 
 	e, err := s.core.GetEntry(target)
 	if err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("target entry is invalid: %w", err))
+		s.log.Errorw("failed to get comment target entry", "target", target, "err", err)
+		s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("target entry is invalid"))
 		return
 	}
 
@@ -65,22 +67,23 @@ func (s *Server) commentsPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := url.Parse(website); err != nil {
-		s.serveErrorHTML(w, r, http.StatusBadRequest, fmt.Errorf("website url is invalid: %w", err))
-		return
+	if website != "" {
+		u, err := url.Parse(website)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
+			s.serveErrorHTML(w, r, http.StatusBadRequest, errors.New("website url is invalid"))
+			return
+		}
 	}
 
 	s.log.Infow("received comment entry", "name", name, "website", website, "content", content)
 
 	err = s.core.DB().CreateMention(r.Context(), &core.Mention{
-		ID: uuid.New().String(),
-		Post: xray.Post{
-			Author:    name,
-			AuthorURL: website,
-			Content:   content,
-			Date:      time.Now(),
-		},
-		EntryID: e.ID,
+		ID:        uuid.New().String(),
+		Author:    name,
+		AuthorURL: website,
+		Content:   content,
+		Date:      time.Now(),
+		EntryID:   e.ID,
 	})
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
@@ -101,6 +104,7 @@ type webmentionPayload struct {
 
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 	payload := &webmentionPayload{}
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -108,7 +112,7 @@ func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if payload.Secret != s.c.Webmentions.Secret {
+	if subtle.ConstantTimeCompare([]byte(payload.Secret), []byte(s.c.Webmentions.Secret)) != 1 {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
