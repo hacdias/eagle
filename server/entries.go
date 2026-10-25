@@ -136,6 +136,13 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) e
 	e.Syndications = lo.Uniq(e.Syndications)
 	sort.Strings(e.Syndications)
 
+	// Syndicating takes a while: only save the syndications on top of the most
+	// recent version of the entry, so that changes made meanwhile are kept.
+	if fresh, err := s.core.GetEntry(e.ID); err == nil {
+		fresh.Syndications = e.Syndications
+		e = fresh
+	}
+
 	err = s.core.SaveEntry(e)
 	if err != nil {
 		errs = errors.Join(errs, fmt.Errorf("failed to save entry after syndication: %w", err))
