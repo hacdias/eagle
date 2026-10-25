@@ -180,7 +180,12 @@ func (s *Server) startServer(errCh chan error, h http.Handler) error {
 		return err
 	}
 
-	srv := &http.Server{Handler: h}
+	// No read or write timeouts, as the MCP server uses long-lived streams.
+	srv := &http.Server{
+		Handler:           h,
+		ReadHeaderTimeout: 10 * time.Second,
+		IdleTimeout:       2 * time.Minute,
+	}
 	s.registerServer(srv, "public")
 
 	go func() {
