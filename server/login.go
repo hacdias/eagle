@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,8 +60,9 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 
 	expiration := time.Now().Add(time.Hour * 24 * 7)
 
+	sessionID := uuid.New().String()
 	session := &core.Token{
-		ID:      uuid.New().String(),
+		ID:      core.HashToken(sessionID),
 		Type:    core.TokenTypeSession,
 		Expiry:  expiration,
 		Created: time.Now(),
@@ -75,7 +77,7 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
-		Value:    session.ID,
+		Value:    sessionID,
 		Expires:  expiration,
 		Secure:   r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https",
 		HttpOnly: true,
@@ -83,18 +85,13 @@ func (s *Server) loginPost(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	redirect := r.URL.Query().Get("redirect")
-	if redirect == "" {
-		redirect = "/"
-	}
-
-	http.Redirect(w, r, redirect, http.StatusSeeOther)
+	http.Redirect(w, r, safeRedirect(r), http.StatusSeeOther)
 }
 
 func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if err == nil && cookie.Value != "" {
-		_ = s.core.DB().DeleteToken(r.Context(), cookie.Value)
+		_ = s.core.DB().DeleteToken(r.Context(), core.HashToken(cookie.Value))
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -106,12 +103,21 @@ func (s *Server) logoutGet(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
+	http.Redirect(w, r, safeRedirect(r), http.StatusSeeOther)
+}
+
+// safeRedirect returns the "redirect" query parameter if it is a local path,
+// or "/" otherwise, in order to prevent open redirects.
+func safeRedirect(r *http.Request) string {
 	redirect := r.URL.Query().Get("redirect")
-	if redirect == "" {
-		redirect = "/"
+	if _, err := url.Parse(redirect); err != nil ||
+		!strings.HasPrefix(redirect, "/") ||
+		strings.HasPrefix(redirect, "//") ||
+		strings.Contains(redirect, `\`) {
+		return "/"
 	}
 
-	http.Redirect(w, r, redirect, http.StatusSeeOther)
+	return redirect
 }
 
 func (s *Server) withLoggedIn(next http.Handler) http.Handler {

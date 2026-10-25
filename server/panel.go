@@ -152,7 +152,7 @@ type browserPage struct {
 }
 
 func (s *Server) panelBrowserGet(w http.ResponseWriter, r *http.Request) {
-	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelBrowsePath))
+	filename := filepath.Clean("/" + strings.TrimPrefix(r.URL.Path, panelBrowsePath))
 
 	info, err := s.core.Stat(filename)
 	if err != nil {
@@ -190,7 +190,7 @@ func (s *Server) panelBrowserGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) panelBrowserPost(w http.ResponseWriter, r *http.Request) {
-	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelBrowsePath))
+	filename := filepath.Clean("/" + strings.TrimPrefix(r.URL.Path, panelBrowsePath))
 
 	err := r.ParseForm()
 	if err != nil {
@@ -230,7 +230,7 @@ type editPage struct {
 }
 
 func (s *Server) panelEditGet(w http.ResponseWriter, r *http.Request) {
-	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelEditPath))
+	filename := filepath.Clean("/" + strings.TrimPrefix(r.URL.Path, panelEditPath))
 
 	info, err := s.core.Stat(filename)
 	if err != nil {
@@ -299,7 +299,7 @@ type editRequest struct {
 }
 
 func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
-	filename := filepath.Clean(strings.TrimPrefix(r.URL.Path, panelEditPath))
+	filename := filepath.Clean("/" + strings.TrimPrefix(r.URL.Path, panelEditPath))
 
 	err := r.ParseForm()
 	if err != nil {

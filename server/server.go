@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"embed"
-	"encoding/base64"
 	"errors"
 	"html"
 	"html/template"
@@ -53,7 +52,6 @@ type Server struct {
 
 	log         *zap.SugaredLogger
 	ias         *indieauth.Server
-	jwtKey      []byte
 	actions     map[string]func() error
 	plugins     map[string]Plugin
 	syndicators map[string]SyndicationPlugin
@@ -89,7 +87,6 @@ func NewServer(c *core.Config) (*Server, error) {
 
 		log:     log.S().Named("server"),
 		ias:     indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		jwtKey:  []byte(base64.StdEncoding.EncodeToString([]byte(c.TokensSecret))),
 		actions: map[string]func() error{},
 
 		cron: cron.New(),

@@ -21,7 +21,13 @@ func newDatabase(path string) (*Database, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&Token{}, &Mention{}, &QueueItem{}, &ScheduledEntry{})
+	err = db.AutoMigrate(
+		&Token{},
+		&AuthCode{},
+		&Mention{},
+		&QueueItem{},
+		&ScheduledEntry{},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -59,14 +65,49 @@ func (d *Database) DeleteToken(ctx context.Context, id string) error {
 	return d.db.WithContext(ctx).Delete(&Token{}, "id = ?", id).Error
 }
 
-func (d *Database) DeleteExpiredTokens(ctx context.Context) error {
-	return d.db.WithContext(ctx).
-		Where("expiry < ?", time.Now()).
-		Delete(&Token{}).Error
-}
-
 func (d *Database) DeleteAllTokensByType(ctx context.Context, tokenType TokenType) error {
 	return d.db.WithContext(ctx).Where("type = ?", tokenType).Delete(&Token{}).Error
+}
+
+// Auth code methods
+
+func (d *Database) CreateAuthCode(ctx context.Context, code *AuthCode) error {
+	return d.db.WithContext(ctx).Create(code).Error
+}
+
+func (d *Database) ConsumeAuthCode(ctx context.Context, id string) (*AuthCode, error) {
+	var code AuthCode
+	err := d.db.WithContext(ctx).First(&code, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	res := d.db.WithContext(ctx).Delete(&AuthCode{}, "id = ?", id)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	// Another request consumed the code in the meantime.
+	if res.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+
+	return &code, nil
+}
+
+// Token and auth code cleanup methods
+
+func (d *Database) DeleteExpiredTokensAndCodes(ctx context.Context) error {
+	err := d.db.WithContext(ctx).
+		Where("expiry < ?", time.Now()).
+		Delete(&Token{}).Error
+	if err != nil {
+		return err
+	}
+
+	return d.db.WithContext(ctx).
+		Where("expiry < ?", time.Now()).
+		Delete(&AuthCode{}).Error
 }
 
 // Mention methods

@@ -14,7 +14,6 @@ require (
 	github.com/google/jsonschema-go v0.4.3
 	github.com/google/uuid v1.6.0
 	github.com/karlseguin/typed v1.1.8
-	github.com/lestrrat-go/jwx/v4 v4.6.0
 	github.com/mattn/go-mastodon v0.0.13
 	github.com/maypok86/otter/v2 v2.4.0
 	github.com/meilisearch/meilisearch-go v0.36.3
@@ -58,8 +57,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.1 // indirect
-	github.com/lestrrat-go/dsig v1.4.0 // indirect
-	github.com/lestrrat-go/option/v3 v3.0.0-alpha1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.52 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mr-tron/base58 v1.3.0 // indirect

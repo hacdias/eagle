@@ -10,18 +10,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v4/jwa"
-	"github.com/lestrrat-go/jwx/v4/jwt"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/indielib/indieauth"
+	"gorm.io/gorm"
 )
 
 // https://indieauth.spec.indieweb.org
 
 const (
-	authCodeSubject string = "Eagle Auth Code"
-
 	scopesContextKey contextKey = "scopes"
 	clientContextKey contextKey = "client"
 
@@ -87,30 +84,30 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := jwt.NewBuilder().
-		Subject(authCodeSubject).
-		IssuedAt(time.Now()).
-		Expiration(time.Now().Add(time.Minute*5)).
-		Claim("scope", strings.Join(req.Scopes, " ")).
-		Claim("expiry", r.Form.Get("expiry")).
-		Claim("client_id", req.ClientID).
-		Claim("redirect_uri", req.RedirectURI).
-		Claim("code_challenge", req.CodeChallenge).
-		Claim("code_challenge_method", req.CodeChallengeMethod).
-		Build()
+	lifetime, err := handleExpiry(r.Form.Get("expiry"))
 	if err != nil {
-		s.panelError(w, r, http.StatusInternalServerError, err)
+		s.panelError(w, r, http.StatusBadRequest, errors.New("expiry param is not a positive number"))
 		return
 	}
 
-	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256(), s.jwtKey))
+	code := uuid.New().String()
+	err = s.core.DB().CreateAuthCode(r.Context(), &core.AuthCode{
+		ID:                  core.HashToken(code),
+		ClientID:            req.ClientID,
+		RedirectURI:         req.RedirectURI,
+		Scope:               strings.Join(req.Scopes, " "),
+		CodeChallenge:       req.CodeChallenge,
+		CodeChallengeMethod: req.CodeChallengeMethod,
+		Lifetime:            lifetime,
+		Expiry:              time.Now().Add(time.Minute * 5),
+	})
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
 	query := urlpkg.Values{}
-	query.Set("code", string(signed))
+	query.Set("code", code)
 	query.Set("state", req.State)
 	query.Set("iss", s.c.ID())
 
@@ -162,7 +159,7 @@ func (s *Server) tokenPost(w http.ResponseWriter, r *http.Request) {
 		// of IndieAuth specification. Revocation endpoints are now separate.
 		tokenID := r.Form.Get("token")
 		if tokenID != "" {
-			_ = s.core.DB().DeleteToken(r.Context(), tokenID)
+			_ = s.core.DB().DeleteToken(r.Context(), core.HashToken(tokenID))
 		}
 		w.WriteHeader(http.StatusOK)
 		return
@@ -210,23 +207,27 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	code := r.Form.Get("code")
-	token, err := jwt.ParseString(code, jwt.WithKey(jwa.HS256(), s.jwtKey))
-	if err != nil {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", err.Error())
+	// The code is consumed before validating the exchange, so that a failed
+	// attempt also invalidates it.
+	code, err := s.core.DB().ConsumeAuthCode(r.Context(), core.HashToken(r.Form.Get("code")))
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "invalid code")
+		return
+	} else if err != nil {
+		s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
 	}
 
-	if subject, _ := token.Subject(); subject != authCodeSubject {
-		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "token has invalid subject")
+	if time.Now().After(code.Expiry) {
+		s.serveErrorJSON(w, http.StatusBadRequest, "invalid_grant", "code expired")
 		return
 	}
 
 	authRequest := &indieauth.AuthenticationRequest{
-		ClientID:            getString(token, "client_id"),
-		RedirectURI:         getString(token, "redirect_uri"),
-		CodeChallenge:       getString(token, "code_challenge"),
-		CodeChallengeMethod: getString(token, "code_challenge_method"),
+		ClientID:            code.ClientID,
+		RedirectURI:         code.RedirectURI,
+		CodeChallenge:       code.CodeChallenge,
+		CodeChallengeMethod: code.CodeChallengeMethod,
 	}
 
 	err = s.ias.ValidateTokenExchange(authRequest, r)
@@ -239,16 +240,8 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		Me: s.c.ID(),
 	}
 
-	scope := getString(token, "scope")
-
 	if withToken {
-		expiry, err := handleExpiry(getString(token, "expiry"))
-		if err != nil {
-			s.serveErrorJSON(w, http.StatusBadRequest, "invalid_request", "expiry param is not a positive number")
-			return
-		}
-
-		accessToken, err := s.generateToken(r.Context(), authRequest.ClientID, scope, expiry)
+		accessToken, err := s.generateToken(r.Context(), authRequest.ClientID, code.Scope, code.Lifetime)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 			return
@@ -256,10 +249,10 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 
 		at.AccessToken = accessToken
 		at.TokenType = "Bearer"
-		at.ExpiresIn = int64(expiry.Seconds())
-		at.Scope = scope
+		at.ExpiresIn = int64(code.Lifetime.Seconds())
+		at.Scope = code.Scope
 
-		refreshToken, err := s.generateRefreshToken(r.Context(), authRequest.ClientID, scope, expiry*2)
+		refreshToken, err := s.generateRefreshToken(r.Context(), authRequest.ClientID, code.Scope, code.Lifetime*2)
 		if err != nil {
 			s.serveErrorJSON(w, http.StatusInternalServerError, "server_error", err.Error())
 			return
@@ -268,7 +261,7 @@ func (s *Server) authorizationCodeExchange(w http.ResponseWriter, r *http.Reques
 		at.RefreshToken = refreshToken
 	}
 
-	at.Profile = s.buildProfile(scope)
+	at.Profile = s.buildProfile(code.Scope)
 	s.serveJSON(w, http.StatusOK, at)
 }
 
@@ -319,7 +312,7 @@ func handleExpiry(expiry string) (time.Duration, error) {
 func (s *Server) generateToken(ctx context.Context, client, scope string, expiry time.Duration) (string, error) {
 	id := uuid.New().String()
 	return id, s.core.DB().CreateToken(ctx, &core.Token{
-		ID:       id,
+		ID:       core.HashToken(id),
 		Type:     core.TokenTypeAccess,
 		ClientID: client,
 		Scope:    scope,
@@ -331,7 +324,7 @@ func (s *Server) generateToken(ctx context.Context, client, scope string, expiry
 func (s *Server) generateRefreshToken(ctx context.Context, client, scope string, expiry time.Duration) (string, error) {
 	id := uuid.New().String()
 	return id, s.core.DB().CreateToken(ctx, &core.Token{
-		ID:       id,
+		ID:       core.HashToken(id),
 		Type:     core.TokenTypeRefresh,
 		ClientID: client,
 		Scope:    scope,
@@ -408,25 +401,20 @@ func (s *Server) refreshTokenGrant(w http.ResponseWriter, r *http.Request) {
 
 var errTokenExpired = errors.New("token expired")
 
-// getToken returns the token with the given ID and type. Expired tokens are
-// deleted, in which case errTokenExpired is returned.
+// getToken returns the token with the given raw value and type. Expired tokens
+// are deleted, in which case errTokenExpired is returned.
 func (s *Server) getToken(ctx context.Context, id string, tokenType core.TokenType) (*core.Token, error) {
-	token, err := s.core.DB().GetToken(ctx, id, tokenType)
+	token, err := s.core.DB().GetToken(ctx, core.HashToken(id), tokenType)
 	if err != nil {
 		return nil, err
 	}
 
 	if time.Now().After(token.Expiry) {
-		_ = s.core.DB().DeleteToken(ctx, id)
+		_ = s.core.DB().DeleteToken(ctx, token.ID)
 		return nil, errTokenExpired
 	}
 
 	return token, nil
-}
-
-func getString(token jwt.Token, prop string) string {
-	v, _ := jwt.Get[string](token, prop)
-	return v
 }
 
 func bearerToken(r *http.Request) string {

@@ -57,7 +57,6 @@ type ServerConfig struct {
 	PublicDirectory string
 	DataDirectory   string
 	Port            int
-	TokensSecret    string
 	WebhookSecret   string
 	Tor             bool
 
