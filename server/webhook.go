@@ -21,6 +21,8 @@ func (s *Server) webhookPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// GitHub payloads are capped at 25 MB.
+	r.Body = http.MaxBytesReader(w, r.Body, 25<<20)
 	payload, err := io.ReadAll(r.Body)
 	if err != nil || len(payload) == 0 {
 		s.log.Warn("webhook: invalid request")
