@@ -41,7 +41,9 @@ const (
 
 func (s *Server) servePanel(w http.ResponseWriter, r *http.Request, data *panelPage) {
 	data.Title = "Panel"
-	data.Actions = s.getActions()
+	data.PluginActions = s.getPluginActions()
+	data.LastBuild = s.core.LastBuild()
+	data.LastSync = s.core.LastSync()
 	data.Success = r.URL.Query().Get("success")
 
 	entries, err := s.core.DB().GetScheduledEntries(r.Context())
@@ -72,6 +74,24 @@ func (s *Server) getSyndicators() []Syndicator {
 	return syndicators
 }
 
+type pluginAction struct {
+	ID   string // plugin name
+	Name string
+}
+
+func (s *Server) getPluginActions() []pluginAction {
+	actions := []pluginAction{}
+	for id, plugin := range s.actionPlugins {
+		actions = append(actions, pluginAction{ID: id, Name: plugin.ActionName()})
+	}
+
+	slices.SortFunc(actions, func(a, b pluginAction) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+
+	return actions
+}
+
 type panelScheduledEntry struct {
 	*core.ScheduledEntry
 	EditURL string
@@ -79,7 +99,9 @@ type panelScheduledEntry struct {
 
 type panelPage struct {
 	Title         string
-	Actions       []string
+	PluginActions []pluginAction
+	LastBuild     time.Time
+	LastSync      time.Time
 	Success       string
 	MediaLocation string
 	MediaPhoto    *core.Photo
@@ -109,20 +131,41 @@ func (s *Server) panelPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) panelPostAction(w http.ResponseWriter, r *http.Request) {
-	actions := r.Form["action"]
-
 	var err error
-	for _, actionName := range actions {
-		if fn, ok := s.actions[actionName]; ok {
-			err = errors.Join(err, fn())
+	switch action := r.Form.Get("action"); action {
+	case "build":
+		err = s.core.Build(false)
+	case "build-clean":
+		err = s.core.Build(true)
+	case "sync":
+		go s.syncStorage()
+	case "reload-redirects":
+		err = s.loadRedirects()
+	case "reload-gone":
+		err = s.loadGone()
+	case "reset-index":
+		s.indexAll()
+	case "plugin":
+		plugin, ok := s.actionPlugins[r.Form.Get("plugin")]
+		if !ok {
+			s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("unknown plugin action: %q", r.Form.Get("plugin")))
+			return
 		}
+
+		// Plugin actions update the website source, so it must be rebuilt.
+		if err = plugin.Action(); err == nil {
+			go s.build(false)
+		}
+	default:
+		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("unknown action: %q", action))
+		return
 	}
+
 	if err != nil {
 		s.panelError(w, r, http.StatusInternalServerError, err)
 		return
 	}
 
-	go s.build(false)
 	http.Redirect(w, r, r.URL.Path+"?success=action", http.StatusSeeOther)
 }
 

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/spf13/afero"
@@ -22,12 +23,14 @@ type Core struct {
 	// Source
 	sourceFS   *afero.Afero
 	sourceSync fsSync
+	lastSync   atomic.Pointer[time.Time] // last successful sync since startup
 
 	// Build
 	buildMu   sync.Mutex
-	buildFS   *afero.Afero // afero around [Config.PublicDirectory]
-	buildName string       // the name of the current build (sub-directory in buildFS)
-	BuildHook func(string) // called when the build directory has changed
+	buildFS   *afero.Afero              // afero around [Config.PublicDirectory]
+	buildName string                    // the name of the current build (sub-directory in buildFS)
+	lastBuild atomic.Pointer[time.Time] // last successful build since startup
+	BuildHook func(string)              // called when the build directory has changed
 }
 
 func NewCore(cfg *Config) (*Core, error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -132,4 +133,27 @@ func (s *Server) serveErrorJSON(w http.ResponseWriter, code int, err, errDescrip
 		"error":             err,
 		"error_description": errDescription,
 	})
+}
+
+// timeAgo formats t relative to now, e.g. "14 minutes ago".
+func timeAgo(t time.Time) string {
+	d := time.Since(t)
+
+	var n int
+	var unit string
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		n, unit = int(d/time.Minute), "minute"
+	case d < 24*time.Hour:
+		n, unit = int(d/time.Hour), "hour"
+	default:
+		n, unit = int(d/(24*time.Hour)), "day"
+	}
+
+	if n != 1 {
+		unit += "s"
+	}
+	return fmt.Sprintf("%d %s ago", n, unit)
 }

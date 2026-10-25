@@ -4,24 +4,104 @@
 <main>
   <h1>Panel</h1>
 
-  <section>
-    <h2>Quick Actions</h2>
+  {{ if eq .Success "action" }}
+    <p class='notice'>
+      <strong>✅ Success!</strong>
+    </p>
+  {{ end }}
 
-    <div class='actions'>
-    {{ range .Actions }}
-      <form method=POST>
-        <input type='hidden' name='action' value='{{ . }}' />
-        <button class='btn-secondary'>{{ . }}</button>
-      </form>
-    {{ end }}
+  <section class='status'>
+    <div class='status-cell'>
+      <div>
+        <h2 class='label'>Last build</h2>
+        {{ if .LastBuild.IsZero }}
+          <p class='status-value'>Not since restart</p>
+        {{ else }}
+          <p class='status-value'>{{ timeAgo .LastBuild }}</p>
+          <p class='muted small date'><time datetime='{{ .LastBuild.Format "2006-01-02T15:04:05Z07:00" }}'>{{ .LastBuild.Local.Format "2006-01-02 15:04" }}</time></p>
+        {{ end }}
+      </div>
+
+      <div class='status-actions'>
+        <form method=POST>
+          <input type='hidden' name='action' value='build' />
+          <button>Build Website</button>
+        </form>
+        <form method=POST>
+          <input type='hidden' name='action' value='build-clean' />
+          <button class='btn-secondary' aria-label='Build Website (Clean)'>Clean</button>
+        </form>
+      </div>
     </div>
 
-    {{ if eq .Success "action" }}
-      <p class='notice'>
-        <strong>✅ Success!</strong>
-      </p>
-    {{ end }}
+    <div class='status-cell'>
+      <div>
+        <h2 class='label'>Last sync</h2>
+        {{ if .LastSync.IsZero }}
+          <p class='status-value'>Not since restart</p>
+        {{ else }}
+          <p class='status-value'>{{ timeAgo .LastSync }}</p>
+          <p class='muted small date'><time datetime='{{ .LastSync.Format "2006-01-02T15:04:05Z07:00" }}'>{{ .LastSync.Local.Format "2006-01-02 15:04" }}</time></p>
+        {{ end }}
+      </div>
+
+      <div class='status-actions'>
+        <form method=POST>
+          <input type='hidden' name='action' value='sync' />
+          <button class='btn-secondary'>Sync Storage</button>
+        </form>
+      </div>
+    </div>
   </section>
+
+  <div class='columns'>
+    <section>
+      <h2>Maintenance</h2>
+
+      <ul class='list'>
+        <li class='action'>
+          <span>Reload Gone</span>
+          <form method=POST>
+            <input type='hidden' name='action' value='reload-gone' />
+            <button class='btn-text' aria-label='Run Reload Gone'>Run</button>
+          </form>
+        </li>
+        <li class='action'>
+          <span>Reload Redirects</span>
+          <form method=POST>
+            <input type='hidden' name='action' value='reload-redirects' />
+            <button class='btn-text' aria-label='Run Reload Redirects'>Run</button>
+          </form>
+        </li>
+        <li class='action'>
+          <span>Reset Index</span>
+          <form method=POST>
+            <input type='hidden' name='action' value='reset-index' />
+            <button class='btn-text' aria-label='Run Reset Index'>Run</button>
+          </form>
+        </li>
+      </ul>
+    </section>
+
+    {{ with .PluginActions }}
+      <section>
+        <h2>Plugins</h2>
+
+        <ul class='list'>
+          {{ range . }}
+            <li class='action'>
+              <span>{{ .Name }}</span>
+              <form method=POST>
+                <input type='hidden' name='action' value='plugin' />
+                <input type='hidden' name='plugin' value='{{ .ID }}' />
+                <button class='btn-text' aria-label='Run {{ .Name }}'>Run</button>
+              </form>
+            </li>
+          {{ end }}
+        </ul>
+      </section>
+    {{ end }}
+  </div>
 
   {{ with .Scheduled }}
     <section>

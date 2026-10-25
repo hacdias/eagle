@@ -81,7 +81,18 @@ func (co *Core) Build(cleanBuildDirectory bool) error {
 		}
 	}
 
+	now := time.Now()
+	co.lastBuild.Store(&now)
 	return nil
+}
+
+// LastBuild returns the time of the last successful build since startup, or
+// the zero time if there was none.
+func (co *Core) LastBuild() time.Time {
+	if t := co.lastBuild.Load(); t != nil {
+		return *t
+	}
+	return time.Time{}
 }
 
 // IsLinkValid checks if the given link exists in the built version of the website.

@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime/debug"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/maypok86/otter/v2"
@@ -40,6 +40,7 @@ var (
 	panelTemplates   = template.Must(template.New("").Funcs(template.FuncMap{
 		"htmlUnescape": html.UnescapeString,
 		"pathDir":      path.Dir,
+		"timeAgo":      timeAgo,
 	}).ParseFS(panelTemplatesFS, "templates/*.html"))
 
 	//go:embed assets/*
@@ -50,16 +51,16 @@ type Server struct {
 	n core.Notifier
 	c *core.Config
 
-	log         *zap.SugaredLogger
-	ias         *indieauth.Server
-	actions     map[string]func() error
-	plugins     map[string]Plugin
-	syndicators map[string]SyndicationPlugin
-	cron        *cron.Cron
-	queueCancel context.CancelFunc
+	log           *zap.SugaredLogger
+	ias           *indieauth.Server
+	plugins       map[string]Plugin
+	actionPlugins map[string]ActionPlugin
+	syndicators   map[string]SyndicationPlugin
+	cron          *cron.Cron
+	queueCancel   context.CancelFunc
 
-	redirects map[string]string
-	gone      map[string]bool
+	redirects atomic.Pointer[map[string]string]
+	gone      atomic.Pointer[map[string]bool]
 
 	serversMu    sync.Mutex
 	servers      map[string]*http.Server
@@ -85,14 +86,10 @@ func NewServer(c *core.Config) (*Server, error) {
 	s := &Server{
 		c: c,
 
-		log:     log.S().Named("server"),
-		ias:     indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
-		actions: map[string]func() error{},
+		log: log.S().Named("server"),
+		ias: indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
 
 		cron: cron.New(),
-
-		redirects: map[string]string{},
-		gone:      map[string]bool{},
 
 		servers: map[string]*http.Server{},
 		core:    co,
@@ -210,21 +207,12 @@ func (s *Server) Stop() error {
 	return errors.Join(err, s.core.Close())
 }
 
-func (s *Server) getActions() []string {
-	actions := []string{}
-	for action := range s.actions {
-		actions = append(actions, action)
-	}
-	sort.Strings(actions)
-	return actions
-}
-
 func (s *Server) loadRedirects() error {
 	redirects, err := s.core.GetRedirects(true)
 	if err != nil {
 		return err
 	}
-	s.redirects = redirects
+	s.redirects.Store(&redirects)
 	return nil
 }
 
@@ -233,7 +221,7 @@ func (s *Server) loadGone() error {
 	if err != nil {
 		return err
 	}
-	s.gone = gone
+	s.gone.Store(&gone)
 	return nil
 }
 

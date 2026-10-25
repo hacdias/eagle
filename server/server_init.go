@@ -107,44 +107,19 @@ func (s *Server) initSyndicators() error {
 }
 
 func (s *Server) initActions() error {
-	actions := map[string]func() error{
-		"Build Website": func() error {
-			return s.core.Build(false)
-		},
-		"Build Website (Clean)": func() error {
-			return s.core.Build(true)
-		},
-		"Sync Storage": func() error {
-			go s.syncStorage()
-			return nil
-		},
-		"Reset Index": func() error {
-			s.indexAll()
-			return nil
-		},
-		"Reload Redirects": s.loadRedirects,
-		"Reload Gone":      s.loadGone,
-	}
-
+	s.actionPlugins = map[string]ActionPlugin{}
 	for pluginName, plugin := range s.plugins {
 		actionPlugin, ok := plugin.(ActionPlugin)
 		if !ok {
 			continue
 		}
 
-		actionName := actionPlugin.ActionName()
-		if actionName == "" {
+		if actionPlugin.ActionName() == "" {
 			return fmt.Errorf("plugin %s has no action name", pluginName)
 		}
 
-		if _, ok := actions[actionName]; ok {
-			return fmt.Errorf("action %s already registered", actionName)
-		}
-
-		actions[actionName] = actionPlugin.Action
+		s.actionPlugins[pluginName] = actionPlugin
 	}
-
-	s.actions = actions
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -21,7 +22,21 @@ type ModifiedFile struct {
 }
 
 func (co *Core) Sync() ([]ModifiedFile, error) {
-	return co.sourceSync.Sync()
+	modified, err := co.sourceSync.Sync()
+	if err == nil {
+		now := time.Now()
+		co.lastSync.Store(&now)
+	}
+	return modified, err
+}
+
+// LastSync returns the time of the last successful sync since startup, or
+// the zero time if there was none.
+func (co *Core) LastSync() time.Time {
+	if t := co.lastSync.Load(); t != nil {
+		return *t
+	}
+	return time.Time{}
 }
 
 func (co *Core) WriteFile(filename string, data []byte, message string) error {
