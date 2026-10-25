@@ -50,7 +50,7 @@ func (g *git) add(filenames ...string) error {
 	filenames = lo.Map(filenames, func(v string, _ int) string {
 		return strings.TrimPrefix(v, "/")
 	})
-	args := append([]string{"add"}, filenames...)
+	args := append([]string{"add", "--"}, filenames...)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
