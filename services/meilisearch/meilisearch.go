@@ -91,11 +91,18 @@ func (ms *Meilisearch) ResetIndex() error {
 	return err
 }
 
+// indexable returns whether the entry can be publicly searched.
+func indexable(e *core.Entry) bool {
+	return !e.Deleted() && !e.Draft && !e.Future() && !e.NoIndex
+}
+
 func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 	docs := []any{}
+	removed := []string{}
 
 	for _, e := range ee {
-		if e.Deleted() || e.Draft || e.Future() || e.NoIndex {
+		if !indexable(e) {
+			removed = append(removed, e.ID)
 			continue
 		}
 
@@ -106,6 +113,13 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 			"tags":    e.Tags,
 			"content": e.TextContent(),
 		})
+	}
+
+	if len(removed) > 0 {
+		err := ms.Remove(removed...)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err := ms.client.Index(searchIndex).UpdateDocuments(docs, nil)
@@ -178,6 +192,9 @@ func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, er
 			} else {
 				return nil, err
 			}
+		} else if !indexable(entry) {
+			// The entry may have been unpublished, or expired, since indexed.
+			_ = ms.Remove(m.ID)
 		} else {
 			entries = append(entries, entry)
 		}
