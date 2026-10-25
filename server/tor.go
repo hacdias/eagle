@@ -6,6 +6,7 @@ import (
 	"crypto/ed25519"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -96,7 +97,7 @@ func generateTorKey(keyPath string) (crypto.PrivateKey, error) {
 		Bytes: x509Encoded,
 	})
 
-	return key, os.WriteFile(keyPath, pemEncoded, 0644)
+	return key, os.WriteFile(keyPath, pemEncoded, 0600)
 }
 
 func readTorKey(keyPath string) (crypto.PrivateKey, error) {
@@ -106,6 +107,9 @@ func readTorKey(keyPath string) (crypto.PrivateKey, error) {
 	}
 
 	block, _ := pem.Decode(d)
+	if block == nil {
+		return nil, fmt.Errorf("invalid onion key %s", keyPath)
+	}
 	x509Encoded := block.Bytes
 
 	return x509.ParsePKCS8PrivateKey(x509Encoded)
