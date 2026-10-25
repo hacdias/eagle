@@ -423,6 +423,7 @@ func (s *Server) panelNewPost(w http.ResponseWriter, r *http.Request) {
 	e.Title = req.Title
 	e.Categories = []string{req.Category}
 	e.Tags = req.Tags
+	e.Date = time.Now() // For when adding frontmatter without date
 
 	if len(req.Photos) > 0 {
 		if len(e.Photos) != 0 {
