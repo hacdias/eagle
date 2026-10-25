@@ -207,7 +207,7 @@ func (m *Media) GetImage(url string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	res, err := http.Get(photoUrl)
+	res, err := m.httpClient.Get(photoUrl)
 	if err != nil {
 		return nil, "", err
 	}
