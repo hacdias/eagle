@@ -163,6 +163,19 @@ legend,
   white-space: nowrap;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 /* Header */
 
 header {
@@ -640,16 +653,23 @@ fieldset > legend + * {
   background: var(--soft);
 }
 
+.snippet {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.snippet + .snippet {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-strong);
+}
+
 .snippets pre {
+  flex: 1;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: none;
-}
-
-.snippets pre + pre {
-  padding-top: 12px;
-  border-top: 1px solid var(--border-strong);
 }
 
 /* New Post */

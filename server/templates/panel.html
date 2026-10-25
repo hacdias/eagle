@@ -51,20 +51,64 @@
 
     {{ with .MediaLocation }}
       <div class='snippets'>
-        <pre>{{ . }}</pre>
+        <div class='snippet'>
+          <pre>{{ . }}</pre>
+          <button type='button' class='btn-secondary' data-copy hidden>Copy</button>
+        </div>
       </div>
     {{ else with .MediaPhoto }}
       <div class='snippets'>
-        <pre>![]({{ .URL }}{{ with .Title }} "{{ . }}"{{ end }}){{ if .Width }}
+        <div class='snippet'>
+          <pre>![]({{ .URL }}{{ with .Title }} "{{ . }}"{{ end }}){{ if .Width }}
 {width="{{ .Width }}" height="{{ .Height }}"}{{end }}</pre>
+          <button type='button' class='btn-secondary' data-copy hidden>Copy</button>
+        </div>
 
-        <pre>- url: "{{ .URL }}"{{ with .Title }}
+        <div class='snippet'>
+          <pre>- url: "{{ .URL }}"{{ with .Title }}
   title: {{ . }}{{ end }}{{ if .Width }}
   width: {{ .Width }}
   height: {{ .Height }}{{end }}</pre>
+          <button type='button' class='btn-secondary' data-copy hidden>Copy</button>
+        </div>
       </div>
     {{ end }}
+
+    <p id='copy-status' class='sr-only' role='status'></p>
   </section>
 </main>
+
+<script>
+if (navigator.clipboard) {
+  const copyStatus = document.getElementById('copy-status')
+
+  document.querySelectorAll('[data-copy]').forEach((button) => {
+    button.hidden = false
+  })
+
+  document.addEventListener('click', async (e) => {
+    const button = e.target.closest('[data-copy]')
+    if (!button) {
+      return
+    }
+
+    let label = 'Copied'
+    try {
+      await navigator.clipboard.writeText(button.closest('.snippet').querySelector('pre').textContent)
+    } catch (err) {
+      console.error('Failed to copy snippet', err)
+      label = 'Copy failed'
+    }
+
+    button.textContent = label
+    copyStatus.textContent = label
+    clearTimeout(button.resetTimeout)
+    button.resetTimeout = setTimeout(() => {
+      button.textContent = 'Copy'
+      copyStatus.textContent = ''
+    }, 2000)
+  })
+}
+</script>
 
 {{ template "_footer.html" . }}
