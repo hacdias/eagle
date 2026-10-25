@@ -6,6 +6,7 @@ import (
 	"errors"
 	"path"
 	"slices"
+	"sync"
 	"time"
 
 	"go.hacdias.com/eagle/core"
@@ -34,6 +35,9 @@ type logsConfig struct {
 type Logs struct {
 	core      *core.Core
 	directory string
+
+	// mu serializes writes, which read, modify and write the log files.
+	mu sync.Mutex
 }
 
 func NewLogs(co *core.Core, config logsConfig) (server.Plugin, error) {
@@ -125,6 +129,9 @@ func (l *Logs) get[T any](file string) ([]T, error) {
 }
 
 func (l *Logs) add[T logEntry](file string, entry T) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	logs, err := l.get[T](file)
 	if err != nil {
 		return err
@@ -136,6 +143,9 @@ func (l *Logs) add[T logEntry](file string, entry T) error {
 
 // edit replaces the single entry for which match returns true.
 func (l *Logs) edit[T logEntry](file string, match func(T) bool, entry T) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	logs, err := l.get[T](file)
 	if err != nil {
 		return err
