@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	urlpkg "net/url"
 	"os"
+	"syscall"
+	"time"
 
 	"github.com/samber/lo"
 	"willnorris.com/go/webmention"
@@ -118,10 +121,6 @@ func (co *Core) sendWebmention(source, target string) error {
 		return fmt.Errorf("error discovering endpoint: %w", err)
 	}
 
-	if isPrivate(endpoint) {
-		return fmt.Errorf("webmention endpoint is a private address: %s", endpoint)
-	}
-
 	res, err := co.wmClient.SendWebmention(endpoint, source, target)
 	if err != nil {
 		return fmt.Errorf("error sending webmention: %w", err)
@@ -135,21 +134,32 @@ func (co *Core) sendWebmention(source, target string) error {
 	return nil
 }
 
-func isPrivate(urlStr string) bool {
-	url, _ := urlpkg.Parse(urlStr)
-	if url == nil {
-		return false
+// publicTransport returns an HTTP transport that only connects to public
+// addresses. The check happens when connecting, such that it also applies to
+// hostnames resolving to non-public addresses and to redirects.
+func publicTransport() *http.Transport {
+	dialer := &net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		Control:   checkPublicAddress,
 	}
 
-	hostname := url.Hostname()
-	if hostname == "localhost" {
-		return true
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = dialer.DialContext
+	return transport
+}
+
+func checkPublicAddress(network, address string, _ syscall.RawConn) error {
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return err
 	}
 
-	ip := net.ParseIP(hostname)
-	if ip == nil {
-		return false
+	ip := net.ParseIP(host)
+	if ip == nil || ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() ||
+		ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
+		return fmt.Errorf("refusing to connect to non-public address %s", host)
 	}
 
-	return ip.IsPrivate() || ip.IsLoopback()
+	return nil
 }
