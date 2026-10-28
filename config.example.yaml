@@ -89,11 +89,11 @@ plugins:
     key: myKey
     filename: data/bookmarks.json
 
-  # Optional plugin to serve /.well-known/links, as well as save a data file with them.
-  # Runs every day automatically, can be triggered through dashboard.
+  # Optional plugin to serve /.well-known/links from the build output, with
+  # filtering via ?domain=. The website must generate the file. Takes no
+  # options: the key below only exists so the plugin is enabled.
   external-links:
-    filename: "data/external-links.json"
-    ignored: ['domain.com', 'example.com']
+    enabled: true
 
   # Optional Mastodon integration for post syndication.
   mastodon:

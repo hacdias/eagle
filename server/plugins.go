@@ -24,6 +24,10 @@ func (u *PluginWebUtilities) ErrorHTML(w http.ResponseWriter, r *http.Request, c
 	u.s.serveErrorHTML(w, r, code, reqErr)
 }
 
+func (u *PluginWebUtilities) ReadStaticFile(path string) ([]byte, error) {
+	return u.s.staticFs.ReadFile(path)
+}
+
 type Plugin = any
 
 // TODO: support multiple actions per plugin.
