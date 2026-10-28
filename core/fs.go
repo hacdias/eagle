@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -100,8 +101,20 @@ func (co *Core) RemoveAll(path string) error {
 	return co.sourceFS.RemoveAll(path)
 }
 
-func (co *Core) GetRedirects(ignoreMalformed bool) (map[string]string, error) {
-	redirects := map[string]string{}
+type Redirect struct {
+	To     string
+	Status int
+}
+
+var redirectStatuses = map[string]int{
+	"301": http.StatusMovedPermanently,
+	"302": http.StatusFound,
+	"307": http.StatusTemporaryRedirect,
+	"308": http.StatusPermanentRedirect,
+}
+
+func (co *Core) GetRedirects(ignoreMalformed bool) (map[string]Redirect, error) {
+	redirects := map[string]Redirect{}
 
 	data, err := co.sourceFS.ReadFile(RedirectsFile)
 	if err != nil {
@@ -114,13 +127,18 @@ func (co *Core) GetRedirects(ignoreMalformed bool) (map[string]string, error) {
 	lines := strings.SplitSeq(string(data), "\n")
 
 	for line := range lines {
-		if strings.TrimSpace(line) == "" {
+		parts := strings.Fields(line)
+		if len(parts) == 0 || strings.HasPrefix(parts[0], "#") {
 			continue
 		}
 
-		parts := strings.Split(line, " ")
-		if len(parts) == 2 {
-			redirects[parts[0]] = parts[1]
+		status, ok := http.StatusMovedPermanently, len(parts) == 2
+		if len(parts) == 3 {
+			status, ok = redirectStatuses[parts[2]]
+		}
+
+		if ok {
+			redirects[parts[0]] = Redirect{To: parts[1], Status: status}
 		} else if !ignoreMalformed {
 			return nil, fmt.Errorf("found invalid redirect entry: %s", line)
 		}

@@ -59,7 +59,7 @@ type Server struct {
 	cron          *cron.Cron
 	queueCancel   context.CancelFunc
 
-	redirects atomic.Pointer[map[string]string]
+	redirects atomic.Pointer[map[string]core.Redirect]
 	gone      atomic.Pointer[map[string]bool]
 
 	serversMu    sync.Mutex

@@ -39,7 +39,7 @@ var brokenLinksCmd = &cobra.Command{
 		var resolveRedirect func(u string) string
 		resolveRedirect = func(u string) string {
 			if r, ok := redirects[u]; ok {
-				return resolveRedirect(r)
+				return resolveRedirect(r.To)
 			}
 
 			return u

@@ -133,8 +133,8 @@ func (s *Server) makeRouter() http.Handler {
 }
 
 func (s *Server) everythingBagelHandler(w http.ResponseWriter, r *http.Request) {
-	if url, ok := (*s.redirects.Load())[r.URL.Path]; ok {
-		http.Redirect(w, r, url, http.StatusMovedPermanently)
+	if redirect, ok := (*s.redirects.Load())[r.URL.Path]; ok {
+		http.Redirect(w, r, redirect.To, redirect.Status)
 		return
 	}
 
