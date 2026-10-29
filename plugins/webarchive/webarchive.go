@@ -28,6 +28,7 @@ func init() {
 type WebArchive struct {
 	core       *core.Core
 	httpClient *http.Client
+	userAgent  string
 	enabled    bool
 	accessKey  string
 	secretKey  string
@@ -53,6 +54,7 @@ func NewWebArchive(co *core.Core, config webArchiveConfig) (server.Plugin, error
 		httpClient: &http.Client{
 			Timeout: time.Minute,
 		},
+		userAgent: fmt.Sprintf("eagle/%s", co.BaseURL().String()),
 		enabled:   config.Enabled,
 		accessKey: config.AccessKey,
 		secretKey: config.SecretKey,
@@ -112,6 +114,7 @@ func (wa *WebArchive) save(ctx context.Context, link string) error {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "LOW "+wa.accessKey+":"+wa.secretKey)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", wa.userAgent)
 
 	res, err := wa.httpClient.Do(req)
 	if err != nil {
