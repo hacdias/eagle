@@ -182,6 +182,87 @@ func TestQueueProcessItem_MaxAttempts(t *testing.T) {
 	assert.Equal(t, queueMaxAttempts, failed[0].Attempts)
 }
 
+func TestQueueRetry(t *testing.T) {
+	q, db := newTestQueue(t)
+	ctx := context.Background()
+
+	q.Register("test", func(_ context.Context, _ []byte) error {
+		return errors.New("always fails")
+	})
+
+	require.NoError(t, q.Enqueue(ctx, "test", "hello"))
+	<-q.notify // drain the enqueue signal
+
+	for i := 0; i < queueMaxAttempts; i++ {
+		items := getPendingItems(t, db)
+		require.Len(t, items, 1)
+		q.processItem(ctx, items[0])
+	}
+
+	failed, err := db.GetFailedQueueItems(ctx)
+	require.NoError(t, err)
+	require.Len(t, failed, 1)
+
+	require.NoError(t, q.Retry(ctx, failed[0].ID))
+
+	select {
+	case <-q.notify:
+		// ok
+	default:
+		t.Fatal("expected notify signal after retry")
+	}
+
+	// Item must be pending again with a clean state.
+	pending := getPendingItems(t, db)
+	require.Len(t, pending, 1)
+	assert.Equal(t, 0, pending[0].Attempts)
+	assert.Nil(t, pending[0].LastAttempt)
+	assert.Empty(t, pending[0].FailedReason)
+
+	failed, err = db.GetFailedQueueItems(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, failed)
+}
+
+func TestQueueRetryFailed(t *testing.T) {
+	q, db := newTestQueue(t)
+	ctx := context.Background()
+
+	q.Register("test", func(_ context.Context, _ []byte) error {
+		return errors.New("always fails")
+	})
+
+	// Two permanently failed items.
+	require.NoError(t, q.Enqueue(ctx, "test", 1))
+	require.NoError(t, q.Enqueue(ctx, "test", 2))
+	for _, item := range getPendingItems(t, db) {
+		for item.Attempts < queueMaxAttempts {
+			q.processItem(ctx, item)
+		}
+	}
+
+	// One item that failed once and is still active.
+	require.NoError(t, q.Enqueue(ctx, "test", "active"))
+	active, err := db.GetActiveQueueItems(ctx)
+	require.NoError(t, err)
+	require.Len(t, active, 1)
+	q.processItem(ctx, active[0])
+
+	require.NoError(t, q.RetryFailed(ctx))
+
+	// Only the permanently failed items are reset.
+	items := getPendingItems(t, db)
+	require.Len(t, items, 3)
+	for _, item := range items {
+		if item.Payload == `"active"` {
+			assert.Equal(t, 1, item.Attempts)
+		} else {
+			assert.Equal(t, 0, item.Attempts)
+			assert.Nil(t, item.LastAttempt)
+		}
+	}
+}
+
 func TestQueueProcessItem_NoHandler(t *testing.T) {
 	q, _ := newTestQueue(t)
 	ctx := context.Background()

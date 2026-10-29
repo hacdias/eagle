@@ -793,6 +793,24 @@ func (s *Server) panelQueuePost(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		http.Redirect(w, r, panelQueuePath+"?success=cleared", http.StatusSeeOther)
+	case "retry":
+		id := r.Form.Get("id")
+		if id == "" {
+			s.panelError(w, r, http.StatusBadRequest, errors.New("missing id"))
+			return
+		}
+
+		if err := s.core.Queue().Retry(r.Context(), id); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		http.Redirect(w, r, panelQueuePath+"?success=retried", http.StatusSeeOther)
+	case "retry-failed":
+		if err := s.core.Queue().RetryFailed(r.Context()); err != nil {
+			s.panelError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+		http.Redirect(w, r, panelQueuePath+"?success=retried", http.StatusSeeOther)
 	default:
 		s.panelError(w, r, http.StatusBadRequest, errors.New("invalid action"))
 	}

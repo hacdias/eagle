@@ -64,13 +64,36 @@ func (q *Queue) Enqueue(ctx context.Context, typ string, payload any) error {
 		return err
 	}
 
+	q.wake()
+	return nil
+}
+
+// Retry resets the item's attempts so it is picked up again immediately.
+func (q *Queue) Retry(ctx context.Context, id string) error {
+	if err := q.db.ResetQueueItem(ctx, id); err != nil {
+		return err
+	}
+
+	q.wake()
+	return nil
+}
+
+// RetryFailed resets the attempts of all permanently failed items.
+func (q *Queue) RetryFailed(ctx context.Context) error {
+	if err := q.db.ResetFailedQueueItems(ctx); err != nil {
+		return err
+	}
+
+	q.wake()
+	return nil
+}
+
+func (q *Queue) wake() {
 	// Non-blocking notify: if the channel already has a pending signal, skip.
 	select {
 	case q.notify <- struct{}{}:
 	default:
 	}
-
-	return nil
 }
 
 func (q *Queue) Run(ctx context.Context) {

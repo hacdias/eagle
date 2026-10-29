@@ -172,6 +172,16 @@ func (d *Database) DeleteFailedQueueItems(ctx context.Context) error {
 	return d.db.WithContext(ctx).Where("attempts >= ?", 3).Delete(&QueueItem{}).Error
 }
 
+func (d *Database) ResetQueueItem(ctx context.Context, id string) error {
+	return d.db.WithContext(ctx).Where("id = ?", id).
+		Select("Attempts", "LastAttempt", "FailedReason").Updates(&QueueItem{}).Error
+}
+
+func (d *Database) ResetFailedQueueItems(ctx context.Context) error {
+	return d.db.WithContext(ctx).Where("attempts >= ?", 3).
+		Select("Attempts", "LastAttempt", "FailedReason").Updates(&QueueItem{}).Error
+}
+
 // Scheduled entry methods
 
 func (d *Database) GetScheduledEntry(ctx context.Context, id string) (*ScheduledEntry, error) {

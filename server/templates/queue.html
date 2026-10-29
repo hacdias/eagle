@@ -8,6 +8,10 @@
     <p class='notice'><strong>✅ Failed jobs cleared.</strong></p>
   {{ end }}
 
+  {{ if eq .Success "retried" }}
+    <p class='notice'><strong>✅ Failed jobs queued for retry.</strong></p>
+  {{ end }}
+
   <section>
     <h2>Active Jobs</h2>
 
@@ -44,6 +48,10 @@
       <h2>Failed Jobs</h2>
       {{ if ne (len .Failed) 0 }}
         <form method='POST'>
+          <input type='hidden' name='action' value='retry-failed' />
+          <button class='btn-secondary'>Retry All Failed Jobs</button>
+        </form>
+        <form method='POST'>
           <input type='hidden' name='action' value='clear-failed' />
           <button class='btn-danger'>Clear All Failed Jobs</button>
         </form>
@@ -61,6 +69,7 @@
               <th>Type</th>
               <th>Error</th>
               <th>Created</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -70,6 +79,13 @@
                 <td class='mono'>{{ .Type }}</td>
                 <td class='error'>{{ .FailedReason }}</td>
                 <td class='muted date'>{{ .Created.Local.Format "2006-01-02 15:04:05" }}</td>
+                <td>
+                  <form method='POST'>
+                    <input type='hidden' name='action' value='retry' />
+                    <input type='hidden' name='id' value='{{ .ID }}' />
+                    <button class='btn-secondary'>Retry</button>
+                  </form>
+                </td>
               </tr>
             {{ end }}
           </tbody>
