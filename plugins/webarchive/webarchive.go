@@ -117,7 +117,9 @@ func (wa *WebArchive) save(ctx context.Context, link string) error {
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	var data saveResponse
 	err = json.NewDecoder(res.Body).Decode(&data)
