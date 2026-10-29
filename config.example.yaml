@@ -131,11 +131,13 @@ plugins:
   indienews:
     language: en
 
-  # Optional WebArchive integration.
+  # Optional WebArchive integration. When enabled, it will archive the links found
+  # in the post content when the entry is created.
   webarchive:
-    # When enabled, the WebArchive plugin will archive the links found in the post
-    # content when the entry is created.
-    archiveOnSave: true
+    enabled: true
+    # S3-like API keys from https://archive.org/account/s3.php
+    accessKey: yourAccessKey
+    secretKey: yourSecretKey
 
   # Optional Locations plugin.
   locations:
