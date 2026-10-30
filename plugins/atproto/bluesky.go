@@ -165,8 +165,8 @@ func (at *ATProto) createPublishBlueskyPostThread(ctx context.Context, client *a
 			Tags:      e.Tags,
 		}
 
-		embeddingsStart := i * 4
-		embeddingsEnd := min((i+1)*4, len(embeddings))
+		embeddingsStart := i * maximumBlueskyGalleryImages
+		embeddingsEnd := min((i+1)*maximumBlueskyGalleryImages, len(embeddings))
 
 		post.Embed.EmbedGallery = &bsky.EmbedGallery{
 			Items: embeddings[embeddingsStart:embeddingsEnd],
