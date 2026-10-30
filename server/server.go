@@ -86,7 +86,10 @@ func NewServer(c *core.Config) (*Server, error) {
 		c: c,
 
 		log: log.S().Named("server"),
-		ias: indieauth.NewServer(false, &http.Client{Timeout: time.Second * 30}),
+		ias: indieauth.NewServer(false, &http.Client{
+			Timeout:   time.Second * 30,
+			Transport: core.PublicTransport(),
+		}),
 
 		cron: cron.New(),
 

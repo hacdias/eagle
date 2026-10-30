@@ -45,7 +45,7 @@ func NewCore(cfg *Config) (*Core, error) {
 		queue: newQueue(db),
 		wmClient: webmention.New(&http.Client{
 			Timeout:   time.Minute,
-			Transport: publicTransport(),
+			Transport: PublicTransport(),
 		}),
 
 		// Source
