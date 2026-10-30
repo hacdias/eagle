@@ -134,10 +134,10 @@ func (co *Core) sendWebmention(source, target string) error {
 	return nil
 }
 
-// publicTransport returns an HTTP transport that only connects to public
+// PublicTransport returns an HTTP transport that only connects to public
 // addresses. The check happens when connecting, such that it also applies to
 // hostnames resolving to non-public addresses and to redirects.
-func publicTransport() *http.Transport {
+func PublicTransport() *http.Transport {
 	dialer := &net.Dialer{
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
