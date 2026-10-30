@@ -216,14 +216,6 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 	}
 
 	if e.Deleted() || e.Draft || e.Future() {
-		if s.grainGallery != nil {
-			err = at.deleteGrainGallery(ctx, client, *s.grainGallery)
-			if err != nil {
-				return err
-			}
-			e.Syndications = lo.Without(e.Syndications, s.grainGallery.String())
-		}
-
 		if s.document != nil {
 			err = at.deleteStandardDocument(ctx, client, *s.document)
 			if err != nil {
@@ -240,6 +232,16 @@ func (at *ATProto) Syndicate(ctx context.Context, e *core.Entry, sctx *server.Sy
 		e.Syndications = lo.Without(e.Syndications, lo.Map(s.feedPosts, func(uri syntax.ATURI, i int) string {
 			return uri.String()
 		})...)
+
+		// Last, as deleting Grain galleries is not implemented yet and must not
+		// prevent the other records from being deleted.
+		if s.grainGallery != nil {
+			err = at.deleteGrainGallery(ctx, client, *s.grainGallery)
+			if err != nil {
+				return err
+			}
+			e.Syndications = lo.Without(e.Syndications, s.grainGallery.String())
+		}
 
 		return nil
 	}
