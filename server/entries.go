@@ -77,7 +77,7 @@ func (s *Server) getEntryThumbnail(e *core.Entry) (*Photo, error) {
 		return nil, err
 	}
 
-	data, err := s.staticFs.ReadFile(u.Path)
+	data, err := s.staticFs.Load().ReadFile(u.Path)
 	if err != nil {
 		return nil, err
 	}

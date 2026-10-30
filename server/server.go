@@ -71,10 +71,9 @@ type Server struct {
 	media      *media.Media
 	mediaCache *otter.Cache[string, []byte]
 
-	staticFsLock sync.RWMutex
-	staticFs     *staticFs
-	templates    *template.Template
-	mcp          *mcp.Server
+	staticFs  atomic.Pointer[staticFs]
+	templates *template.Template
+	mcp       *mcp.Server
 }
 
 func NewServer(c *core.Config) (*Server, error) {
@@ -421,11 +420,7 @@ func (s *Server) build(clean bool) {
 func (s *Server) buildHook(dir string) {
 	s.log.Infof("received new public directory: %s", dir)
 
-	s.staticFsLock.Lock()
-	oldFs := s.staticFs
-	s.staticFs = newStaticFs(dir)
-	s.staticFsLock.Unlock()
-
+	oldFs := s.staticFs.Swap(newStaticFs(dir))
 	if oldFs != nil {
 		err := os.RemoveAll(oldFs.dir)
 		if err != nil {

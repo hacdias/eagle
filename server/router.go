@@ -144,7 +144,7 @@ func (s *Server) everythingBagelHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	nfw := &notFoundResponseWriter{ResponseWriter: w}
-	s.staticFs.ServeHTTP(nfw, r)
+	s.staticFs.Load().ServeHTTP(nfw, r)
 
 	if nfw.status == http.StatusNotFound {
 		e, err := s.core.GetEntry(r.URL.Path)

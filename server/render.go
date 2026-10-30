@@ -61,7 +61,7 @@ func (s *Server) serveErrorHTML(w http.ResponseWriter, r *http.Request, code int
 }
 
 func (s *Server) getDocument(path string) (*goquery.Document, error) {
-	fileContent, err := s.staticFs.ReadFile(path)
+	fileContent, err := s.staticFs.Load().ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
