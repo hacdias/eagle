@@ -7,7 +7,6 @@ import (
 	_ "go.hacdias.com/eagle/plugins/atproto"
 	_ "go.hacdias.com/eagle/plugins/external-links"
 	_ "go.hacdias.com/eagle/plugins/indienews"
-	_ "go.hacdias.com/eagle/plugins/linkding"
 	_ "go.hacdias.com/eagle/plugins/locations"
 	_ "go.hacdias.com/eagle/plugins/logs"
 	_ "go.hacdias.com/eagle/plugins/mastodon"
