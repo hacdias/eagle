@@ -171,18 +171,19 @@ func (g *git) fileContent(filename, commit string) (string, error) {
 }
 
 func (g *git) changedFiles(since string) ([]ModifiedFile, error) {
-	cmd := exec.Command("git", "diff", "--name-only", since, "HEAD")
+	// With -z, filenames are separated by NUL and not quoted, which would happen
+	// with non-ASCII characters.
+	cmd := exec.Command("git", "diff", "-z", "--name-only", since, "HEAD")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("git error (%w): %s", err, string(out))
 	}
 
-	rawFiles := strings.Split(string(out), "\n")
+	rawFiles := strings.Split(string(out), "\x00")
 	files := []ModifiedFile{}
 
 	for _, file := range rawFiles {
-		file = strings.TrimSpace(file)
 		if file != "" {
 			content, err := g.fileContent(file, since)
 			if err != nil {
