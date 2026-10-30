@@ -25,7 +25,7 @@ func (u *PluginWebUtilities) ErrorHTML(w http.ResponseWriter, r *http.Request, c
 }
 
 func (u *PluginWebUtilities) ReadStaticFile(path string) ([]byte, error) {
-	return u.s.staticFs.ReadFile(path)
+	return u.s.staticFs.Load().ReadFile(path)
 }
 
 type Plugin = any
