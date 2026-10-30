@@ -39,12 +39,14 @@ func (nfs neuteredFs) Open(path string) (http.File, error) {
 
 	s, err := f.Stat()
 	if err != nil {
+		_ = f.Close()
 		return nil, err
 	}
 
 	if s.IsDir() {
 		index := filepath.Join(path, "index.html")
-		if _, err := nfs.FileSystem.Open(index); err != nil {
+		indexFile, err := nfs.FileSystem.Open(index)
+		if err != nil {
 			closeErr := f.Close()
 			if closeErr != nil {
 				return nil, closeErr
@@ -52,6 +54,7 @@ func (nfs neuteredFs) Open(path string) (http.File, error) {
 
 			return nil, err
 		}
+		_ = indexFile.Close()
 	}
 
 	return f, nil
