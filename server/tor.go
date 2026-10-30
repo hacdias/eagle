@@ -6,6 +6,7 @@ import (
 	"crypto/ed25519"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,7 +16,7 @@ import (
 	"github.com/cretz/bine/tor"
 )
 
-func (s *Server) startTor(errCh chan error, h http.Handler) error {
+func (s *Server) startTor(h http.Handler) error {
 	key, err := getTorKey(filepath.Join(s.c.DataDirectory, "onion.pk"))
 	if err != nil {
 		return err
@@ -65,7 +66,12 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 			}
 		}()
 		s.log.Infof("tor listening on %s", ln.Addr().String())
-		errCh <- srv.Serve(ln)
+
+		// The onion service is optional: errors must not stop the public server.
+		err := srv.Serve(ln)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.log.Errorw("onion service failed", "err", err)
+		}
 
 		// Clear onion address in case this error happens during runtime.
 		s.onionAddress = ""
@@ -76,7 +82,9 @@ func (s *Server) startTor(errCh chan error, h http.Handler) error {
 
 func (s *Server) withOnionHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Onion-Location", s.onionAddress+r.URL.Path)
+		if s.onionAddress != "" {
+			w.Header().Set("Onion-Location", s.onionAddress+r.URL.Path)
+		}
 		next.ServeHTTP(w, r)
 	})
 }
