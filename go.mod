@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/bluesky-social/indigo v0.0.0-20261024224800-59bb79d3ef3e
+	github.com/bluesky-social/indigo v0.0.0-20261027171756-51095abf6e95
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.16
 	github.com/go-chi/chi/v5 v5.5.0
@@ -26,7 +26,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	github.com/uber/h3-go/v4 v4.5.0
-	github.com/yuin/goldmark/v2 v2.1.9
+	github.com/yuin/goldmark/v2 v2.1.11
 	go.hacdias.com/indielib v0.6.0
 	go.hacdias.com/maze v0.6.1
 	go.uber.org/zap v1.28.0
@@ -65,11 +65,12 @@ require (
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/pandatix/go-abnf v0.5.3 // indirect
 	github.com/paulmach/go.geojson v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/prometheus/client_golang v1.25.0 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
-	github.com/prometheus/common v0.72.1 // indirect
+	github.com/prometheus/common v0.73.0 // indirect
 	github.com/prometheus/procfs v0.23.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
@@ -85,7 +86,7 @@ require (
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
