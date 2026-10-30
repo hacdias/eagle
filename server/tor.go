@@ -62,7 +62,7 @@ func (s *Server) startTor(h http.Handler) error {
 		defer func() {
 			err = t.Close()
 			if err != nil {
-				s.log.Warnf("error while closing tor", "err", err)
+				s.log.Warnw("error while closing tor", "err", err)
 			}
 		}()
 		s.log.Infof("tor listening on %s", ln.Addr().String())
