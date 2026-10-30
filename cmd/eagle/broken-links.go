@@ -36,25 +36,20 @@ var brokenLinksCmd = &cobra.Command{
 			return err
 		}
 
-		var resolveRedirect func(u string) string
-		resolveRedirect = func(u string) string {
-			if r, ok := redirects[u]; ok {
-				return resolveRedirect(r.To)
-			}
-
-			return u
-		}
-
 		ee, err := co.GetEntries(false)
 		if err != nil {
 			return err
 		}
 
-		printBroken := func(e *core.Entry, what string, urls []string) {
+		printBroken := func(e *core.Entry, what string, urls []string) error {
 			if len(urls) != 0 {
 				fmt.Println(what, e.ID)
 				for _, l := range urls {
-					r := resolveRedirect(l)
+					r, err := resolveRedirect(redirects, l)
+					if err != nil {
+						return err
+					}
+
 					if r != l {
 						fmt.Println("R", l, "->", r)
 					} else {
@@ -64,6 +59,8 @@ var brokenLinksCmd = &cobra.Command{
 
 				fmt.Println("")
 			}
+
+			return nil
 		}
 
 		for _, e := range ee {
@@ -88,7 +85,10 @@ var brokenLinksCmd = &cobra.Command{
 					brokenLinks = append(brokenLinks, url.Path)
 				}
 			}
-			printBroken(e, "Entry", brokenLinks)
+			err = printBroken(e, "Entry", brokenLinks)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil

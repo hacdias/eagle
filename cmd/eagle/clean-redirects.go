@@ -31,17 +31,11 @@ var cleanRedirectsCmd = &cobra.Command{
 			return err
 		}
 
-		var resolveRedirect func(u string) string
-		resolveRedirect = func(u string) string {
-			if r, ok := redirects[u]; ok {
-				return resolveRedirect(r.To)
-			}
-
-			return u
-		}
-
 		for src, r := range redirects {
-			r.To = resolveRedirect(src)
+			r.To, err = resolveRedirect(redirects, src)
+			if err != nil {
+				return err
+			}
 			redirects[src] = r
 
 			_, err := fs.GetEntryByPermalink(r.To)
@@ -60,4 +54,23 @@ var cleanRedirectsCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+// resolveRedirect follows the redirects from u until reaching a URL that is not
+// redirected. It returns an error if the redirects loop.
+func resolveRedirect(redirects map[string]core.Redirect, u string) (string, error) {
+	seen := map[string]bool{}
+	for {
+		r, ok := redirects[u]
+		if !ok {
+			return u, nil
+		}
+
+		if seen[u] {
+			return "", fmt.Errorf("redirect loop at %s", u)
+		}
+
+		seen[u] = true
+		u = r.To
+	}
 }
