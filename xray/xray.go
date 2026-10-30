@@ -1,106 +1,12 @@
 package xray
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"net/http"
-	urlpkg "net/url"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/karlseguin/typed"
 	"go.hacdias.com/indielib/microformats"
-	"go.uber.org/zap"
 )
-
-var (
-	ErrPostNotFound = errors.New("post xray not found")
-)
-
-type Config struct {
-	GitHubToken string
-	Endpoint    string
-	UserAgent   string
-}
-
-type XRay struct {
-	c          *Config
-	log        *zap.SugaredLogger
-	httpClient *http.Client
-}
-
-func NewXRay(c *Config, log *zap.SugaredLogger) (*XRay, error) {
-	x := &XRay{
-		c:   c,
-		log: log,
-		httpClient: &http.Client{
-			Timeout: 2 * time.Minute,
-		},
-	}
-
-	return x, nil
-}
-
-type xrayResponse struct {
-	Data map[string]any `json:"data"`
-	Code int            `json:"code"`
-}
-
-func (x *XRay) Fetch(urlStr string) (*Post, any, error) {
-	url, err := urlpkg.Parse(urlStr)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	data := urlpkg.Values{}
-	data.Set("url", url.String())
-
-	if strings.Contains(url.Host, "github.com") && x.c.GitHubToken != "" {
-		data.Set("github_access_token", x.c.GitHubToken)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, x.c.Endpoint+"/parse", strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-	req.Header.Add("User-Agent", x.c.UserAgent)
-
-	res, err := x.httpClient.Do(req)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer func() {
-		_ = res.Body.Close()
-	}()
-
-	var xray xrayResponse
-	err = json.NewDecoder(res.Body).Decode(&xray)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if xray.Data == nil ||
-		typed.New(xray.Data).String("type") == "unknown" {
-		return nil, nil, fmt.Errorf("%s: %w", url.String(), ErrPostNotFound)
-	}
-
-	parsed := x.Parse(xray.Data)
-	if parsed.URL == "" {
-		parsed.URL = urlStr
-	}
-
-	return parsed, xray.Data, nil
-}
-
-func (x *XRay) Parse(data map[string]any) *Post {
-	return Parse(data)
-}
 
 func Parse(data map[string]any) *Post {
 	raw := typed.New(data)

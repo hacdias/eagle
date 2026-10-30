@@ -82,13 +82,6 @@ plugins:
     filename: data/feeds.json
     opml: data/feeds.opml # optional
 
-  # Optional Linkding (https://github.com/sissbruecker/linkding) integration for bookmarks.
-  # Runs every day automatically, can be triggered through dashboard.
-  linkding:
-    endpoint: myUrl
-    key: myKey
-    filename: data/bookmarks.json
-
   # Optional plugin to serve /.well-known/links from the build output, with
   # filtering via ?domain=. The website must generate the file. Takes no
   # options: the key below only exists so the plugin is enabled.

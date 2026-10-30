@@ -66,11 +66,6 @@ func (f *Core) getSidecar(entry *Entry) (*Sidecar, string, error) {
 	return sidecar, filename, err
 }
 
-// func (f *Core) GetSidecar(entry *Entry) (*Sidecar, error) {
-// 	sidecar, _, err := f.getSidecar(entry)
-// 	return sidecar, err
-// }
-
 func (f *Core) UpdateSidecar(entry *Entry, t func(*Sidecar) (*Sidecar, error)) error {
 	oldSidecar, filename, err := f.getSidecar(entry)
 	if err != nil {
