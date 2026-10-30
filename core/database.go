@@ -158,18 +158,18 @@ func (d *Database) DeleteQueueItem(ctx context.Context, id string) error {
 
 func (d *Database) GetFailedQueueItems(ctx context.Context) ([]*QueueItem, error) {
 	var items []*QueueItem
-	err := d.db.WithContext(ctx).Where("attempts >= ?", 3).Order("created asc").Find(&items).Error
+	err := d.db.WithContext(ctx).Where("attempts >= ?", queueMaxAttempts).Order("created asc").Find(&items).Error
 	return items, err
 }
 
 func (d *Database) GetActiveQueueItems(ctx context.Context) ([]*QueueItem, error) {
 	var items []*QueueItem
-	err := d.db.WithContext(ctx).Where("attempts < ?", 3).Order("created asc").Find(&items).Error
+	err := d.db.WithContext(ctx).Where("attempts < ?", queueMaxAttempts).Order("created asc").Find(&items).Error
 	return items, err
 }
 
 func (d *Database) DeleteFailedQueueItems(ctx context.Context) error {
-	return d.db.WithContext(ctx).Where("attempts >= ?", 3).Delete(&QueueItem{}).Error
+	return d.db.WithContext(ctx).Where("attempts >= ?", queueMaxAttempts).Delete(&QueueItem{}).Error
 }
 
 func (d *Database) ResetQueueItem(ctx context.Context, id string) error {
@@ -178,7 +178,7 @@ func (d *Database) ResetQueueItem(ctx context.Context, id string) error {
 }
 
 func (d *Database) ResetFailedQueueItems(ctx context.Context) error {
-	return d.db.WithContext(ctx).Where("attempts >= ?", 3).
+	return d.db.WithContext(ctx).Where("attempts >= ?", queueMaxAttempts).
 		Select("Attempts", "LastAttempt", "FailedReason").Updates(&QueueItem{}).Error
 }
 
