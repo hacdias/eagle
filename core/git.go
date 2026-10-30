@@ -171,7 +171,7 @@ func (g *git) fileContent(filename, commit string) (string, error) {
 }
 
 func (g *git) changedFiles(since string) ([]ModifiedFile, error) {
-	cmd := exec.Command("git", "show", "--name-only", "--format=tformat:", since+"...HEAD")
+	cmd := exec.Command("git", "diff", "--name-only", since, "HEAD")
 	cmd.Dir = g.dir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
