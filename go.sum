@@ -516,8 +516,8 @@ go.etcd.io/etcd/api/v3 v3.5.4/go.mod h1:5GB2vv4A4AOn3yk7MftYGHkUfGtDHnEraIjym4dY
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v2 v2.305.4/go.mod h1:Ud+VUwIi9/uQHOMA+4ekToJ12lTxlv0zB/+DHwTGEbU=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
-go.hacdias.com/indielib v0.6.1-0.20261030163020-3dfe68177fcc h1:cxJ20C1Y2IE1hGDMwoEnsRcUmtKVOc1tIYtrIXbEgQU=
-go.hacdias.com/indielib v0.6.1-0.20261030163020-3dfe68177fcc/go.mod h1:lkDKPXSsKWJ8Q9gFcDOui+fS6MTUMGoVr8XmkQ/rbwY=
+go.hacdias.com/indielib v0.6.1 h1:E0cMJ1cvXINkxNQNAKfRMMRQ7gStqajQ/TbWND5An4s=
+go.hacdias.com/indielib v0.6.1/go.mod h1:lkDKPXSsKWJ8Q9gFcDOui+fS6MTUMGoVr8XmkQ/rbwY=
 go.hacdias.com/maze v0.7.0 h1:nE2J773e6J8MT9dWSqTrihs+tqqu6eTItFpsCsRZY28=
 go.hacdias.com/maze v0.7.0/go.mod h1:zBYWOx78tOPsatIMoSUJHD1mxvnHdlv7WGp/pjck+fo=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

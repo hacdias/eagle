@@ -27,7 +27,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/uber/h3-go/v4 v4.5.0
 	github.com/yuin/goldmark/v2 v2.1.11
-	go.hacdias.com/indielib v0.6.1-0.20261030163020-3dfe68177fcc
+	go.hacdias.com/indielib v0.6.1
 	go.hacdias.com/maze v0.7.0
 	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
