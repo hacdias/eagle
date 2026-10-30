@@ -143,6 +143,21 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 		return nil, fmt.Errorf("failed to decode image config: %w", err)
 	}
 
+	// Small images are uploaded as they are, with the extension of their format,
+	// and referenced by their full URL instead of "image:".
+	if len(data) < 100000 {
+		location, err := m.storage.UploadMedia(filename+"."+imageFormat, bytes.NewReader(data))
+		if err != nil {
+			return nil, err
+		}
+
+		return &core.Photo{
+			URL:    location,
+			Width:  config.Width,
+			Height: config.Height,
+		}, nil
+	}
+
 	// The original is stored as JPEG, so other formats must be converted.
 	var original io.Reader = bytes.NewReader(data)
 	if imageFormat != "jpeg" {
@@ -157,9 +172,9 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 		return nil, err
 	}
 
-	// All widths are uploaded, even for small images, as they are expected to
-	// exist. ImgProxy does not enlarge images by default: images narrower than
-	// the width are only re-encoded, keeping their size.
+	// All widths are uploaded, as they are expected to exist for "image:" URLs.
+	// ImgProxy does not enlarge images by default: images narrower than the
+	// width are only re-encoded, keeping their size.
 	for _, format := range formats {
 		for _, width := range widths {
 			reader, err := m.Transformer.Transform(bytes.NewReader(data), string(format), int(width), 80, 0)
