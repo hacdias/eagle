@@ -379,6 +379,10 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 			s.panelError(w, r, http.StatusInternalServerError, err)
 			return
 		}
+
+		// The entry has been saved with the changes from the pre-save hooks.
+		http.Redirect(w, r, r.URL.Path+"?success=true", http.StatusSeeOther)
+		return
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) && !errors.Is(err, core.ErrIgnoredEntry) {
 		s.panelError(w, r, http.StatusBadRequest, fmt.Errorf("error getting entry by filename: %w", err))
 		return
