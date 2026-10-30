@@ -359,7 +359,7 @@ func (s *Server) panelEditPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.Content = string(normalizeLineEndings([]byte(req.Content)))
+	req.Content = core.NormalizeNewlines(req.Content)
 
 	if oldEntry, err := s.core.GetEntryByFilename(filename); err == nil && oldEntry.IsPost() {
 		previousLinks, _ := s.core.GetEntryLinks(oldEntry, true)
@@ -818,14 +818,6 @@ func (s *Server) panelQueuePost(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.panelError(w, r, http.StatusBadRequest, errors.New("invalid action"))
 	}
-}
-
-func normalizeLineEndings(d []byte) []byte {
-	// replace CR LF \r\n (windows) with LF \n (unix)
-	d = bytes.ReplaceAll(d, []byte{13, 10}, []byte{10})
-	// replace CF \r (mac) with LF \n (unix)
-	d = bytes.ReplaceAll(d, []byte{13}, []byte{10})
-	return d
 }
 
 func parseMediaRequest(w http.ResponseWriter, r *http.Request) ([]byte, string, string, error) {
