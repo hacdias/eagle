@@ -175,9 +175,12 @@ func (g *git) changedFiles(since string) ([]ModifiedFile, error) {
 	// with non-ASCII characters.
 	cmd := exec.Command("git", "diff", "-z", "--name-only", since, "HEAD")
 	cmd.Dir = g.dir
-	out, err := cmd.CombinedOutput()
+	// Warnings are written to stderr, which must not be read as filenames.
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("git error (%w): %s", err, string(out))
+		return nil, fmt.Errorf("git error (%w): %s", err, stderr.String())
 	}
 
 	rawFiles := strings.Split(string(out), "\x00")
