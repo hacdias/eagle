@@ -102,13 +102,6 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) e
 		return nil
 	}
 
-	// Get the syndication context
-	syndicationContext, err := s.getEntrySyndicationContext(e)
-	if err != nil {
-		return fmt.Errorf("failed to get syndication context: %w", err)
-	}
-	syndicationContext.Status = status
-
 	// Include syndicators that have already been used for this post
 	for name, syndicator := range s.syndicators {
 		if syndicator.IsSyndicated(e) {
@@ -116,9 +109,20 @@ func (s *Server) syndicate(e *core.Entry, syndicators []string, status string) e
 		}
 	}
 
+	syndicators = lo.Uniq(syndicators)
+	if len(syndicators) == 0 {
+		return nil
+	}
+
+	// Get the syndication context
+	syndicationContext, err := s.getEntrySyndicationContext(e)
+	if err != nil {
+		return fmt.Errorf("failed to get syndication context: %w", err)
+	}
+	syndicationContext.Status = status
+
 	var errs error
 
-	syndicators = lo.Uniq(syndicators)
 	s.log.Infow("syndicating entry", "id", e.ID, "syndicators", syndicators)
 
 	// Do the actual syndication
