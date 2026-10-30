@@ -143,41 +143,26 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 		return nil, fmt.Errorf("failed to decode image config: %w", err)
 	}
 
-	if len(data) < 100000 {
-		var reader io.Reader
-		if filepath.Ext(filename) == ".jpeg" || filepath.Ext(filename) == ".jpg" {
-			reader = bytes.NewReader(data)
-		} else {
-			reader, err = m.Transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100, 0)
+	_, err = m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+
+	// All widths are uploaded, even for small images, as they are expected to
+	// exist. ImgProxy does not enlarge images by default: images narrower than
+	// the width are only re-encoded, keeping their size.
+	for _, format := range formats {
+		for _, width := range widths {
+			reader, err := m.Transformer.Transform(bytes.NewReader(data), string(format), int(width), 80, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
 			if err != nil {
 				return nil, err
 			}
 		}
-
-		_, err = m.storage.UploadMedia(filename+".jpeg", reader)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		_, err := m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
-		if err != nil {
-			return nil, err
-		}
-
-		for _, format := range formats {
-			for _, width := range widths {
-				reader, err := m.Transformer.Transform(bytes.NewReader(data), string(format), int(width), 80, 0)
-				if err != nil {
-					return nil, err
-				}
-
-				_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
-
 	}
 
 	return &core.Photo{
