@@ -150,7 +150,7 @@ func (s *Server) Start() error {
 	}
 
 	if s.c.Tor {
-		err = s.startTor(errCh, router)
+		err = s.startTor(router)
 		if err != nil {
 			s.log.Errorw("onion service failed to start", "err", err)
 		}
