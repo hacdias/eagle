@@ -159,20 +159,36 @@ func putRecord(ctx context.Context, client *atclient.APIClient, collection, reco
 
 func blueskyPostToPhotoBlobs(posts []*blueskyPost) []*photoBlob {
 	var photos []*photoBlob
+	add := func(blob *lexutil.LexBlob, alt string, aspectRatio *bsky.EmbedDefs_AspectRatio) {
+		photo := &photoBlob{
+			blob: blob,
+			alt:  alt,
+		}
+		if aspectRatio != nil {
+			photo.width = int(aspectRatio.Width)
+			photo.height = int(aspectRatio.Height)
+		}
+		photos = append(photos, photo)
+	}
+
 	for _, post := range posts {
-		if post.Embed == nil || post.Embed.EmbedImages == nil {
+		if post.Embed == nil {
 			continue
 		}
-		for _, img := range post.Embed.EmbedImages.Images {
-			photo := &photoBlob{
-				blob: img.Image,
-				alt:  img.Alt,
+
+		// Older posts embed images, newer posts embed a gallery.
+		if post.Embed.EmbedImages != nil {
+			for _, img := range post.Embed.EmbedImages.Images {
+				add(img.Image, img.Alt, img.AspectRatio)
 			}
-			if img.AspectRatio != nil {
-				photo.width = int(img.AspectRatio.Width)
-				photo.height = int(img.AspectRatio.Height)
+		}
+
+		if post.Embed.EmbedGallery != nil {
+			for _, item := range post.Embed.EmbedGallery.Items {
+				if img := item.EmbedGallery_Image; img != nil {
+					add(img.Image, img.Alt, img.AspectRatio)
+				}
 			}
-			photos = append(photos, photo)
 		}
 	}
 	return photos
