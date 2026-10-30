@@ -106,13 +106,9 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirect, err := urlpkg.Parse(req.RedirectURI)
-	if err != nil {
-		s.panelError(w, r, http.StatusBadRequest, err)
-		return
-	}
-
-	// The redirect URI may already have a query.
+	// The redirect URI has been validated by ParseAuthorization. It may already
+	// have a query.
+	redirect, _ := urlpkg.Parse(req.RedirectURI)
 	query := redirect.Query()
 	query.Set("code", code)
 	query.Set("state", req.State)
