@@ -27,8 +27,8 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/uber/h3-go/v4 v4.5.0
 	github.com/yuin/goldmark/v2 v2.1.11
-	go.hacdias.com/indielib v0.6.0
-	go.hacdias.com/maze v0.6.1
+	go.hacdias.com/indielib v0.6.1-0.20261030163020-3dfe68177fcc
+	go.hacdias.com/maze v0.7.0
 	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.6
 	golang.org/x/crypto v0.58.0
@@ -66,7 +66,6 @@ require (
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pandatix/go-abnf v0.5.3 // indirect
-	github.com/paulmach/go.geojson v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/prometheus/client_golang v1.25.0 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect

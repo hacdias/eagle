@@ -391,8 +391,6 @@ github.com/pandatix/go-abnf v0.5.3 h1:LA9AaxAqwzdxfDe7+HIGUB6tzx2N6wYVEAChmfsoPg
 github.com/pandatix/go-abnf v0.5.3/go.mod h1:AE0KD3/VNoCjGzc1gqetRKshbI4SYErXQ/8kPenR5mc=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
-github.com/paulmach/go.geojson v1.5.0 h1:7mhpMK89SQdHFcEGomT7/LuJhwhEgfmpWYVlVmLEdQw=
-github.com/paulmach/go.geojson v1.5.0/go.mod h1:DgdUy2rRVDDVgKqrjMe2vZAHMfhDTrjVKt3LmHIXGbU=
 github.com/pelletier/go-toml v1.9.5/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
 github.com/pelletier/go-toml/v2 v2.0.5/go.mod h1:OMHamSCAODeSsVrwwvcJOaoN0LIUIaFVNZzmWyNfXas=
 github.com/pelletier/go-toml/v2 v2.4.3 h1:GTRvJQutkOSftxIFD5xw9aepkYNuPWmVJpffdDPYVpY=
@@ -518,10 +516,10 @@ go.etcd.io/etcd/api/v3 v3.5.4/go.mod h1:5GB2vv4A4AOn3yk7MftYGHkUfGtDHnEraIjym4dY
 go.etcd.io/etcd/client/pkg/v3 v3.5.4/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v2 v2.305.4/go.mod h1:Ud+VUwIi9/uQHOMA+4ekToJ12lTxlv0zB/+DHwTGEbU=
 go.etcd.io/etcd/client/v3 v3.5.4/go.mod h1:ZaRkVgBZC+L+dLCjTcF1hRXpgZXQPOvnA/Ak/gq3kiY=
-go.hacdias.com/indielib v0.6.0 h1:syH9S7xse/iQj/P5A2Ctmlhf2aqyixWdUAv51cGZ/Ro=
-go.hacdias.com/indielib v0.6.0/go.mod h1:8yjWQwIjZJXgwne4DKzN+mcCD23izUzUjU1vmAwl3dw=
-go.hacdias.com/maze v0.6.1 h1:oASBgSKixQTMbKUKJibLh4Y3jZXRzbSBghjOKksiJWM=
-go.hacdias.com/maze v0.6.1/go.mod h1:i0ZW/ghxE7ppRaRV4DZIwa80H1lTK66xRmM5RVR7iXE=
+go.hacdias.com/indielib v0.6.1-0.20261030163020-3dfe68177fcc h1:cxJ20C1Y2IE1hGDMwoEnsRcUmtKVOc1tIYtrIXbEgQU=
+go.hacdias.com/indielib v0.6.1-0.20261030163020-3dfe68177fcc/go.mod h1:lkDKPXSsKWJ8Q9gFcDOui+fS6MTUMGoVr8XmkQ/rbwY=
+go.hacdias.com/maze v0.7.0 h1:nE2J773e6J8MT9dWSqTrihs+tqqu6eTItFpsCsRZY28=
+go.hacdias.com/maze v0.7.0/go.mod h1:zBYWOx78tOPsatIMoSUJHD1mxvnHdlv7WGp/pjck+fo=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
