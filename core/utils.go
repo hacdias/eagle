@@ -29,7 +29,7 @@ func splitID(id string) []string {
 var htmlRemover = bluemonday.StrictPolicy()
 
 func makePlainText(text string) string {
-	text = normalizeNewlines(text)
+	text = NormalizeNewlines(text)
 	text = htmlRemover.Sanitize(text)
 	text = stripMarkdown(text)
 	text = strings.Join(strings.Fields(text), " ")
@@ -38,7 +38,7 @@ func makePlainText(text string) string {
 	return text
 }
 
-func normalizeNewlines(d string) string {
+func NormalizeNewlines(d string) string {
 	// replace CR LF \r\n (windows) with LF \n (unix)
 	d = strings.ReplaceAll(d, "\r\n", "\n")
 	// replace CF \r (mac) with LF \n (unix)

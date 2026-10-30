@@ -103,7 +103,7 @@ func (e *Entry) String() (string, error) {
 
 	text := fmt.Sprintf("---\n%s---\n\n%s\n", fm, strings.TrimSpace(e.Content))
 	text = strings.TrimSpace(text) + "\n"
-	return normalizeNewlines(text), nil
+	return NormalizeNewlines(text), nil
 }
 
 func (e *Entry) TextContent() string {
