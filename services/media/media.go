@@ -138,12 +138,21 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 		return nil, errors.New("transformer not implemented")
 	}
 
-	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	config, imageFormat, err := image.DecodeConfig(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode image config: %w", err)
 	}
 
-	_, err = m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(data))
+	// The original is stored as JPEG, so other formats must be converted.
+	var original io.Reader = bytes.NewReader(data)
+	if imageFormat != "jpeg" {
+		original, err = m.Transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100, 0)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = m.storage.UploadMedia(filename+".jpeg", original)
 	if err != nil {
 		return nil, err
 	}
