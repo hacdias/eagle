@@ -106,12 +106,20 @@ func (s *Server) authAcceptPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := urlpkg.Values{}
+	redirect, err := urlpkg.Parse(req.RedirectURI)
+	if err != nil {
+		s.panelError(w, r, http.StatusBadRequest, err)
+		return
+	}
+
+	// The redirect URI may already have a query.
+	query := redirect.Query()
 	query.Set("code", code)
 	query.Set("state", req.State)
 	query.Set("iss", s.c.ID())
+	redirect.RawQuery = query.Encode()
 
-	http.Redirect(w, r, req.RedirectURI+"?"+query.Encode(), http.StatusFound)
+	http.Redirect(w, r, redirect.String(), http.StatusFound)
 }
 
 type tokenResponse struct {
