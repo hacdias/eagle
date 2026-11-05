@@ -351,7 +351,7 @@ func TestQueueRun_ProcessesOnNotify(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	processed := make(chan struct{})
+	processed := make(chan struct{}, 1)
 	q.Register("test", func(_ context.Context, _ []byte) error {
 		select {
 		case processed <- struct{}{}:
@@ -381,7 +381,7 @@ func TestQueueRun_ProcessesExistingItemsOnStart(t *testing.T) {
 	// Enqueue before Run starts (no notify will be sent on startup).
 	require.NoError(t, q.Enqueue(context.Background(), "test", "hello"))
 
-	processed := make(chan struct{})
+	processed := make(chan struct{}, 1)
 	q.Register("test", func(_ context.Context, _ []byte) error {
 		select {
 		case processed <- struct{}{}:
