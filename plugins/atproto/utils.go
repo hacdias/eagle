@@ -3,7 +3,7 @@ package atproto
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"math/rand/v2"
 	"reflect"
 

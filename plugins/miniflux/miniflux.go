@@ -1,7 +1,8 @@
 package miniflux
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"net/http"
 	"os"
@@ -90,7 +91,7 @@ func (u *Miniflux) Action() error {
 		return nil
 	}
 
-	feedsData, err := json.MarshalIndent(newFeeds, "", "  ")
+	feedsData, err := json.Marshal(newFeeds, jsontext.WithIndent("  "), json.Deterministic(true))
 	if err != nil {
 		return err
 	}

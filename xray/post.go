@@ -15,5 +15,5 @@ type Post struct {
 	Date        time.Time         `json:"date,omitempty"`
 	URL         string            `json:"url,omitempty"`
 	Type        microformats.Type `json:"type,omitempty"`
-	Private     bool              `json:"private,omitempty"`
+	Private     bool              `json:"private,omitzero"`
 }

@@ -2,7 +2,7 @@ package server
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"strings"
@@ -122,7 +122,7 @@ func (s *Server) panelTemplate(w http.ResponseWriter, r *http.Request, code int,
 func (s *Server) serveJSON(w http.ResponseWriter, code int, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)
-	err := json.NewEncoder(w).Encode(data)
+	err := json.MarshalWrite(w, data)
 	if err != nil {
 		s.log.Errorw("failed to write JSON", "err", err)
 	}

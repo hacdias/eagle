@@ -28,7 +28,7 @@ func (m *Mention) IsInteraction() bool {
 }
 
 type Sidecar struct {
-	Context      *xray.Post `json:"context,omitempty"`
+	Context      *xray.Post `json:"context,omitzero"`
 	Replies      []*Mention `json:"replies,omitempty"`
 	Interactions []*Mention `json:"interactions,omitempty"`
 }

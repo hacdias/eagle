@@ -2,7 +2,7 @@ package webarchive
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
@@ -125,7 +125,7 @@ func (wa *WebArchive) save(ctx context.Context, link string) error {
 	}()
 
 	var data saveResponse
-	err = json.NewDecoder(res.Body).Decode(&data)
+	err = json.UnmarshalRead(res.Body, &data)
 	if err != nil {
 		return fmt.Errorf("failed to decode response (status %d): %w", res.StatusCode, err)
 	}

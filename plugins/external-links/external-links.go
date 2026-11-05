@@ -1,7 +1,7 @@
 package externallinks
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"net/http"
 
 	"go.hacdias.com/eagle/core"

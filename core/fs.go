@@ -1,7 +1,8 @@
 package core
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"net/http"
 	"os"
@@ -80,7 +81,7 @@ func (co *Core) Stat(filename string) (os.FileInfo, error) {
 }
 
 func (co *Core) WriteJSON(filename string, data any, message string) error {
-	json, err := json.MarshalIndent(data, "", "  ")
+	json, err := json.Marshal(data, jsontext.WithIndent("  "), json.Deterministic(true))
 	if err != nil {
 		return err
 	}

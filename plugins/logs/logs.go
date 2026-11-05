@@ -2,7 +2,8 @@ package logs
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"path"
 	"slices"
@@ -63,7 +64,7 @@ func compareLogs[T logEntry](a, b T) int {
 type MovieLogEntry struct {
 	Name     string    `json:"name"`
 	Date     time.Time `json:"date,omitzero"`
-	Rating   int       `json:"rating,omitempty"`
+	Rating   int       `json:"rating,omitzero"`
 	Location string    `json:"location,omitempty"`
 	Room     string    `json:"room,omitempty"`
 	Row      string    `json:"row,omitempty"`
@@ -91,9 +92,9 @@ func (p PerformanceLogEntry) date() time.Time {
 type ReadingLogEntry struct {
 	Name      string    `json:"name"`
 	Author    string    `json:"author"`
-	Rating    int       `json:"rating,omitempty"`
+	Rating    int       `json:"rating,omitzero"`
 	Publisher string    `json:"publisher,omitempty"`
-	Pages     int       `json:"pages,omitempty"`
+	Pages     int       `json:"pages,omitzero"`
 	Date      time.Time `json:"date,omitzero"`
 	UID       string    `json:"uid"`
 }
@@ -104,9 +105,9 @@ func (r ReadingLogEntry) date() time.Time {
 
 type ShowLogEntry struct {
 	Name   string    `json:"name"`
-	Season int       `json:"season,omitempty"`
+	Season int       `json:"season,omitzero"`
 	Date   time.Time `json:"date,omitzero"`
-	Rating int       `json:"rating,omitempty"`
+	Rating int       `json:"rating,omitzero"`
 }
 
 func (s ShowLogEntry) date() time.Time {
@@ -183,9 +184,7 @@ func marshalLogs[T logEntry](logs []T) ([]byte, error) {
 	slices.SortStableFunc(logs, compareLogs[T])
 
 	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "  ")
-	err := enc.Encode(logs)
+	enc := jsontext.NewEncoder(&buf, jsontext.WithIndent("  "))
+	err := json.MarshalEncode(enc, logs)
 	return buf.Bytes(), err
 }

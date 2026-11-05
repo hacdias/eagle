@@ -125,8 +125,8 @@ type tokenResponse struct {
 	RefreshToken string     `json:"refresh_token,omitempty"`
 	TokenType    string     `json:"token_type,omitempty"`
 	Scope        string     `json:"scope,omitempty"`
-	Profile      *tokenUser `json:"profile,omitempty"`
-	ExpiresIn    int64      `json:"expires_in,omitempty"`
+	Profile      *tokenUser `json:"profile,omitzero"`
+	ExpiresIn    int64      `json:"expires_in,omitzero"`
 }
 
 type tokenUser struct {

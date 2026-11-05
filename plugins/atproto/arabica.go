@@ -2,7 +2,8 @@ package atproto
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
 	"os"
 	"reflect"
@@ -28,7 +29,7 @@ type coffeeBag struct {
 	Variety   string        `json:"variety,omitempty"`
 	Elevation string        `json:"elevation,omitempty"`
 	Roaster   coffeeRoaster `json:"roaster"`
-	Rating    int           `json:"rating,omitempty"`
+	Rating    int           `json:"rating,omitzero"`
 	Date      string        `json:"date,omitempty"`
 }
 
@@ -172,7 +173,7 @@ func (at *ATProto) UpdateCoffee(ctx context.Context) error {
 		return nil
 	}
 
-	coffeeBagsBytes, err := json.MarshalIndent(coffeeBags, "", "  ")
+	coffeeBagsBytes, err := json.Marshal(coffeeBags, jsontext.WithIndent("  "))
 	if err != nil {
 		return err
 	}

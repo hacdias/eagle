@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"crypto/subtle"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
@@ -105,7 +105,7 @@ type webmentionPayload struct {
 func (s *Server) webmentionPost(w http.ResponseWriter, r *http.Request) {
 	payload := &webmentionPayload{}
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	err := json.UnmarshalRead(r.Body, &payload)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		s.log.Errorw("error decoding webmention", "err", err)
