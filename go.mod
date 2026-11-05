@@ -9,7 +9,7 @@ require (
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.16
 	github.com/go-chi/chi/v5 v5.5.0
-	github.com/go-playground/form/v4 v4.5.0
+	github.com/go-playground/form/v4 v4.5.1
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/jsonschema-go v0.4.3
 	github.com/google/uuid v1.6.0
@@ -26,16 +26,16 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
 	github.com/uber/h3-go/v4 v4.5.0
-	github.com/yuin/goldmark/v2 v2.1.12
+	github.com/yuin/goldmark/v2 v2.1.15
 	go.hacdias.com/indielib v0.6.1
 	go.hacdias.com/maze v0.7.0
 	go.uber.org/zap v1.28.0
-	go.yaml.in/yaml/v4 v4.0.0-rc.6
+	go.yaml.in/yaml/v4 v4.0.0
 	golang.org/x/crypto v0.58.0
 	gopkg.in/telebot.v3 v3.3.8
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
-	miniflux.app/v2 v2.3.4
+	miniflux.app/v2 v2.3.5
 	willnorris.com/go/webmention v0.0.0-20250531043116-33a44c5fb605
 )
 
@@ -65,11 +65,11 @@ require (
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/pandatix/go-abnf v0.5.3 // indirect
+	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/prometheus/client_golang v1.25.0 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
-	github.com/prometheus/common v0.73.0 // indirect
+	github.com/prometheus/common v0.73.1 // indirect
 	github.com/prometheus/procfs v0.23.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
