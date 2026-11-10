@@ -148,7 +148,13 @@
           <pre>- url: "{{ .URL }}"{{ with .Title }}
   title: {{ . }}{{ end }}{{ if .Width }}
   width: {{ .Width }}
-  height: {{ .Height }}{{end }}</pre>
+  height: {{ .Height }}{{end }}{{ with .Camera }}
+  camera: {{ . }}{{ end }}{{ with .Lens }}
+  lens: {{ . }}{{ end }}{{ with .FocalLength }}
+  focalLength: {{ . }}{{ end }}{{ with .Aperture }}
+  aperture: {{ . }}{{ end }}{{ with .ShutterSpeed }}
+  shutterSpeed: {{ . }}{{ end }}{{ with .ISO }}
+  iso: {{ . }}{{ end }}</pre>
           <button type='button' class='btn-secondary' data-copy hidden>Copy</button>
         </div>
       </div>

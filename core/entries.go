@@ -33,6 +33,14 @@ type Photo struct {
 	Alt    string `yaml:"alt,omitempty"`
 	Width  int    `yaml:"width,omitempty"`
 	Height int    `yaml:"height,omitempty"`
+
+	// Camera details, read on upload, as metadata is removed from the files.
+	Camera       string  `yaml:"camera,omitempty"`
+	Lens         string  `yaml:"lens,omitempty"`
+	FocalLength  float64 `yaml:"focalLength,omitempty"`  // In millimetres.
+	Aperture     float64 `yaml:"aperture,omitempty"`     // As an f-number.
+	ShutterSpeed string  `yaml:"shutterSpeed,omitempty"` // In seconds, such as "1/320".
+	ISO          int     `yaml:"iso,omitempty"`
 }
 
 type FrontMatter struct {

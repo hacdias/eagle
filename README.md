@@ -16,6 +16,8 @@ Or:
 docker pull ghcr.io/hacdias/eagle:latest
 ```
 
+Image uploads need `vips` on the `PATH`. The Docker image includes it.
+
 ## Features
 
 - Single user system.
@@ -28,7 +30,7 @@ docker pull ghcr.io/hacdias/eagle:latest
 - WebFinger and `/.well-known/avatar` endpoints.
 - Notifications (e.g. from Webmentions) via custom Telegram bot.
 - Media storage on [Bunny CDN](https://bunny.net).
-- Media resizing and compression via [ImgProxy](https://imgproxy.net/).
+- Media resizing, compression and metadata removal via [libvips](https://www.libvips.org/).
 - Serve the website as a TOR onion service.
 - [MeiliSearch](https://www.meilisearch.com/) integration for website search.
 - [POSSE](https://indieweb.org/POSSE) to Mastodon, Bluesky and IndieNews.

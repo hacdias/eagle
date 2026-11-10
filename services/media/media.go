@@ -4,10 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,17 +15,11 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/samber/lo"
 	"go.hacdias.com/eagle/core"
-	"go.hacdias.com/eagle/log"
-	"go.uber.org/zap"
 )
 
 type Storage interface {
 	BaseURL() string
 	UploadMedia(filename string, data io.Reader) (string, error)
-}
-
-type Transformer interface {
-	Transform(reader io.Reader, format string, width, quality, maxBytes int) (io.Reader, error)
 }
 
 type Format string
@@ -57,18 +47,13 @@ var widths = []Width{
 }
 
 type Media struct {
-	log        *zap.SugaredLogger
 	httpClient *http.Client
 
-	storage     Storage
-	Transformer Transformer
+	storage Storage
 }
 
 func NewMedia(conf *core.Media) *Media {
-	var (
-		storage     Storage
-		transformer Transformer
-	)
+	var storage Storage
 
 	if conf.Storage.FileSystem != nil {
 		storage = NewFileSystem(conf.Storage.FileSystem)
@@ -76,15 +61,9 @@ func NewMedia(conf *core.Media) *Media {
 		storage = NewBunny(conf.Storage.Bunny)
 	}
 
-	if conf.Transformer.ImgProxy != nil {
-		transformer = NewImgProxy(conf.Transformer.ImgProxy)
-	}
-
 	m := &Media{
-		log:         log.S().Named("media"),
-		httpClient:  &http.Client{Timeout: 2 * time.Minute},
-		storage:     storage,
-		Transformer: transformer,
+		httpClient: &http.Client{Timeout: 2 * time.Minute},
+		storage:    storage,
 	}
 
 	return m
@@ -105,12 +84,9 @@ func (m *Media) upload(filename, ext string, data []byte) (string, *core.Photo, 
 	}
 
 	if isImage(ext) {
+		// Images are never uploaded as they are, as that would publish their metadata.
 		p, err := m.uploadImage(filename, data)
-		if err != nil {
-			m.log.Errorw("failed to upload image", "filename", filename, "ext", ext, "err", err)
-		} else {
-			return "", p, nil
-		}
+		return "", p, err
 	}
 
 	// Consistency
@@ -134,66 +110,65 @@ func isImage(ext string) bool {
 }
 
 func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
-	if m.Transformer == nil {
-		return nil, errors.New("transformer not implemented")
-	}
-
-	config, imageFormat, err := image.DecodeConfig(bytes.NewReader(data))
+	// The photo details are read first, as transforming removes all metadata.
+	format, photo, err := probe(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode image config: %w", err)
+		return nil, fmt.Errorf("failed to read image: %w", err)
 	}
 
-	// Small images are uploaded as they are, with the extension of their format,
-	// and referenced by their full URL instead of "image:".
+	// Small images keep their format, and are referenced by their full URL
+	// instead of "image:".
 	if len(data) < 100000 {
-		location, err := m.storage.UploadMedia(filename+"."+imageFormat, bytes.NewReader(data))
+		// Lowering the quality cannot make lossless PNG smaller.
+		maxBytes := len(data)
+		if format == "png" {
+			maxBytes = 0
+		}
+
+		data, err = transform(data, format, 0, 92, maxBytes)
 		if err != nil {
 			return nil, err
 		}
 
-		return &core.Photo{
-			URL:    location,
-			Width:  config.Width,
-			Height: config.Height,
-		}, nil
-	}
-
-	// The original is stored as JPEG, so other formats must be converted.
-	var original io.Reader = bytes.NewReader(data)
-	if imageFormat != "jpeg" {
-		original, err = m.Transformer.Transform(bytes.NewReader(data), "jpeg", config.Width, 100, 0)
+		photo.URL, err = m.storage.UploadMedia(filename+"."+format, bytes.NewReader(data))
 		if err != nil {
 			return nil, err
 		}
+
+		return photo, nil
 	}
 
-	_, err = m.storage.UploadMedia(filename+".jpeg", original)
+	// The original is stored as JPEG, keeping its size and colour profile, and
+	// is never larger than the upload.
+	original, err := transform(data, "jpeg", 0, 92, len(data))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = m.storage.UploadMedia(filename+".jpeg", bytes.NewReader(original))
 	if err != nil {
 		return nil, err
 	}
 
 	// All widths are uploaded, as they are expected to exist for "image:" URLs.
-	// ImgProxy does not enlarge images by default: images narrower than the
-	// width are only re-encoded, keeping their size.
+	// Images are not enlarged: images narrower than the width are only
+	// re-encoded, keeping their size.
 	for _, format := range formats {
 		for _, width := range widths {
-			reader, err := m.Transformer.Transform(bytes.NewReader(data), string(format), int(width), 80, 0)
+			variant, err := transform(data, string(format), int(width), 80, 0)
 			if err != nil {
 				return nil, err
 			}
 
-			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), reader)
+			_, err = m.storage.UploadMedia(filepath.Join("image", strconv.Itoa(int(width)), filename+"."+string(format)), bytes.NewReader(variant))
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	return &core.Photo{
-		URL:    "image:" + filename,
-		Width:  config.Width,
-		Height: config.Height,
-	}, nil
+	photo.URL = "image:" + filename
+	return photo, nil
 }
 
 func (m *Media) GetImageURL(urlStr string, format Format, width Width) (string, error) {
@@ -235,12 +210,7 @@ func (m *Media) GetImage(url string) ([]byte, string, error) {
 	}
 
 	if len(data) > 1000000 {
-		reader, err := m.Transformer.Transform(bytes.NewReader(data), "jpeg", 1800, 80, 1000000)
-		if err != nil {
-			return nil, "", err
-		}
-
-		data, err = io.ReadAll(reader)
+		data, err = transform(data, "jpeg", 1800, 80, 1000000)
 		if err != nil {
 			return nil, "", err
 		}

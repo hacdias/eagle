@@ -60,14 +60,6 @@ media:
       key: someBunnySecret
       base: someBunnyBase
 
-  transformer:
-    # ImgProxy (https://imgproxy.net/) integration for image resizing.
-    imgproxy:
-      # Temporary directory shared between Eagle and ImgProxy
-      directory:
-      # ImgProxy endpoint
-      endpoint:
-
 # Optional Meilisearch (https://www.meilisearch.com/) endpoint for search.
 meilisearch:
   endpoint: myUrl
