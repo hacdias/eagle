@@ -28,11 +28,11 @@ COPY --from=build /hugo/hugo /bin/hugo
 ENV UID=501
 
 RUN apk update && \
-  apk add --no-cache git ca-certificates openssh tor tzdata mailcap && \
+  apk add --no-cache git ca-certificates openssh tor tzdata mailcap vips-tools && \
   addgroup -g $UID eagle && \
   adduser -D -h /app -u 1000 -G users eagle && \
-  mkdir -p /app/source /app/public /app/data /imgproxy && \
-  chown -R eagle /app /imgproxy
+  mkdir -p /app/source /app/public /app/data && \
+  chown -R eagle /app
 
 USER eagle
 
@@ -44,7 +44,6 @@ WORKDIR /app
 VOLUME /app/source
 VOLUME /app/public
 VOLUME /app/data
-VOLUME /imgproxy
 
 EXPOSE 8080
 

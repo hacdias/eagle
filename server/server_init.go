@@ -16,7 +16,7 @@ import (
 
 func (s *Server) initMediaCache() error {
 	cache, err := otter.New(&otter.Options[string, []byte]{
-		MaximumWeight:    2e8, // 200 MB
+		MaximumWeight:    5e8, // 500 MB
 		ExpiryCalculator: otter.ExpiryWriting[string, []byte](time.Hour),
 		Weigher: func(key string, value []byte) uint32 {
 			return uint32(len(value))

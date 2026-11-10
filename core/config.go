@@ -188,19 +188,10 @@ type Bunny struct {
 	Base string
 }
 
-type ImgProxy struct {
-	Directory string
-	Endpoint  string
-}
-
 type Media struct {
 	Storage struct {
 		Bunny      *Bunny
 		FileSystem *FileSystem
-	}
-
-	Transformer struct {
-		ImgProxy *ImgProxy
 	}
 }
 
@@ -211,10 +202,6 @@ func (m *Media) validate() error {
 
 	if m.Storage.Bunny == nil && m.Storage.FileSystem == nil {
 		return errors.New("config: Media.Storage must have one of Bunny or FileSystem")
-	}
-
-	if m.Transformer.ImgProxy == nil {
-		return errors.New("config: Media.Transformer.ImgProxy is required")
 	}
 
 	return nil

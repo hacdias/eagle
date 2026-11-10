@@ -542,9 +542,9 @@ func (s *Server) updateEntryWithPhotos(e *core.Entry) error {
 			}
 
 			if photo != nil {
-				e.Photos[i].URL = photo.URL
-				e.Photos[i].Width = photo.Width
-				e.Photos[i].Height = photo.Height
+				photo.Title = e.Photos[i].Title
+				photo.Alt = e.Photos[i].Alt
+				e.Photos[i] = *photo
 			} else {
 				e.Photos[i].URL = location
 			}
@@ -821,7 +821,7 @@ func (s *Server) panelQueuePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseMediaRequest(w http.ResponseWriter, r *http.Request) ([]byte, string, string, error) {
-	r.Body = http.MaxBytesReader(w, r.Body, 20<<20)
+	r.Body = http.MaxBytesReader(w, r.Body, 50<<20)
 
 	err := r.ParseMultipartForm(20 << 20)
 	if err != nil {
