@@ -40,10 +40,11 @@ const (
 	Width600  Width = 600
 	Width900  Width = 900
 	Width1800 Width = 1800
+	Width3000 Width = 3000
 )
 
 var widths = []Width{
-	Width600, Width900, Width1800,
+	Width600, Width900, Width1800, Width3000,
 }
 
 type Media struct {
@@ -119,13 +120,7 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 	// Small images keep their format, and are referenced by their full URL
 	// instead of "image:".
 	if len(data) < 100000 {
-		// Lowering the quality cannot make lossless PNG smaller.
-		maxBytes := len(data)
-		if format == "png" {
-			maxBytes = 0
-		}
-
-		data, err = transform(data, format, 0, 92, maxBytes)
+		data, err = transform(data, format, 0, 92, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -138,9 +133,9 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 		return photo, nil
 	}
 
-	// The original is stored as JPEG, keeping its size and colour profile, and
-	// is never larger than the upload.
-	original, err := transform(data, "jpeg", 0, 92, len(data))
+	// The original is stored as JPEG, keeping its size and colour profile. It
+	// can be larger than an upload that was already heavily compressed.
+	original, err := transform(data, "jpeg", 0, 92, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -152,10 +147,10 @@ func (m *Media) uploadImage(filename string, data []byte) (*core.Photo, error) {
 
 	// All widths are uploaded, as they are expected to exist for "image:" URLs.
 	// Images are not enlarged: images narrower than the width are only
-	// re-encoded, keeping their size.
+	// re-encoded, keeping their size, and never larger than the original.
 	for _, format := range formats {
 		for _, width := range widths {
-			variant, err := transform(data, string(format), int(width), 80, 0)
+			variant, err := transform(data, string(format), int(width), 80, len(original))
 			if err != nil {
 				return nil, err
 			}

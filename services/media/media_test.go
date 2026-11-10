@@ -71,16 +71,25 @@ func TestUploadImage(t *testing.T) {
 		}
 
 		assertNoMetadata(t, tc.name, stored)
-		if ext != ".png" && len(stored) > len(tc.data) {
-			t.Errorf("%s: stored %d bytes, more than the %d uploaded", tc.name, len(stored), len(tc.data))
-		}
 	}
 
-	for _, format := range formats {
-		for _, width := range widths {
-			_, err := os.Stat(filepath.Join(dir, "image", strconv.Itoa(int(width)), "photo."+string(format)))
-			if err != nil {
-				t.Error(err)
+	// The low quality JPEG is 800 pixels wide, so most of its resized versions
+	// keep its size, and could otherwise be larger than the original.
+	for _, id := range []string{"photo", "low"} {
+		original, err := os.Stat(filepath.Join(dir, id+".jpeg"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for _, format := range formats {
+			for _, width := range widths {
+				name := filepath.Join("image", strconv.Itoa(int(width)), id+"."+string(format))
+				variant, err := os.Stat(filepath.Join(dir, name))
+				if err != nil {
+					t.Error(err)
+				} else if variant.Size() > original.Size() {
+					t.Errorf("%s: %d bytes, more than the %d of the original", name, variant.Size(), original.Size())
+				}
 			}
 		}
 	}
