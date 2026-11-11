@@ -3,6 +3,7 @@ package media
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/bep/imagemeta"
@@ -54,13 +55,15 @@ func probe(data []byte) (string, *core.Photo, error) {
 			case "ISO":
 				iso, _ := tag.Value.(uint16)
 				photo.ISO = int(iso)
+			// Rounded, as some apps, such as Photos, write fractions such as
+			// 1244236/699009 for f/1.78.
 			case "FocalLength":
 				if rat != nil {
-					photo.FocalLength = rat.Float64()
+					photo.FocalLength = math.Round(rat.Float64()*100) / 100
 				}
 			case "FNumber":
 				if rat != nil {
-					photo.Aperture = rat.Float64()
+					photo.Aperture = math.Round(rat.Float64()*100) / 100
 				}
 			case "ExposureTime":
 				if rat != nil {
