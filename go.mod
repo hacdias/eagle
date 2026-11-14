@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/bep/imagemeta v1.1.1
-	github.com/bluesky-social/indigo v0.0.0-20261106080107-a20146f0f81d
+	github.com/bluesky-social/indigo v0.0.0-20261114031735-2569a5653710
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.16
 	github.com/go-chi/chi/v5 v5.5.0
