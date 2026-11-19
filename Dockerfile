@@ -1,13 +1,13 @@
 FROM golang:1.27-alpine3.24 AS build
 
-ENV HUGO_VERSION=v0.169.0
+ENV HUGO_VERSION=v0.170.1
 RUN apk update && \
     apk add --no-cache git gcc g++ musl-dev && \
     go install github.com/magefile/mage@latest
 
 WORKDIR /hugo
 RUN git clone --branch $HUGO_VERSION https://github.com/gohugoio/hugo.git . &&\
-  go build -v --tags extended
+  go build -v
 
 RUN mage hugo && mage install
 
