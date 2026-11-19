@@ -106,7 +106,7 @@ type SearchEntriesParams struct {
 }
 
 func (s *Server) mcpSearchEntries(ctx context.Context, req *mcp.CallToolRequest, params *SearchEntriesParams) (*mcp.CallToolResult, any, error) {
-	results, err := s.meilisearch.Search(params.Page, params.Limit, params.Query)
+	results, err := s.meilisearch.Search(ctx, params.Page, params.Limit, params.Query)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -133,7 +133,7 @@ type mcpTags struct {
 }
 
 func (s *Server) mcpGetTags(ctx context.Context, req *mcp.CallToolRequest, _ any) (*mcp.CallToolResult, *mcpTags, error) {
-	tags, err := s.meilisearch.Tags()
+	tags, err := s.meilisearch.Tags(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

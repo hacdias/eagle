@@ -1,10 +1,12 @@
 package meilisearch
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json/v2"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/meilisearch/meilisearch-go"
 	"go.hacdias.com/eagle/core"
@@ -39,7 +41,10 @@ type Meilisearch struct {
 func NewMeilisearch(host, key string, co *core.Core) (*Meilisearch, error) {
 	client := meilisearch.New(host, meilisearch.WithAPIKey(key))
 
-	indexes, err := client.ListIndexes(nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	indexes, err := client.ListIndexes(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +57,7 @@ func NewMeilisearch(host, key string, co *core.Core) (*Meilisearch, error) {
 	}
 
 	if !found {
-		_, err := client.CreateIndex(&meilisearch.IndexConfig{
+		_, err := client.CreateIndex(ctx, &meilisearch.IndexConfig{
 			Uid:        searchIndex,
 			PrimaryKey: searchKey,
 		})
@@ -62,18 +67,18 @@ func NewMeilisearch(host, key string, co *core.Core) (*Meilisearch, error) {
 		}
 	}
 
-	_, err = client.Index(searchIndex).UpdateSearchableAttributes(&searcheableAttributes)
+	_, err = client.Index(searchIndex).UpdateSearchableAttributes(ctx, &searcheableAttributes)
 	if err != nil {
 		return nil, err
 	}
 
 	// Tags must be filterable to be used as a facet.
-	_, err = client.Index(searchIndex).UpdateFilterableAttributes(&[]any{"tags"})
+	_, err = client.Index(searchIndex).UpdateFilterableAttributes(ctx, &[]any{"tags"})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = client.Index(searchIndex).UpdateFaceting(&meilisearch.Faceting{
+	_, err = client.Index(searchIndex).UpdateFaceting(ctx, &meilisearch.Faceting{
 		MaxValuesPerFacet: maxTags,
 	})
 	if err != nil {
@@ -87,7 +92,7 @@ func NewMeilisearch(host, key string, co *core.Core) (*Meilisearch, error) {
 }
 
 func (ms *Meilisearch) ResetIndex() error {
-	_, err := ms.client.Index(searchIndex).DeleteAllDocuments(nil)
+	_, err := ms.client.Index(searchIndex).DeleteAllDocuments(context.Background(), nil)
 	return err
 }
 
@@ -122,7 +127,7 @@ func (ms *Meilisearch) Add(ee ...*core.Entry) error {
 		}
 	}
 
-	_, err := ms.client.Index(searchIndex).UpdateDocuments(docs, nil)
+	_, err := ms.client.Index(searchIndex).UpdateDocuments(context.Background(), docs, nil)
 	return err
 }
 
@@ -132,13 +137,13 @@ func (ms *Meilisearch) Remove(ids ...string) error {
 		keys[i] = hex.EncodeToString([]byte(id))
 	}
 
-	_, err := ms.client.Index(searchIndex).DeleteDocuments(keys, nil)
+	_, err := ms.client.Index(searchIndex).DeleteDocuments(context.Background(), keys, nil)
 	return err
 }
 
 // Tags returns the number of indexed entries per tag.
-func (ms *Meilisearch) Tags() (map[string]int64, error) {
-	res, err := ms.client.Index(searchIndex).Search("", &meilisearch.SearchRequest{
+func (ms *Meilisearch) Tags(ctx context.Context) (map[string]int64, error) {
+	res, err := ms.client.Index(searchIndex).Search(ctx, "", &meilisearch.SearchRequest{
 		// Only the facet distribution is needed. A limit of 0 would be omitted.
 		Limit:                1,
 		AttributesToRetrieve: []string{searchKey},
@@ -160,7 +165,7 @@ func (ms *Meilisearch) Tags() (map[string]int64, error) {
 	return facets.Tags, nil
 }
 
-func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, error) {
+func (ms *Meilisearch) Search(ctx context.Context, page, limit int64, query string) (core.Entries, error) {
 	req := &meilisearch.SearchRequest{
 		CropLength: 200,
 		Limit:      limit,
@@ -170,7 +175,7 @@ func (ms *Meilisearch) Search(page, limit int64, query string) (core.Entries, er
 		req.Offset = page * limit
 	}
 
-	res, err := ms.client.Index(searchIndex).Search(query, req)
+	res, err := ms.client.Index(searchIndex).Search(ctx, query, req)
 
 	if err != nil {
 		return nil, err
