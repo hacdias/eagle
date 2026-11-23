@@ -26,7 +26,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
-	github.com/uber/h3-go/v4 v4.5.0
+	github.com/uber/h3-go/v4 v4.6.0
 	github.com/yuin/goldmark/v2 v2.1.16
 	go.hacdias.com/indielib v0.6.1
 	go.hacdias.com/maze v0.7.0
