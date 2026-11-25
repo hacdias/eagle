@@ -4,7 +4,7 @@ import (
 	"go.hacdias.com/eagle/core"
 	"go.hacdias.com/eagle/log"
 	"go.uber.org/zap"
-	tb "gopkg.in/telebot.v3"
+	tb "gopkg.in/telebot.v4"
 )
 
 type Telegram struct {
