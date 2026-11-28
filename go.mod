@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/PuerkitoBio/goquery v1.14.0
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
-	github.com/bep/imagemeta v1.1.2
+	github.com/bep/imagemeta v1.2.1
 	github.com/bluesky-social/indigo v0.0.0-20261125030134-6017e7ee0a79
 	github.com/cretz/bine v0.2.0
 	github.com/gabriel-vasile/mimetype v1.4.16
